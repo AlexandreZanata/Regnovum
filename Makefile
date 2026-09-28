@@ -88,6 +88,25 @@ quick-verify: fmt-check lint audit-complexity audit-deadcode audit-errors audit-
 	$(NPM) --prefix web run typecheck
 	@echo "quick-verify: ok"
 
+# Setor autônomo de qualidade (P30-T01): os cinco comandos canônicos,
+# compostos somente por gates reais já existentes. O conteúdo e a cadência
+# de cada camada vivem em quality/tiers.json, e o teste
+# internal/contract/quality_tiers_test.go prova que os targets espelham o
+# documento. Camadas não habilitadas só executam integralmente na P45; uma
+# execução rápida nunca substitui a certificação. Nenhum target engole
+# falha: só pré-requisitos e receitas que propagam exit não zero.
+quality-fast: fmt-check
+	$(GO) build ./...
+	@echo "quality-fast: ok"
+quality-main: quick-verify
+	@echo "quality-main: ok"
+quality-nightly: test-unit test-integration test-contract test-security
+	@echo "quality-nightly: ok"
+quality-weekly: quality-nightly test-race test-migration test-web audit-mutations audit-coverage
+	@echo "quality-weekly: ok"
+quality-certify: quality-weekly verify
+	@echo "quality-certify: ok"
+
 # test-unit executa os testes unitários das capacidades existentes (Go).
 # O frontend ainda não possui runner de testes; será agregado quando existir.
 #
