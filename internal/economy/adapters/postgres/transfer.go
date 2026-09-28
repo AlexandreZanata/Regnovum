@@ -43,6 +43,8 @@ func (r *Repository) Transfer(ctx context.Context, request application.TransferR
 	if err := lockCustodies(ctx, tx, fromID, toID); err != nil {
 		return nil, err
 	}
+	// The journal is the spendable balance: reservations move legs out
+	// of the owner at reserve time, so what remains here is free to go.
 	balance, err := custodyBalance(ctx, tx, fromID)
 	if err != nil {
 		return nil, err

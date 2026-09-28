@@ -22,6 +22,10 @@ const (
 	CodeInvalidStatement     ErrorCode = "ECONOMY_INVALID_STATEMENT"
 	CodeStatementForbidden   ErrorCode = "ECONOMY_STATEMENT_FORBIDDEN"
 	CodeStatementSuspended   ErrorCode = "ECONOMY_STATEMENT_SUSPENDED"
+	CodeInvalidHold          ErrorCode = "ECONOMY_INVALID_HOLD"
+	CodeHoldState            ErrorCode = "ECONOMY_HOLD_STATE"
+	CodeHoldNotFound         ErrorCode = "ECONOMY_HOLD_NOT_FOUND"
+	CodeHoldNotExpired       ErrorCode = "ECONOMY_HOLD_NOT_EXPIRED"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -106,5 +110,21 @@ var (
 	ErrStatementSuspended = DomainError{
 		Code:    CodeStatementSuspended,
 		Message: "owner account is not active: suspended holders read nothing",
+	}
+	ErrInvalidHold = DomainError{
+		Code:    CodeInvalidHold,
+		Message: "hold purpose, expiry or amount is missing, too long or carries control characters",
+	}
+	ErrHoldState = DomainError{
+		Code:    CodeHoldState,
+		Message: "hold is not in a state this settlement leaves from: settled holds never reopen",
+	}
+	ErrHoldNotFound = DomainError{
+		Code:    CodeHoldNotFound,
+		Message: "hold does not exist",
+	}
+	ErrHoldNotExpired = DomainError{
+		Code:    CodeHoldNotExpired,
+		Message: "hold deadline has not passed: expiry is observed, never anticipated",
 	}
 )

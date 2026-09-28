@@ -3306,6 +3306,160 @@
       ]
     },
     {
+      "name": "app.economy_holds",
+      "owner": "arena_owner",
+      "comment": "Generic value holds: owner funds locked in a dedicated hold custody until an explicit release or capture; expiry alone moves nothing",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "owner_custody_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Custody the funds were reserved from; its spendable balance excludes active and expired-unsettled holds"
+        },
+        {
+          "name": "hold_custody_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Dedicated escrow-kind custody holding the locked amount; one hold per custody"
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "purpose",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": "'active'::text",
+          "comment": "Closed machine: active settles to released, captured or expired; expired still settles to released or captured"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        },
+        {
+          "name": "closed_at",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": "",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_holds_amount_range_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_holds_closed_check",
+          "kind": "c",
+          "definition": "CHECK (status = 'active'::text AND closed_at IS NULL OR status \u003c\u003e 'active'::text AND closed_at IS NOT NULL)"
+        },
+        {
+          "name": "economy_holds_hold_custody_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (hold_custody_id) REFERENCES app.economy_custodies(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_holds_hold_custody_unique",
+          "kind": "u",
+          "definition": "UNIQUE (hold_custody_id)"
+        },
+        {
+          "name": "economy_holds_owner_custody_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (owner_custody_id) REFERENCES app.economy_custodies(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_holds_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "economy_holds_purpose_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM purpose) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_holds_status_check",
+          "kind": "c",
+          "definition": "CHECK (status = ANY (ARRAY['active'::text, 'released'::text, 'captured'::text, 'expired'::text]))"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_holds_hold_custody_unique",
+          "definition": "CREATE UNIQUE INDEX economy_holds_hold_custody_unique ON app.economy_holds USING btree (hold_custody_id)",
+          "valid": true
+        },
+        {
+          "name": "economy_holds_owner_idx",
+          "definition": "CREATE INDEX economy_holds_owner_idx ON app.economy_holds USING btree (owner_custody_id, status)",
+          "valid": true
+        },
+        {
+          "name": "economy_holds_pkey",
+          "definition": "CREATE UNIQUE INDEX economy_holds_pkey ON app.economy_holds USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT",
+            "UPDATE"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.economy_intentions",
       "owner": "arena_owner",
       "comment": "Exactly-once registry of monetary intentions: one triple, one payload hash, one settled transfer with its persisted response",
@@ -14235,6 +14389,384 @@
     {
       "table": "app.economy_genesis",
       "column": "treasury_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "closed_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "closed_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "closed_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "closed_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "closed_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "closed_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "closed_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "hold_custody_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "hold_custody_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "hold_custody_id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "hold_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "hold_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "hold_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "hold_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "owner_custody_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "owner_custody_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "owner_custody_id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "owner_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "owner_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "owner_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "owner_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "purpose",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "purpose",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "purpose",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "purpose",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "purpose",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "purpose",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "purpose",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "status",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "status",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "status",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "status",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
