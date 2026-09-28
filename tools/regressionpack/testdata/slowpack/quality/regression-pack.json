@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "generator": "tools/regressionpack",
+  "scope": "fast-PR",
+  "budget_seconds": 60,
+  "does_not_replace": [
+    "nightly",
+    "release"
+  ],
+  "full_suite": [
+    "test-unit"
+  ],
+  "rules": [
+    {
+      "rule": "QUAL-FIX-09",
+      "risk": "Q0",
+      "tests": [
+        "internal/contract/hostile_inputs_test.go::TestHostileSQLInjection"
+      ]
+    }
+  ],
+  "historical_defects": [
+    {
+      "id": "HIST-FIX-09",
+      "description": "Fixture defect.",
+      "fixed_in": "internal/contract/hostile_inputs_test.go",
+      "test": "internal/contract/hostile_inputs_test.go::TestHostileTargetMismatch"
+    }
+  ]
+}

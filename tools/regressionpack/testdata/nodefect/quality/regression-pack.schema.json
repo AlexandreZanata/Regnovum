@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "required": ["schema", "scope", "budget_seconds", "does_not_replace", "full_suite", "rules", "historical_defects"],
+  "properties": {
+    "schema": {"const": 1},
+    "scope": {"type": "string"},
+    "budget_seconds": {"type": "integer"},
+    "does_not_replace": {"type": "array"},
+    "full_suite": {"type": "array"},
+    "rules": {"type": "array"},
+    "historical_defects": {"type": "array"}
+  }
+}

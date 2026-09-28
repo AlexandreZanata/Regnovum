@@ -43,7 +43,7 @@ CONTRACTGEN := $(GO) run ./tools/contractgen
 IMAGE ?= goyim-arena:local
 TRIVY ?= trivy
 
-.PHONY: fmt fmt-check lint audit-complexity audit-deadcode audit-errors audit-provenance audit-tests audit-diff audit-deps audit-mutations audit-coverage test-unit test-integration test-race test-migration test-security dast flake-detect test-web typecheck build-web audit-web audit-i18n i18n-audit audit-ci quality-catalog quality-waivers quality-taxonomy quality-inventory quality-inventory-write testenv-verify release-gate security-audit privacy-audit release-verify handoff-check handoff-walkthrough test-contract test-e2e test-load-smoke image-build image-verify image-scan caddy-verify compose-verify migration-audit backup-verify deploy-verify vuln generate generate-check verify quick-verify
+.PHONY: fmt fmt-check lint audit-complexity audit-deadcode audit-errors audit-provenance audit-tests audit-diff audit-deps audit-mutations audit-coverage test-unit test-integration test-race test-migration test-security dast flake-detect regression-pack test-web typecheck build-web audit-web audit-i18n i18n-audit audit-ci quality-catalog quality-waivers quality-taxonomy quality-inventory quality-inventory-write testenv-verify release-gate security-audit privacy-audit release-verify handoff-check handoff-walkthrough test-contract test-e2e test-load-smoke image-build image-verify image-scan caddy-verify compose-verify migration-audit backup-verify deploy-verify vuln generate generate-check verify quick-verify
 
 # Gerador i18n (P02-T07): fontes em locales/, artefatos versionados em
 # web/src/i18n/generated.ts e internal/i18n/generated.go (nunca editados).
@@ -557,6 +557,19 @@ test-security:
 flake-detect:
 	$(GO) test -count=1 ./tools/flakedetect/
 	@echo "flake-detect: ok"
+
+# regression-pack é o pack rápido por módulo (P27-T10): 86 regras Q0/Q1 com
+# 142 testes em 39 pacotes, julgado pelo portão tools/regressionpack contra
+# quality/regression-pack.json (cobertura total, teste existe em pacote
+# rápido, sem skip ou retry de teste, defeitos históricos presos) e executado
+# uma vez por pacote com -count=1, sem repetição. Medido em 28s; budget de
+# 180s. É feedback de mudança local/PR e nunca substitui o completo
+# (test-unit, test-integration, test-race, test-contract, test-security,
+# test-e2e) do nightly/release — o portão recusa pack sem does_not_replace.
+regression-pack:
+	$(GO) test -count=1 ./tools/regressionpack/
+	$(GO) run ./tools/regressionpack -root . -exec
+	@echo "regression-pack: ok"
 
 # dast é o scanner DAST reproduzível do backend (P26-T10, ADR-018): motor em
 # stdlib com fixtures nas duas direções, waivers com dono e expiração, e

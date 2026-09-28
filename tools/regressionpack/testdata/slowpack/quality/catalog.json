@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "QUAL-FIX-09",
+      "risk": "Q0",
+      "modules": [
+        "internal/contract"
+      ]
+    }
+  ]
+}
