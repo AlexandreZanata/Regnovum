@@ -11,10 +11,13 @@
       "owner": ".github/workflows",
       "scope": "os três workflows",
       "files": [
+        ".github/workflows/nightly.yml",
         ".github/workflows/quick.yml",
+        ".github/workflows/release.yml",
         ".github/workflows/supply-chain.yml",
         ".github/workflows/toolchain.yml",
-        ".github/workflows/verify.yml"
+        ".github/workflows/verify.yml",
+        ".github/workflows/weekly.yml"
       ]
     },
     {
@@ -26,10 +29,13 @@
       "owner": ".github/workflows",
       "scope": "os três workflows",
       "files": [
+        ".github/workflows/nightly.yml",
         ".github/workflows/quick.yml",
+        ".github/workflows/release.yml",
         ".github/workflows/supply-chain.yml",
         ".github/workflows/toolchain.yml",
-        ".github/workflows/verify.yml"
+        ".github/workflows/verify.yml",
+        ".github/workflows/weekly.yml"
       ]
     },
     {
@@ -42,8 +48,10 @@
       "scope": "quick.yml e verify.yml",
       "files": [
         ".github/workflows/quick.yml",
+        ".github/workflows/release.yml",
         ".github/workflows/supply-chain.yml",
-        ".github/workflows/verify.yml"
+        ".github/workflows/verify.yml",
+        ".github/workflows/weekly.yml"
       ]
     },
     {
@@ -133,7 +141,10 @@
       "scope": "compose.yaml (desenvolvimento), compose.production.yaml (produção, por digest) e .github/workflows/verify.yml (serviço)",
       "digest": "sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636",
       "files": [
+        ".github/workflows/nightly.yml",
+        ".github/workflows/release.yml",
         ".github/workflows/verify.yml",
+        ".github/workflows/weekly.yml",
         "compose.production.yaml",
         "compose.yaml"
       ]
