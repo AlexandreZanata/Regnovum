@@ -17,6 +17,8 @@ const (
 	CodeUnknownCustody       ErrorCode = "ECONOMY_UNKNOWN_CUSTODY"
 	CodeUnauthorizedCustody  ErrorCode = "ECONOMY_UNAUTHORIZED_CUSTODY"
 	CodeSameCustody          ErrorCode = "ECONOMY_SAME_CUSTODY"
+	CodeInvalidIntention     ErrorCode = "ECONOMY_INVALID_INTENTION"
+	CodeIntentionConflict    ErrorCode = "ECONOMY_INTENTION_CONFLICT"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -81,5 +83,13 @@ var (
 	ErrSameCustody = DomainError{
 		Code:    CodeSameCustody,
 		Message: "transfer within one custody is refused: legs must move value between custodies",
+	}
+	ErrInvalidIntention = DomainError{
+		Code:    CodeInvalidIntention,
+		Message: "intention key, actor or operation is empty, too long or carries control characters",
+	}
+	ErrIntentionConflict = DomainError{
+		Code:    CodeIntentionConflict,
+		Message: "intention key already settled a different payload: reuse is refused, never merged",
 	}
 )

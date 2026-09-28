@@ -56,35 +56,15 @@ func NewTransferUseCase(transfers TransferRepository) *TransferUseCase {
 
 // Execute validates the transfer and moves the amount atomically.
 func (uc *TransferUseCase) Execute(ctx context.Context, cmd TransferCommand) (*TransferResult, error) {
-	fromKind, err := domain.ParseCustodyKind(cmd.FromKind)
+	ends, err := validateTransferEnds(cmd.FromKind, cmd.FromLabel, cmd.ToKind, cmd.ToLabel, cmd.Millis)
 	if err != nil {
 		return nil, err
-	}
-	toKind, err := domain.ParseCustodyKind(cmd.ToKind)
-	if err != nil {
-		return nil, err
-	}
-	if cmd.FromLabel == "" || cmd.ToLabel == "" {
-		return nil, domain.ErrUnknownCustody
-	}
-	if fromKind == toKind && cmd.FromLabel == cmd.ToLabel {
-		return nil, domain.ErrSameCustody
-	}
-	if !fromKind.CanSpend() {
-		return nil, domain.ErrUnauthorizedCustody
-	}
-	amount, err := domain.NewMilliInk(cmd.Millis)
-	if err != nil {
-		return nil, err
-	}
-	if amount.IsZero() {
-		return nil, domain.ErrInvalidMilliInk
 	}
 	return uc.transfers.Transfer(ctx, TransferRequest{
-		FromKind:  fromKind,
-		FromLabel: cmd.FromLabel,
-		ToKind:    toKind,
-		ToLabel:   cmd.ToLabel,
-		Amount:    amount,
+		FromKind:  ends.fromKind,
+		FromLabel: ends.fromLabel,
+		ToKind:    ends.toKind,
+		ToLabel:   ends.toLabel,
+		Amount:    ends.amount,
 	})
 }

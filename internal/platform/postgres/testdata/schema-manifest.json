@@ -3289,6 +3289,140 @@
       ]
     },
     {
+      "name": "app.economy_intentions",
+      "owner": "arena_owner",
+      "comment": "Exactly-once registry of monetary intentions: one triple, one payload hash, one settled transfer with its persisted response",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "intention_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "actor",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "operation",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "payload_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "SHA-256 hex of the canonical transfer payload: a different payload under the same triple is a conflict"
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Transfer settled by this intention; unique so one transfer answers exactly one intention"
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_intentions_actor_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM actor) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_intentions_amount_range_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_intentions_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM intention_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_intentions_operation_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM operation) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_intentions_payload_check",
+          "kind": "c",
+          "definition": "CHECK (payload_hash ~ '^[0-9a-f]{64}$'::text)"
+        },
+        {
+          "name": "economy_intentions_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id)"
+        },
+        {
+          "name": "economy_intentions_triple_unique",
+          "kind": "u",
+          "definition": "UNIQUE (intention_key, actor, operation)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_intentions_actor_idx",
+          "definition": "CREATE INDEX economy_intentions_actor_idx ON app.economy_intentions USING btree (actor, created_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "economy_intentions_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX economy_intentions_transfer_unique ON app.economy_intentions USING btree (transfer_id)",
+          "valid": true
+        },
+        {
+          "name": "economy_intentions_triple_unique",
+          "definition": "CREATE UNIQUE INDEX economy_intentions_triple_unique ON app.economy_intentions USING btree (intention_key, actor, operation)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.economy_partitions",
       "owner": "arena_owner",
       "comment": "Exclusive sub-partitions of one custody: reserve, stock, cash, obligations and encumbrances never double-count",
@@ -14048,6 +14182,258 @@
     {
       "table": "app.economy_genesis",
       "column": "treasury_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "actor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "actor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "actor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "actor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "actor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "actor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "intention_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "intention_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "intention_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "intention_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "intention_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "intention_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "operation",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "operation",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "operation",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "operation",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "operation",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "operation",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "payload_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "payload_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "transfer_id",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
