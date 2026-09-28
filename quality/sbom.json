@@ -13,6 +13,7 @@
       "files": [
         ".github/workflows/quick.yml",
         ".github/workflows/supply-chain.yml",
+        ".github/workflows/toolchain.yml",
         ".github/workflows/verify.yml"
       ]
     },
@@ -27,6 +28,7 @@
       "files": [
         ".github/workflows/quick.yml",
         ".github/workflows/supply-chain.yml",
+        ".github/workflows/toolchain.yml",
         ".github/workflows/verify.yml"
       ]
     },
