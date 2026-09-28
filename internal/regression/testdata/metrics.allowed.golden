@@ -1,0 +1,4 @@
+# HELP baseline_requests_total Baseline requests.
+# TYPE baseline_requests_total counter
+baseline_requests_total{route="/api/v1/arenas"} 2
+baseline_requests_total{route="/api/v1/me/profile"} 1
