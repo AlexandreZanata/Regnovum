@@ -315,25 +315,38 @@ func judgeWaivers(raw []byte, now time.Time, fail func(string)) {
 	}
 	today := now.UTC().Format("2006-01-02")
 	for _, entry := range register.Waivers {
-		if strings.TrimSpace(entry.ID) == "" || strings.TrimSpace(entry.Risk) == "" || strings.TrimSpace(entry.Expires) == "" {
-			fail(ReasonMissingField + ":waiver-malformed")
-			continue
-		}
-		if _, err := time.Parse("2006-01-02", entry.Expires); err != nil {
-			fail(ReasonMissingField + ":waiver-date:" + entry.ID)
-			continue
-		}
-		if entry.Risk == "Q0" {
-			for _, category := range entry.Categories {
-				for _, forbidden := range ForbiddenCategories {
-					if category == forbidden {
-						fail(ReasonWaiverForbidden + ":" + entry.ID)
-					}
-				}
+		judgeWaiver(entry, today, fail)
+	}
+}
+
+// judgeWaiver judges one register entry: readable fields, a valid date,
+// no critical waiver in a forbidden area, and no passed expiry.
+func judgeWaiver(entry waiver, today string, fail func(string)) {
+	if strings.TrimSpace(entry.ID) == "" || strings.TrimSpace(entry.Risk) == "" || strings.TrimSpace(entry.Expires) == "" {
+		fail(ReasonMissingField + ":waiver-malformed")
+		return
+	}
+	if _, err := time.Parse("2006-01-02", entry.Expires); err != nil {
+		fail(ReasonMissingField + ":waiver-date:" + entry.ID)
+		return
+	}
+	if entry.Risk == "Q0" && tradesForbiddenArea(entry.Categories) {
+		fail(ReasonWaiverForbidden + ":" + entry.ID)
+	}
+	if entry.Expires < today {
+		fail(ReasonWaiverExpired + ":" + entry.ID)
+	}
+}
+
+// tradesForbiddenArea reports whether any declared scope is one of the
+// eight areas the phase refuses to trade at the critical class.
+func tradesForbiddenArea(categories []string) bool {
+	for _, category := range categories {
+		for _, forbidden := range ForbiddenCategories {
+			if category == forbidden {
+				return true
 			}
 		}
-		if entry.Expires < today {
-			fail(ReasonWaiverExpired + ":" + entry.ID)
-		}
 	}
+	return false
 }
