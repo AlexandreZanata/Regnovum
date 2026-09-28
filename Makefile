@@ -588,6 +588,13 @@ quality-manifest:
 	$(GO) run ./tools/qualitymanifest -root . -evidence $(EVIDENCE) -out $(BUNDLE)
 	@echo "quality-manifest: ok"
 
+# quality-decide julga um bundle de evidências e emite PASS/FAIL (P30-T05):
+# somente conjunto completo, limpo e com waivers válidos retorna PASS. O
+# bundle é a única entrada; não há override por env ou flag.
+quality-decide:
+	$(GO) run ./tools/qualitydecide -bundle $(BUNDLE)
+	@echo "quality-decide: ok"
+
 # generate valida os catálogos i18n, reescreve os artefatos gerados, emite os
 # contratos TypeScript do OpenAPI e executa a geração de código SQL tipado com
 # sqlc para o adapter PostgreSQL.
