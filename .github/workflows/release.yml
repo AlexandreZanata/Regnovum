@@ -1,0 +1,74 @@
+# Release certification definition (P30-T02): the quality-certify tier
+# behind an explicit activation guard. The guard keeps every dispatch a
+# no-op until P45 sets QUALITY_FULL_ENABLED: certification runs once, on
+# purpose, never by accident. No certificate is produced here — the
+# decisor lands in P30-T05, readiness in P30-T08, and
+# BACKEND_CERTIFICATION.md stays unwritten until P45. Cancellation
+# publishes nothing: there is no publish step, and a cancelled run stops
+# before any evidence could leave the runner.
+name: release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The image tag the certification audits, mirroring verify.yml: one
+  # value feeds the build, the scan and the compose gate.
+  IMAGE: goyim-arena:verify
+
+jobs:
+  certify:
+    name: Release certification
+    if: vars.QUALITY_FULL_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18.4
+        env:
+          POSTGRES_USER: arena
+          POSTGRES_PASSWORD: arena-local-dev
+          POSTGRES_DB: arena
+          POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C
+          POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd "pg_isready -U arena -d arena"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      ARENA_DATABASE_URL: postgres://arena:arena-local-dev@127.0.0.1:54329/arena?sslmode=disable
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      # Keep the generator version aligned with the checked-in file
+      # headers, mirroring verify.yml.
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.29.0
+      # One step, one command, no continue-on-error: a failing gate fails
+      # the certification instead of masking it.
+      - name: Run the certify tier
+        run: make quality-certify
