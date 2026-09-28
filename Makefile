@@ -38,6 +38,11 @@ GREMLINS_WORKERS := 8
 # OpenAPI e emite web/src/contracts/generated.ts (nunca editado à mão).
 CONTRACTGEN := $(GO) run ./tools/contractgen
 
+# Ratchet de capacidade backend (P28-T08): rejulga thresholds k6, budgets Go,
+# tetos de bytes e limites de produto contra quality/capacity-baseline.json —
+# drift de capacidade falha o build.
+CAPACITYRATCHET := $(GO) run ./tools/capacityratchet
+
 # Imagem de produção (P19-T01): receita em Dockerfile, auditoria do artefato em
 # tools/imageaudit. IMAGE é a tag que o build usa e que o scan examina.
 IMAGE ?= goyim-arena:local
@@ -522,6 +527,12 @@ image-scan: image-build
 test-contract:
 	$(GO) test ./internal/contract/...
 	@echo "test-contract: ok"
+
+# capacity-ratchet rejulga a capacidade backend contra o baseline versionado
+# (P28-T08): qualquer threshold, budget, teto ou limite fora do pin falha.
+capacity-ratchet:
+	$(CAPACITYRATCHET) -root .
+	@echo "capacity-ratchet: ok"
 
 # generate valida os catálogos i18n, reescreve os artefatos gerados, emite os
 # contratos TypeScript do OpenAPI e executa a geração de código SQL tipado com

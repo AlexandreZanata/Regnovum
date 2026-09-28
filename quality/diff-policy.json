@@ -82,9 +82,10 @@
     {
       "name": "evidence",
       "role": "evidence",
-      "reason": "O arquivo de teste e a fixture sob `testdata/` são a evidência que a mudança de produção exige: eles são o que satisfaz a demanda, não o que a dispara.",
+      "reason": "O arquivo de teste, a fixture sob `testdata/` e o cenário k6 sob `tests/load/` são a evidência que a mudança de produção exige: eles são o que satisfaz a demanda, não o que a dispara.",
       "suffixes": ["_test.go", ".spec.js", ".test.ts"],
-      "segments": ["testdata"]
+      "segments": ["testdata"],
+      "prefixes": ["tests/load/"]
     },
     {
       "name": "migration",

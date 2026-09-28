@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "generator": "tools/capacityratchet",
+  "commit": "abc1234",
+  "environment": {
+    "os": "linux",
+    "arch": "amd64",
+    "hardware_class": "fixture-class",
+    "hardware_note": "n",
+    "go_version": "go1.27.1",
+    "k6_version": "k6",
+    "postgres": "18"
+  },
+  "datasets": {
+    "go": "d",
+    "k6": "d"
+  },
+  "k6_thresholds": {
+    "probe/scenario.js": {
+      "globals": [
+        "probe_failed_total:count==0",
+        "checks{kind:invariant}:rate==1"
+      ],
+      "p95_ms": {
+        "visitors": 500
+      }
+    }
+  },
+  "go_budgets": {
+    "probe/budgets.go": {
+      "probe-op": {
+        "median_ns": 800,
+        "allocs": 4
+      }
+    }
+  },
+  "byte_budgets": {
+    "probe/consts.go": {
+      "maxProbeBytes": 1024
+    }
+  },
+  "product_bounds": {
+    "probe/consts.go:MaxProbeLimit": 100
+  },
+  "tolerance": 0
+}
