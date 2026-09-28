@@ -1,0 +1,60 @@
+package domain
+
+import "fmt"
+
+// ErrorCode is a stable machine-readable identifier for domain rule violations.
+type ErrorCode string
+
+const (
+	CodeNegativeMilliInk     ErrorCode = "ECONOMY_NEGATIVE_MILLIINK"
+	CodeInvalidMilliInk      ErrorCode = "ECONOMY_INVALID_MILLIINK"
+	CodeMilliInkOverflow     ErrorCode = "ECONOMY_MILLIINK_OVERFLOW"
+	CodeInsufficientMilliInk ErrorCode = "ECONOMY_INSUFFICIENT_MILLIINK"
+	CodeMilliInkPrecision    ErrorCode = "ECONOMY_MILLIINK_PRECISION"
+	CodeUnknownLocale        ErrorCode = "ECONOMY_UNKNOWN_LOCALE"
+)
+
+// DomainError represents an invariant or rule failure in the economy domain.
+type DomainError struct {
+	Code    ErrorCode
+	Message string
+}
+
+func (e DomainError) Error() string {
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+}
+
+func (e DomainError) Is(target error) bool {
+	t, ok := target.(DomainError)
+	if !ok {
+		return false
+	}
+	return e.Code == t.Code
+}
+
+var (
+	ErrNegativeMilliInk = DomainError{
+		Code:    CodeNegativeMilliInk,
+		Message: "milliink quantity cannot be negative",
+	}
+	ErrInvalidMilliInk = DomainError{
+		Code:    CodeInvalidMilliInk,
+		Message: "milliink text is not an exact decimal quantity",
+	}
+	ErrMilliInkOverflow = DomainError{
+		Code:    CodeMilliInkOverflow,
+		Message: "milliink arithmetic would overflow the 64-bit range",
+	}
+	ErrInsufficientMilliInk = DomainError{
+		Code:    CodeInsufficientMilliInk,
+		Message: "milliink subtraction would produce a negative quantity",
+	}
+	ErrMilliInkPrecision = DomainError{
+		Code:    CodeMilliInkPrecision,
+		Message: "milliink fractions beyond three decimals are refused, never rounded",
+	}
+	ErrUnknownLocale = DomainError{
+		Code:    CodeUnknownLocale,
+		Message: "locale is outside the pt/en decimal vocabulary",
+	}
+)
