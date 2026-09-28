@@ -43,6 +43,7 @@ Quem chega agora começa pelo [README da raiz](../README.md): ele é o handoff d
 - [FRONTEND.md](FRONTEND.md) — componentes TypeScript nativos e CSS.
 - [BACKEND.md](BACKEND.md) — domain, application, ports e adapters.
 - [SCALABILITY.md](SCALABILITY.md) — caminho mensurável para alta escala.
+- [SLO.md](SLO.md) — SLOs e budgets por jornada: baseline medido vs compromisso (P28-T01).
 - [SECURITY.md](SECURITY.md) — requisitos técnicos de segurança.
 - [DEPLOYMENT.md](DEPLOYMENT.md) — topologia, ambientes, backup e evolução.
 - [RUNBOOKS.md](RUNBOOKS.md) — alertas iniciais, thresholds e runbooks de incidente.
