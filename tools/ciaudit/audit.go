@@ -28,6 +28,7 @@ const (
 	RuleCadence       = "release-only-cadence"
 	RuleSurface       = "trigger-and-secret-surface"
 	RuleBudget        = "job-budget"
+	RuleFullMatrix    = "full-matrix-cadence"
 )
 
 // ciBudgetMinutes is the phase's CI budget: `.local/git-flow.sh` waits 1800
@@ -150,7 +151,56 @@ func Audit(root string) (Report, error) {
 	report.Findings = append(report.Findings, auditDraftSkips(workflows)...)
 	report.Findings = append(report.Findings, auditSurface(workflows)...)
 	report.Findings = append(report.Findings, auditBudget(workflows)...)
+	report.Findings = append(report.Findings, auditFullMatrixCadence(workflows)...)
 	return report, nil
+}
+
+// fullMatrixTargets are the gates that run the complete verification:
+// the P30 canonical tiers and the release aggregate. They execute
+// integrally only in P45, so no workflow may trigger them on a pull
+// request or a branch push — schedules, tags and manual runs are the
+// only cadences that cannot surprise a merge.
+var fullMatrixTargets = []string{"quality-nightly", "quality-weekly", "quality-certify", "verify"}
+
+// releaseFiles are the workflows whose triggers the release-only-cadence
+// rule already owns; this rule judges every other file, so the two rules
+// never double-judge one trigger.
+var releaseFiles = map[string]bool{
+	".github/workflows/verify.yml":       true,
+	".github/workflows/supply-chain.yml": true,
+}
+
+// auditFullMatrixCadence requires the complete verification to stay off
+// the merge path: a workflow that invokes a full-matrix target on
+// pull_request or push branches would run (or block) every merge with a
+// suite P45 owns.
+func auditFullMatrixCadence(workflows []workflow) []Finding {
+	var findings []Finding
+	for _, w := range workflows {
+		invokes := false
+		for _, e := range w.entries {
+			if e.Key != "run" {
+				continue
+			}
+			for _, target := range invokedTargets(e.Value) {
+				if containsString(fullMatrixTargets, target) {
+					invokes = true
+				}
+			}
+		}
+		if !invokes || releaseFiles[w.Path] {
+			continue
+		}
+		if w.has("on.pull_request") {
+			findings = append(findings, Finding{w.Path, 0, RuleFullMatrix,
+				"invokes a full-matrix gate on pull_request: complete verification runs in P45, never on the merge path"})
+		}
+		if w.has("on.push.branches") {
+			findings = append(findings, Finding{w.Path, 0, RuleFullMatrix,
+				"invokes a full-matrix gate on branch push: complete verification runs in P45, never on the merge path"})
+		}
+	}
+	return findings
 }
 
 // auditActionsPinned requires every third-party action to be a commit SHA with

@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "note": "Canonical autonomous quality tiers (P30-T01). Each tier lists the exact Makefile prerequisites of its quality-* target plus its cadence; enabled tiers run today, the rest wire up in P30-T02 and execute integrally only in P45. A fast run never substitutes certification: fast gates are a strict subset of certify gates.",
+  "tiers": {
+    "fast": {
+      "cadence": "every edit",
+      "enabled": true,
+      "gates": ["fmt-check"]
+    },
+    "main": {
+      "cadence": "every pull request",
+      "enabled": true,
+      "gates": ["quick-verify"]
+    },
+    "nightly": {
+      "cadence": "daily schedule after P45",
+      "enabled": false,
+      "gates": ["test-unit", "test-integration", "test-contract", "test-security"]
+    },
+    "weekly": {
+      "cadence": "weekly schedule after P45",
+      "enabled": false,
+      "gates": ["quality-nightly", "test-race", "test-migration", "test-web", "audit-mutations", "audit-coverage"]
+    },
+    "certify": {
+      "cadence": "release only in P45, manual or candidate tag",
+      "enabled": false,
+      "gates": ["quality-weekly", "verify"]
+    }
+  }
+}

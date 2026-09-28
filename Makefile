@@ -88,6 +88,25 @@ quick-verify: fmt-check lint audit-complexity audit-deadcode audit-errors audit-
 	$(NPM) --prefix web run typecheck
 	@echo "quick-verify: ok"
 
+# Setor autônomo de qualidade (P30-T01): os cinco comandos canônicos,
+# compostos somente por gates reais já existentes. O conteúdo e a cadência
+# de cada camada vivem em quality/tiers.json, e o teste
+# internal/contract/quality_tiers_test.go prova que os targets espelham o
+# documento. Camadas não habilitadas só executam integralmente na P45; uma
+# execução rápida nunca substitui a certificação. Nenhum target engole
+# falha: só pré-requisitos e receitas que propagam exit não zero.
+quality-fast: fmt-check
+	$(GO) build ./...
+	@echo "quality-fast: ok"
+quality-main: quick-verify
+	@echo "quality-main: ok"
+quality-nightly: test-unit test-integration test-contract test-security
+	@echo "quality-nightly: ok"
+quality-weekly: quality-nightly test-race test-migration test-web audit-mutations audit-coverage
+	@echo "quality-weekly: ok"
+quality-certify: quality-weekly verify
+	@echo "quality-certify: ok"
+
 # test-unit executa os testes unitários das capacidades existentes (Go).
 # O frontend ainda não possui runner de testes; será agregado quando existir.
 #
@@ -553,10 +572,28 @@ audit-toolchain:
 # toolchain-next emite o veredito informativo (P29-T08): quais pinos
 # seguram, quais derivam e quais próximas patches estão aprovadas, sem
 # tocar em lockfile. Sempre verde por desenho — informar, não barrar;
-# promover uma próxima a obrigatória exige tarefa, ADR e as suites Q0.
+# promoção a obrigatória exige tarefa, ADR e as suites Q0.
 toolchain-next:
 	$(GO) run ./tools/toolchainaudit -root . -report
 	@echo "toolchain-next: ok"
+
+# quality-manifest monta o bundle determinístico de evidências (P30-T03):
+# manifesto, checksum e cada artefato que a certificação lê. EVIDENCE é o
+# diretório de resultados da execução; BUNDLE é o destino. A montagem
+# recusa campo/artefato ausente, árvore suja e qualquer PII/segredo, e a
+# mesma evidência produz bytes idênticos.
+EVIDENCE ?= quality-evidence
+BUNDLE ?= quality-bundle
+quality-manifest:
+	$(GO) run ./tools/qualitymanifest -root . -evidence $(EVIDENCE) -out $(BUNDLE)
+	@echo "quality-manifest: ok"
+
+# quality-decide julga um bundle de evidências e emite PASS/FAIL (P30-T05):
+# somente conjunto completo, limpo e com waivers válidos retorna PASS. O
+# bundle é a única entrada; não há override por env ou flag.
+quality-decide:
+	$(GO) run ./tools/qualitydecide -bundle $(BUNDLE)
+	@echo "quality-decide: ok"
 
 # generate valida os catálogos i18n, reescreve os artefatos gerados, emite os
 # contratos TypeScript do OpenAPI e executa a geração de código SQL tipado com

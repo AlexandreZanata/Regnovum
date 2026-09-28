@@ -615,3 +615,68 @@ func TestReaderRefusesAFixtureItCannotTrust(t *testing.T) {
 		})
 	}
 }
+
+// TestFullMatrixCadencePerLayer falsifies every layer: adding a merge-path
+// trigger to the nightly, weekly, release or aggregate invocation blocks
+// on full-matrix-cadence, while the manual definitions hold.
+func TestFullMatrixCadencePerLayer(t *testing.T) {
+	base := map[string]string{
+		".github/workflows/nightly.yml": "name: nightly\n" + layerBody("quality-nightly"),
+		".github/workflows/weekly.yml":  "name: weekly\n" + layerBody("quality-weekly"),
+		".github/workflows/release.yml": "name: release\n" + layerBody("quality-certify"),
+		"Makefile":                      "quality-nightly:\n\t@true\nquality-weekly:\n\t@true\nquality-certify:\n\t@true\nverify:\n\t@true\n",
+	}
+	t.Run("manual layers hold", func(t *testing.T) {
+		report, err := Audit(writeFixture(t, base))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, finding := range report.Findings {
+			if finding.Rule == RuleFullMatrix {
+				t.Fatalf("manual layer blocked: %s", finding)
+			}
+		}
+	})
+
+	triggers := []struct{ file, trigger string }{
+		{".github/workflows/nightly.yml", "  pull_request:\n"},
+		{".github/workflows/weekly.yml", "  push:\n    branches: [main]\n"},
+		{".github/workflows/release.yml", "  pull_request:\n"},
+	}
+	for _, tc := range triggers {
+		t.Run(tc.file+" blocks on the merge path", func(t *testing.T) {
+			files := make(map[string]string, len(base))
+			for k, v := range base {
+				files[k] = v
+			}
+			files[tc.file] = strings.Replace(files[tc.file], "  workflow_dispatch:\n", "  workflow_dispatch:\n"+tc.trigger, 1)
+			report, err := Audit(writeFixture(t, files))
+			if err != nil {
+				t.Fatal(err)
+			}
+			found := false
+			for _, finding := range report.Findings {
+				if finding.Rule == RuleFullMatrix && finding.Path == tc.file {
+					found = true
+				}
+			}
+			if !found {
+				t.Fatalf("merge-path trigger on %s was not blocked", tc.file)
+			}
+		})
+	}
+}
+
+func layerBody(target string) string {
+	return `on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  layer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - run: make ` + target + `
+`
+}
