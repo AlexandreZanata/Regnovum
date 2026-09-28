@@ -82,6 +82,11 @@ func (r *Repository) Reserve(ctx context.Context, ownerKind domain.CustodyKind, 
 	}
 	defer tx.Rollback(ctx)
 
+	// Frozen books open no holds.
+	if err := requireUnfrozen(ctx, tx); err != nil {
+		return nil, err
+	}
+
 	ownerID, err := resolveCustody(ctx, tx, ownerKind.String(), ownerLabel)
 	if err != nil {
 		return nil, err
@@ -138,6 +143,11 @@ func (r *Repository) settleHold(ctx context.Context, holdID, toCustodyID, status
 		return nil, fmt.Errorf("begin settle transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
+
+	// Frozen books settle nothing.
+	if err := requireUnfrozen(ctx, tx); err != nil {
+		return nil, err
+	}
 
 	hold, err := lockHold(ctx, tx, holdID)
 	if err != nil {
@@ -215,6 +225,11 @@ func (r *Repository) Expire(ctx context.Context, holdID string) (*application.Ho
 		return nil, fmt.Errorf("begin expire transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
+
+	// Frozen books mark nothing: expiry waits for the resolution too.
+	if err := requireUnfrozen(ctx, tx); err != nil {
+		return nil, err
+	}
 
 	var hold holdRow
 	var lapsed bool

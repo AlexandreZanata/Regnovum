@@ -26,6 +26,8 @@ const (
 	CodeHoldState            ErrorCode = "ECONOMY_HOLD_STATE"
 	CodeHoldNotFound         ErrorCode = "ECONOMY_HOLD_NOT_FOUND"
 	CodeHoldNotExpired       ErrorCode = "ECONOMY_HOLD_NOT_EXPIRED"
+	CodeEconomyFrozen        ErrorCode = "ECONOMY_FROZEN"
+	CodeIncidentNotFound     ErrorCode = "ECONOMY_INCIDENT_NOT_FOUND"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -126,5 +128,13 @@ var (
 	ErrHoldNotExpired = DomainError{
 		Code:    CodeHoldNotExpired,
 		Message: "hold deadline has not passed: expiry is observed, never anticipated",
+	}
+	ErrEconomyFrozen = DomainError{
+		Code:    CodeEconomyFrozen,
+		Message: "economy is frozen on a conservation break: reads continue, mutations wait for a compensated resolution",
+	}
+	ErrIncidentNotFound = DomainError{
+		Code:    CodeIncidentNotFound,
+		Message: "incident does not exist or is not an open break",
 	}
 )

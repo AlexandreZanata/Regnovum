@@ -3460,6 +3460,101 @@
       ]
     },
     {
+      "name": "app.economy_incidents",
+      "owner": "arena_owner",
+      "comment": "Audit trail of conservation breaks and their compensated resolutions; rows are never edited or erased",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "detail",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "resolves",
+          "type": "uuid",
+          "nullable": true,
+          "default": "",
+          "comment": "Incident this resolution closes; NULL marks the break itself"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_incidents_detail_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM detail) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_incidents_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "economy_incidents_reason_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM reason) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_incidents_resolves_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (resolves) REFERENCES app.economy_incidents(id) ON DELETE RESTRICT"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_incidents_pkey",
+          "definition": "CREATE UNIQUE INDEX economy_incidents_pkey ON app.economy_incidents USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.economy_intentions",
       "owner": "arena_owner",
       "comment": "Exactly-once registry of monetary intentions: one triple, one payload hash, one settled transfer with its persisted response",
@@ -3577,6 +3672,95 @@
           "privileges": [
             "INSERT",
             "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.economy_mode",
+      "owner": "arena_owner",
+      "comment": "Single read-only flag of the economy: mutations recheck it, reads never do",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "singleton",
+          "type": "boolean",
+          "nullable": false,
+          "default": "true",
+          "comment": ""
+        },
+        {
+          "name": "frozen",
+          "type": "boolean",
+          "nullable": false,
+          "default": "false",
+          "comment": ""
+        },
+        {
+          "name": "incident_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "",
+          "comment": "Break that froze the book, or the last one after a compensated resolution"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_mode_frozen_names_incident",
+          "kind": "c",
+          "definition": "CHECK (NOT frozen OR incident_id IS NOT NULL)"
+        },
+        {
+          "name": "economy_mode_incident_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (incident_id) REFERENCES app.economy_incidents(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_mode_singleton_check",
+          "kind": "c",
+          "definition": "CHECK (singleton)"
+        },
+        {
+          "name": "economy_mode_singleton_unique",
+          "kind": "u",
+          "definition": "UNIQUE (singleton)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_mode_singleton_unique",
+          "definition": "CREATE UNIQUE INDEX economy_mode_singleton_unique ON app.economy_mode USING btree (singleton)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT",
+            "UPDATE"
           ]
         },
         {
@@ -14771,6 +14955,186 @@
       "privilege": "UPDATE"
     },
     {
+      "table": "app.economy_incidents",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "detail",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "detail",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "detail",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "detail",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "detail",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "detail",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "resolves",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "resolves",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "resolves",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "resolves",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "resolves",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_incidents",
+      "column": "resolves",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
       "table": "app.economy_intentions",
       "column": "actor",
       "grantee": "arena_app",
@@ -15019,6 +15383,174 @@
     {
       "table": "app.economy_intentions",
       "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "frozen",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "frozen",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "frozen",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "frozen",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "frozen",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "frozen",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "frozen",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "incident_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "incident_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "incident_id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "incident_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "incident_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "incident_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "incident_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "singleton",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "singleton",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "singleton",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "singleton",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "singleton",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "singleton",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "singleton",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_mode",
+      "column": "updated_at",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

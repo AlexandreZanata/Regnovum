@@ -29,6 +29,11 @@ func (r *Repository) Transfer(ctx context.Context, request application.TransferR
 	}
 	defer tx.Rollback(ctx)
 
+	// Frozen books move nothing: reads continue, mutations wait.
+	if err := requireUnfrozen(ctx, tx); err != nil {
+		return nil, err
+	}
+
 	fromID, err := resolveCustody(ctx, tx, request.FromKind.String(), request.FromLabel)
 	if err != nil {
 		return nil, err

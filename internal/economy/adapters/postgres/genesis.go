@@ -144,6 +144,11 @@ func (r *Repository) createGenesis(ctx context.Context, request application.Gene
 	}
 	defer tx.Rollback(ctx)
 
+	// Frozen books record nothing new: reads resolve, writes wait.
+	if err := requireUnfrozen(ctx, tx); err != nil {
+		return nil, false, err
+	}
+
 	if replayed, err := findAttestation(ctx, tx, request.Key); err != nil || replayed != nil {
 		return replayed, false, err
 	}

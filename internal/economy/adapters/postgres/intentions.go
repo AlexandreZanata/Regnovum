@@ -86,6 +86,12 @@ func (r *Repository) createIntention(ctx context.Context, request application.Id
 	}
 	defer tx.Rollback(ctx)
 
+	// Frozen books settle nothing new: settled intentions still replay
+	// through the fast path above, which writes nothing.
+	if err := requireUnfrozen(ctx, tx); err != nil {
+		return nil, false, err
+	}
+
 	if stored, err := findIntention(ctx, tx, request); err != nil || stored != nil {
 		return stored, false, err
 	}
@@ -114,9 +120,29 @@ func (r *Repository) createIntention(ctx context.Context, request application.Id
 		return nil, false, err
 	}
 
+	transferID, retry, err := recordIntentionLegs(ctx, tx, request, fromID, toID)
+	if err != nil {
+		return nil, retry, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, false, fmt.Errorf("commit intention: %w", err)
+	}
+	return &application.IdempotentTransferResult{
+		TransferID: transferID,
+		Debited:    request.Amount,
+		Credited:   request.Amount,
+		Replayed:   false,
+	}, false, nil
+}
+
+// recordIntentionLegs writes the debit/credit pair and the intention row
+// inside the caller transaction. A unique collision on the triple or the
+// transfer id reports a worthwhile retry: a concurrent run may have
+// committed the same intention first.
+func recordIntentionLegs(ctx context.Context, tx pgx.Tx, request application.IdempotentTransferRequest, fromID, toID string) (string, bool, error) {
 	var transferID string
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
-		return nil, false, fmt.Errorf("generate transfer id: %w", err)
+		return "", false, fmt.Errorf("generate transfer id: %w", err)
 	}
 	for _, leg := range []struct {
 		custody   string
@@ -129,7 +155,7 @@ func (r *Repository) createIntention(ctx context.Context, request application.Id
 			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
 			 VALUES ($1::uuid, $2::uuid, $3, $4)`,
 			transferID, leg.custody, leg.direction, request.Amount.Millis()); err != nil {
-			return nil, false, fmt.Errorf("record %s leg: %w", leg.direction, err)
+			return "", false, fmt.Errorf("record %s leg: %w", leg.direction, err)
 		}
 	}
 	if _, err := tx.Exec(ctx,
@@ -140,17 +166,9 @@ func (r *Repository) createIntention(ctx context.Context, request application.Id
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" &&
 			(pgErr.ConstraintName == intentionTripleConstraint || pgErr.ConstraintName == intentionTransferConstraint) {
-			return nil, true, fmt.Errorf("concurrent intention race: %w", err)
+			return "", true, fmt.Errorf("concurrent intention race: %w", err)
 		}
-		return nil, false, fmt.Errorf("record intention: %w", err)
+		return "", false, fmt.Errorf("record intention: %w", err)
 	}
-	if err := tx.Commit(ctx); err != nil {
-		return nil, false, fmt.Errorf("commit intention: %w", err)
-	}
-	return &application.IdempotentTransferResult{
-		TransferID: transferID,
-		Debited:    request.Amount,
-		Credited:   request.Amount,
-		Replayed:   false,
-	}, false, nil
+	return transferID, false, nil
 }
