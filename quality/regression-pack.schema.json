@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AlexandreZanata/Regnovum/quality/regression-pack.schema.json",
+  "title": "Fast semantic regression pack",
+  "description": "The versioned fast pack: one quick executable slice of every Q0/Q1 catalog rule for local change and PR feedback, plus the historical defects and the suites it never replaces. The loader that judges it is tools/regressionpack.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generator", "scope", "budget_seconds", "does_not_replace", "full_suite", "rules", "historical_defects"],
+  "properties": {
+    "schema": {
+      "const": 1,
+      "description": "The only pack version the loader understands."
+    },
+    "generator": {
+      "type": "string",
+      "description": "The tool that owns the shape of this document."
+    },
+    "scope": {
+      "type": "string",
+      "description": "Where the fast pack runs: local change and PR, never nightly or release."
+    },
+    "budget_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The measured wall-clock budget of one fast-pack run."
+    },
+    "does_not_replace": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"},
+      "description": "The suites the fast pack never replaces: nightly and release at minimum."
+    },
+    "full_suite": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"},
+      "description": "The complete-suite targets that own certification."
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "risk", "tests"],
+        "properties": {
+          "rule": {"type": "string"},
+          "risk": {"type": "string"},
+          "tests": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "historical_defects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "fixed_in", "test"],
+        "properties": {
+          "id": {"type": "string"},
+          "description": {"type": "string"},
+          "fixed_in": {"type": "string"},
+          "test": {"type": "string"}
+        }
+      }
+    }
+  }
+}

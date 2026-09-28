@@ -1,0 +1,735 @@
+{
+  "schema": 1,
+  "generator": "tools/regressionpack",
+  "scope": "fast-PR",
+  "budget_seconds": 180,
+  "does_not_replace": [
+    "nightly",
+    "release"
+  ],
+  "full_suite": [
+    "test-unit",
+    "test-integration",
+    "test-race",
+    "test-migration",
+    "test-contract",
+    "test-security",
+    "test-e2e"
+  ],
+  "rules": [
+    {
+      "rule": "QUAL-REQ-AUTH-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/identity/application/usecases_test.go::TestRegisterAccount_SuccessAndVerification",
+        "internal/identity/application/usecases_test.go::TestRegisterAccount_WeakPasswordAndInvalidEmail"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-AUTH-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/identity/application/usecases_test.go::TestRegisterAccount_SuccessAndVerification",
+        "internal/identity/application/usecases_test.go::TestVerifyEmail_ReplayProtection"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-AUTH-03",
+      "risk": "Q0",
+      "tests": [
+        "internal/identity/application/session_test.go::TestRotateSession",
+        "internal/identity/adapters/http/sessions_http_test.go::TestSessionRotationEndsTheOldTokenAndIssuesANewOne"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-AUTH-04",
+      "risk": "Q0",
+      "tests": [
+        "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection",
+        "internal/identity/application/password_reset_test.go::TestRequestPasswordReset_AntiEnumeration"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PROF-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/profiles/application/usecases_test.go::TestCreateProfileUseCase",
+        "internal/profiles/adapters/postgres/repository_test.go::TestRepository_CreateProfileRejectsDuplicates"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PROF-02",
+      "risk": "Q1",
+      "tests": [
+        "internal/profiles/application/usecases_test.go::TestChangeLocaleUseCase",
+        "internal/profiles/domain/locale_test.go::TestParseLocaleInvalidAndUnsupported"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PRIV-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/profiles/application/deletion_test.go::TestDeletionJourneyRequestCoolDownExecute",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPOwnerIsolationAndUnknownRequest"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARN-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/application/drafts_test.go::TestCreateArenaDraftUseCase",
+        "internal/arenas/adapters/http/arenas_http_test.go::TestArenaDraftOwnerScoped"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARN-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaEndToEndAtomic",
+        "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseWithoutPassRollsBack"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARN-03",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/domain/statement_test.go::TestParseStatementValidCases",
+        "internal/arenas/domain/statement_test.go::TestParseStatementRejectsInvalidPolicy"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARN-04",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/domain/arena_test.go::TestArenaStatusTransitionsMatrix",
+        "internal/arenas/application/status_test.go::TestCloseArenaUseCaseRejectsOtherStates"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARN-05",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/domain/arena_test.go::TestArenaPublishTransition",
+        "internal/arenas/application/drafts_test.go::TestUpdateArenaDraftUseCaseRejectsNonDraft"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARN-06",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/domain/slug_test.go::TestSlugifyCompositionIsParseable",
+        "internal/arenas/adapters/html/arenas_html_test.go::TestArenaDocumentNeverReflectsRequestedSlug"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForVisitorKeepsTheChoiceLocal",
+        "internal/positions/domain/purity_test.go::TestPositionsDomainCarriesNoPlanOrPaymentWeight"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-02",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRecordsTheFirstChoice",
+        "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionValidatesInputsWithoutTouchingPorts"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-03",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionResolvesLostInsertRaces",
+        "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRefusesDifferentInitialValue"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-04",
+      "risk": "Q0",
+      "tests": [
+        "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly",
+        "internal/positions/adapters/http/positions_http_test.go::TestPositionsAPIIsOwnerScoped"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-05",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/application/change_position_test.go::TestChangePositionRecordsTheTransitionAtomically",
+        "internal/positions/domain/change_test.go::TestNewPositionChangeValidatesTheHistoryEntry"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-06",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/domain/debate_position_test.go::TestChangeToAppliesAcceptedTransitionsOnly",
+        "internal/positions/application/change_position_test.go::TestChangePositionRefusesTheSamePositionWithoutTransaction"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-07",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/adapters/eligibility/eligibility_test.go::TestEnsureAcceptsPositionsAsksTheArenaDomain",
+        "internal/positions/application/change_position_test.go::TestChangePositionRefusesClosedArenaWithoutWriting"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-08",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateInvalidationExcludesAccounts",
+        "internal/positions/application/get_position_aggregate_test.go::TestGetPositionAggregateValidatesPolicyAndQuery"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-09",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForOwnerWithoutPositionOffersTheConfirmation",
+        "internal/positions/application/get_position_aggregate_test.go::TestGetPositionAggregateValidatesPolicyAndQuery"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-POS-10",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/application/read_position_test.go::TestGetMyPositionReturnsTheOwnerProjection",
+        "internal/positions/application/read_position_test.go::TestGetMyPositionValidatesInputs"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARG-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRecordsAtomically",
+        "internal/arguments/domain/relation_test.go::TestParseRelationAcceptsOnlyCanonicalVocabulary"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARG-02",
+      "risk": "Q1",
+      "tests": [
+        "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRepliesCarryTheirParent",
+        "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRejectsDeepReplies"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARG-03",
+      "risk": "Q1",
+      "tests": [
+        "internal/arguments/domain/source_test.go::TestParseSourceCanonicalizesAndValidates",
+        "internal/arguments/domain/source_test.go::TestReconstituteSourceValidatesStoredState"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARG-04",
+      "risk": "Q1",
+      "tests": [
+        "internal/arguments/domain/content_test.go::TestParseContentNormalizesAndMeasures",
+        "internal/arguments/domain/content_test.go::TestParseContentRejections"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARG-05",
+      "risk": "Q1",
+      "tests": [
+        "internal/wallet/application/queries_test.go::TestGetWalletBalanceUseCase",
+        "internal/wallet/domain/allocation_test.go::TestAllocateDebitPriority"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARG-06",
+      "risk": "Q1",
+      "tests": [
+        "internal/arguments/application/withdraw_argument_test.go::TestWithdrawArgumentRetractsForTheAuthor",
+        "internal/arguments/application/withdraw_argument_test.go::TestWithdrawArgumentIsOwnerScoped"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARG-07",
+      "risk": "Q1",
+      "tests": [
+        "internal/platform/postgres/argument_schema_test.go::TestArgumentImmutabilityAndRetention",
+        "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentRejectsInvalidParents"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ARG-08",
+      "risk": "Q1",
+      "tests": [
+        "internal/arguments/application/public_arguments_test.go::TestListArenaArgumentsPaginatesWithLookahead",
+        "internal/arguments/application/public_arguments_test.go::TestListArenaArgumentsClampsLimitsAndValidatesInputs"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PERS-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/adapters/html/participation_test.go::TestAttributionRecordsTheSelectionForTheChange",
+        "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsValidatesInputsAndPropagatesFailures"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PERS-02",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit",
+        "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PERS-03",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections",
+        "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyValidatesChangeAndPolicy"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PERS-04",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections",
+        "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PERS-05",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/adapters/http/persuasion_http_test.go::TestPublicResponsesNeverExposeSignals",
+        "internal/persuasion/adapters/http/persuasion_http_test.go::TestAttributionSignalsAreModeratorOnly"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PERS-06",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/application/metrics_test.go::TestGetArgumentMetricsDerivesCounts",
+        "internal/persuasion/application/metrics_test.go::TestArgumentMetricsValidateRejectsIncoherentProjections"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PERS-07",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/application/reputation_test.go::TestAuthorReputationHeadlineCountsPeopleOncePerArena",
+        "internal/persuasion/application/reputation_test.go::TestAuthorReputationValidateRejectsIncoherentProjections"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-PERS-08",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/application/moderate_attribution_test.go::TestInvalidateAttributionRecordsDecisionAndAudit",
+        "internal/persuasion/application/moderate_attribution_test.go::TestModerationDeniedByAuthorizer"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-WAL-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/wallet/adapters/postgres/repository_test.go::TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence",
+        "internal/platform/postgres/wallet_test.go::TestWalletAppendOnlyPrivileges"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-WAL-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/wallet/domain/ink_test.go::TestNewInkBoundaries",
+        "internal/wallet/domain/ink_test.go::TestParseInkRejectsFloatAndMalformed"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-WAL-03",
+      "risk": "Q0",
+      "tests": [
+        "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentEndToEndAtomic",
+        "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentDoubleSpendIsImpossible"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-WAL-04",
+      "risk": "Q0",
+      "tests": [
+        "internal/wallet/domain/allocation_test.go::TestAllocateDebitPriority",
+        "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitInsufficientLeavesNoPartialState"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-WAL-05",
+      "risk": "Q0",
+      "tests": [
+        "internal/wallet/application/queries_test.go::TestWalletStatementPaginatesWithoutDuplicatesOrGaps",
+        "internal/wallet/adapters/http/wallet_http_test.go::TestWalletStatementHTTPNeverLeaksRestrictedFields"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-WAL-06",
+      "risk": "Q0",
+      "tests": [
+        "internal/wallet/application/renew_free_cycle_test.go::TestRenewFreeCycleUseCaseNormalTurnAndKeys",
+        "internal/wallet/adapters/postgres/repository_test.go::TestRepository_RenewFreeCycleMissingWallet"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ENT-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/application/consume_passes_test.go::TestConsumeArenaPassUseCaseBuildsRequestAndPropagatesOutcome",
+        "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassCrossAccountRefused"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-ENT-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/application/queries_test.go::TestGetArenaPassSummaryUseCase",
+        "internal/billing/adapters/postgres/repository_test.go::TestRepository_PassSummaryExcludesExpiredLotsAtBoundaries"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-BIL-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/adapters/stripe/gateway_test.go::TestCreateCheckoutSessionSendsTheServerDecidedPrice",
+        "internal/billing/application/create_checkout_test.go::TestCreateCheckoutRefusesProductsOutsideTheCatalog"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-BIL-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/application/apply_member_entitlements_test.go::TestApplyMemberEntitlements_ActiveGrantsPassAnd30kInk",
+        "internal/billing/application/apply_member_entitlements_test.go::TestApplyMemberEntitlements_OutOfOrder_TerminalStatusCannotRevive"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-BIL-03",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierAcceptsValidSignature",
+        "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsAlteredBody"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-BIL-04",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/application/apply_refund_test.go::TestApplyRefundCapsWhenConsumedWithoutNegative",
+        "internal/billing/application/apply_refund_test.go::TestApplyRefundChargebackAlwaysNeedsReview"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-BIL-05",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/application/reconcile_billing_test.go::TestReconcileRecordsUnprocessedEventsWithoutCorrecting",
+        "internal/billing/application/reconcile_billing_test.go::TestReconcileDetectsMissingRemote"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-MOD-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/moderation/adapters/postgres/reports_test.go::TestReportsRoundTripDedupAndRate",
+        "internal/moderation/application/file_report_test.go::TestFileReportRejectsUnknownAndRemovedTargets"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-MOD-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/moderation/application/queue_test.go::TestQueueListsFilteredPagesWithSignedCursors",
+        "internal/moderation/application/queue_test.go::TestQueueDeniesUnknownViewerAndForgedCursor"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-MOD-03",
+      "risk": "Q0",
+      "tests": [
+        "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsMatrixPerTarget",
+        "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsRollbackOnStaleTarget"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-MOD-04",
+      "risk": "Q0",
+      "tests": [
+        "internal/moderation/application/appeals_test.go::TestDecideAppealRestoresWithoutDeletingAction",
+        "internal/moderation/application/appeals_test.go::TestClaimAppealRequiresDifferentReviewer"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-AUD-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/audit/adapters/postgres/recorder_test.go::TestRecorderJoinsSharedTransaction",
+        "internal/platform/postgres/audit_schema_test.go::TestAuditEventsRejectUpdatesAndDeletes"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-I18N-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/i18n/i18n_test.go::TestMessageReturnsBothLocales",
+        "internal/i18n/i18n_test.go::TestMessageRejectsUnknownLocaleAndKey"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-I18N-02",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/domain/slug_test.go::TestParseLanguage",
+        "internal/platform/postgres/arena_schema_test.go::TestArenaSchemaConstraints"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-I18N-03",
+      "risk": "Q1",
+      "tests": [
+        "internal/arenas/adapters/postgres/feed_integration_test.go::TestRepository_PublicFeedFiltersAndVisibility",
+        "internal/arenas/application/feed_test.go::TestGetArenaFeedUseCaseClampsLimitsAndValidatesFilters"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-I18N-04",
+      "risk": "Q1",
+      "tests": [
+        "internal/architecture_test.go::TestDependencyDirectionAndEnvironmentGate",
+        "internal/i18n/i18n_test.go::TestMessageRejectsUnknownLocaleAndKey"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly",
+        "internal/positions/domain/purity_test.go::TestPositionsDomainCarriesNoPlanOrPaymentWeight"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-02",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly",
+        "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForVisitorKeepsTheChoiceLocal"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-03",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionResolvesLostInsertRaces",
+        "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRefusesDifferentInitialValue"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-04",
+      "risk": "Q1",
+      "tests": [
+        "internal/positions/domain/change_test.go::TestDeriveCurrentPositionReplaysContiguousChains",
+        "internal/positions/domain/change_test.go::TestNewPositionChangeValidatesTheHistoryEntry"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-05",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections",
+        "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyRejectsViolations"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-06",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit",
+        "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-07",
+      "risk": "Q0",
+      "tests": [
+        "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentEndToEndAtomic",
+        "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentDoubleSpendIsImpossible"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-08",
+      "risk": "Q0",
+      "tests": [
+        "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaEndToEndAtomic",
+        "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseWithoutPassRollsBack"
+      ]
+    },
+    {
+      "rule": "QUAL-REQ-INV-09",
+      "risk": "Q0",
+      "tests": [
+        "internal/moderation/adapters/postgres/appeals_test.go::TestAppealsReverseRestoresWithoutDeletingAction",
+        "internal/platform/postgres/audit_schema_test.go::TestAuditEventsRejectUpdatesAndDeletes"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-AUTH-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/platform/security/cookies_test.go::TestCookieAttributesByEnvironment",
+        "internal/platform/security/lifecycle_test.go::TestPostLogoutLifecycle"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-AUTH-03",
+      "risk": "Q0",
+      "tests": [
+        "internal/platform/security/csrf_test.go::TestCSRFMiddleware_SameOriginSubmissionCarriesItsOrigin",
+        "internal/platform/security/csrf_test.go::TestCSRFMiddleware_MutatingMethods_Enforcement"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-AUTH-04",
+      "risk": "Q0",
+      "tests": [
+        "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection",
+        "internal/identity/application/password_reset_test.go::TestPasswordReset_ExpiredTokenRejection"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-WAL-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitSplitsAcrossBuckets",
+        "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitInsufficientLeavesNoPartialState"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-WAL-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/wallet/adapters/postgres/repository_test.go::TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence",
+        "internal/platform/postgres/wallet_test.go::TestWalletAppendOnlyPrivileges"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-WAL-03",
+      "risk": "Q0",
+      "tests": [
+        "internal/arguments/adapters/http/ratelimit_test.go::TestArgumentWritesCarryThePolicy",
+        "internal/arenas/adapters/http/challenge_http_test.go::TestPublicationChallengedPlacement"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-STRIPE-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierAcceptsValidSignature",
+        "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsAlteredBody"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-STRIPE-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/application/process_webhook_test.go::TestProcessWebhookHandlesCheckoutSessionCompleted",
+        "internal/billing/application/process_webhook_test.go::TestProcessWebhookSuccessPageNeverGrantsBenefit"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-STRIPE-03",
+      "risk": "Q0",
+      "tests": [
+        "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutGrantsINKOnSettledPayment",
+        "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutRejectsAlreadySettledIntent"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-PERS-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit",
+        "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-MOD-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/moderation/application/file_report_test.go::TestFileReportAcceptsSpamAndSelfReport",
+        "internal/moderation/application/file_report_test.go::TestFileReportVolumeNeverRemovesAndHidesPII"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-MOD-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/moderation/adapters/postgres/review_test.go::TestReviewDecideAtomicAndInvalid",
+        "internal/moderation/application/review_test.go::TestDecideTargetActionMismatchDenies"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-CACHE-01",
+      "risk": "Q1",
+      "tests": [
+        "internal/platform/httpcache/policy_test.go::TestPrivateAndNoStorePolicies",
+        "internal/wallet/adapters/http/wallet_http_test.go::TestWalletStatementHTTPNeverLeaksRestrictedFields"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-CACHE-02",
+      "risk": "Q1",
+      "tests": [
+        "internal/platform/httpcache/policy_test.go::TestPublicPolicyIsExplicitAndBounded",
+        "internal/identity/adapters/http/auth_http_test.go::TestSpoofedForwardedHeaderDoesNotMultiplyTheLoginBudget"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-ADM-01",
+      "risk": "Q0",
+      "tests": [
+        "internal/moderation/adapters/http/handler_test.go::TestModerationQueueClaimDecideFlow",
+        "internal/moderation/adapters/http/handler_test.go::TestModerationAdminRoutesDenyStrangers"
+      ]
+    },
+    {
+      "rule": "QUAL-THR-ADM-02",
+      "risk": "Q0",
+      "tests": [
+        "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseCreditPositive",
+        "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseValidatesInput"
+      ]
+    }
+  ],
+  "historical_defects": [
+    {
+      "id": "HIST-01",
+      "description": "NUL byte no search retornava 500; recusado com 400 em search/application (P26-T03).",
+      "fixed_in": "internal/search/application/search.go",
+      "test": "internal/contract/hostile_inputs_test.go::TestHostileSQLInjection"
+    },
+    {
+      "id": "HIST-02",
+      "description": "ErrTargetActionMismatch sem mapeamento retornava 500; mapeado para 400 (P26-T03).",
+      "fixed_in": "internal/moderation/adapters/http/handler.go",
+      "test": "internal/contract/hostile_inputs_test.go::TestHostileTargetMismatch"
+    },
+    {
+      "id": "HIST-03",
+      "description": "ErrRoleNotAuthorized sem mapeamento retornava 500; mapeado para 403 (P26-T02).",
+      "fixed_in": "internal/moderation/adapters/http/handler.go",
+      "test": "internal/contract/authorization_matrix_test.go::TestAuthorizationMatrixModeration"
+    },
+    {
+      "id": "HIST-04",
+      "description": "Cancelamento sem motivo retornava 500; agora 400 invalid_cancel_reason (P26-T10).",
+      "fixed_in": "internal/profiles/adapters/http/deletion.go",
+      "test": "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPValidatesCancelBody"
+    }
+  ]
+}
