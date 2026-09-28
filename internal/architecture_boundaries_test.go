@@ -98,9 +98,11 @@ var declaredModules = map[string][]string{
 //   - bootstrap: the composition root;
 //   - ports: the ports shared by every module (Clock, Random, IDGenerator);
 //   - i18n: the bilingual catalogs;
-//   - contract, security, buildinfo, i18ngen: build, test and CLI tooling.
+//   - contract, security, buildinfo, i18ngen: build, test and CLI tooling;
+//   - performance, regression: test-only suites without layers (budgets,
+//     payloads, baselines, soak), declared so the shape stays a decision.
 var declaredStandalonePackages = []string{
-	"buildinfo", "bootstrap", "contract", "i18n", "i18ngen", "platform", "ports", "security",
+	"buildinfo", "bootstrap", "contract", "i18n", "i18ngen", "performance", "platform", "ports", "regression", "security",
 }
 
 // publicSurfaceLayers are the layers of one module that another module may use:
