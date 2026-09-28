@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "generator": "tools/capacityratchet",
+  "commit": "687458c",
+  "environment": {
+    "os": "linux",
+    "arch": "amd64",
+    "hardware_class": "dev-i7-13620H-16cpu-31GB",
+    "hardware_note": "16 vCPU i7-13620H, 31 GiB RAM",
+    "go_version": "go1.27.1",
+    "k6_version": "k6 v1.8.1",
+    "postgres": "18.4 (compose.production.yaml image)"
+  },
+  "datasets": {
+    "go": "deterministic in-repo fixtures (budget/payload tests)",
+    "k6": "synthetic seeds synthetic-p28-t04 (mix), synthetic-p28-t05 (spike), synthetic-p28-t06 (hotkeys)"
+  },
+  "k6_thresholds": {
+    "tests/load/mix.js": {
+      "globals": [
+        "mix_failed_total:count==0",
+        "checks{kind:invariant}:rate==1"
+      ],
+      "p95_ms": {
+        "visitors": 500,
+        "viral": 500,
+        "signup": 1500,
+        "login": 1500,
+        "position": 1000,
+        "argument": 1000,
+        "webhook": 1000,
+        "moderation": 1000,
+        "jobs-enqueue": 1000
+      }
+    },
+    "tests/load/spike.js": {
+      "globals": [
+        "spike_failed_total:count==0",
+        "checks{kind:invariant}:rate==1"
+      ],
+      "p95_ms": {
+        "visitors,stage:baseline": 500,
+        "visitors,stage:recovery": 500,
+        "viral,stage:baseline": 500,
+        "viral,stage:recovery": 500,
+        "signup,stage:baseline": 1500,
+        "signup,stage:recovery": 1500,
+        "login,stage:baseline": 1500,
+        "login,stage:recovery": 1500,
+        "position,stage:baseline": 1000,
+        "position,stage:recovery": 1000,
+        "argument,stage:baseline": 1000,
+        "argument,stage:recovery": 1000,
+        "webhook,stage:baseline": 1000,
+        "webhook,stage:recovery": 1000,
+        "moderation,stage:baseline": 1000,
+        "moderation,stage:recovery": 1000,
+        "jobs-enqueue,stage:baseline": 1000,
+        "jobs-enqueue,stage:recovery": 1000
+      }
+    },
+    "tests/load/hotkeys.js": {
+      "globals": [
+        "hotkey_failed_total:count==0",
+        "checks{kind:invariant}:rate==1"
+      ],
+      "p95_ms": {
+        "hot-wallet": 1000,
+        "hot-attempt": 1000,
+        "hot-arena": 1000,
+        "hot-aggregate": 1000,
+        "hot-webhook": 1000,
+        "hot-jobs": 1000,
+        "hot-login": 1500,
+        "hot-visitors": 500
+      }
+    }
+  },
+  "go_budgets": {
+    "internal/performance/budget_test.go": {
+      "argon2-verify": {
+        "median_ns": 150000000,
+        "allocs": 70
+      },
+      "grapheme-count": {
+        "median_ns": 5000,
+        "allocs": 0
+      },
+      "export-json-encode": {
+        "median_ns": 15000,
+        "allocs": 8
+      },
+      "ratelimit-policy-for": {
+        "median_ns": 200,
+        "allocs": 2
+      },
+      "httpcache-validator": {
+        "median_ns": 1500,
+        "allocs": 6
+      },
+      "wallet-allocate-debit": {
+        "median_ns": 150,
+        "allocs": 2
+      },
+      "i18n-format": {
+        "median_ns": 800,
+        "allocs": 4
+      },
+      "derive-current-position": {
+        "median_ns": 800,
+        "allocs": 5
+      }
+    }
+  },
+  "byte_budgets": {
+    "internal/performance/payload_test.go": {
+      "maxFeedPageBytes": 524288,
+      "maxArgumentsPageBytes": 524288,
+      "maxStatementPageBytes": 131072,
+      "maxExportDocBytes": 2097152
+    }
+  },
+  "product_bounds": {
+    "internal/arenas/application/feed.go:MaxFeedLimit": 100,
+    "internal/arguments/application/public_arguments.go:MaxArgumentPageLimit": 100,
+    "internal/wallet/application/queries.go:MaxStatementLimit": 100
+  },
+  "tolerance": 0
+}
