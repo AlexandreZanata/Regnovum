@@ -572,10 +572,21 @@ audit-toolchain:
 # toolchain-next emite o veredito informativo (P29-T08): quais pinos
 # seguram, quais derivam e quais próximas patches estão aprovadas, sem
 # tocar em lockfile. Sempre verde por desenho — informar, não barrar;
-# promover uma próxima a obrigatória exige tarefa, ADR e as suites Q0.
+# promoção a obrigatória exige tarefa, ADR e as suites Q0.
 toolchain-next:
 	$(GO) run ./tools/toolchainaudit -root . -report
 	@echo "toolchain-next: ok"
+
+# quality-manifest monta o bundle determinístico de evidências (P30-T03):
+# manifesto, checksum e cada artefato que a certificação lê. EVIDENCE é o
+# diretório de resultados da execução; BUNDLE é o destino. A montagem
+# recusa campo/artefato ausente, árvore suja e qualquer PII/segredo, e a
+# mesma evidência produz bytes idênticos.
+EVIDENCE ?= quality-evidence
+BUNDLE ?= quality-bundle
+quality-manifest:
+	$(GO) run ./tools/qualitymanifest -root . -evidence $(EVIDENCE) -out $(BUNDLE)
+	@echo "quality-manifest: ok"
 
 # generate valida os catálogos i18n, reescreve os artefatos gerados, emite os
 # contratos TypeScript do OpenAPI e executa a geração de código SQL tipado com
