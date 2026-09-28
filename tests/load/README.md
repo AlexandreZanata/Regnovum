@@ -95,3 +95,28 @@ repository; signup emails are synthetic and deterministic per seed.
 Funding is generous on purpose (re-seeding an account never double-credits:
 the seed idempotency key resolves the first grant), so publishes stay on
 the 303 path while 402/409 remain accepted refusal shapes.
+
+# P28-T05 spike, stress and saturation point
+
+`spike.js` walks four stages in one ramping scenario — baseline, sudden
+spike, gradual stress to saturation, recovery — with the mix rotation,
+per-stage request tags and `teardown()` verification. Latency thresholds
+bind baseline and recovery only (same SLO numbers as the mix); spike and
+stress exist to characterize, never to pass SLOs while saturated. Two
+properties hold in every stage: `spike_failed_total` stays zero (no 5xx,
+no transport failure) and every invariant check passes. `teardown()` logs
+in fresh, reads the arena and publishes one argument expecting 303: a
+system that did not recover fails there.
+
+Read the report for the bottleneck by evidence: per-workload p95 in
+spike/stress plus `spike_rate_limited_total` show where shedding engages
+(expected: auth writes throttle per IP first — register 5/hour, login
+10/minute, reset 3/hour — while reads saturate on pool/CPU). Auth writes
+beyond those budgets 429 by design and stay separated from failures;
+late-ramp VUs may never authenticate and run unauthenticated, which is
+what a visitor surge looks like.
+
+`K6_SPIKE_PROFILE=sample` runs ~16s up to 8 VUs (functional sample for
+the creating task); the default `full` runs 80s up to 40 VUs. Prolonged
+saturation stays a P30 version gate; single-IP runs measure per-IP
+throttle behavior plus read capacity, never distributed capacity.
