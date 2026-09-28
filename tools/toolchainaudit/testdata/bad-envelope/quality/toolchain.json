@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "pinned": {
+    "go": "1.27.1"
+  },
+  "next": {},
+  "policy": "p"
+}

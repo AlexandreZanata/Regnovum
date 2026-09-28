@@ -543,6 +543,21 @@ audit-runbooks:
 	$(GO) run ./tools/runbookaudit -root .
 	@echo "audit-runbooks: ok"
 
+# audit-toolchain julga os pinos de produção contra quality/toolchain.json
+# (P29-T08): qualquer versão fora do pin falha. Alvo standalone, fora do
+# quick-verify como os demais portões de fase.
+audit-toolchain:
+	$(GO) run ./tools/toolchainaudit -root .
+	@echo "audit-toolchain: ok"
+
+# toolchain-next emite o veredito informativo (P29-T08): quais pinos
+# seguram, quais derivam e quais próximas patches estão aprovadas, sem
+# tocar em lockfile. Sempre verde por desenho — informar, não barrar;
+# promover uma próxima a obrigatória exige tarefa, ADR e as suites Q0.
+toolchain-next:
+	$(GO) run ./tools/toolchainaudit -root . -report
+	@echo "toolchain-next: ok"
+
 # generate valida os catálogos i18n, reescreve os artefatos gerados, emite os
 # contratos TypeScript do OpenAPI e executa a geração de código SQL tipado com
 # sqlc para o adapter PostgreSQL.

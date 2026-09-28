@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "pinned": {
+    "go": "1.27.1",
+    "postgres": "18.4",
+    "typescript": "7.0.2",
+    "staticcheck": "v0.8.1"
+  },
+  "next": {},
+  "policy": "p"
+}
