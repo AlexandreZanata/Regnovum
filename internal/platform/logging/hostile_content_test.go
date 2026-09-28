@@ -21,7 +21,7 @@ func TestHostileContentStaysInItsRecord(t *testing.T) {
 	hostile := []string{
 		"linha um\nlinha dois",
 		"texto\u202Ereordenado",
-		"arena​com zero width",
+		"arena\u200Bcom zero width",
 		"café e café e 👩🏽‍🚀",
 		"not json: {\"a\": 1}, trailing",
 		string([]byte{0xff, 0xfe, 0x41}),

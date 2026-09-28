@@ -130,7 +130,7 @@ func TestInternationalCorpusProhibitedControlsRejected(t *testing.T) {
 		}
 	}
 
-	for _, raw := range []string{"аrena", "‮arena", "arena​", "a\x7Fb"} {
+	for _, raw := range []string{"аrena", "\u202Earena", "arena\u200B", "a\x7Fb"} {
 		if _, err := profilesdomain.ParseUsername(raw); !errors.Is(err, profilesdomain.ErrUsernameNonASCII) && !errors.Is(err, profilesdomain.ErrInvalidUsernameFormat) {
 			t.Errorf("username %q error = %v, want NonASCII/Format rejection", raw, err)
 		}

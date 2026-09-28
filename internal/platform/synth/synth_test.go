@@ -22,7 +22,6 @@ type probeScript struct {
 	login    int
 	logout   int
 	feed     int
-	metrics  int
 	webhook  int
 	lag      string
 	requests []string
