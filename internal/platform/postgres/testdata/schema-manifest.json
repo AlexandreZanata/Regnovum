@@ -3180,6 +3180,115 @@
       ]
     },
     {
+      "name": "app.economy_genesis",
+      "owner": "arena_owner",
+      "comment": "Single Genesis attestation: one event key, the Treasury custody and exactly S milliINK; every second event is refused",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "genesis_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Idempotency key of the creation event: replays resolve to this row instead of minting again"
+        },
+        {
+          "name": "treasury_custody_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "singleton",
+          "type": "boolean",
+          "nullable": false,
+          "default": "true",
+          "comment": "Always true and unique: the constraint that makes a second Genesis impossible"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_genesis_amount_supply_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli = '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_genesis_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM genesis_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_genesis_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (genesis_key)"
+        },
+        {
+          "name": "economy_genesis_singleton_check",
+          "kind": "c",
+          "definition": "CHECK (singleton)"
+        },
+        {
+          "name": "economy_genesis_singleton_unique",
+          "kind": "u",
+          "definition": "UNIQUE (singleton)"
+        },
+        {
+          "name": "economy_genesis_treasury_custody_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (treasury_custody_id) REFERENCES app.economy_custodies(id) ON DELETE RESTRICT"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_genesis_pkey",
+          "definition": "CREATE UNIQUE INDEX economy_genesis_pkey ON app.economy_genesis USING btree (genesis_key)",
+          "valid": true
+        },
+        {
+          "name": "economy_genesis_singleton_unique",
+          "definition": "CREATE UNIQUE INDEX economy_genesis_singleton_unique ON app.economy_genesis USING btree (singleton)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.economy_partitions",
       "owner": "arena_owner",
       "comment": "Exclusive sub-partitions of one custody: reserve, stock, cash, obligations and encumbrances never double-count",
@@ -13789,6 +13898,156 @@
     {
       "table": "app.economy_entries",
       "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "genesis_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "genesis_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "genesis_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "genesis_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "genesis_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "singleton",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "singleton",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "singleton",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "singleton",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "singleton",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "treasury_custody_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "treasury_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "treasury_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "treasury_custody_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "treasury_custody_id",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

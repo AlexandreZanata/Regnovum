@@ -12,6 +12,8 @@ const (
 	CodeInsufficientMilliInk ErrorCode = "ECONOMY_INSUFFICIENT_MILLIINK"
 	CodeMilliInkPrecision    ErrorCode = "ECONOMY_MILLIINK_PRECISION"
 	CodeUnknownLocale        ErrorCode = "ECONOMY_UNKNOWN_LOCALE"
+	CodeInvalidGenesisKey    ErrorCode = "ECONOMY_INVALID_GENESIS_KEY"
+	CodeGenesisAlreadyExists ErrorCode = "ECONOMY_GENESIS_ALREADY_EXISTS"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -56,5 +58,13 @@ var (
 	ErrUnknownLocale = DomainError{
 		Code:    CodeUnknownLocale,
 		Message: "locale is outside the pt/en decimal vocabulary",
+	}
+	ErrInvalidGenesisKey = DomainError{
+		Code:    CodeInvalidGenesisKey,
+		Message: "genesis key is empty, too long or carries control characters",
+	}
+	ErrGenesisAlreadyExists = DomainError{
+		Code:    CodeGenesisAlreadyExists,
+		Message: "genesis already happened: a second creation event is refused",
 	}
 )
