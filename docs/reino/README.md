@@ -12,6 +12,7 @@ Esta pasta interpreta a *Constituição Funcional do Reino — v0.1* e a *Carta 
 - [DECISOES_VIGENTES.md](DECISOES_VIGENTES.md) — registro de ratificação Q01–Q36 (texto normativo, fonte, titular, data, estado); tudo `PENDENTE` até aprovação expressa, sem ativar regra, parâmetro ou produto.
 - [TEMPO_ECONOMICO.md](TEMPO_ECONOMICO.md) — tempo contábil canônico (UTC, instantes, intervalos, fecho de semana, cotação, proibições); proposta com exemplos de resultado único, sem regra ativa.
 - [PRECIFICACAO.md](PRECIFICACAO.md) — unidade de texto canônico, tabela vigente e proposta, cotação antes do aceite, freeze da intenção e cobrança só no commit; custo único por estado, sem regra ativa.
+- [LEDGER_CONTRACT.md](LEDGER_CONTRACT.md) — custódia exclusiva, dupla entrada, Genesis, empenho, correção compensatória e direitos de terceiros; exemplos com soma S preservada e contraexemplos recusados, sem regra ativa.
 
 ## Estado documental
 
