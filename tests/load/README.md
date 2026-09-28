@@ -120,3 +120,36 @@ what a visitor surge looks like.
 the creating task); the default `full` runs 80s up to 40 VUs. Prolonged
 saturation stays a P30 version gate; single-IP runs measure per-IP
 throttle behavior plus read capacity, never distributed capacity.
+
+# P28-T06 hot-key contention
+
+`hotkeys.js` hammers shared hot spots under constant concurrency: one
+wallet (owner publishes with distinct attempt keys), one fixed attempt key
+raced by every VU (only the winner may ever exist), one arena for position
+confirms from distinct seeded accounts, duplicate webhooks, enqueue
+idempotency, and aggregate reads with `?reveal=1`. Job leases have no HTTP
+surface and stay covered by Go tests (P25-T05 lease + cancellation,
+P27-T06 reclaim and idempotent redelivery); k6 covers the enqueue side.
+
+Reconciliation is immediate and window-safe (per-relation listings show the
+newest 20, so a later re-read could miss evicted rows): every verified
+write is re-read in the same iteration — 303-published contents must appear
+exactly once, refused contents zero times. `teardown()` reconciles without
+shared VU state: no hotkey content may ever appear twice; the closed
+3-content race set shows at most one content (exactly one while the window
+is not full); positions are spot-checked per account (owner + v1..v3 must
+render `Posição atual:`); a revealed aggregate must sum at least those four
+(a suppressed one carries the note instead); one final fresh-key publish
+expects 303 (402 names an exhausted owner pot). Thresholds: SLO p95 per
+workload, `hotkey_failed_total` zero, every invariant check green.
+
+Dataset: funded owner, `K6_HOTKEY_ACCOUNTS` verified accounts (default 10;
+aggregates reveal at 10 participants), positioned owner, published arenas —
+all via `tools/e2e/seed`. `K6_HOTKEYS_PROFILE=sample` runs ~12s with 2 VUs;
+default `full` ramps 0→10 VUs, holds 40s and ramps down. Sessions travel as
+an explicit `Cookie` header (the VU jar does not persist across
+iterations); CSRF tokens are single-use, one GET per POST. Reruns demand a
+fresh disposable database: contents are deterministic per seed, so rows
+from a previous run would read as duplicates. Teardown retries throttled
+logins and publishes with backoff (bounded, fresh CSRF per attempt —
+the middleware consumes the token before the throttle refuses).
