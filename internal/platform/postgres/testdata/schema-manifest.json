@@ -2965,6 +2965,314 @@
       ]
     },
     {
+      "name": "app.economy_custodies",
+      "owner": "arena_owner",
+      "comment": "Genesis custody accounts: exactly one home per unit of INK, never renamed or removed",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "kind",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Custody class: treasury, user, escrow, contract or title; closed vocabulary"
+        },
+        {
+          "name": "label",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Stable custody name within its kind; unique per kind"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_custodies_kind_check",
+          "kind": "c",
+          "definition": "CHECK (kind = ANY (ARRAY['treasury'::text, 'user'::text, 'escrow'::text, 'contract'::text, 'title'::text]))"
+        },
+        {
+          "name": "economy_custodies_kind_label_unique",
+          "kind": "u",
+          "definition": "UNIQUE (kind, label)"
+        },
+        {
+          "name": "economy_custodies_label_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM label) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_custodies_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_custodies_kind_label_unique",
+          "definition": "CREATE UNIQUE INDEX economy_custodies_kind_label_unique ON app.economy_custodies USING btree (kind, label)",
+          "valid": true
+        },
+        {
+          "name": "economy_custodies_pkey",
+          "definition": "CREATE UNIQUE INDEX economy_custodies_pkey ON app.economy_custodies USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.economy_entries",
+      "owner": "arena_owner",
+      "comment": "Double-entry legs of Genesis transfers: debit/credit pairs sharing one transfer_id, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Business intention carried by every leg of the transfer; replayed intentions reuse it instead of duplicating legs"
+        },
+        {
+          "name": "custody_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "direction",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "Leg amount in milliINK subunits: 1..S, never zero, negative or beyond supply"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_entries_amount_range_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_entries_custody_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (custody_id) REFERENCES app.economy_custodies(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_entries_direction_check",
+          "kind": "c",
+          "definition": "CHECK (direction = ANY (ARRAY['debit'::text, 'credit'::text]))"
+        },
+        {
+          "name": "economy_entries_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "economy_entries_transfer_leg_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id, custody_id, direction)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_entries_custody_idx",
+          "definition": "CREATE INDEX economy_entries_custody_idx ON app.economy_entries USING btree (custody_id, created_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "economy_entries_pkey",
+          "definition": "CREATE UNIQUE INDEX economy_entries_pkey ON app.economy_entries USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "economy_entries_transfer_idx",
+          "definition": "CREATE INDEX economy_entries_transfer_idx ON app.economy_entries USING btree (transfer_id)",
+          "valid": true
+        },
+        {
+          "name": "economy_entries_transfer_leg_unique",
+          "definition": "CREATE UNIQUE INDEX economy_entries_transfer_leg_unique ON app.economy_entries USING btree (transfer_id, custody_id, direction)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.economy_partitions",
+      "owner": "arena_owner",
+      "comment": "Exclusive sub-partitions of one custody: reserve, stock, cash, obligations and encumbrances never double-count",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "custody_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Owning custody; restricted from deletion while partitions exist"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_partitions_custody_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (custody_id) REFERENCES app.economy_custodies(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_partitions_custody_name_unique",
+          "kind": "u",
+          "definition": "UNIQUE (custody_id, name)"
+        },
+        {
+          "name": "economy_partitions_name_check",
+          "kind": "c",
+          "definition": "CHECK (name = ANY (ARRAY['sovereign_reserve'::text, 'commercial_stock'::text, 'operating_cash'::text, 'obligations'::text, 'encumbrances'::text, 'available'::text]))"
+        },
+        {
+          "name": "economy_partitions_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_partitions_custody_name_unique",
+          "definition": "CREATE UNIQUE INDEX economy_partitions_custody_name_unique ON app.economy_partitions USING btree (custody_id, name)",
+          "valid": true
+        },
+        {
+          "name": "economy_partitions_pkey",
+          "definition": "CREATE UNIQUE INDEX economy_partitions_pkey ON app.economy_partitions USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.email_verification_tokens",
       "owner": "arena_owner",
       "comment": "Single-use cryptographic token hashes for email verification",
@@ -13121,6 +13429,510 @@
     {
       "table": "app.debate_positions",
       "column": "version",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "kind",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "kind",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "label",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "label",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "label",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "label",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "label",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "label",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "custody_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "custody_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "custody_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "custody_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "custody_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "custody_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "direction",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "direction",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "direction",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "direction",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "direction",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "direction",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "custody_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "custody_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "custody_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "custody_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "custody_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "custody_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "name",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "name",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "name",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "name",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "name",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_partitions",
+      "column": "name",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
