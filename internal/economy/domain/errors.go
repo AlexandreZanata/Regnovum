@@ -14,6 +14,9 @@ const (
 	CodeUnknownLocale        ErrorCode = "ECONOMY_UNKNOWN_LOCALE"
 	CodeInvalidGenesisKey    ErrorCode = "ECONOMY_INVALID_GENESIS_KEY"
 	CodeGenesisAlreadyExists ErrorCode = "ECONOMY_GENESIS_ALREADY_EXISTS"
+	CodeUnknownCustody       ErrorCode = "ECONOMY_UNKNOWN_CUSTODY"
+	CodeUnauthorizedCustody  ErrorCode = "ECONOMY_UNAUTHORIZED_CUSTODY"
+	CodeSameCustody          ErrorCode = "ECONOMY_SAME_CUSTODY"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -66,5 +69,17 @@ var (
 	ErrGenesisAlreadyExists = DomainError{
 		Code:    CodeGenesisAlreadyExists,
 		Message: "genesis already happened: a second creation event is refused",
+	}
+	ErrUnknownCustody = DomainError{
+		Code:    CodeUnknownCustody,
+		Message: "custody is outside the closed kind vocabulary or does not exist",
+	}
+	ErrUnauthorizedCustody = DomainError{
+		Code:    CodeUnauthorizedCustody,
+		Message: "source custody kind cannot spend yet: locked holds release only by their own conditions",
+	}
+	ErrSameCustody = DomainError{
+		Code:    CodeSameCustody,
+		Message: "transfer within one custody is refused: legs must move value between custodies",
 	}
 )
