@@ -19,6 +19,9 @@ const (
 	CodeSameCustody          ErrorCode = "ECONOMY_SAME_CUSTODY"
 	CodeInvalidIntention     ErrorCode = "ECONOMY_INVALID_INTENTION"
 	CodeIntentionConflict    ErrorCode = "ECONOMY_INTENTION_CONFLICT"
+	CodeInvalidStatement     ErrorCode = "ECONOMY_INVALID_STATEMENT"
+	CodeStatementForbidden   ErrorCode = "ECONOMY_STATEMENT_FORBIDDEN"
+	CodeStatementSuspended   ErrorCode = "ECONOMY_STATEMENT_SUSPENDED"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -91,5 +94,17 @@ var (
 	ErrIntentionConflict = DomainError{
 		Code:    CodeIntentionConflict,
 		Message: "intention key already settled a different payload: reuse is refused, never merged",
+	}
+	ErrInvalidStatement = DomainError{
+		Code:    CodeInvalidStatement,
+		Message: "statement query carries a bad limit, cursor or identity",
+	}
+	ErrStatementForbidden = DomainError{
+		Code:    CodeStatementForbidden,
+		Message: "caller may not read this custody statement: system custodies and other holders are refused",
+	}
+	ErrStatementSuspended = DomainError{
+		Code:    CodeStatementSuspended,
+		Message: "owner account is not active: suspended holders read nothing",
 	}
 )

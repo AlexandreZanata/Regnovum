@@ -2999,6 +2999,13 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "owner_account_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "",
+          "comment": "Holder account of this custody, set once at creation; NULL marks a system custody no private statement may read"
         }
       ],
       "constraints": [
@@ -3018,6 +3025,11 @@
           "definition": "CHECK (TRIM(BOTH FROM label) \u003c\u003e ''::text)"
         },
         {
+          "name": "economy_custodies_owner_account_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (owner_account_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
           "name": "economy_custodies_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
@@ -3027,6 +3039,11 @@
         {
           "name": "economy_custodies_kind_label_unique",
           "definition": "CREATE UNIQUE INDEX economy_custodies_kind_label_unique ON app.economy_custodies USING btree (kind, label)",
+          "valid": true
+        },
+        {
+          "name": "economy_custodies_owner_idx",
+          "definition": "CREATE INDEX economy_custodies_owner_idx ON app.economy_custodies USING btree (owner_account_id)",
           "valid": true
         },
         {
@@ -13816,6 +13833,42 @@
     {
       "table": "app.economy_custodies",
       "column": "label",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "owner_account_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "owner_account_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "owner_account_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "owner_account_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "owner_account_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "owner_account_id",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
