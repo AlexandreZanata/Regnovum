@@ -167,4 +167,29 @@ var (
 	// ErrPortalCustomerNotFound indicates the account has no stored provider
 	// customer, so there is no portal to open.
 	ErrPortalCustomerNotFound = errors.New("application: billing customer was not found")
+
+	// INK purchase intent error vocabulary (P35-T05).
+
+	// ErrInvalidPurchaseIntentConfig indicates the purchase intent use case
+	// could not be built from the given configuration.
+	ErrInvalidPurchaseIntentConfig = errors.New("application: purchase intent configuration is invalid")
+
+	// ErrPurchaseQuoteNotFound indicates no quotation carries the
+	// identifier: an unknown quote never opens an intent.
+	ErrPurchaseQuoteNotFound = errors.New("application: purchase quotation was not found")
+
+	// ErrPurchaseQuoteExpired indicates the quotation lapsed before
+	// acceptance: the lifetime counts from acceptance terms sealed
+	// earlier, never from a later arrival.
+	ErrPurchaseQuoteExpired = errors.New("application: purchase quotation expired before acceptance")
+
+	// ErrPurchaseIntentConflict indicates the intent key already settled
+	// different terms for the account: a retry must repeat the purchase,
+	// never rewrite it.
+	ErrPurchaseIntentConflict = errors.New("application: purchase intent key already settled different terms")
+
+	// ErrInsufficientCommercialStock indicates the commercial vault cannot
+	// cover the derived INK: the intent, the hold and every leg refuse
+	// together, so no charge exists without stock.
+	ErrInsufficientCommercialStock = errors.New("application: commercial stock cannot cover the purchase")
 )
