@@ -192,4 +192,20 @@ var (
 	// cover the derived INK: the intent, the hold and every leg refuse
 	// together, so no charge exists without stock.
 	ErrInsufficientCommercialStock = errors.New("application: commercial stock cannot cover the purchase")
+
+	// INK purchase settlement error vocabulary (P35-T06).
+
+	// ErrPurchaseIntentNotFound indicates no acceptance carries the key
+	// the event names: an event without an intent settles nothing.
+	ErrPurchaseIntentNotFound = errors.New("application: purchase intent was not found")
+
+	// ErrPurchaseEventNotSettling indicates the event does not order a
+	// payment: success pages, failures and unknown statuses never move
+	// committed INK, only a paid event settles.
+	ErrPurchaseEventNotSettling = errors.New("application: purchase event does not settle")
+
+	// ErrPurchaseSettlementMismatch indicates the event disagrees with
+	// the sealed intent on amount or currency: the buyer is never shown
+	// one ticket and settled on another.
+	ErrPurchaseSettlementMismatch = errors.New("application: purchase event does not match the sealed intent")
 )
