@@ -23,6 +23,9 @@ const (
 	CodeInvalidMeasuredHash  ErrorCode = "METERING_INVALID_CONTENT_HASH"
 	CodeMeasuredHashMismatch ErrorCode = "METERING_CONTENT_HASH_MISMATCH"
 	CodeInvalidMeasuredLimit ErrorCode = "METERING_INVALID_MEASURE_LIMIT"
+	CodeInvalidQuote         ErrorCode = "METERING_INVALID_QUOTE"
+	CodeQuoteExpired         ErrorCode = "METERING_QUOTE_EXPIRED"
+	CodeQuoteMismatch        ErrorCode = "METERING_QUOTE_MISMATCH"
 )
 
 // DomainError represents an invariant or rule failure in the metering domain.
@@ -111,5 +114,17 @@ var (
 	ErrInvalidMeasuredLimit = DomainError{
 		Code:    CodeInvalidMeasuredLimit,
 		Message: "metering measure limit needs a positive grapheme budget",
+	}
+	ErrInvalidQuote = DomainError{
+		Code:    CodeInvalidQuote,
+		Message: "metering quote needs an account, measured content, covering price and positive lifetime",
+	}
+	ErrQuoteExpired = DomainError{
+		Code:    CodeQuoteExpired,
+		Message: "metering quote expired: altered or lapsed terms need a new acceptance",
+	}
+	ErrQuoteMismatch = DomainError{
+		Code:    CodeQuoteMismatch,
+		Message: "metering quote binds one account to one content hash: another account or text needs a new acceptance",
 	}
 )
