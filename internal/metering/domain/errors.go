@@ -6,16 +6,23 @@ import "fmt"
 type ErrorCode string
 
 const (
-	CodeInvalidService     ErrorCode = "METERING_INVALID_SERVICE"
-	CodeInvalidVersion     ErrorCode = "METERING_INVALID_VERSION"
-	CodeInvalidPrice       ErrorCode = "METERING_INVALID_PRICE"
-	CodeInvalidPriceWindow ErrorCode = "METERING_INVALID_PRICE_WINDOW"
-	CodeOverlappingPrice   ErrorCode = "METERING_OVERLAPPING_PRICE"
-	CodeDuplicatePrice     ErrorCode = "METERING_DUPLICATE_PRICE_VERSION"
-	CodePriceNotFound      ErrorCode = "METERING_PRICE_NOT_FOUND"
-	CodeUnknownUnit        ErrorCode = "METERING_UNKNOWN_UNIT"
-	CodeInvalidAuthority   ErrorCode = "METERING_INVALID_AUTHORITY"
-	CodeUnknownPriceLocale ErrorCode = "METERING_UNKNOWN_LOCALE"
+	CodeInvalidService       ErrorCode = "METERING_INVALID_SERVICE"
+	CodeInvalidVersion       ErrorCode = "METERING_INVALID_VERSION"
+	CodeInvalidPrice         ErrorCode = "METERING_INVALID_PRICE"
+	CodeInvalidPriceWindow   ErrorCode = "METERING_INVALID_PRICE_WINDOW"
+	CodeOverlappingPrice     ErrorCode = "METERING_OVERLAPPING_PRICE"
+	CodeDuplicatePrice       ErrorCode = "METERING_DUPLICATE_PRICE_VERSION"
+	CodePriceNotFound        ErrorCode = "METERING_PRICE_NOT_FOUND"
+	CodeUnknownUnit          ErrorCode = "METERING_UNKNOWN_UNIT"
+	CodeInvalidAuthority     ErrorCode = "METERING_INVALID_AUTHORITY"
+	CodeUnknownPriceLocale   ErrorCode = "METERING_UNKNOWN_LOCALE"
+	CodeEmptyMeasuredContent ErrorCode = "METERING_EMPTY_CONTENT"
+	CodeInvalidMeasured      ErrorCode = "METERING_INVALID_CONTENT"
+	CodeMeasuredTooLong      ErrorCode = "METERING_CONTENT_TOO_LONG"
+	CodeMissingMeterCounter  ErrorCode = "METERING_MISSING_GRAPHEME_COUNTER"
+	CodeInvalidMeasuredHash  ErrorCode = "METERING_INVALID_CONTENT_HASH"
+	CodeMeasuredHashMismatch ErrorCode = "METERING_CONTENT_HASH_MISMATCH"
+	CodeInvalidMeasuredLimit ErrorCode = "METERING_INVALID_MEASURE_LIMIT"
 )
 
 // DomainError represents an invariant or rule failure in the metering domain.
@@ -76,5 +83,33 @@ var (
 	ErrUnknownPriceLocale = DomainError{
 		Code:    CodeUnknownPriceLocale,
 		Message: "metering locale is outside the pt/en vocabulary",
+	}
+	ErrEmptyMeasuredContent = DomainError{
+		Code:    CodeEmptyMeasuredContent,
+		Message: "metering content cannot be empty or whitespace only",
+	}
+	ErrInvalidMeasuredContent = DomainError{
+		Code:    CodeInvalidMeasured,
+		Message: "metering content contains unsupported characters",
+	}
+	ErrMeasuredContentTooLong = DomainError{
+		Code:    CodeMeasuredTooLong,
+		Message: "metering content exceeds the caller-supplied grapheme limit",
+	}
+	ErrMissingMeterCounter = DomainError{
+		Code:    CodeMissingMeterCounter,
+		Message: "a grapheme counter is required",
+	}
+	ErrInvalidMeasuredHash = DomainError{
+		Code:    CodeInvalidMeasuredHash,
+		Message: "content hash format is invalid",
+	}
+	ErrMeasuredContentHashMismatch = DomainError{
+		Code:    CodeMeasuredHashMismatch,
+		Message: "content does not match its canonical hash",
+	}
+	ErrInvalidMeasuredLimit = DomainError{
+		Code:    CodeInvalidMeasuredLimit,
+		Message: "metering measure limit needs a positive grapheme budget",
 	}
 )
