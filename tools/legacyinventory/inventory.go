@@ -277,7 +277,7 @@ func shapeViolations(ctx context.Context, pool *pgxpool.Pool) (map[string]int64,
 	unknowns := map[string]int64{}
 	probes := map[string]string{
 		"unknown_bucket":    `SELECT count(*) FROM app.wallet_transactions WHERE bucket NOT IN ('FREE_INK', 'PURCHASED_INK')`,
-		"unknown_operation": `SELECT count(*) FROM app.wallet_operations WHERE operation_type NOT IN ('credit_free', 'credit_member', 'credit_purchase', 'credit_refund', 'credit_admin', 'debit_argument', 'debit_admin', 'expire_free')`,
+		"unknown_operation": `SELECT count(*) FROM app.wallet_operations WHERE operation_type NOT IN ('credit_free', 'credit_member', 'credit_purchase', 'credit_refund', 'credit_admin', 'debit_argument', 'debit_admin', 'debit_refund', 'debit_conversion', 'expire_free')`,
 		"unknown_origin":    `SELECT count(*) FROM app.arena_pass_lots WHERE origin NOT IN ('PURCHASE', 'MEMBER', 'ADMIN')`,
 		"unknown_status":    `SELECT count(*) FROM app.subscriptions WHERE status NOT IN ('incomplete', 'incomplete_expired', 'trialing', 'active', 'past_due', 'canceled', 'unpaid', 'paused')`,
 	}

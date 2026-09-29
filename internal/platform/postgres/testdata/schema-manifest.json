@@ -7302,7 +7302,7 @@
         {
           "name": "wallet_operations_type_check",
           "kind": "c",
-          "definition": "CHECK (operation_type = ANY (ARRAY['credit_free'::text, 'credit_member'::text, 'credit_purchase'::text, 'credit_refund'::text, 'credit_admin'::text, 'debit_argument'::text, 'debit_admin'::text, 'debit_refund'::text, 'expire_free'::text]))"
+          "definition": "CHECK (operation_type = ANY (ARRAY['credit_free'::text, 'credit_member'::text, 'credit_purchase'::text, 'credit_refund'::text, 'credit_admin'::text, 'debit_argument'::text, 'debit_admin'::text, 'debit_refund'::text, 'debit_conversion'::text, 'expire_free'::text]))"
         }
       ],
       "indexes": [

@@ -31,6 +31,9 @@ const (
 	CodeInvalidCharter       ErrorCode = "ECONOMY_INVALID_CHARTER"
 	CodeConsentRequired      ErrorCode = "ECONOMY_CONSENT_REQUIRED"
 	CodeConsentConflict      ErrorCode = "ECONOMY_CONSENT_CONFLICT"
+	CodeRateMismatch         ErrorCode = "ECONOMY_RATE_MISMATCH"
+	CodeOptInExpired         ErrorCode = "ECONOMY_OPTIN_EXPIRED"
+	CodeOptInMissing         ErrorCode = "ECONOMY_OPTIN_MISSING"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -151,5 +154,17 @@ var (
 	ErrConsentConflict = DomainError{
 		Code:    CodeConsentConflict,
 		Message: "a different verdict or terms already stand for this account and version",
+	}
+	ErrRateMismatch = DomainError{
+		Code:    CodeRateMismatch,
+		Message: "offered rate differs from the recorded opt-in terms: conversion matches exactly or not at all",
+	}
+	ErrOptInExpired = DomainError{
+		Code:    CodeOptInExpired,
+		Message: "opt-in validity lapsed: expired intents never convert",
+	}
+	ErrOptInMissing = DomainError{
+		Code:    CodeOptInMissing,
+		Message: "no recorded opt-in intent for this account and charter: nothing to convert",
 	}
 )
