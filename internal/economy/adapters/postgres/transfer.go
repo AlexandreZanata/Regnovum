@@ -19,8 +19,10 @@ var _ application.TransferRepository = (*Repository)(nil)
 // the balance is rechecked inside the lock, and the two legs commit
 // together or not at all.
 func (r *Repository) Transfer(ctx context.Context, request application.TransferRequest) (*application.TransferResult, error) {
-	if !request.FromKind.CanSpend() {
-		return nil, domain.ErrUnauthorizedCustody
+	// Fail-closed order mirrors the use case: known kinds, resolved
+	// custodies, distinct pair, authorized source, positive amount.
+	if !request.FromKind.IsValid() || !request.ToKind.IsValid() {
+		return nil, domain.ErrUnknownCustody
 	}
 
 	tx, err := r.pool.Begin(ctx)
@@ -44,6 +46,12 @@ func (r *Repository) Transfer(ctx context.Context, request application.TransferR
 	}
 	if fromID == toID {
 		return nil, domain.ErrSameCustody
+	}
+	if !request.FromKind.CanSpend() {
+		return nil, domain.ErrUnauthorizedCustody
+	}
+	if request.Amount.IsZero() {
+		return nil, domain.ErrInvalidMilliInk
 	}
 	if err := lockCustodies(ctx, tx, fromID, toID); err != nil {
 		return nil, err

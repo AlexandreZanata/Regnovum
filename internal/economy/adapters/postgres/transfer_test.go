@@ -29,7 +29,7 @@ func transferCtx() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), 30*time.Second)
 }
 
-func mustTransferKey(t *testing.T, key string) domain.GenesisKey {
+func mustTransferKey(t testing.TB, key string) domain.GenesisKey {
 	t.Helper()
 	parsed, err := domain.ParseGenesisKey(key)
 	if err != nil {
@@ -45,7 +45,7 @@ func fundTreasury(t *testing.T, ctx context.Context, repo *postgres.Repository) 
 	}
 }
 
-func makeCustody(t *testing.T, ctx context.Context, pool *pgxpool.Pool, kind, label string) {
+func makeCustody(t testing.TB, ctx context.Context, pool *pgxpool.Pool, kind, label string) {
 	t.Helper()
 	if _, err := pool.Exec(ctx,
 		`INSERT INTO app.economy_custodies (kind, label) VALUES ($1, $2)`, kind, label); err != nil {
@@ -105,7 +105,7 @@ func doTransfer(t *testing.T, ctx context.Context, repo *postgres.Repository, fr
 	return result
 }
 
-func mustCustodyKind(t *testing.T, kind string) domain.CustodyKind {
+func mustCustodyKind(t testing.TB, kind string) domain.CustodyKind {
 	t.Helper()
 	parsed, err := domain.ParseCustodyKind(kind)
 	if err != nil {

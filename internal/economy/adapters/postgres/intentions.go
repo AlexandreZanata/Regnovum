@@ -80,6 +80,11 @@ func (r *Repository) TransferIdempotent(ctx context.Context, request application
 // whether a retry is worthwhile: true only when a concurrent run of the
 // same triple (or a transfer id collision) may have committed first.
 func (r *Repository) createIntention(ctx context.Context, request application.IdempotentTransferRequest) (*application.IdempotentTransferResult, bool, error) {
+	// Fail-closed order mirrors the use case: known kinds first, then
+	// the in-transaction checks in the same sequence.
+	if !request.FromKind.IsValid() || !request.ToKind.IsValid() {
+		return nil, false, domain.ErrUnknownCustody
+	}
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return nil, false, fmt.Errorf("begin intention transaction: %w", err)
@@ -108,6 +113,9 @@ func (r *Repository) createIntention(ctx context.Context, request application.Id
 	}
 	if !request.FromKind.CanSpend() {
 		return nil, false, domain.ErrUnauthorizedCustody
+	}
+	if request.Amount.IsZero() {
+		return nil, false, domain.ErrInvalidMilliInk
 	}
 	if err := lockCustodies(ctx, tx, fromID, toID); err != nil {
 		return nil, false, err
