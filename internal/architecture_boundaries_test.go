@@ -680,6 +680,43 @@ func exceptionReason(from, to string) string {
 	return ""
 }
 
+// ledgerBookPairs are the unit vocabularies that must never meet in one
+// delivered package: legacy wallet capacity (FREE_INK/PURCHASED_INK) and
+// circulating Genesis money (milliINK), at domain and application level.
+// The units travel inside application requests, so both layers share the
+// ban: naming both types in one scope is what makes a cast, a sum or an
+// alias between the books writable. A future opt-in conversion (P33-T04)
+// coordinates the books through a new explicit port instead, amending
+// this gate in its own task rather than slipping past it.
+var ledgerBookPairs = [][2]string{
+	{"internal/economy/domain", "internal/wallet/domain"},
+	{"internal/economy/application", "internal/wallet/application"},
+}
+
+// ledgerIsolationViolations refuses any delivered package importing both
+// sides of a ledger pair. The ports stay distinct by construction —
+// wallet ports speak Ink, economy ports speak MilliInk — and this rule
+// is what keeps them distinct: without both imports no code can convert
+// one unit into the other, add them, or alias one as the other.
+func ledgerIsolationViolations(packages []internalPackage) []string {
+	violations := []string{}
+	for _, unit := range packages {
+		imported := map[string]bool{}
+		for _, importPath := range unit.imports {
+			imported[importPath] = true
+		}
+		for _, pair := range ledgerBookPairs {
+			if imported[pair[0]] && imported[pair[1]] {
+				violations = append(violations, fmt.Sprintf(
+					"%s imports %s and %s — legacy capacity and Genesis money never meet: a cast, sum or alias between the books is refused",
+					unit.dir, pair[0], pair[1]))
+			}
+		}
+	}
+	sort.Strings(violations)
+	return violations
+}
+
 // ownedFile is one delivered Go file of the repository, used by the ownership
 // rule. It is separate from internalPackage because the ownership of a
 // dependency is judged over the whole repository, not only over the backend.
@@ -952,6 +989,7 @@ func allViolations(packages []internalPackage, files []ownedFile) []string {
 	violations = append(violations, layerViolations(packages)...)
 	violations = append(violations, wiringViolations(packages)...)
 	violations = append(violations, ownershipViolations(files)...)
+	violations = append(violations, ledgerIsolationViolations(packages)...)
 	violations = append(violations, unsanctionedCycleViolations(packages)...)
 	return violations
 }
@@ -1231,6 +1269,62 @@ func TestTheBoundaryRulesRefuseFixtures(t *testing.T) {
 	}
 	if violations := allViolations(clean, cleanFiles); len(violations) > 0 {
 		t.Errorf("the rules refused an architecture that follows them: %v", violations)
+	}
+}
+
+// TestLedgerBooksStayDisjoint judges the filesystem: no delivered package
+// imports both the legacy wallet units and the Genesis economy units, so
+// no scope can cast, sum or alias one book as the other.
+func TestLedgerBooksStayDisjoint(t *testing.T) {
+	if violations := ledgerIsolationViolations(scanInternalPackages(t)); len(violations) > 0 {
+		t.Fatalf("the ledgers meet in delivered code:\n%s", strings.Join(violations, "\n"))
+	}
+}
+
+// TestLedgerIsolationRefusesFixtures proves the disjointness rule has
+// teeth in both directions and at both layers, and that single-book
+// packages — including the legacy consumers that predate the economy —
+// keep passing.
+func TestLedgerIsolationRefusesFixtures(t *testing.T) {
+	refused := []struct {
+		name     string
+		packages []internalPackage
+	}{
+		{
+			name: "a domain mixing legacy and Genesis units",
+			packages: []internalPackage{
+				fixturePackage("internal/treasury/domain", "internal/economy/domain", "internal/wallet/domain"),
+			},
+		},
+		{
+			name: "a use case mixing legacy and Genesis ports",
+			packages: []internalPackage{
+				fixturePackage("internal/treasury/application", "internal/economy/application", "internal/wallet/application"),
+			},
+		},
+		{
+			name: "an adapter mixing both journals",
+			packages: []internalPackage{
+				fixturePackage("internal/treasury/adapters/postgres", "internal/economy/domain", "internal/wallet/domain"),
+			},
+		},
+	}
+	for _, fixture := range refused {
+		if violations := ledgerIsolationViolations(fixture.packages); len(violations) == 0 {
+			t.Errorf("%s: the isolation rule accepted the fixture", fixture.name)
+		}
+	}
+
+	clean := []internalPackage{
+		fixturePackage("internal/economy/domain"),
+		fixturePackage("internal/economy/application", "internal/economy/domain"),
+		fixturePackage("internal/economy/adapters/postgres", "internal/economy/application", "internal/platform/postgres"),
+		fixturePackage("internal/wallet/domain"),
+		fixturePackage("internal/billing/adapters/wallet", "internal/wallet/domain"),
+		fixturePackage("internal/arguments/adapters/walletdebit", "internal/wallet/domain"),
+	}
+	if violations := ledgerIsolationViolations(clean); len(violations) > 0 {
+		t.Errorf("the isolation rule refused single-book packages: %v", violations)
 	}
 }
 
