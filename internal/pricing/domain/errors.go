@@ -14,6 +14,7 @@ const (
 	CodeSourceUnavailable   ErrorCode = "PRICING_SOURCE_UNAVAILABLE"
 	CodeInsufficientSources ErrorCode = "PRICING_INSUFFICIENT_SOURCES"
 	CodeDivergentSources    ErrorCode = "PRICING_DIVERGENT_SOURCES"
+	CodeInvalidQuote        ErrorCode = "PRICING_INVALID_QUOTE"
 )
 
 // DomainError represents an invariant or rule failure in the pricing domain.
@@ -66,5 +67,9 @@ var (
 	ErrDivergentSources = DomainError{
 		Code:    CodeDivergentSources,
 		Message: "rate sightings diverge beyond the approved spread: no quotation is issued",
+	}
+	ErrInvalidQuote = DomainError{
+		Code:    CodeInvalidQuote,
+		Message: "purchase quote needs a positive price, distinct sources, ordered instants and a positive lifetime",
 	}
 )

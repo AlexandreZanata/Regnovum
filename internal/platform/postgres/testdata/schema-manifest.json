@@ -5755,6 +5755,213 @@
       ]
     },
     {
+      "name": "app.pricing_quote_sources",
+      "owner": "arena_owner",
+      "comment": "One sighting per source and quote: the frozen source set the acceptance judged",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "quote_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "price_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "observed_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "payload_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "pricing_quote_sources_hash_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM payload_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "pricing_quote_sources_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM source) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "pricing_quote_sources_price_check",
+          "kind": "c",
+          "definition": "CHECK (price_minor \u003e= 1 AND price_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "pricing_quote_sources_quote_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (quote_id) REFERENCES app.pricing_quotes(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "pricing_quote_sources_unique",
+          "kind": "u",
+          "definition": "UNIQUE (quote_id, source)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "pricing_quote_sources_unique",
+          "definition": "CREATE UNIQUE INDEX pricing_quote_sources_unique ON app.pricing_quote_sources USING btree (quote_id, source)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.pricing_quotes",
+      "owner": "arena_owner",
+      "comment": "Accepted BTC/BRL quotation snapshots: integer price, observed/accepted/expiry instants and content hash, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "price_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "Guarded median in integer minor units (centavos per BTC): never float"
+        },
+        {
+          "name": "observed_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "accepted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "quote_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Canonical hash binding price, ordered sources and instants: tampering is detectable by recomputation"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "pricing_quotes_hash_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM quote_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "pricing_quotes_lifetime_check",
+          "kind": "c",
+          "definition": "CHECK (expires_at \u003e accepted_at)"
+        },
+        {
+          "name": "pricing_quotes_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "pricing_quotes_price_check",
+          "kind": "c",
+          "definition": "CHECK (price_minor \u003e= 1 AND price_minor \u003c= '9223372036854775807'::bigint)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "pricing_quotes_expiry_idx",
+          "definition": "CREATE INDEX pricing_quotes_expiry_idx ON app.pricing_quotes USING btree (expires_at)",
+          "valid": true
+        },
+        {
+          "name": "pricing_quotes_pkey",
+          "definition": "CREATE UNIQUE INDEX pricing_quotes_pkey ON app.pricing_quotes USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.profiles",
       "owner": "arena_owner",
       "comment": "Account profiles: public username and interface locale, without email or payment identifiers",
@@ -20345,6 +20552,402 @@
     {
       "table": "app.position_changes",
       "column": "version",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
