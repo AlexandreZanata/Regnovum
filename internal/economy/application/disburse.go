@@ -70,15 +70,7 @@ func NewDisburseUseCase(disbursements DisbursementRepository) *DisburseUseCase {
 // credential stop before the journal: irreversible moves need two
 // whole governors besides the paid account.
 func (uc *DisburseUseCase) Execute(ctx context.Context, cmd DisburseCommand) (*DisburseResult, error) {
-	key, err := domain.ParseIntentionKey(cmd.Key)
-	if err != nil {
-		return nil, err
-	}
-	vault, err := domain.ParseTreasuryVault(cmd.Vault)
-	if err != nil {
-		return nil, err
-	}
-	beneficiary, err := domain.ParseIntentionActor(cmd.Beneficiary)
+	act, err := validateGovernedAct(cmd.Key, cmd.Vault, cmd.Beneficiary, cmd.Millis, cmd.ApproverOne, cmd.ApproverTwo)
 	if err != nil {
 		return nil, err
 	}
@@ -86,29 +78,8 @@ func (uc *DisburseUseCase) Execute(ctx context.Context, cmd DisburseCommand) (*D
 	if err != nil {
 		return nil, err
 	}
-	amount, err := domain.NewMilliInk(cmd.Millis)
-	if err != nil {
-		return nil, err
-	}
-	if amount.IsZero() {
-		return nil, domain.ErrInvalidGrant
-	}
-	approverOne, err := domain.ParseIntentionActor(cmd.ApproverOne)
-	if err != nil {
-		return nil, err
-	}
-	approverTwo, err := domain.ParseIntentionActor(cmd.ApproverTwo)
-	if err != nil {
-		return nil, err
-	}
-	if approverOne == approverTwo {
-		return nil, domain.ErrInvalidDisbursement
-	}
-	if beneficiary == approverOne || beneficiary == approverTwo {
-		return nil, domain.ErrInvalidDisbursement
-	}
 	return uc.disbursements.Disburse(ctx, DisburseRequest{
-		Key: key, Vault: vault, Beneficiary: beneficiary, Purpose: purpose,
-		Amount: amount, ApproverOne: approverOne, ApproverTwo: approverTwo,
+		Key: act.key, Vault: act.vault, Beneficiary: act.beneficiary, Purpose: purpose,
+		Amount: act.amount, ApproverOne: act.approverOne, ApproverTwo: act.approverTwo,
 	})
 }
