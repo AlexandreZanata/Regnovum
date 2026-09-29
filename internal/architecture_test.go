@@ -75,7 +75,7 @@ var forbiddenExternal = []string{
 // docs/ARCHITECTURE.md §4.
 var businessModules = []string{
 	"arenas", "arguments", "audit", "billing", "economy", "identity", "jobs",
-	"moderation", "persuasion", "positions", "pricing", "profiles",
+	"metering", "moderation", "persuasion", "positions", "pricing", "profiles",
 	"transparency", "wallet",
 }
 
