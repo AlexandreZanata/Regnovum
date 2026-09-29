@@ -28,6 +28,9 @@ const (
 	CodeHoldNotExpired       ErrorCode = "ECONOMY_HOLD_NOT_EXPIRED"
 	CodeEconomyFrozen        ErrorCode = "ECONOMY_FROZEN"
 	CodeIncidentNotFound     ErrorCode = "ECONOMY_INCIDENT_NOT_FOUND"
+	CodeInvalidCharter       ErrorCode = "ECONOMY_INVALID_CHARTER"
+	CodeConsentRequired      ErrorCode = "ECONOMY_CONSENT_REQUIRED"
+	CodeConsentConflict      ErrorCode = "ECONOMY_CONSENT_CONFLICT"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -136,5 +139,17 @@ var (
 	ErrIncidentNotFound = DomainError{
 		Code:    CodeIncidentNotFound,
 		Message: "incident does not exist or is not an open break",
+	}
+	ErrInvalidCharter = DomainError{
+		Code:    CodeInvalidCharter,
+		Message: "charter version, decision, rate or validity is missing, malformed or out of range",
+	}
+	ErrConsentRequired = DomainError{
+		Code:    CodeConsentRequired,
+		Message: "no accepted charter for this account and version: conversion without acceptance is refused",
+	}
+	ErrConsentConflict = DomainError{
+		Code:    CodeConsentConflict,
+		Message: "a different verdict or terms already stand for this account and version",
 	}
 )
