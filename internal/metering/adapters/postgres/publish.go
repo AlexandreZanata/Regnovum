@@ -102,6 +102,89 @@ func (r *Repository) lookupSettlement(ctx context.Context, q rowQuerier, request
 	return &result, nil
 }
 
+// settlementEnds are the validated ledger endpoints of one
+// publication: spendable source and destination kinds with the exact
+// quoted amount.
+type settlementEnds struct {
+	fromKind economydomain.CustodyKind
+	toKind   economydomain.CustodyKind
+	amount   economydomain.MilliInk
+}
+
+// validateSettlementEnds parses the opaque custody kinds and the
+// quoted total before any transaction opens.
+func validateSettlementEnds(request application.PublishRequest) (settlementEnds, error) {
+	fromKind, err := economydomain.ParseCustodyKind(request.FromKind)
+	if err != nil {
+		return settlementEnds{}, err
+	}
+	toKind, err := economydomain.ParseCustodyKind(request.ToKind)
+	if err != nil {
+		return settlementEnds{}, err
+	}
+	amount, err := economydomain.NewMilliInk(request.Quote.TotalMilli)
+	if err != nil {
+		return settlementEnds{}, err
+	}
+	return settlementEnds{fromKind: fromKind, toKind: toKind, amount: amount}, nil
+}
+
+// coverSettlement locks both custodies in id order and rechecks the
+// source balance inside the locks.
+func coverSettlement(ctx context.Context, tx pgx.Tx, fromID, toID string, amount economydomain.MilliInk) error {
+	if err := lockLedgerCustodies(ctx, tx, fromID, toID); err != nil {
+		return err
+	}
+	balance, err := ledgerBalance(ctx, tx, fromID)
+	if err != nil {
+		return err
+	}
+	_, err = balance.Sub(amount)
+	return err
+}
+
+// recordSettlementLegs writes the debit/credit pair moving the exact
+// quoted cost inside the caller transaction.
+func recordSettlementLegs(ctx context.Context, tx pgx.Tx, fromID, toID string, millis int64) (string, error) {
+	var transferID string
+	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
+		return "", fmt.Errorf("generate transfer id: %w", err)
+	}
+	if _, err := tx.Exec(ctx,
+		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
+		 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $4)`,
+		transferID, fromID, toID, millis); err != nil {
+		return "", fmt.Errorf("record charge legs: %w", err)
+	}
+	return transferID, nil
+}
+
+// recordPublicationRow stores the publication naming the same
+// transfer as the legs and returns the database posted instant. A
+// unique collision reports a worthwhile retry: a concurrent run may
+// have committed the same intention first.
+func recordPublicationRow(ctx context.Context, tx pgx.Tx, request application.PublishRequest, transferID string, millis int64) (application.PublishResult, bool, error) {
+	var result application.PublishResult
+	if err := tx.QueryRow(ctx,
+		`INSERT INTO app.metering_publications
+		 (intention_key, account_label, service, price_version, units, amount_milli,
+		  content_hash, quote_hash, payload_hash, transfer_id)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::uuid)
+		 RETURNING id::text, posted_at`,
+		request.Key.String(), request.Account, request.Quote.Service.String(),
+		request.Quote.Version, request.Quote.Units, millis,
+		request.Quote.ContentHash.String(), request.Quote.Hash,
+		request.PayloadHash, transferID).Scan(&result.PublicationID, &result.PostedAt); err != nil {
+		if isPublishConflict(err) {
+			return application.PublishResult{}, true, fmt.Errorf("concurrent publication race: %w", err)
+		}
+		return application.PublishResult{}, false, fmt.Errorf("record publication: %w", err)
+	}
+	result.TransferID = transferID
+	result.TotalMilli = millis
+	return result, false, nil
+}
+
 // createSettlement attempts the publication once in a single
 // transaction: the legs move the exact quoted cost from citizen to
 // Treasury and the publication row names the same transfer, so
@@ -114,15 +197,7 @@ func (r *Repository) lookupSettlement(ctx context.Context, q rowQuerier, request
 // economy and billing adapters, and each test case below dies at its
 // own stage with journal and registry unchanged.
 func (r *Repository) createSettlement(ctx context.Context, request application.PublishRequest) (*application.PublishResult, bool, error) {
-	fromKind, err := economydomain.ParseCustodyKind(request.FromKind)
-	if err != nil {
-		return nil, false, err
-	}
-	toKind, err := economydomain.ParseCustodyKind(request.ToKind)
-	if err != nil {
-		return nil, false, err
-	}
-	amount, err := economydomain.NewMilliInk(request.Quote.TotalMilli)
+	ends, err := validateSettlementEnds(request)
 	if err != nil {
 		return nil, false, err
 	}
@@ -138,61 +213,45 @@ func (r *Repository) createSettlement(ctx context.Context, request application.P
 	if replayed, err := r.lookupSettlement(ctx, tx, request); err != nil || replayed != nil {
 		return replayed, false, err
 	}
-	fromID, err := resolveLedgerCustody(ctx, tx, fromKind.String(), request.FromLabel)
+	fromID, err := resolveLedgerCustody(ctx, tx, ends.fromKind.String(), request.FromLabel)
 	if err != nil {
 		return nil, false, err
 	}
-	toID, err := resolveLedgerCustody(ctx, tx, toKind.String(), request.ToLabel)
+	toID, err := resolveLedgerCustody(ctx, tx, ends.toKind.String(), request.ToLabel)
 	if err != nil {
 		return nil, false, err
 	}
 	if fromID == toID {
 		return nil, false, economydomain.ErrSameCustody
 	}
-	if !fromKind.CanSpend() {
+	if !ends.fromKind.CanSpend() {
 		return nil, false, economydomain.ErrUnauthorizedCustody
 	}
-	if err := lockLedgerCustodies(ctx, tx, fromID, toID); err != nil {
+	if err := coverSettlement(ctx, tx, fromID, toID, ends.amount); err != nil {
+		// A concurrent run of the same key may have settled while
+		// this attempt waited on the custody locks: resolve it
+		// before refusing, so losers replay instead of mistaking a
+		// won race for an empty balance. Roll back first: nothing
+		// was written yet.
+		if rbErr := tx.Rollback(ctx); rbErr != nil {
+			return nil, false, fmt.Errorf("abort uncovered publication: %w", rbErr)
+		}
+		if replayed, err := r.lookupSettlement(ctx, r.pool, request); err != nil || replayed != nil {
+			return replayed, false, err
+		}
 		return nil, false, err
 	}
-	balance, err := ledgerBalance(ctx, tx, fromID)
+	transferID, err := recordSettlementLegs(ctx, tx, fromID, toID, ends.amount.Millis())
 	if err != nil {
 		return nil, false, err
 	}
-	if _, err := balance.Sub(amount); err != nil {
-		return nil, false, err
-	}
-	var transferID string
-	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
-		return nil, false, fmt.Errorf("generate transfer id: %w", err)
-	}
-	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $4)`,
-		transferID, fromID, toID, amount.Millis()); err != nil {
-		return nil, false, fmt.Errorf("record charge legs: %w", err)
-	}
-	var result application.PublishResult
-	if err := tx.QueryRow(ctx,
-		`INSERT INTO app.metering_publications
-		 (intention_key, account_label, service, price_version, units, amount_milli,
-		  content_hash, quote_hash, payload_hash, transfer_id)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::uuid)
-		 RETURNING id::text, posted_at`,
-		request.Key.String(), request.Account, request.Quote.Service.String(),
-		request.Quote.Version, request.Quote.Units, amount.Millis(),
-		request.Quote.ContentHash.String(), request.Quote.Hash,
-		request.PayloadHash, transferID).Scan(&result.PublicationID, &result.PostedAt); err != nil {
-		if isPublishConflict(err) {
-			return nil, true, fmt.Errorf("concurrent publication race: %w", err)
-		}
-		return nil, false, fmt.Errorf("record publication: %w", err)
+	result, retry, err := recordPublicationRow(ctx, tx, request, transferID, ends.amount.Millis())
+	if err != nil {
+		return nil, retry, err
 	}
 	if err := tx.Commit(ctx); err != nil {
 		return nil, false, fmt.Errorf("commit publication: %w", err)
 	}
-	result.TransferID = transferID
-	result.TotalMilli = amount.Millis()
 	return &result, false, nil
 }
 
