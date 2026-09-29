@@ -6,12 +6,14 @@ import "fmt"
 type ErrorCode string
 
 const (
-	CodeInvalidSource      ErrorCode = "PRICING_INVALID_SOURCE"
-	CodeInvalidPrice       ErrorCode = "PRICING_INVALID_PRICE"
-	CodeInvalidObservation ErrorCode = "PRICING_INVALID_OBSERVATION"
-	CodeStaleObservation   ErrorCode = "PRICING_STALE_OBSERVATION"
-	CodeDuplicateSource    ErrorCode = "PRICING_DUPLICATE_SOURCE"
-	CodeSourceUnavailable  ErrorCode = "PRICING_SOURCE_UNAVAILABLE"
+	CodeInvalidSource       ErrorCode = "PRICING_INVALID_SOURCE"
+	CodeInvalidPrice        ErrorCode = "PRICING_INVALID_PRICE"
+	CodeInvalidObservation  ErrorCode = "PRICING_INVALID_OBSERVATION"
+	CodeStaleObservation    ErrorCode = "PRICING_STALE_OBSERVATION"
+	CodeDuplicateSource     ErrorCode = "PRICING_DUPLICATE_SOURCE"
+	CodeSourceUnavailable   ErrorCode = "PRICING_SOURCE_UNAVAILABLE"
+	CodeInsufficientSources ErrorCode = "PRICING_INSUFFICIENT_SOURCES"
+	CodeDivergentSources    ErrorCode = "PRICING_DIVERGENT_SOURCES"
 )
 
 // DomainError represents an invariant or rule failure in the pricing domain.
@@ -56,5 +58,13 @@ var (
 	ErrSourceUnavailable = DomainError{
 		Code:    CodeSourceUnavailable,
 		Message: "rate source is unreachable or its breaker is open: the round continues without it",
+	}
+	ErrInsufficientSources = DomainError{
+		Code:    CodeInsufficientSources,
+		Message: "rate round is below the minimum source count: no quotation is issued",
+	}
+	ErrDivergentSources = DomainError{
+		Code:    CodeDivergentSources,
+		Message: "rate sightings diverge beyond the approved spread: no quotation is issued",
 	}
 )
