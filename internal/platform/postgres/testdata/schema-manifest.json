@@ -3247,6 +3247,133 @@
       ]
     },
     {
+      "name": "app.commerce_refund_obligations",
+      "owner": "arena_owner",
+      "comment": "Explicit shortfall debts: at most one per service refund, naming the provider debtor, the buyer creditor and the uncovered share, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "refund_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "debtor_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "creditor_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_refund_obligations_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "commerce_refund_obligations_creditor_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (creditor_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_refund_obligations_debtor_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (debtor_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_refund_obligations_parties_check",
+          "kind": "c",
+          "definition": "CHECK (debtor_id \u003c\u003e creditor_id)"
+        },
+        {
+          "name": "commerce_refund_obligations_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_refund_obligations_refund_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (refund_id) REFERENCES app.commerce_service_refunds(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_refund_obligations_refund_unique",
+          "kind": "u",
+          "definition": "UNIQUE (refund_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_refund_obligations_debtor_idx",
+          "definition": "CREATE INDEX commerce_refund_obligations_debtor_idx ON app.commerce_refund_obligations USING btree (debtor_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_refund_obligations_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_refund_obligations_pkey ON app.commerce_refund_obligations USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_refund_obligations_refund_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_refund_obligations_refund_unique ON app.commerce_refund_obligations USING btree (refund_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.commerce_sanctions",
       "owner": "arena_owner",
       "comment": "Sanctioned accounts blocked from paying and receiving: rows are managed by governance, read by settlement",
@@ -3304,6 +3431,169 @@
         {
           "grantee": "arena_app",
           "privileges": [
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_service_refunds",
+      "owner": "arena_owner",
+      "comment": "Proportional service refunds linked to their liquidated payment: idempotency key, total returned, tithe reversal, provider share, explicit shortfall and moving transfer, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "contract_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "refund_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Caller operation token scoped by contract: a retry replays instead of compensating twice"
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "tithe_reversal_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "provider_share_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "obligation_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "Shortfall the provider could not cover: explicit debt to the buyer, never a hidden negative balance"
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "",
+          "comment": "Journal transfer moving provider share and tithe reversal to the buyer; NULL only when dust plus a broke provider moves nothing and the full share becomes obligation"
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_service_refunds_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "commerce_service_refunds_contract_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (contract_id) REFERENCES app.commerce_contracts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_service_refunds_contract_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (contract_id, refund_key)"
+        },
+        {
+          "name": "commerce_service_refunds_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM refund_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_service_refunds_obligation_check",
+          "kind": "c",
+          "definition": "CHECK (obligation_milli \u003e= 0 AND obligation_milli \u003c= provider_share_milli)"
+        },
+        {
+          "name": "commerce_service_refunds_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_service_refunds_provider_check",
+          "kind": "c",
+          "definition": "CHECK (provider_share_milli = (amount_milli - tithe_reversal_milli))"
+        },
+        {
+          "name": "commerce_service_refunds_tithe_check",
+          "kind": "c",
+          "definition": "CHECK (tithe_reversal_milli = (amount_milli / 10))"
+        },
+        {
+          "name": "commerce_service_refunds_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_service_refunds_contract_idx",
+          "definition": "CREATE INDEX commerce_service_refunds_contract_idx ON app.commerce_service_refunds USING btree (contract_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_service_refunds_contract_key_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_service_refunds_contract_key_unique ON app.commerce_service_refunds USING btree (contract_id, refund_key)",
+          "valid": true
+        },
+        {
+          "name": "commerce_service_refunds_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_service_refunds_pkey ON app.commerce_service_refunds USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_service_refunds_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_service_refunds_transfer_unique ON app.commerce_service_refunds USING btree (transfer_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
             "SELECT"
           ]
         },
@@ -16479,6 +16769,222 @@
       "privilege": "UPDATE"
     },
     {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
       "table": "app.commerce_sanctions",
       "column": "account_id",
       "grantee": "arena_app",
@@ -16565,6 +17071,330 @@
     {
       "table": "app.commerce_sanctions",
       "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

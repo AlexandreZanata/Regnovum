@@ -21,6 +21,7 @@ const (
 	CodeContractState       ErrorCode = "COMMERCE_CONTRACT_STATE"
 	CodeContractNotFound    ErrorCode = "COMMERCE_CONTRACT_NOT_FOUND"
 	CodeUnauthorizedRelease ErrorCode = "COMMERCE_UNAUTHORIZED_RELEASE"
+	CodeRefundExceeds       ErrorCode = "COMMERCE_REFUND_EXCEEDS_ORIGINAL"
 )
 
 // DomainError represents an invariant or rule failure in the commerce domain.
@@ -101,5 +102,9 @@ var (
 	ErrUnauthorizedRelease = DomainError{
 		Code:    CodeUnauthorizedRelease,
 		Message: "release needs the buyer acceptance or a competent decision: unilateral releases never settle",
+	}
+	ErrRefundExceedsOriginal = DomainError{
+		Code:    CodeRefundExceeds,
+		Message: "refund exceeds the unrefunded remainder: partial refunds accumulate against the original payment, never beyond it",
 	}
 )
