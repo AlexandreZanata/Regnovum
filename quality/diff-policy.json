@@ -80,6 +80,12 @@
       ]
     },
     {
+      "name": "locale-data",
+      "role": "exempt",
+      "reason": "Locale JSON é dado de entrada, não comportamento: a consistência do catálogo é julgada por i18ngen -check e audit-i18n, e os artefatos gerados seguem devendo seu par de proveniência a estes insumos. Isentar o insumo enquanto a saída mantém o par prende as duas direções sem exigir testes unitários de prosa.",
+      "prefixes": ["locales/"]
+    },
+    {
       "name": "evidence",
       "role": "evidence",
       "reason": "O arquivo de teste, a fixture sob `testdata/` e o cenário k6 sob `tests/load/` são a evidência que a mudança de produção exige: eles são o que satisfaz a demanda, não o que a dispara.",
@@ -116,6 +122,12 @@
       "reason": "As ferramentas do repositório são código entregue tanto quanto o produto: um arquivo novo de ferramenta chega com o teste da mesma área.",
       "prefixes": ["tools/"],
       "demands": [{ "kind": "same-area-test", "when": "added" }]
+    },
+    {
+      "name": "web-component",
+      "role": "production",
+      "reason": "Componentes web entregam comportamento provado por web/tests (convenção do repositório desde P18): testes na mesma área sob web/src são estruturalmente impossíveis, porque o gate de arquitetura do frontend proíbe imports Node em fontes do browser e o executor Node só executa test-build/tests/**. Componentes não importam o catálogo e renderizam via textContent, como aquela suíte prova a cada execução; exigir testes na área src forçaria uma violação de gate para satisfazer outra.",
+      "prefixes": ["web/src/components/"]
     },
     {
       "name": "production",
