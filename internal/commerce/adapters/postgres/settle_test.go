@@ -132,7 +132,8 @@ func escrowBalance(t *testing.T, ctx context.Context, db *dbtest.TestDB, account
 
 // TestEscrowFundAcceptRelease proves the funded hold with the locked
 // balance, the buyer acceptance and the exact provider payment with
-// paired legs.
+// paired legs. Release splits floor(10%) tithe to the Treasury
+// (P37-T04): the provider keeps 18000 of 20000, the Treasury 2000.
 func TestEscrowFundAcceptRelease(t *testing.T) {
 	db := dbtest.New(t)
 	ctx, cancel := escrowCtx()
@@ -160,8 +161,8 @@ func TestEscrowFundAcceptRelease(t *testing.T) {
 	if released.Status != commercedomain.ContractReleased {
 		t.Fatalf("status = %q, want released", released.Status)
 	}
-	if escrowBalance(t, ctx, db, kit.provider) != 20000 {
-		t.Fatal("release must pay the provider exactly")
+	if escrowBalance(t, ctx, db, kit.provider) != 18000 {
+		t.Fatal("release must pay the provider net of floor(10%) tithe")
 	}
 	_ = funded
 }
@@ -199,8 +200,8 @@ func TestEscrowRefusesUnilateralRelease(t *testing.T) {
 	if replayed.Status != commercedomain.ContractReleased {
 		t.Fatalf("replay status = %q, want released", replayed.Status)
 	}
-	if escrowBalance(t, ctx, db, kit.provider) != 20000 {
-		t.Fatal("exactly one provider payment must exist")
+	if escrowBalance(t, ctx, db, kit.provider) != 18000 {
+		t.Fatal("exactly one provider net payment must exist")
 	}
 	var releases int
 	if err := db.QueryRow(ctx,
@@ -251,8 +252,8 @@ func TestEscrowConflictingOrdersSettleOnce(t *testing.T) {
 			t.Fatalf("repeated release = %v, want idempotent replay of the single payment", o.err)
 		}
 	}
-	if escrowBalance(t, ctx, testDB, kit.provider) != 20000 {
-		t.Fatal("conflicting orders must pay exactly once")
+	if escrowBalance(t, ctx, testDB, kit.provider) != 18000 {
+		t.Fatal("conflicting orders must pay exactly once net of tithe")
 	}
 	var releases int
 	if err := testDB.QueryRow(ctx,
@@ -317,8 +318,8 @@ func TestEscrowExpiryNeedsDecision(t *testing.T) {
 	if resolved.Status != commercedomain.ContractResolved {
 		t.Fatalf("status = %q, want resolved", resolved.Status)
 	}
-	if escrowBalance(t, ctx, db, kit.provider) != 20000 {
-		t.Fatal("competent release must pay the provider")
+	if escrowBalance(t, ctx, db, kit.provider) != 18000 {
+		t.Fatal("competent release must pay the provider net of tithe")
 	}
 
 	kit.fundContract(t, ctx, "escrow-expire-2")

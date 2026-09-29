@@ -159,76 +159,167 @@ func (r *EscrowRepository) moveEscrow(ctx context.Context, order settleOrder, au
 	}
 	defer tx.Rollback(ctx)
 
-	row, err := scanEscrowRow(ctx, tx, order.buyer, order.key)
-	if err != nil {
-		return nil, err
+	row, replay, err := r.loadAuthorizedEscrow(ctx, tx, order, authorize)
+	if err != nil || replay != nil {
+		return replay, err
 	}
-	if row == nil {
-		return nil, commercedomain.ErrContractNotFound
+	if order.toProvider {
+		return r.settleProvider(ctx, tx, row, order)
+	}
+	return r.settleBuyer(ctx, tx, row, order)
+}
+
+// loadAuthorizedEscrow scans one buyer contract and authorizes the
+// step from its status. A repeat of the settled action replays the
+// current view instead of refusing: repetition of one intention
+// observes one effect. Another action on a moved state refuses.
+func (r *EscrowRepository) loadAuthorizedEscrow(ctx context.Context, tx pgx.Tx, order settleOrder, authorize func(*escrowRow) error) (*escrowRow, *application.ContractView, error) {
+	row, err := scanEscrowRow(ctx, tx, order.buyer, order.key)
+	if err != nil || row == nil {
+		if err == nil {
+			return nil, nil, commercedomain.ErrContractNotFound
+		}
+		return nil, nil, err
 	}
 	if err := authorize(row); err != nil {
-		// A repeat of the settled action replays the current
-		// view instead of refusing: repetition of one intention
-		// observes one effect. Another action on a moved state
-		// refuses.
 		if errors.Is(err, commercedomain.ErrContractState) && terminalMatchesAction(row.view.Status, order.action) {
-			return r.lookupContract(ctx, tx, order.buyer, order.key)
+			view, err := r.lookupContract(ctx, tx, order.buyer, order.key)
+			return nil, view, err
 		}
-		return nil, err
+		return nil, nil, err
 	}
-	beneficiary := row.view.Buyer
-	if order.toProvider {
-		beneficiary = row.providerID
+	return row, nil, nil
+}
+
+// resolveProviderPayout computes the tithe split and resolves the
+// provider and Treasury custodies before any lock is taken.
+func resolveProviderPayout(ctx context.Context, tx pgx.Tx, row *escrowRow) (payoutPlan, error) {
+	tithe, net, err := commercedomain.SplitTithe(row.view.AmountMill)
+	if err != nil {
+		return payoutPlan{}, err
 	}
-	toID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", beneficiary)
+	toID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", row.providerID)
 	if err != nil || !found {
 		if err == nil {
-			return nil, commercedomain.ErrUnknownAccount
+			return payoutPlan{}, commercedomain.ErrUnknownAccount
 		}
-		return nil, err
+		return payoutPlan{}, err
 	}
-	if err := platformpg.LockLedgerCustodies(ctx, tx, row.escrowID, toID); err != nil {
-		return nil, err
+	plan := payoutPlan{toID: toID, tithe: tithe, net: net}
+	if tithe > 0 {
+		treasuryID, err := resolveTitheTreasury(ctx, tx)
+		if err != nil {
+			return payoutPlan{}, err
+		}
+		plan.treasuryID = treasuryID
 	}
+	return plan, nil
+}
+
+// resolveBuyerPayout resolves the buyer custody for a whole refund:
+// refunds never bear tithe.
+func resolveBuyerPayout(ctx context.Context, tx pgx.Tx, row *escrowRow) (payoutPlan, error) {
+	toID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", row.view.Buyer)
+	if err != nil || !found {
+		if err == nil {
+			return payoutPlan{}, commercedomain.ErrUnknownAccount
+		}
+		return payoutPlan{}, err
+	}
+	return payoutPlan{toID: toID}, nil
+}
+
+// verifyEscrowLocked rechecks the exact escrow balance inside the
+// locks. A concurrent terminal settlement may have drained the
+// escrow between the status read and this check: the race resolves
+// instead of mistaking a won race for a broken lock. A handled race
+// returns its view with handled true; covered escrow returns
+// handled false.
+func (r *EscrowRepository) verifyEscrowLocked(ctx context.Context, tx pgx.Tx, row *escrowRow, order settleOrder) (bool, *application.ContractView, error) {
 	locked, err := platformpg.LedgerBalanceMillis(ctx, tx, row.escrowID)
 	if err != nil {
-		return nil, err
+		return false, nil, err
 	}
-	if locked != row.view.AmountMill {
-		// A concurrent terminal settlement may have drained the
-		// escrow between the status read and this check: resolve
-		// the race instead of mistaking a won race for a broken
-		// lock. Roll back first: nothing here commits.
-		if rbErr := tx.Rollback(ctx); rbErr != nil {
-			return nil, fmt.Errorf("abort drained escrow: %w", rbErr)
-		}
-		return r.resolveDrainedRace(ctx, row.view.ID, order.buyer, order.key, order.action)
+	if locked == row.view.AmountMill {
+		return false, nil, nil
 	}
-	var transferID string
-	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
-		return nil, fmt.Errorf("generate transfer id: %w", err)
+	if rbErr := tx.Rollback(ctx); rbErr != nil {
+		return false, nil, fmt.Errorf("abort drained escrow: %w", rbErr)
 	}
-	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $4)`,
-		transferID, row.escrowID, toID, row.view.AmountMill); err != nil {
-		return nil, fmt.Errorf("record escrow legs: %w", err)
-	}
+	view, err := r.resolveDrainedRace(ctx, row.view.ID, order.buyer, order.key, order.action)
+	return true, view, err
+}
+
+// commitPayoutSettlement stores the terminal step and commits the
+// payout. A concurrent terminal settlement winning the guard
+// replays its view instead of paying twice.
+func (r *EscrowRepository) commitPayoutSettlement(ctx context.Context, tx pgx.Tx, row *escrowRow, order settleOrder, transferID string) (*application.ContractView, error) {
 	terminal, err := recordTerminalStep(ctx, tx, row.view.ID, order.action, transferID, order.decider)
 	if err != nil {
 		return nil, err
 	}
 	if terminal {
-		// A concurrent terminal settlement won the race: the
-		// same action replays its view, a different action
-		// refuses on the moved state. Either way this attempt
-		// rolls back without paying twice.
 		return r.resolveTerminalRace(ctx, tx, order.buyer, order.key, order.action)
 	}
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("commit settlement: %w", err)
 	}
 	return r.lookupContract(ctx, r.pool, order.buyer, order.key)
+}
+
+// settleProvider pays an accepted escrow to the provider with the
+// floor(10%) tithe split in the same transaction.
+func (r *EscrowRepository) settleProvider(ctx context.Context, tx pgx.Tx, row *escrowRow, order settleOrder) (*application.ContractView, error) {
+	plan, err := resolveProviderPayout(ctx, tx, row)
+	if err != nil {
+		return nil, err
+	}
+	if err := lockPayoutCustodies(ctx, tx, row.escrowID, plan.toID, plan.treasuryID, plan.tithe); err != nil {
+		return nil, err
+	}
+	if handled, view, err := r.verifyEscrowLocked(ctx, tx, row, order); err != nil || handled {
+		return view, err
+	}
+	var transferID string
+	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
+		return nil, fmt.Errorf("generate transfer id: %w", err)
+	}
+	legs := PayoutLegs{
+		TransferID: transferID, EscrowID: row.escrowID, ToID: plan.toID,
+		TreasuryID: plan.treasuryID, Amount: row.view.AmountMill,
+		Tithe: plan.tithe, Net: plan.net,
+	}
+	if err := recordPayoutLegs(ctx, tx, legs); err != nil {
+		return nil, err
+	}
+	return r.commitPayoutSettlement(ctx, tx, row, order, transferID)
+}
+
+// settleBuyer refunds one escrow whole to the buyer: refunds never
+// bear tithe.
+func (r *EscrowRepository) settleBuyer(ctx context.Context, tx pgx.Tx, row *escrowRow, order settleOrder) (*application.ContractView, error) {
+	plan, err := resolveBuyerPayout(ctx, tx, row)
+	if err != nil {
+		return nil, err
+	}
+	if err := lockPayoutCustodies(ctx, tx, row.escrowID, plan.toID, "", 0); err != nil {
+		return nil, err
+	}
+	if handled, view, err := r.verifyEscrowLocked(ctx, tx, row, order); err != nil || handled {
+		return view, err
+	}
+	var transferID string
+	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
+		return nil, fmt.Errorf("generate transfer id: %w", err)
+	}
+	legs := PayoutLegs{
+		TransferID: transferID, EscrowID: row.escrowID, ToID: plan.toID,
+		Amount: row.view.AmountMill,
+	}
+	if err := recordPayoutLegs(ctx, tx, legs); err != nil {
+		return nil, err
+	}
+	return r.commitPayoutSettlement(ctx, tx, row, order, transferID)
 }
 
 // resolveTerminalRace settles a lost terminal race inside the
