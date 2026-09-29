@@ -15,6 +15,7 @@ const (
 	CodeInsufficientSources ErrorCode = "PRICING_INSUFFICIENT_SOURCES"
 	CodeDivergentSources    ErrorCode = "PRICING_DIVERGENT_SOURCES"
 	CodeInvalidQuote        ErrorCode = "PRICING_INVALID_QUOTE"
+	CodeInvalidTerms        ErrorCode = "PRICING_INVALID_TERMS"
 )
 
 // DomainError represents an invariant or rule failure in the pricing domain.
@@ -71,5 +72,9 @@ var (
 	ErrInvalidQuote = DomainError{
 		Code:    CodeInvalidQuote,
 		Message: "purchase quote needs a positive price, distinct sources, ordered instants and a positive lifetime",
+	}
+	ErrInvalidTerms = DomainError{
+		Code:    CodeInvalidTerms,
+		Message: "purchase terms need a positive fiat amount, a sane schedule and a supported locale",
 	}
 )

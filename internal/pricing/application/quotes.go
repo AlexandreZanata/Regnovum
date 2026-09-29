@@ -73,17 +73,9 @@ func (uc *AcceptQuoteUseCase) Execute(ctx context.Context, cmd AcceptQuoteComman
 	if err != nil {
 		return domain.Quote{}, err
 	}
-	sightings := make([]domain.Observation, 0, len(cmd.Sightings))
-	for _, input := range cmd.Sightings {
-		source, err := domain.ParseSourceID(input.Source)
-		if err != nil {
-			return domain.Quote{}, err
-		}
-		sighting, err := domain.NewObservation(source, input.PriceMinor, input.ObservedAt, input.Payload)
-		if err != nil {
-			return domain.Quote{}, err
-		}
-		sightings = append(sightings, sighting)
+	sightings, err := observationsFromInputs(cmd.Sightings)
+	if err != nil {
+		return domain.Quote{}, err
 	}
 	accepted := uc.clock.Now().UTC()
 	quote, err := domain.AcceptQuote(price, sightings, accepted, cmd.TTL,
