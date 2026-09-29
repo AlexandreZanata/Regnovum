@@ -10,6 +10,13 @@ const (
 	CodeInvalidIntention    ErrorCode = "COMMERCE_INVALID_INTENTION"
 	CodeIntentionConflict   ErrorCode = "COMMERCE_INTENTION_CONFLICT"
 	CodeInvalidTerms        ErrorCode = "COMMERCE_INVALID_TERMS"
+	CodeUnknownAccount      ErrorCode = "COMMERCE_UNKNOWN_ACCOUNT"
+	CodeAccountNotActive    ErrorCode = "COMMERCE_ACCOUNT_NOT_ACTIVE"
+	CodeSanctionedAccount   ErrorCode = "COMMERCE_SANCTIONED_ACCOUNT"
+	CodeSelfTransfer        ErrorCode = "COMMERCE_SELF_TRANSFER"
+	CodeLimitExceeded       ErrorCode = "COMMERCE_LIMIT_EXCEEDED"
+	CodeRateLimited         ErrorCode = "COMMERCE_RATE_LIMITED"
+	CodeConsentRequired     ErrorCode = "COMMERCE_CONSENT_REQUIRED"
 )
 
 // DomainError represents an invariant or rule failure in the commerce domain.
@@ -46,5 +53,33 @@ var (
 	ErrInvalidTerms = DomainError{
 		Code:    CodeInvalidTerms,
 		Message: "transfer terms need coherent parties, kind and amount",
+	}
+	ErrUnknownAccount = DomainError{
+		Code:    CodeUnknownAccount,
+		Message: "account does not exist: transfers settle only between known accounts",
+	}
+	ErrAccountNotActive = DomainError{
+		Code:    CodeAccountNotActive,
+		Message: "account is not active: suspended, deleted and pending accounts move nothing",
+	}
+	ErrSanctionedAccount = DomainError{
+		Code:    CodeSanctionedAccount,
+		Message: "account is sanctioned: blocked parties neither pay nor receive",
+	}
+	ErrSelfTransfer = DomainError{
+		Code:    CodeSelfTransfer,
+		Message: "payer and payee coincide: a transfer moves value between accounts",
+	}
+	ErrLimitExceeded = DomainError{
+		Code:    CodeLimitExceeded,
+		Message: "amount exceeds the approved per-transfer ceiling",
+	}
+	ErrRateLimited = DomainError{
+		Code:    CodeRateLimited,
+		Message: "payer exceeded the approved transfer count for the window",
+	}
+	ErrConsentRequired = DomainError{
+		Code:    CodeConsentRequired,
+		Message: "transfer needs an explicit consent reference: silent debits never settle",
 	}
 )
