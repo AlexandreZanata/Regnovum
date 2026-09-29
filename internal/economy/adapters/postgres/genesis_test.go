@@ -222,8 +222,11 @@ func TestGenesisPartialRevertsWhole(t *testing.T) {
 	defer tx.Rollback(ctx)
 
 	var custody string
+	// The torn probe complies with the closed Treasury vault vocabulary
+	// (P34-T01): the reverted write must be a lawful vault, so the
+	// failure under test stays the invalid direction below.
 	if err := tx.QueryRow(ctx,
-		`INSERT INTO app.economy_custodies (kind, label) VALUES ('treasury', 'partial') RETURNING id::text`,
+		`INSERT INTO app.economy_custodies (kind, label) VALUES ('treasury', 'sovereign_reserve') RETURNING id::text`,
 	).Scan(&custody); err != nil {
 		t.Fatalf("partial custody: %v", err)
 	}

@@ -3121,6 +3121,11 @@
           "name": "economy_custodies_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "economy_treasury_label_check",
+          "kind": "c",
+          "definition": "CHECK (kind \u003c\u003e 'treasury'::text OR (label = ANY (ARRAY['main'::text, 'sovereign_reserve'::text, 'commercial_stock'::text, 'operating_cash'::text, 'free_treasury'::text])))"
         }
       ],
       "indexes": [
