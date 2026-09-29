@@ -79,6 +79,15 @@ func (r *PurchaseSettlementRepository) SettlePurchase(ctx context.Context, reque
 		return nil, err
 	}
 	if event.Status != "paid" {
+		// Gateway verdicts record even when they settle nothing: a
+		// failed event is the proof a later reconciliation needs, but
+		// only for an intent that exists, and navigations never
+		// record. Non-paying deliveries still refuse.
+		if event.Status == "failed" {
+			if err := r.recordChargeEvent(ctx, event); err != nil {
+				return nil, err
+			}
+		}
 		return nil, application.ErrPurchaseEventNotSettling
 	}
 	if replayed, err := r.lookupSettlement(ctx, event, ""); err != nil || replayed != nil {
@@ -124,6 +133,36 @@ func parseSettleEvent(payload []byte) (*settleEvent, error) {
 		return nil, fmt.Errorf("%w: delivery names no intent, account or event", application.ErrWebhookPayloadMalformed)
 	}
 	return &event, nil
+}
+
+// recordChargeEvent stores one gateway verdict idempotently for an
+// existing intent: redeliveries replay, and verdicts for unknown
+// intents never record.
+func (r *PurchaseSettlementRepository) recordChargeEvent(ctx context.Context, event *settleEvent) error {
+	var exists bool
+	err := r.pool.QueryRow(ctx,
+		`SELECT true FROM app.billing_ink_intents WHERE account_id = $1::uuid AND intent_key = $2`,
+		event.AccountID, event.IntentKey).Scan(&exists)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return application.ErrPurchaseIntentNotFound
+		}
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "22P02" {
+			return application.ErrPurchaseIntentNotFound
+		}
+		return fmt.Errorf("resolve event intent: %w", err)
+	}
+	now := r.clock.Now().UTC()
+	if _, err := r.pool.Exec(ctx,
+		`INSERT INTO app.billing_ink_charge_events
+		 (event_id, intent_key, account_id, amount_minor, currency, status, received_at)
+		 VALUES ($1, $2, $3::uuid, $4, $5, $6, $7) ON CONFLICT (event_id) DO NOTHING`,
+		event.EventID, event.IntentKey, event.AccountID,
+		event.Amount, event.Currency, event.Status, now); err != nil {
+		return fmt.Errorf("record charge event: %w", err)
+	}
+	return nil
 }
 
 // lookupSettlement resolves a recorded settlement without writing:
@@ -237,6 +276,14 @@ func (r *PurchaseSettlementRepository) createSettlement(ctx context.Context, eve
 		`UPDATE app.economy_holds SET status = 'captured', closed_at = $2 WHERE id = $1::uuid`,
 		intent.holdID, now); err != nil {
 		return nil, fmt.Errorf("capture backing hold: %w", err)
+	}
+	if _, err := tx.Exec(ctx,
+		`INSERT INTO app.billing_ink_charge_events
+		 (event_id, intent_key, account_id, amount_minor, currency, status, received_at)
+		 VALUES ($1, $2, $3::uuid, $4, $5, 'paid', $6) ON CONFLICT (event_id) DO NOTHING`,
+		event.EventID, event.IntentKey, event.AccountID,
+		event.Amount, event.Currency, now); err != nil {
+		return nil, fmt.Errorf("record charge event: %w", err)
 	}
 	var settlementID string
 	err = tx.QueryRow(ctx,
