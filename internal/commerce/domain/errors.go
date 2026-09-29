@@ -25,6 +25,7 @@ const (
 	CodeInvalidDisguise     ErrorCode = "COMMERCE_INVALID_DISGUISE"
 	CodeDisguiseState       ErrorCode = "COMMERCE_DISGUISE_STATE"
 	CodeDisguiseNotParty    ErrorCode = "COMMERCE_DISGUISE_NOT_PARTY"
+	CodeInvalidReceipt      ErrorCode = "COMMERCE_INVALID_RECEIPT"
 )
 
 // DomainError represents an invariant or rule failure in the commerce domain.
@@ -121,5 +122,9 @@ var (
 	ErrDisguiseNotParty = DomainError{
 		Code:    CodeDisguiseNotParty,
 		Message: "contest needs the payer or the payee of the flagged gift: strangers never speak for a transfer",
+	}
+	ErrInvalidReceipt = DomainError{
+		Code:    CodeInvalidReceipt,
+		Message: "trade receipt needs a known contract, its owner side and a closed locale: amounts never translate",
 	}
 )
