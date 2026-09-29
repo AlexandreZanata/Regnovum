@@ -88,10 +88,13 @@ func (b *Breaker) Fail() {
 
 // HTTPSource fetches one approved source over HTTP: timeout per
 // request, breaker per source, strict JSON parsing and provenance
-// bound to the raw bytes. Sources are independent by construction:
-// client, endpoint, breaker and identity are never shared. No live
-// provider is approved here: endpoints arrive per deployment, and no
-// URL, key or secret is hardcoded.
+// bound to the raw bytes. Redirects never follow: a source that
+// answers elsewhere is a source answering wrong, and a forged
+// redirect can never turn the collector into a probe of the inside.
+// Sources are independent by construction: client, endpoint, breaker
+// and identity are never shared. No live provider is approved here:
+// endpoints arrive per deployment, and no URL, key or secret is
+// hardcoded.
 type HTTPSource struct {
 	id       domain.SourceID
 	endpoint string
@@ -120,8 +123,13 @@ func NewHTTPSource(id domain.SourceID, endpoint string, timeout time.Duration, b
 	return &HTTPSource{
 		id:       id,
 		endpoint: endpoint,
-		client:   &http.Client{Timeout: timeout},
-		breaker:  breaker,
+		client: &http.Client{
+			Timeout: timeout,
+			CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
+		breaker: breaker,
 	}, nil
 }
 

@@ -4283,6 +4283,119 @@
       "not_applicable": {
         "concurrency": "O ajuste roda numa transação com a trilha e a reapresentação é resolvida pela chave da operação, então não há duas escritas concorrentes"
       }
+    },
+    {
+      "id": "QUAL-THR-ECON-22",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Cotação BTC/BRL por mediana guardada de ao menos três fontes independentes com preço, fonte, horário e proveniência; sem cotação confiável, novas vendas suspendem; validade conta na aceitação, intenção expirada exige nova cotação.",
+      "risk": "Q1",
+      "modules": [
+        "internal/pricing"
+      ],
+      "actors": [
+        "oracle",
+        "buyer"
+      ],
+      "states": [
+        "quoted",
+        "suspended"
+      ],
+      "tests": {
+        "positive": [
+          "internal/pricing/adapters/remote/source_test.go::TestHTTPSourceCollectsThreeIndependentSources",
+          "internal/pricing/domain/median_test.go::TestMedianPriceOrdersBeforeArithmetic",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialCollectorSeesNoCache"
+        ],
+        "negative": [
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialFalseSourceSuspendsRound",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialStaleQuoteSuspendsSale",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialRedirectNeverFollowed",
+          "internal/pricing/adapters/remote/source_test.go::TestHTTPSourceRefusesMalformedAnswers"
+        ],
+        "limit": [
+          "internal/pricing/domain/median_test.go::TestMedianPriceSuspendsAnomalies",
+          "internal/pricing/adapters/remote/source_test.go::TestHTTPSourceTimesOut",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialBurstStopsAtBreaker"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O oracle não distingue atores: fontes entram por registro explícito e nenhuma URL chega por input.",
+      "concurrency": "A coleta é sequencial por round e o breaker contém rajadas de falha.",
+      "idempotency": "A mediana deriva de sightings, sem escrita e sem efeito a repetir.",
+      "security": "Fonte falsa, coludida ou fora da janela suspende a cotação em vez de precificar a mentira.",
+      "privacy": "A cotação carrega preço, fonte, instante e hash, sem dado de titular.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "docs/REQUIREMENTS.md"
+      ],
+      "not_applicable": {
+        "authorization": "O oracle não distingue atores: fontes entram por registro explícito do deployment, sem papel administrativo nesta regra",
+        "concurrency": "A coleta é sequencial por round e o breaker contém rajadas, então não há corrida a resolver",
+        "idempotency": "A mediana deriva de sightings sem escrever, então não há efeito a repetir"
+      }
+    },
+    {
+      "id": "QUAL-THR-ECON-30",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Liquidação e estorno de compras INK somente por evento autenticado HMAC com janela temporal e identificadores únicos; terceiro de boa-fé conserva o recebido e o operador cobre a diferença sem inventar INK.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing",
+        "internal/pricing"
+      ],
+      "actors": [
+        "account",
+        "buyer"
+      ],
+      "states": [
+        "pending",
+        "settled",
+        "failed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseLiquidatesOnce",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackRevokesInFull",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialWebhookReplayGrantsNothing"
+        ],
+        "negative": [
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialFraudFindsNoPurchase",
+          "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseRefusesWithoutEffect",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackRefusesShortTreasury"
+        ],
+        "limit": [
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialClockNeverExtends",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialSaleWithoutStockSuspends",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackSettlesPartialDispute"
+        ],
+        "authorization": [
+          "internal/pricing/purchase_authorization_test.go::TestPurchaseAuthorizationMatrix"
+        ],
+        "concurrency": [
+          "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseRacesCollapseToOne",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackRacesCollapseToOne",
+          "internal/billing/adapters/postgres/purchase_intent_test.go::TestPurchaseIntentRacesCollapseToOne"
+        ],
+        "idempotency": [
+          "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseReplaysDuplicates",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackReplaysDuplicates",
+          "internal/billing/adapters/postgres/purchase_intent_test.go::TestPurchaseIntentReplaysWithoutDuplicating"
+        ],
+        "failure": []
+      },
+      "authorization": "Cada conta opera só suas chaves: chaves alheias resolvem ausência em aceitar, liquidar e estornar.",
+      "concurrency": "Corridas colapsam por UNIQUE com re-lookup: uma liquida, as demais replayam.",
+      "idempotency": "Redeliveries e eventos fora de ordem resolvem o registro sem novo efeito.",
+      "security": "Evento sem assinatura, adulterado ou fora da janela recusa; divergência conflita em vez de fundir.",
+      "privacy": "Erros e documentos carregam só dicionário fechado e inteiros, sem dado de titular.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "docs/REQUIREMENTS.md"
+      ],
+      "not_applicable": {}
     }
   ]
 }
