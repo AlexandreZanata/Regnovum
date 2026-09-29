@@ -16,6 +16,20 @@
           "path": "internal/platform/dbmigrate/dbmigrate_test.go"
         }
       ]
+    },
+    {
+      "sha": "aaaaaaa7",
+      "message": "feat(db): add the pillar and prove the upgrade where the schema tests live",
+      "files": [
+        {
+          "status": "A",
+          "path": "internal/platform/dbmigrate/migrations/00099_pillar.sql"
+        },
+        {
+          "status": "A",
+          "path": "internal/platform/postgres/upgrade_proof_test.go"
+        }
+      ]
     }
   ]
 }
