@@ -26,6 +26,7 @@ const (
 	CodeDisguiseState       ErrorCode = "COMMERCE_DISGUISE_STATE"
 	CodeDisguiseNotParty    ErrorCode = "COMMERCE_DISGUISE_NOT_PARTY"
 	CodeInvalidReceipt      ErrorCode = "COMMERCE_INVALID_RECEIPT"
+	CodeInvalidJurisdiction ErrorCode = "COMMERCE_INVALID_JURISDICTION"
 )
 
 // DomainError represents an invariant or rule failure in the commerce domain.
@@ -126,5 +127,9 @@ var (
 	ErrInvalidReceipt = DomainError{
 		Code:    CodeInvalidReceipt,
 		Message: "trade receipt needs a known contract, its owner side and a closed locale: amounts never translate",
+	}
+	ErrInvalidJurisdiction = DomainError{
+		Code:    CodeInvalidJurisdiction,
+		Message: "jurisdiction needs an ISO country shape and verified attestations: network signals never decide",
 	}
 )
