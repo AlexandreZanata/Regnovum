@@ -27,7 +27,7 @@
       ],
       "inputs": [
         {
-          "path": "locales",
+          "path": "locales/",
           "include": [
             "*.json"
           ],
