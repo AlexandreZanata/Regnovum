@@ -208,4 +208,21 @@ var (
 	// the sealed intent on amount or currency: the buyer is never shown
 	// one ticket and settled on another.
 	ErrPurchaseSettlementMismatch = errors.New("application: purchase event does not match the sealed intent")
+
+	// INK purchase chargeback error vocabulary (P35-T08).
+
+	// ErrSettlementNotFound indicates no liquidation carries the intent:
+	// without a settlement there is nothing to reverse.
+	ErrSettlementNotFound = errors.New("application: purchase settlement was not found")
+
+	// ErrChargebackConflict indicates the liquidation already carries a
+	// different dispute: a second dispute replays instead of revoking
+	// twice.
+	ErrChargebackConflict = errors.New("application: purchase liquidation already carries a dispute")
+
+	// ErrInsufficientTreasuryFunds indicates the operator cannot cover
+	// the difference without minting: the dispute refuses with
+	// everything untouched instead of inventing INK or implying a
+	// negative balance.
+	ErrInsufficientTreasuryFunds = errors.New("application: treasury cannot cover the dispute without minting")
 )

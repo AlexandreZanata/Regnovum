@@ -1789,6 +1789,145 @@
       ]
     },
     {
+      "name": "app.billing_ink_chargebacks",
+      "owner": "arena_owner",
+      "comment": "Reversed INK liquidations: holder revocation plus treasury cover per provider dispute, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "settlement_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "event_id",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "disputed_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "ink_revoked",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "MilliINK taken back from the defrauding holder balance, never below zero"
+        },
+        {
+          "name": "treasury_covered",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "MilliINK the operator covered from commercial stock when the holder balance fell short"
+        },
+        {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "billing_ink_chargebacks_covered_check",
+          "kind": "c",
+          "definition": "CHECK (treasury_covered \u003e= 0 AND treasury_covered \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_chargebacks_disputed_check",
+          "kind": "c",
+          "definition": "CHECK (disputed_minor \u003e= 1 AND disputed_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_chargebacks_event_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM event_id) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "billing_ink_chargebacks_event_id_key",
+          "kind": "u",
+          "definition": "UNIQUE (event_id)"
+        },
+        {
+          "name": "billing_ink_chargebacks_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "billing_ink_chargebacks_revoked_check",
+          "kind": "c",
+          "definition": "CHECK (ink_revoked \u003e= 0 AND ink_revoked \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_chargebacks_settlement_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (settlement_id) REFERENCES app.billing_ink_settlements(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_chargebacks_settlement_id_key",
+          "kind": "u",
+          "definition": "UNIQUE (settlement_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "billing_ink_chargebacks_event_id_key",
+          "definition": "CREATE UNIQUE INDEX billing_ink_chargebacks_event_id_key ON app.billing_ink_chargebacks USING btree (event_id)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_chargebacks_pkey",
+          "definition": "CREATE UNIQUE INDEX billing_ink_chargebacks_pkey ON app.billing_ink_chargebacks USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_chargebacks_settlement_id_key",
+          "definition": "CREATE UNIQUE INDEX billing_ink_chargebacks_settlement_id_key ON app.billing_ink_chargebacks USING btree (settlement_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.billing_ink_intents",
       "owner": "arena_owner",
       "comment": "Accepted INK purchase intents: buyer, sealed quotation, server-derived amounts, terms hash and backing hold, append-only",
@@ -12097,6 +12236,258 @@
     {
       "table": "app.billing_ink_charge_events",
       "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

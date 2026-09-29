@@ -100,7 +100,7 @@
           "include": [
             "*.sql"
           ],
-          "digest": "sha256:c6894a221afa41834c15d4571540b2922c808e1b532d33e914251068ea26ecd0"
+          "digest": "sha256:924c568186442de664f5445f955979742b2fbf65530bf905b1f886694f859334"
         },
         {
           "path": "sqlc.yaml",
