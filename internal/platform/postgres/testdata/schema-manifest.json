@@ -3121,6 +3121,11 @@
           "name": "economy_custodies_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "economy_treasury_label_check",
+          "kind": "c",
+          "definition": "CHECK (kind \u003c\u003e 'treasury'::text OR (label = ANY (ARRAY['main'::text, 'sovereign_reserve'::text, 'commercial_stock'::text, 'operating_cash'::text, 'free_treasury'::text])))"
         }
       ],
       "indexes": [
@@ -6967,6 +6972,191 @@
             "INSERT",
             "SELECT",
             "UPDATE"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.treasury_disbursements",
+      "owner": "arena_owner",
+      "comment": "Governed Treasury disbursement acts: allowlisted purpose, origin vault, beneficiary, two distinct approvers and settling transfer, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "disbursement_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Idempotency anchor of the act: a duplicated approval replays instead of paying twice"
+        },
+        {
+          "name": "origin_vault",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "beneficiary_account_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "purpose",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "approver_one",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "approver_two",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Journal transfer that moved the amount: every row carries its legs"
+        },
+        {
+          "name": "decided_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "treasury_disbursements_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "treasury_disbursements_approver_one_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (approver_one) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "treasury_disbursements_approver_two_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (approver_two) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "treasury_disbursements_beneficiary_account_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (beneficiary_account_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "treasury_disbursements_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM disbursement_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "treasury_disbursements_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (disbursement_key)"
+        },
+        {
+          "name": "treasury_disbursements_no_self_approval_check",
+          "kind": "c",
+          "definition": "CHECK (beneficiary_account_id \u003c\u003e approver_one AND beneficiary_account_id \u003c\u003e approver_two)"
+        },
+        {
+          "name": "treasury_disbursements_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "treasury_disbursements_purpose_check",
+          "kind": "c",
+          "definition": "CHECK (purpose = ANY (ARRAY['sale_settlement'::text, 'crumb_distribution'::text, 'compensation'::text, 'due_payment'::text]))"
+        },
+        {
+          "name": "treasury_disbursements_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id)"
+        },
+        {
+          "name": "treasury_disbursements_two_governors_check",
+          "kind": "c",
+          "definition": "CHECK (approver_one \u003c\u003e approver_two)"
+        },
+        {
+          "name": "treasury_disbursements_vault_check",
+          "kind": "c",
+          "definition": "CHECK (origin_vault = ANY (ARRAY['main'::text, 'sovereign_reserve'::text, 'commercial_stock'::text, 'operating_cash'::text, 'free_treasury'::text]))"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "treasury_disbursements_beneficiary_idx",
+          "definition": "CREATE INDEX treasury_disbursements_beneficiary_idx ON app.treasury_disbursements USING btree (beneficiary_account_id, decided_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "treasury_disbursements_key_unique",
+          "definition": "CREATE UNIQUE INDEX treasury_disbursements_key_unique ON app.treasury_disbursements USING btree (disbursement_key)",
+          "valid": true
+        },
+        {
+          "name": "treasury_disbursements_pkey",
+          "definition": "CREATE UNIQUE INDEX treasury_disbursements_pkey ON app.treasury_disbursements USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "treasury_disbursements_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX treasury_disbursements_transfer_unique ON app.treasury_disbursements USING btree (transfer_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
           ]
         },
         {
@@ -23209,6 +23399,366 @@
     {
       "table": "app.transparency_stat_projections",
       "column": "stats",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_one",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_one",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_one",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_one",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_one",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_one",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_two",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_two",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_two",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_two",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_two",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "approver_two",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "beneficiary_account_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "beneficiary_account_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "beneficiary_account_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "beneficiary_account_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "beneficiary_account_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "beneficiary_account_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "decided_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "decided_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "disbursement_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "disbursement_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "disbursement_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "disbursement_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "disbursement_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "disbursement_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "origin_vault",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "origin_vault",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "origin_vault",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "origin_vault",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "origin_vault",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "origin_vault",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "purpose",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "purpose",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "purpose",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "purpose",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "purpose",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "purpose",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.treasury_disbursements",
+      "column": "transfer_id",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
