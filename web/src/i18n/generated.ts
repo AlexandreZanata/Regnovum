@@ -204,6 +204,22 @@ export const messageKeys = {
     "errors.validation.detail",
     "errors.validation.title",
   ] as const,
+  metering: [
+    "metering.failure.detail",
+    "metering.failure.title",
+    "metering.quote.confirm",
+    "metering.quote.expires",
+    "metering.quote.retry",
+    "metering.quote.title",
+    "metering.quote.total",
+    "metering.receipt.posted",
+    "metering.receipt.refunded",
+    "metering.receipt.title",
+    "metering.receipt.total",
+    "metering.statement.balance",
+    "metering.statement.empty",
+    "metering.statement.title",
+  ] as const,
   transparency: [
     "transparency.document.heading",
     "transparency.document.methodology",
@@ -410,6 +426,20 @@ export type MessageKey =
   | "errors.unauthorized.title"
   | "errors.validation.detail"
   | "errors.validation.title"
+  | "metering.failure.detail"
+  | "metering.failure.title"
+  | "metering.quote.confirm"
+  | "metering.quote.expires"
+  | "metering.quote.retry"
+  | "metering.quote.title"
+  | "metering.quote.total"
+  | "metering.receipt.posted"
+  | "metering.receipt.refunded"
+  | "metering.receipt.title"
+  | "metering.receipt.total"
+  | "metering.statement.balance"
+  | "metering.statement.empty"
+  | "metering.statement.title"
   | "transparency.document.heading"
   | "transparency.document.methodology"
   | "transparency.document.metric"
@@ -614,6 +644,20 @@ export const messagePlaceholders = Object.freeze({
   "errors.unauthorized.title": [],
   "errors.validation.detail": [],
   "errors.validation.title": [],
+  "metering.failure.detail": [],
+  "metering.failure.title": [],
+  "metering.quote.confirm": [],
+  "metering.quote.expires": ["date"],
+  "metering.quote.retry": [],
+  "metering.quote.title": [],
+  "metering.quote.total": ["total", "units"],
+  "metering.receipt.posted": ["date"],
+  "metering.receipt.refunded": ["date"],
+  "metering.receipt.title": [],
+  "metering.receipt.total": ["total", "units"],
+  "metering.statement.balance": ["total"],
+  "metering.statement.empty": [],
+  "metering.statement.title": [],
   "transparency.document.heading": [],
   "transparency.document.methodology": [],
   "transparency.document.metric": [],
@@ -819,6 +863,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "errors.unauthorized.title": "Authentication is required",
     "errors.validation.detail": "Check the submitted data and try again.",
     "errors.validation.title": "The request is invalid",
+    "metering.failure.detail": "Check the data and request a new quote.",
+    "metering.failure.title": "Charge unavailable",
+    "metering.quote.confirm": "Confirm publication",
+    "metering.quote.expires": "Acceptance valid until {date}",
+    "metering.quote.retry": "Request a new quote",
+    "metering.quote.title": "INK metering price",
+    "metering.quote.total": "{total} thousandths of INK for {units} graphemes",
+    "metering.receipt.posted": "Posted {date}",
+    "metering.receipt.refunded": "Refunded {date}",
+    "metering.receipt.title": "INK receipt",
+    "metering.receipt.total": "{total} thousandths of INK for {units} graphemes",
+    "metering.statement.balance": "Balance: {total} thousandths of INK",
+    "metering.statement.empty": "No publications yet",
+    "metering.statement.title": "INK statement",
     "transparency.document.heading": "Platform transparency",
     "transparency.document.methodology": "Aggregated metrics per period; counts below 5 are suppressed to reduce reidentification.",
     "transparency.document.metric": "Metric",
@@ -1021,6 +1079,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "errors.unauthorized.title": "Autenticação é necessária",
     "errors.validation.detail": "Verifique os dados enviados e tente novamente.",
     "errors.validation.title": "A requisição é inválida",
+    "metering.failure.detail": "Confira os dados e peça uma nova cotação.",
+    "metering.failure.title": "Cobrança indisponível",
+    "metering.quote.confirm": "Confirmar publicação",
+    "metering.quote.expires": "Aceite válido até {date}",
+    "metering.quote.retry": "Pedir nova cotação",
+    "metering.quote.title": "Preço de medição de INK",
+    "metering.quote.total": "{total} milésimos de INK por {units} grafemas",
+    "metering.receipt.posted": "Publicado em {date}",
+    "metering.receipt.refunded": "Reembolsado em {date}",
+    "metering.receipt.title": "Recibo de INK",
+    "metering.receipt.total": "{total} milésimos de INK por {units} grafemas",
+    "metering.statement.balance": "Saldo: {total} milésimos de INK",
+    "metering.statement.empty": "Nenhuma publicação ainda",
+    "metering.statement.title": "Extrato de INK",
     "transparency.document.heading": "Transparência da plataforma",
     "transparency.document.methodology": "Métricas agregadas por período; contagens abaixo de 5 são omitidas para reduzir reidentificação.",
     "transparency.document.metric": "Métrica",

@@ -1,0 +1,94 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Regnovum metering staged API",
+    "version": "0.1.0",
+    "description": "Staged INK metering surface (P36-T08): cost preview, confirmation, receipt and extract. Unmounted until the P44 gate and the separate holder authorization; not part of the published contract."
+  },
+  "paths": {
+    "/api/v1/me/metering/quotes": {
+      "post": {
+        "operationId": "previewMeteringQuote",
+        "summary": "Price one publication candidate without charging",
+        "security": [{ "sessionCookie": [] }, { "csrfHeader": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["content", "service"],
+                "properties": {
+                  "content": { "type": "string", "description": "Candidate canonical text" },
+                  "service": { "type": "string", "description": "Approved service slug" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Priced preview with rule version, hashes and acceptance window" },
+          "400": { "description": "Validation or unavailable price" },
+          "401": { "description": "Missing authentication" },
+          "403": { "description": "Missing CSRF token" }
+        }
+      }
+    },
+    "/api/v1/me/metering/publications": {
+      "post": {
+        "operationId": "confirmMeteringPublication",
+        "summary": "Settle one previewed candidate with its exact charge",
+        "security": [{ "sessionCookie": [] }, { "csrfHeader": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["intention_key", "content", "service"],
+                "properties": {
+                  "intention_key": { "type": "string", "description": "Idempotency key scoped by account" },
+                  "content": { "type": "string", "description": "Exact candidate the preview priced" },
+                  "service": { "type": "string", "description": "Approved service slug" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Settlement document, replayed when retried" },
+          "400": { "description": "Validation or lapsed acceptance" },
+          "401": { "description": "Missing authentication" },
+          "403": { "description": "Missing CSRF token or foreign acceptance" },
+          "409": { "description": "Key already settled different terms" }
+        }
+      }
+    },
+    "/api/v1/me/metering/publications/{id}": {
+      "get": {
+        "operationId": "readMeteringReceipt",
+        "summary": "Read one owned receipt with legs and compensation",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Receipt document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "404": { "description": "Unknown publication for this account" }
+        }
+      }
+    },
+    "/api/v1/me/metering/statement": {
+      "get": {
+        "operationId": "readMeteringStatement",
+        "summary": "Read the owner extract with the journal-derived balance",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": { "description": "Extract document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" }
+        }
+      }
+    }
+  }
+}
