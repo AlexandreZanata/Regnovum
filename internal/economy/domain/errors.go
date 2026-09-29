@@ -37,6 +37,7 @@ const (
 	CodeInvalidGrant         ErrorCode = "ECONOMY_INVALID_GRANT"
 	CodeInvalidRefund        ErrorCode = "ECONOMY_INVALID_REFUND"
 	CodeInvalidDisbursement  ErrorCode = "ECONOMY_INVALID_DISBURSEMENT"
+	CodeInvalidTotals        ErrorCode = "ECONOMY_INVALID_TOTALS"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -181,5 +182,9 @@ var (
 	ErrInvalidDisbursement = DomainError{
 		Code:    CodeInvalidDisbursement,
 		Message: "disbursement needs an allowlisted purpose and two governors besides the beneficiary",
+	}
+	ErrInvalidTotals = DomainError{
+		Code:    CodeInvalidTotals,
+		Message: "treasury totals need a supported locale and complete composition",
 	}
 )
