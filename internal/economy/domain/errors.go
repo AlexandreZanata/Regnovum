@@ -35,6 +35,7 @@ const (
 	CodeOptInExpired         ErrorCode = "ECONOMY_OPTIN_EXPIRED"
 	CodeOptInMissing         ErrorCode = "ECONOMY_OPTIN_MISSING"
 	CodeInvalidGrant         ErrorCode = "ECONOMY_INVALID_GRANT"
+	CodeInvalidRefund        ErrorCode = "ECONOMY_INVALID_REFUND"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -171,5 +172,9 @@ var (
 	ErrInvalidGrant = DomainError{
 		Code:    CodeInvalidGrant,
 		Message: "monetary grant needs a positive amount",
+	}
+	ErrInvalidRefund = DomainError{
+		Code:    CodeInvalidRefund,
+		Message: "refusal refund needs coherent legacy balances and a valid fiat correlation",
 	}
 )
