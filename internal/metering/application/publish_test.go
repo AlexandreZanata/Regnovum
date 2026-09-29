@@ -80,6 +80,28 @@ func TestPublishUseCaseSettlesValidatedTerms(t *testing.T) {
 	}
 }
 
+func TestPublishUseCaseKeepsAcceptedPricingAcrossPriceChange(t *testing.T) {
+	cmd, _ := publishFixture(t)
+	// The v1 window ends before settlement, with the quote still
+	// live: a later v2 must not move the accepted terms.
+	cmd.Price.ValidUntil = cmd.Quote.AcceptedAt.Add(time.Minute)
+	cmd.Now = cmd.Quote.AcceptedAt.Add(10 * time.Minute)
+	if cmd.Price.Covers(cmd.Now.UTC()) {
+		t.Fatal("fixture must place settlement outside the v1 window")
+	}
+	if !cmd.Quote.Live(cmd.Now) {
+		t.Fatal("fixture must keep the quote live at settlement")
+	}
+	fake := &publishFake{result: &PublishResult{}}
+	uc, _ := NewPublishUseCase(fake)
+	if _, err := uc.Execute(context.Background(), cmd); err != nil {
+		t.Fatalf("Execute() = %v, want settlement at accepted v1 terms", err)
+	}
+	if fake.calls != 1 {
+		t.Fatal("accepted pricing must reach the store despite the price change")
+	}
+}
+
 func TestPublishUseCaseRefusesBeforeAnyWrite(t *testing.T) {
 	cmd, now := publishFixture(t)
 	edited, err := domain.ParseMeasuredContent("texto editado", text.GraphemeCount, 3000)

@@ -49,6 +49,7 @@ func NewRepository(pool *pgxpool.Pool, clock ports.Clock, prices meteringdomain.
 // rowQuerier covers pool and transaction reads for the settlement
 // lookup.
 type rowQuerier interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
 

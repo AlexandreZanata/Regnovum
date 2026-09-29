@@ -5231,6 +5231,167 @@
       ]
     },
     {
+      "name": "app.metering_refunds",
+      "owner": "arena_owner",
+      "comment": "Publication compensations: refund key, owner, compensated publication, reversed amount, compensating transfer and database posted instant, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "refund_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "account_label",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "original_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Compensated publication: the cause the correction links to without editing"
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": "Database clock at write, always current: corrections never backdate into closed periods"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "metering_refunds_account_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM account_label) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "metering_refunds_account_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (account_label, refund_key)"
+        },
+        {
+          "name": "metering_refunds_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "metering_refunds_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM refund_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "metering_refunds_original_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (original_id) REFERENCES app.metering_publications(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "metering_refunds_original_unique",
+          "kind": "u",
+          "definition": "UNIQUE (original_id)"
+        },
+        {
+          "name": "metering_refunds_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "metering_refunds_reason_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM reason) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "metering_refunds_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "metering_refunds_account_idx",
+          "definition": "CREATE INDEX metering_refunds_account_idx ON app.metering_refunds USING btree (account_label, posted_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "metering_refunds_account_key_unique",
+          "definition": "CREATE UNIQUE INDEX metering_refunds_account_key_unique ON app.metering_refunds USING btree (account_label, refund_key)",
+          "valid": true
+        },
+        {
+          "name": "metering_refunds_original_unique",
+          "definition": "CREATE UNIQUE INDEX metering_refunds_original_unique ON app.metering_refunds USING btree (original_id)",
+          "valid": true
+        },
+        {
+          "name": "metering_refunds_pkey",
+          "definition": "CREATE UNIQUE INDEX metering_refunds_pkey ON app.metering_refunds USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "metering_refunds_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX metering_refunds_transfer_unique ON app.metering_refunds USING btree (transfer_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.mfa_backup_codes",
       "owner": "arena_owner",
       "comment": "One-time recovery codes of an MFA enrollment, stored hashed and spent exactly once (P16-T05)",
@@ -19959,6 +20120,294 @@
     {
       "table": "app.metering_publications",
       "column": "units",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "account_label",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "account_label",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "account_label",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "account_label",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "account_label",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "account_label",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "original_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "original_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "original_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "original_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "original_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "original_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "refund_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "refund_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_refunds",
+      "column": "transfer_id",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

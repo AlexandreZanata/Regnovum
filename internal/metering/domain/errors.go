@@ -28,6 +28,8 @@ const (
 	CodeQuoteMismatch        ErrorCode = "METERING_QUOTE_MISMATCH"
 	CodeInvalidPublishKey    ErrorCode = "METERING_INVALID_PUBLISH_KEY"
 	CodePublishConflict      ErrorCode = "METERING_PUBLISH_CONFLICT"
+	CodeUnknownPublication   ErrorCode = "METERING_UNKNOWN_PUBLICATION"
+	CodeRefundDuplicate      ErrorCode = "METERING_REFUND_DUPLICATE"
 )
 
 // DomainError represents an invariant or rule failure in the metering domain.
@@ -136,5 +138,13 @@ var (
 	ErrPublishConflict = DomainError{
 		Code:    CodePublishConflict,
 		Message: "publish key already settled a different payload: reuse is refused, never merged",
+	}
+	ErrUnknownPublication = DomainError{
+		Code:    CodeUnknownPublication,
+		Message: "publication is unknown to this account: refunds settle only settled intentions",
+	}
+	ErrRefundDuplicate = DomainError{
+		Code:    CodeRefundDuplicate,
+		Message: "publication already compensated: one error settles one compensation, never twice",
 	}
 )

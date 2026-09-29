@@ -100,7 +100,12 @@ func (uc *PublishUseCase) Execute(ctx context.Context, cmd PublishCommand) (*Pub
 	if err := cmd.Quote.VerifyAcceptance(cmd.Account, cmd.Content, cmd.Now); err != nil {
 		return nil, err
 	}
-	if !cmd.Price.Covers(cmd.Now.UTC()) {
+	// The accepted version protects a valid intention across later
+	// price changes: the price must cover the acceptance instant,
+	// not the settlement instant. Liveness at settlement is already
+	// proven above, so a quote accepted under v1 settles at v1 even
+	// after v2 takes effect.
+	if !cmd.Price.Covers(cmd.Quote.AcceptedAt) {
 		return nil, domain.ErrPriceNotFound
 	}
 	if cmd.Price.Service != cmd.Quote.Service || cmd.Price.Version != cmd.Quote.Version {
