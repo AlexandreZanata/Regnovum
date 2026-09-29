@@ -28,6 +28,14 @@ const (
 	CodeHoldNotExpired       ErrorCode = "ECONOMY_HOLD_NOT_EXPIRED"
 	CodeEconomyFrozen        ErrorCode = "ECONOMY_FROZEN"
 	CodeIncidentNotFound     ErrorCode = "ECONOMY_INCIDENT_NOT_FOUND"
+	CodeInvalidCharter       ErrorCode = "ECONOMY_INVALID_CHARTER"
+	CodeConsentRequired      ErrorCode = "ECONOMY_CONSENT_REQUIRED"
+	CodeConsentConflict      ErrorCode = "ECONOMY_CONSENT_CONFLICT"
+	CodeRateMismatch         ErrorCode = "ECONOMY_RATE_MISMATCH"
+	CodeOptInExpired         ErrorCode = "ECONOMY_OPTIN_EXPIRED"
+	CodeOptInMissing         ErrorCode = "ECONOMY_OPTIN_MISSING"
+	CodeInvalidGrant         ErrorCode = "ECONOMY_INVALID_GRANT"
+	CodeInvalidRefund        ErrorCode = "ECONOMY_INVALID_REFUND"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -136,5 +144,37 @@ var (
 	ErrIncidentNotFound = DomainError{
 		Code:    CodeIncidentNotFound,
 		Message: "incident does not exist or is not an open break",
+	}
+	ErrInvalidCharter = DomainError{
+		Code:    CodeInvalidCharter,
+		Message: "charter version, decision, rate or validity is missing, malformed or out of range",
+	}
+	ErrConsentRequired = DomainError{
+		Code:    CodeConsentRequired,
+		Message: "no accepted charter for this account and version: conversion without acceptance is refused",
+	}
+	ErrConsentConflict = DomainError{
+		Code:    CodeConsentConflict,
+		Message: "a different verdict or terms already stand for this account and version",
+	}
+	ErrRateMismatch = DomainError{
+		Code:    CodeRateMismatch,
+		Message: "offered rate differs from the recorded opt-in terms: conversion matches exactly or not at all",
+	}
+	ErrOptInExpired = DomainError{
+		Code:    CodeOptInExpired,
+		Message: "opt-in validity lapsed: expired intents never convert",
+	}
+	ErrOptInMissing = DomainError{
+		Code:    CodeOptInMissing,
+		Message: "no recorded opt-in intent for this account and charter: nothing to convert",
+	}
+	ErrInvalidGrant = DomainError{
+		Code:    CodeInvalidGrant,
+		Message: "monetary grant needs a positive amount",
+	}
+	ErrInvalidRefund = DomainError{
+		Code:    CodeInvalidRefund,
+		Message: "refusal refund needs coherent legacy balances and a valid fiat correlation",
 	}
 )

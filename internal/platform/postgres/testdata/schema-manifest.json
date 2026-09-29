@@ -2965,6 +2965,94 @@
       ]
     },
     {
+      "name": "app.economy_charter_consents",
+      "owner": "arena_owner",
+      "comment": "Versioned charter verdicts per account: acceptance unlocks new activities, refusal preserves history, export, recourse and settlement",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "account_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "charter_version",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Charter version as vN: acceptances never carry across versions silently"
+        },
+        {
+          "name": "decision",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "decided_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_charter_consents_account_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (account_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_charter_consents_account_version_unique",
+          "kind": "u",
+          "definition": "UNIQUE (account_id, charter_version)"
+        },
+        {
+          "name": "economy_charter_consents_decision_check",
+          "kind": "c",
+          "definition": "CHECK (decision = ANY (ARRAY['accepted'::text, 'refused'::text]))"
+        },
+        {
+          "name": "economy_charter_consents_version_check",
+          "kind": "c",
+          "definition": "CHECK (charter_version ~ '^v[1-9][0-9]*$'::text)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_charter_consents_account_version_unique",
+          "definition": "CREATE UNIQUE INDEX economy_charter_consents_account_version_unique ON app.economy_charter_consents USING btree (account_id, charter_version)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.economy_custodies",
       "owner": "arena_owner",
       "comment": "Genesis custody accounts: exactly one home per unit of INK, never renamed or removed",
@@ -3761,6 +3849,142 @@
             "INSERT",
             "SELECT",
             "UPDATE"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.economy_optins",
+      "owner": "arena_owner",
+      "comment": "Explicit economic opt-in intents: quantity, conversion rate and validity recorded verbatim for exact matching at conversion; one intent per account and charter version",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "account_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "charter_version",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "quantity_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "rate_num",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "Conversion rate numerator in milliINK per legacy INK unit, with rate_den: exact rational, never rounded"
+        },
+        {
+          "name": "rate_den",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "Conversion rate denominator in legacy INK units"
+        },
+        {
+          "name": "valid_until",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "economy_optins_account_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (account_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_optins_account_version_unique",
+          "kind": "u",
+          "definition": "UNIQUE (account_id, charter_version)"
+        },
+        {
+          "name": "economy_optins_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "economy_optins_quantity_check",
+          "kind": "c",
+          "definition": "CHECK (quantity_milli \u003e= 1 AND quantity_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_optins_rate_check",
+          "kind": "c",
+          "definition": "CHECK (rate_num \u003e 0 AND rate_den \u003e 0)"
+        },
+        {
+          "name": "economy_optins_version_check",
+          "kind": "c",
+          "definition": "CHECK (charter_version ~ '^v[1-9][0-9]*$'::text)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "economy_optins_account_idx",
+          "definition": "CREATE INDEX economy_optins_account_idx ON app.economy_optins USING btree (account_id, created_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "economy_optins_account_version_unique",
+          "definition": "CREATE UNIQUE INDEX economy_optins_account_version_unique ON app.economy_optins USING btree (account_id, charter_version)",
+          "valid": true
+        },
+        {
+          "name": "economy_optins_pkey",
+          "definition": "CREATE UNIQUE INDEX economy_optins_pkey ON app.economy_optins USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
           ]
         },
         {
@@ -7078,7 +7302,7 @@
         {
           "name": "wallet_operations_type_check",
           "kind": "c",
-          "definition": "CHECK (operation_type = ANY (ARRAY['credit_free'::text, 'credit_member'::text, 'credit_purchase'::text, 'credit_refund'::text, 'credit_admin'::text, 'debit_argument'::text, 'debit_admin'::text, 'debit_refund'::text, 'expire_free'::text]))"
+          "definition": "CHECK (operation_type = ANY (ARRAY['credit_free'::text, 'credit_member'::text, 'credit_purchase'::text, 'credit_refund'::text, 'credit_admin'::text, 'debit_argument'::text, 'debit_admin'::text, 'debit_refund'::text, 'debit_conversion'::text, 'expire_free'::text]))"
         }
       ],
       "indexes": [
@@ -14031,6 +14255,150 @@
       "privilege": "UPDATE"
     },
     {
+      "table": "app.economy_charter_consents",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "charter_version",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "charter_version",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decided_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decided_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decision",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decision",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decision",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decision",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decision",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_charter_consents",
+      "column": "decision",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
       "table": "app.economy_custodies",
       "column": "created_at",
       "grantee": "arena_app",
@@ -15551,6 +15919,294 @@
     {
       "table": "app.economy_mode",
       "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "charter_version",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "charter_version",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "quantity_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "quantity_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "quantity_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "quantity_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "quantity_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "quantity_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_den",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_den",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_den",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_den",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_den",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_den",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_num",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_num",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_num",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_num",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_num",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "rate_num",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "valid_until",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "valid_until",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "valid_until",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "valid_until",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "valid_until",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_optins",
+      "column": "valid_until",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

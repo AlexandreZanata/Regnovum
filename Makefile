@@ -604,6 +604,15 @@ quality-decide:
 	$(GO) run ./tools/qualitydecide -bundle $(BUNDLE)
 	@echo "quality-decide: ok"
 
+# legacy-inventory fotografa os livros legados em relatório sintético
+# (P33-T01): agregados por contrato, origem e prazo, sem PII; órfãos e
+# ambíguos bloqueiam. Alvo standalone, fora do quick-verify: o banco
+# lido é informado por DSN e a leitura nunca escreve.
+LEGACY_DSN ?= postgres://arena:arena-local-dev@127.0.0.1:54329/arena?sslmode=disable
+legacy-inventory:
+	$(GO) run ./tools/legacyinventory -dsn $(LEGACY_DSN)
+	@echo "legacy-inventory: ok"
+
 # generate valida os catálogos i18n, reescreve os artefatos gerados, emite os
 # contratos TypeScript do OpenAPI e executa a geração de código SQL tipado com
 # sqlc para o adapter PostgreSQL.
