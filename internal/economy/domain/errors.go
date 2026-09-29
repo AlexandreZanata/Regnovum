@@ -36,6 +36,7 @@ const (
 	CodeOptInMissing         ErrorCode = "ECONOMY_OPTIN_MISSING"
 	CodeInvalidGrant         ErrorCode = "ECONOMY_INVALID_GRANT"
 	CodeInvalidRefund        ErrorCode = "ECONOMY_INVALID_REFUND"
+	CodeInvalidDisbursement  ErrorCode = "ECONOMY_INVALID_DISBURSEMENT"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -176,5 +177,9 @@ var (
 	ErrInvalidRefund = DomainError{
 		Code:    CodeInvalidRefund,
 		Message: "refusal refund needs coherent legacy balances and a valid fiat correlation",
+	}
+	ErrInvalidDisbursement = DomainError{
+		Code:    CodeInvalidDisbursement,
+		Message: "disbursement needs an allowlisted purpose and two governors besides the beneficiary",
 	}
 )
