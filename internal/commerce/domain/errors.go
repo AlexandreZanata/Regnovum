@@ -17,6 +17,10 @@ const (
 	CodeLimitExceeded       ErrorCode = "COMMERCE_LIMIT_EXCEEDED"
 	CodeRateLimited         ErrorCode = "COMMERCE_RATE_LIMITED"
 	CodeConsentRequired     ErrorCode = "COMMERCE_CONSENT_REQUIRED"
+	CodeInvalidContract     ErrorCode = "COMMERCE_INVALID_CONTRACT"
+	CodeContractState       ErrorCode = "COMMERCE_CONTRACT_STATE"
+	CodeContractNotFound    ErrorCode = "COMMERCE_CONTRACT_NOT_FOUND"
+	CodeUnauthorizedRelease ErrorCode = "COMMERCE_UNAUTHORIZED_RELEASE"
 )
 
 // DomainError represents an invariant or rule failure in the commerce domain.
@@ -81,5 +85,21 @@ var (
 	ErrConsentRequired = DomainError{
 		Code:    CodeConsentRequired,
 		Message: "transfer needs an explicit consent reference: silent debits never settle",
+	}
+	ErrInvalidContract = DomainError{
+		Code:    CodeInvalidContract,
+		Message: "trade contract needs an object, two parties, a positive amount and a future expiry",
+	}
+	ErrContractState = DomainError{
+		Code:    CodeContractState,
+		Message: "contract is not in a state this settlement leaves from: terminal contracts never reopen",
+	}
+	ErrContractNotFound = DomainError{
+		Code:    CodeContractNotFound,
+		Message: "contract is unknown to this account: escrow settles only accepted intentions",
+	}
+	ErrUnauthorizedRelease = DomainError{
+		Code:    CodeUnauthorizedRelease,
+		Message: "release needs the buyer acceptance or a competent decision: unilateral releases never settle",
 	}
 )
