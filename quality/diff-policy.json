@@ -90,10 +90,10 @@
     {
       "name": "migration",
       "role": "production",
-      "reason": "Uma migration é a única mudança que não tem `git revert` limpo: ela exige a prova de atualização na mesma mudança, e não no release seguinte.",
+      "reason": "Uma migration é a única mudança que não tem `git revert` limpo: ela exige a prova de atualização na mesma mudança, e não no release seguinte. A prova vive onde os testes de schema vivem (`internal/platform/postgres/`: testes que sobem banco descartável migrado e o manifesto versionado do schema, cuja atualização é obrigatória pela auditoria de schema) ou junto do runner (`internal/platform/dbmigrate/`).",
       "prefixes": ["internal/platform/dbmigrate/migrations/"],
       "suffixes": [".sql"],
-      "demands": [{ "kind": "migration-evidence", "areas": ["internal/platform/dbmigrate"] }]
+      "demands": [{ "kind": "migration-evidence", "areas": ["internal/platform/dbmigrate", "internal/platform/postgres"] }]
     },
     {
       "name": "contract",
