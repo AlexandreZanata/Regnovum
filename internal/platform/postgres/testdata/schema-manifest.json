@@ -3247,6 +3247,298 @@
       ]
     },
     {
+      "name": "app.commerce_disguise_reviews",
+      "owner": "arena_owner",
+      "comment": "Flagged gifts under review for disguised trade: caller token, closed reason, minimized evidence digest and reporter, append-only, never moves value",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "review_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Caller operation token scoped by transfer: a retry replays instead of reviewing twice"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "evidence_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Minimized proof digest (64 lowercase hex): no PII content ever stored"
+        },
+        {
+          "name": "reporter",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_disguise_reviews_evidence_check",
+          "kind": "c",
+          "definition": "CHECK (evidence_hash ~ '^[0-9a-f]{64}$'::text)"
+        },
+        {
+          "name": "commerce_disguise_reviews_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM review_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_disguise_reviews_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_disguise_reviews_reason_check",
+          "kind": "c",
+          "definition": "CHECK (reason = ANY (ARRAY['contract'::text, 'announcement'::text, 'delivery'::text, 'recurrence'::text]))"
+        },
+        {
+          "name": "commerce_disguise_reviews_reporter_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM reporter) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_disguise_reviews_transfer_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (transfer_id) REFERENCES app.commerce_transfers(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_disguise_reviews_transfer_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id, review_key)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_disguise_reviews_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_reviews_pkey ON app.commerce_disguise_reviews USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_reviews_transfer_idx",
+          "definition": "CREATE INDEX commerce_disguise_reviews_transfer_idx ON app.commerce_disguise_reviews USING btree (transfer_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_reviews_transfer_key_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_reviews_transfer_key_unique ON app.commerce_disguise_reviews USING btree (transfer_id, review_key)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_disguise_steps",
+      "owner": "arena_owner",
+      "comment": "Review lifecycle steps: party contest, false-positive dismissal and confirmed act with basis, trail, explicit charge and appeal window, append-only, never moves value",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "review_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "action",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "decided_by",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "basis",
+          "type": "text",
+          "nullable": true,
+          "default": "",
+          "comment": "Contractual basis of a confirmed act: required only for confirm, never for contest or dismissal"
+        },
+        {
+          "name": "trail_hash",
+          "type": "text",
+          "nullable": true,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "charge_milli",
+          "type": "bigint",
+          "nullable": true,
+          "default": "",
+          "comment": "Explicit floor(10%) charge owed on confirmation: recorded debt with appeal, never an automatic debit"
+        },
+        {
+          "name": "appeal_until",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_disguise_steps_action_check",
+          "kind": "c",
+          "definition": "CHECK (action = ANY (ARRAY['contest'::text, 'dismiss'::text, 'confirm'::text]))"
+        },
+        {
+          "name": "commerce_disguise_steps_basis_check",
+          "kind": "c",
+          "definition": "CHECK (basis IS NULL OR TRIM(BOTH FROM basis) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_disguise_steps_charge_check",
+          "kind": "c",
+          "definition": "CHECK (charge_milli IS NULL OR charge_milli \u003e= 0 AND charge_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "commerce_disguise_steps_decided_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM decided_by) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_disguise_steps_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_disguise_steps_review_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (review_id) REFERENCES app.commerce_disguise_reviews(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_disguise_steps_shape_check",
+          "kind": "c",
+          "definition": "CHECK (action = 'contest'::text AND basis IS NULL AND trail_hash IS NULL AND charge_milli IS NULL AND appeal_until IS NULL OR action = 'dismiss'::text AND basis IS NULL AND trail_hash IS NULL AND charge_milli IS NULL AND appeal_until IS NOT NULL OR action = 'confirm'::text AND basis IS NOT NULL AND trail_hash IS NOT NULL AND charge_milli IS NOT NULL AND appeal_until IS NOT NULL)"
+        },
+        {
+          "name": "commerce_disguise_steps_trail_check",
+          "kind": "c",
+          "definition": "CHECK (trail_hash IS NULL OR trail_hash ~ '^[0-9a-f]{64}$'::text)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_disguise_steps_contest_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_steps_contest_unique ON app.commerce_disguise_steps USING btree (review_id) WHERE (action = 'contest'::text)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_steps_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_steps_pkey ON app.commerce_disguise_steps USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_steps_review_idx",
+          "definition": "CREATE INDEX commerce_disguise_steps_review_idx ON app.commerce_disguise_steps USING btree (review_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_steps_terminal_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_steps_terminal_unique ON app.commerce_disguise_steps USING btree (review_id) WHERE (action = ANY (ARRAY['dismiss'::text, 'confirm'::text]))",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.commerce_refund_obligations",
       "owner": "arena_owner",
       "comment": "Explicit shortfall debts: at most one per service refund, naming the provider debtor, the buyer creditor and the uncovered share, append-only",
@@ -16765,6 +17057,582 @@
     {
       "table": "app.commerce_contracts",
       "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

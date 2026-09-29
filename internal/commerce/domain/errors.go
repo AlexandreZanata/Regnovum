@@ -22,6 +22,9 @@ const (
 	CodeContractNotFound    ErrorCode = "COMMERCE_CONTRACT_NOT_FOUND"
 	CodeUnauthorizedRelease ErrorCode = "COMMERCE_UNAUTHORIZED_RELEASE"
 	CodeRefundExceeds       ErrorCode = "COMMERCE_REFUND_EXCEEDS_ORIGINAL"
+	CodeInvalidDisguise     ErrorCode = "COMMERCE_INVALID_DISGUISE"
+	CodeDisguiseState       ErrorCode = "COMMERCE_DISGUISE_STATE"
+	CodeDisguiseNotParty    ErrorCode = "COMMERCE_DISGUISE_NOT_PARTY"
 )
 
 // DomainError represents an invariant or rule failure in the commerce domain.
@@ -106,5 +109,17 @@ var (
 	ErrRefundExceedsOriginal = DomainError{
 		Code:    CodeRefundExceeds,
 		Message: "refund exceeds the unrefunded remainder: partial refunds accumulate against the original payment, never beyond it",
+	}
+	ErrInvalidDisguise = DomainError{
+		Code:    CodeInvalidDisguise,
+		Message: "disguise review needs a gift transfer, a closed reason, a minimized evidence hash and a reporter: gifts never bear tithe by flagging",
+	}
+	ErrDisguiseState = DomainError{
+		Code:    CodeDisguiseState,
+		Message: "review is not in a state this step leaves from: terminal reviews never reopen and flagging never moves value",
+	}
+	ErrDisguiseNotParty = DomainError{
+		Code:    CodeDisguiseNotParty,
+		Message: "contest needs the payer or the payee of the flagged gift: strangers never speak for a transfer",
 	}
 )
