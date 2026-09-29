@@ -120,6 +120,20 @@ func countPublications(t *testing.T, ctx context.Context, db *dbtest.TestDB) int
 	return count
 }
 
+// approvedCatalog builds the deployment-approved price table for
+// tests: only the supplied entries settle, every other service stays
+// unavailable.
+func approvedCatalog(t *testing.T, prices ...meteringdomain.PriceEntry) meteringdomain.Catalog {
+	t.Helper()
+	var catalog meteringdomain.Catalog
+	for _, price := range prices {
+		if err := catalog.Add(price); err != nil {
+			t.Fatalf("Add approved price: %v", err)
+		}
+	}
+	return catalog
+}
+
 func countLegs(t *testing.T, ctx context.Context, db *dbtest.TestDB, transfer string) (debits, credits int64) {
 	t.Helper()
 	if err := db.QueryRow(ctx,
@@ -161,7 +175,7 @@ func TestPublishChargesAtomically(t *testing.T) {
 
 	content, price, quote := publishTerms(t, accepted, citizen)
 	clock := publishClock{now: accepted.Add(time.Minute)}
-	repo, err := meteringpg.NewRepository(pool, clock)
+	repo, err := meteringpg.NewRepository(pool, clock, approvedCatalog(t, price))
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
 	}
@@ -254,7 +268,7 @@ func TestPublishReplayAfterCommit(t *testing.T) {
 	seedLedger(t, ctx, db, citizen, 100000)
 	content, price, quote := publishTerms(t, accepted, citizen)
 	clock := publishClock{now: accepted.Add(time.Minute)}
-	repo, err := meteringpg.NewRepository(pool, clock)
+	repo, err := meteringpg.NewRepository(pool, clock, approvedCatalog(t, price))
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
 	}
@@ -295,7 +309,7 @@ func TestPublishConflictOnDivergentPayload(t *testing.T) {
 	seedLedger(t, ctx, db, citizen, 100000)
 	content, price, quote := publishTerms(t, accepted, citizen)
 	clock := publishClock{now: accepted.Add(time.Minute)}
-	repo, _ := meteringpg.NewRepository(pool, clock)
+	repo, _ := meteringpg.NewRepository(pool, clock, approvedCatalog(t, price))
 	uc, _ := meteringapp.NewPublishUseCase(repo)
 	if _, err := uc.Execute(ctx, publishCommand("pub-conflict-1", citizen, content, price, quote, clock.now)); err != nil {
 		t.Fatalf("first Execute: %v", err)
@@ -355,7 +369,7 @@ func TestPublishRefusesWithoutWriting(t *testing.T) {
 	seedLedger(t, ctx, db, citizen, 100000)
 	content, price, quote := publishTerms(t, accepted, citizen)
 	clock := publishClock{now: accepted.Add(time.Minute)}
-	repo, _ := meteringpg.NewRepository(pool, clock)
+	repo, _ := meteringpg.NewRepository(pool, clock, approvedCatalog(t, price))
 	uc, _ := meteringapp.NewPublishUseCase(repo)
 	beforeCitizen := custodyMillis(t, ctx, db, "user", citizen)
 

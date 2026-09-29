@@ -48,7 +48,7 @@ func TestPublishRacesCollapseToOne(t *testing.T) {
 	content, price, quote := publishTerms(t, accepted, citizen)
 	seedLedger(t, ctx, testDB, citizen, quote.TotalMilli)
 	clock := publishClock{now: accepted.Add(time.Minute)}
-	repo, err := meteringpg.NewRepository(pool, clock)
+	repo, err := meteringpg.NewRepository(pool, clock, approvedCatalog(t, price))
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
 	}
@@ -119,7 +119,7 @@ func TestPublishRaceDivergentPayloadFails(t *testing.T) {
 	content, price, quote := publishTerms(t, accepted, citizen)
 	seedLedger(t, ctx, testDB, citizen, 10*quote.TotalMilli)
 	clock := publishClock{now: accepted.Add(time.Minute)}
-	repo, err := meteringpg.NewRepository(pool, clock)
+	repo, err := meteringpg.NewRepository(pool, clock, approvedCatalog(t, price))
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
 	}

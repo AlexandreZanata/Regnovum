@@ -26,19 +26,24 @@ import (
 var _ application.PublishRepository = (*Repository)(nil)
 
 // Repository settles INK publication charges against PostgreSQL.
+// The approved price table arrives at construction from the
+// deployment: fees settle only for priced services, and unapproved
+// services stay unavailable even with a self-sealed quote.
 type Repository struct {
-	pool  *pgxpool.Pool
-	clock ports.Clock
+	pool   *pgxpool.Pool
+	clock  ports.Clock
+	prices meteringdomain.Catalog
 }
 
-// NewRepository builds the repository with explicit wiring: the pool
-// and the clock judging quote liveness. No price, cost or instant
-// ever arrives from a publisher.
-func NewRepository(pool *pgxpool.Pool, clock ports.Clock) (*Repository, error) {
+// NewRepository builds the repository with explicit wiring: the pool,
+// the clock judging quote liveness and the approved price table
+// pricing every settlement. No price, cost or instant ever arrives
+// from a publisher.
+func NewRepository(pool *pgxpool.Pool, clock ports.Clock, prices meteringdomain.Catalog) (*Repository, error) {
 	if pool == nil || clock == nil {
 		return nil, application.ErrInvalidPublishConfig
 	}
-	return &Repository{pool: pool, clock: clock}, nil
+	return &Repository{pool: pool, clock: clock, prices: prices}, nil
 }
 
 // rowQuerier covers pool and transaction reads for the settlement
@@ -50,9 +55,12 @@ type rowQuerier interface {
 // Publish settles one publication keyed idempotently by account and
 // token: the publication row and the ledger legs commit together.
 // Replays resolve the original settlement untouched, divergent terms
-// under one key conflict, and uncovered balances refuse without
-// writing.
+// under one key conflict, uncovered balances refuse without writing,
+// and services outside the approved table refuse before any lock.
 func (r *Repository) Publish(ctx context.Context, request application.PublishRequest) (*application.PublishResult, error) {
+	if err := r.resolveApprovedPrice(request); err != nil {
+		return nil, err
+	}
 	if replayed, err := r.lookupSettlement(ctx, r.pool, request); err != nil || replayed != nil {
 		return replayed, err
 	}
@@ -71,6 +79,31 @@ func (r *Repository) Publish(ctx context.Context, request application.PublishReq
 		}
 	}
 	return nil, fmt.Errorf("publication unsettled after conflict: %w", last)
+}
+
+// resolveApprovedPrice re-prices the request against the approved
+// table instead of trusting the caller price: the entry covering the
+// acceptance instant must name the quoted service, version and unit
+// price, and the recomputed total must match the sealed quote.
+// Services outside the table stay unavailable; forged or stale terms
+// refuse before any lock is taken or leg written. Bonds never enter
+// here: refundable reservations live in holds, never in this table.
+func (r *Repository) resolveApprovedPrice(request application.PublishRequest) error {
+	approved, err := r.prices.PriceAt(request.Quote.Service, request.Quote.AcceptedAt)
+	if err != nil {
+		return err
+	}
+	if approved.Version != request.Quote.Version || approved.PriceMilli != request.Quote.PriceMilli {
+		return meteringdomain.ErrInvalidQuote
+	}
+	total, err := meteringdomain.TotalFor(request.Quote.Units, approved.PriceMilli)
+	if err != nil {
+		return err
+	}
+	if total != request.Quote.TotalMilli {
+		return meteringdomain.ErrInvalidQuote
+	}
+	return nil
 }
 
 // lookupSettlement resolves a settled intention without writing:
