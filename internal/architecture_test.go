@@ -75,8 +75,8 @@ var forbiddenExternal = []string{
 // docs/ARCHITECTURE.md §4.
 var businessModules = []string{
 	"arenas", "arguments", "audit", "billing", "economy", "identity", "jobs",
-	"moderation", "persuasion", "positions", "profiles", "transparency",
-	"wallet",
+	"moderation", "persuasion", "positions", "pricing", "profiles",
+	"transparency", "wallet",
 }
 
 // envReadAllowlist lists the internal packages allowed to touch the process

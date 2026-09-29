@@ -1648,6 +1648,588 @@
       ]
     },
     {
+      "name": "app.billing_ink_charge_events",
+      "owner": "arena_owner",
+      "comment": "Gateway charge verdicts per purchase intent: paid or failed facts the reconciliation compares, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "event_id",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "intent_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "account_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "amount_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "currency",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "billing_ink_charge_events_account_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (account_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_charge_events_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_minor \u003e= 1 AND amount_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_charge_events_currency_check",
+          "kind": "c",
+          "definition": "CHECK (currency = 'BRL'::text)"
+        },
+        {
+          "name": "billing_ink_charge_events_event_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM event_id) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "billing_ink_charge_events_event_id_key",
+          "kind": "u",
+          "definition": "UNIQUE (event_id)"
+        },
+        {
+          "name": "billing_ink_charge_events_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM intent_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "billing_ink_charge_events_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "billing_ink_charge_events_status_check",
+          "kind": "c",
+          "definition": "CHECK (status = ANY (ARRAY['paid'::text, 'failed'::text]))"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "billing_ink_charge_events_event_id_key",
+          "definition": "CREATE UNIQUE INDEX billing_ink_charge_events_event_id_key ON app.billing_ink_charge_events USING btree (event_id)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_charge_events_pkey",
+          "definition": "CREATE UNIQUE INDEX billing_ink_charge_events_pkey ON app.billing_ink_charge_events USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.billing_ink_chargebacks",
+      "owner": "arena_owner",
+      "comment": "Reversed INK liquidations: holder revocation plus treasury cover per provider dispute, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "settlement_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "event_id",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "disputed_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "ink_revoked",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "MilliINK taken back from the defrauding holder balance, never below zero"
+        },
+        {
+          "name": "treasury_covered",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "MilliINK the operator covered from commercial stock when the holder balance fell short"
+        },
+        {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "billing_ink_chargebacks_covered_check",
+          "kind": "c",
+          "definition": "CHECK (treasury_covered \u003e= 0 AND treasury_covered \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_chargebacks_disputed_check",
+          "kind": "c",
+          "definition": "CHECK (disputed_minor \u003e= 1 AND disputed_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_chargebacks_event_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM event_id) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "billing_ink_chargebacks_event_id_key",
+          "kind": "u",
+          "definition": "UNIQUE (event_id)"
+        },
+        {
+          "name": "billing_ink_chargebacks_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "billing_ink_chargebacks_revoked_check",
+          "kind": "c",
+          "definition": "CHECK (ink_revoked \u003e= 0 AND ink_revoked \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_chargebacks_settlement_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (settlement_id) REFERENCES app.billing_ink_settlements(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_chargebacks_settlement_id_key",
+          "kind": "u",
+          "definition": "UNIQUE (settlement_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "billing_ink_chargebacks_event_id_key",
+          "definition": "CREATE UNIQUE INDEX billing_ink_chargebacks_event_id_key ON app.billing_ink_chargebacks USING btree (event_id)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_chargebacks_pkey",
+          "definition": "CREATE UNIQUE INDEX billing_ink_chargebacks_pkey ON app.billing_ink_chargebacks USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_chargebacks_settlement_id_key",
+          "definition": "CREATE UNIQUE INDEX billing_ink_chargebacks_settlement_id_key ON app.billing_ink_chargebacks USING btree (settlement_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.billing_ink_intents",
+      "owner": "arena_owner",
+      "comment": "Accepted INK purchase intents: buyer, sealed quotation, server-derived amounts, terms hash and backing hold, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "intent_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Caller operation token scoped by account: a retry replays instead of provisioning twice"
+        },
+        {
+          "name": "account_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "quote_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "fiat_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "ink_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "terms_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "hold_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "",
+          "comment": "Commercial-stock hold backing the intent, written by the same transaction"
+        },
+        {
+          "name": "decided_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "billing_ink_intents_account_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (account_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_intents_account_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (account_id, intent_key)"
+        },
+        {
+          "name": "billing_ink_intents_fiat_check",
+          "kind": "c",
+          "definition": "CHECK (fiat_minor \u003e= 1 AND fiat_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_intents_hash_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM terms_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "billing_ink_intents_hold_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (hold_id) REFERENCES app.economy_holds(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_intents_ink_check",
+          "kind": "c",
+          "definition": "CHECK (ink_milli \u003e= 1 AND ink_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_intents_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM intent_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "billing_ink_intents_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "billing_ink_intents_quote_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (quote_id) REFERENCES app.pricing_quotes(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_intents_status_check",
+          "kind": "c",
+          "definition": "CHECK (status = ANY (ARRAY['pending'::text, 'settled'::text, 'failed'::text, 'review'::text]))"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "billing_ink_intents_account_idx",
+          "definition": "CREATE INDEX billing_ink_intents_account_idx ON app.billing_ink_intents USING btree (account_id, decided_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_intents_account_key_unique",
+          "definition": "CREATE UNIQUE INDEX billing_ink_intents_account_key_unique ON app.billing_ink_intents USING btree (account_id, intent_key)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_intents_pkey",
+          "definition": "CREATE UNIQUE INDEX billing_ink_intents_pkey ON app.billing_ink_intents USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.billing_ink_settlements",
+      "owner": "arena_owner",
+      "comment": "Paid INK purchase liquidations: one row per settled intent with its provider event, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "intent_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "event_id",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Provider event identifier: redeliveries replay instead of settling again"
+        },
+        {
+          "name": "amount_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "currency",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "settled_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "billing_ink_settlements_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_minor \u003e= 1 AND amount_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "billing_ink_settlements_currency_check",
+          "kind": "c",
+          "definition": "CHECK (currency = 'BRL'::text)"
+        },
+        {
+          "name": "billing_ink_settlements_event_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM event_id) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "billing_ink_settlements_event_unique",
+          "kind": "u",
+          "definition": "UNIQUE (event_id)"
+        },
+        {
+          "name": "billing_ink_settlements_intent_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (intent_id) REFERENCES app.billing_ink_intents(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_settlements_intent_unique",
+          "kind": "u",
+          "definition": "UNIQUE (intent_id)"
+        },
+        {
+          "name": "billing_ink_settlements_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "billing_ink_settlements_event_unique",
+          "definition": "CREATE UNIQUE INDEX billing_ink_settlements_event_unique ON app.billing_ink_settlements USING btree (event_id)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_settlements_intent_idx",
+          "definition": "CREATE INDEX billing_ink_settlements_intent_idx ON app.billing_ink_settlements USING btree (intent_id, settled_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_settlements_intent_unique",
+          "definition": "CREATE UNIQUE INDEX billing_ink_settlements_intent_unique ON app.billing_ink_settlements USING btree (intent_id)",
+          "valid": true
+        },
+        {
+          "name": "billing_ink_settlements_pkey",
+          "definition": "CREATE UNIQUE INDEX billing_ink_settlements_pkey ON app.billing_ink_settlements USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.billing_reconciliation_findings",
       "owner": "arena_owner",
       "comment": "Divergences found between the local state and the provider; recorded so they are reviewed instead of silently corrected",
@@ -5729,6 +6311,213 @@
         {
           "name": "position_changes_pkey",
           "definition": "CREATE UNIQUE INDEX position_changes_pkey ON app.position_changes USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.pricing_quote_sources",
+      "owner": "arena_owner",
+      "comment": "One sighting per source and quote: the frozen source set the acceptance judged",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "quote_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "price_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "observed_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "payload_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "pricing_quote_sources_hash_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM payload_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "pricing_quote_sources_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM source) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "pricing_quote_sources_price_check",
+          "kind": "c",
+          "definition": "CHECK (price_minor \u003e= 1 AND price_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "pricing_quote_sources_quote_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (quote_id) REFERENCES app.pricing_quotes(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "pricing_quote_sources_unique",
+          "kind": "u",
+          "definition": "UNIQUE (quote_id, source)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "pricing_quote_sources_unique",
+          "definition": "CREATE UNIQUE INDEX pricing_quote_sources_unique ON app.pricing_quote_sources USING btree (quote_id, source)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.pricing_quotes",
+      "owner": "arena_owner",
+      "comment": "Accepted BTC/BRL quotation snapshots: integer price, observed/accepted/expiry instants and content hash, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "price_minor",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "Guarded median in integer minor units (centavos per BTC): never float"
+        },
+        {
+          "name": "observed_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "accepted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "quote_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Canonical hash binding price, ordered sources and instants: tampering is detectable by recomputation"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "pricing_quotes_hash_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM quote_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "pricing_quotes_lifetime_check",
+          "kind": "c",
+          "definition": "CHECK (expires_at \u003e accepted_at)"
+        },
+        {
+          "name": "pricing_quotes_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "pricing_quotes_price_check",
+          "kind": "c",
+          "definition": "CHECK (price_minor \u003e= 1 AND price_minor \u003c= '9223372036854775807'::bigint)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "pricing_quotes_expiry_idx",
+          "definition": "CREATE INDEX pricing_quotes_expiry_idx ON app.pricing_quotes USING btree (expires_at)",
+          "valid": true
+        },
+        {
+          "name": "pricing_quotes_pkey",
+          "definition": "CREATE UNIQUE INDEX pricing_quotes_pkey ON app.pricing_quotes USING btree (id)",
           "valid": true
         }
       ],
@@ -11163,6 +11952,1122 @@
       "privilege": "UPDATE"
     },
     {
+      "table": "app.billing_ink_charge_events",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "amount_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "amount_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "amount_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "amount_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "amount_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "amount_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "currency",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "currency",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "currency",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "currency",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "currency",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "currency",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "event_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "event_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "intent_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "intent_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "intent_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "intent_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "intent_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "intent_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "received_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "received_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "status",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "status",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_charge_events",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "disputed_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "ink_revoked",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "received_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "settlement_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_chargebacks",
+      "column": "treasury_covered",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "decided_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "decided_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "fiat_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "fiat_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "fiat_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "fiat_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "fiat_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "fiat_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "hold_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "hold_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "hold_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "hold_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "hold_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "hold_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "ink_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "ink_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "ink_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "ink_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "ink_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "ink_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "intent_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "intent_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "intent_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "intent_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "intent_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "intent_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "quote_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "quote_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "status",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "status",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "status",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "terms_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "terms_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "amount_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "amount_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "amount_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "amount_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "amount_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "amount_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "currency",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "currency",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "currency",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "currency",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "currency",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "currency",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "event_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "event_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "event_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "intent_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "intent_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "intent_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "intent_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "intent_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "intent_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "settled_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "settled_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "settled_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "settled_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "settled_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "settled_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
       "table": "app.billing_reconciliation_findings",
       "column": "account_id",
       "grantee": "arena_app",
@@ -20345,6 +22250,402 @@
     {
       "table": "app.position_changes",
       "column": "version",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "quote_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quote_sources",
+      "column": "source",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "accepted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "observed_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "price_minor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "quote_hash",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
