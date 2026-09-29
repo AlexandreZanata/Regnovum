@@ -26,6 +26,8 @@ const (
 	CodeInvalidQuote         ErrorCode = "METERING_INVALID_QUOTE"
 	CodeQuoteExpired         ErrorCode = "METERING_QUOTE_EXPIRED"
 	CodeQuoteMismatch        ErrorCode = "METERING_QUOTE_MISMATCH"
+	CodeInvalidPublishKey    ErrorCode = "METERING_INVALID_PUBLISH_KEY"
+	CodePublishConflict      ErrorCode = "METERING_PUBLISH_CONFLICT"
 )
 
 // DomainError represents an invariant or rule failure in the metering domain.
@@ -126,5 +128,13 @@ var (
 	ErrQuoteMismatch = DomainError{
 		Code:    CodeQuoteMismatch,
 		Message: "metering quote binds one account to one content hash: another account or text needs a new acceptance",
+	}
+	ErrInvalidPublishKey = DomainError{
+		Code:    CodeInvalidPublishKey,
+		Message: "metering publish key needs a short token without control characters",
+	}
+	ErrPublishConflict = DomainError{
+		Code:    CodePublishConflict,
+		Message: "publish key already settled a different payload: reuse is refused, never merged",
 	}
 )
