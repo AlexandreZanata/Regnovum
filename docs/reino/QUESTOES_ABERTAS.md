@@ -6,6 +6,8 @@
 
 ## A. Compatibilidade do produto atual
 
+**Adendo de 2026-09-30:** temporadas de 90 dias, reinício econômico, preservação histórica e sucessão automática por riqueza superior à Coroa estão definidos como intenção do produto em [TEMPORADAS_SUCESSAO.md](TEMPORADAS_SUCESSAO.md). As perguntas originais permanecem como histórico, com esse novo contexto para Q07/Q20/Q25. A ratificação operacional deve confirmar: patrimônio líquido elegível e desempate propostos; titular inicial/regência; termos de INK pago com expiração e evento tardio; uma elegibilidade de Migalhas por pessoa por temporada. Nenhuma dessas confirmações pode apagar direito legado ou aprovar outros produtos por extensão.
+
 1. Como chamar cada espaço hoje denominado “Arena”: **Arena de debate**, **debate**, **praça** ou manter “Arena” com contexto? O nome do produto continua **Regnovum**.
 2. O objetivo de observar posições e mudanças de opinião continua sendo a atividade inicial central do Reino, ou o objetivo principal passa a ser resolver disputas? Ambos podem coexistir, mas qual conceito explica o produto ao novo usuário?
 3. Quando uma controvérsia em Arena de debate pode virar desafio/processo formal: somente por aceite de ambas as partes, por denúncia de segurança ou também por iniciativa institucional?

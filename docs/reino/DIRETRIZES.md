@@ -8,7 +8,7 @@
 
 ## 1. Definição do domínio
 
-Regnovum é um **domínio digital privado**. O Rei é seu proprietário e autoridade soberana **dentro dos mecanismos internos do serviço**. A Coroa não é outra aplicação, uma Arena de debate, um cargo comunitário ou uma autoridade sobre a vida real das pessoas. Os participantes ingressam no mesmo Reino ao usar a plataforma, observadas as regras publicadas e aceitas.
+Regnovum é um **domínio digital privado**. O operador é responsável pelo serviço; o **Rei sazonal** exerce a autoridade de jogo definida na Carta, dentro do mesmo Reino. O [adendo de temporadas e sucessão](TEMPORADAS_SUCESSAO.md) permite conquistar automaticamente esse cargo por riqueza elegível superior à da Coroa institucional; isso não transfere propriedade do serviço, credenciais técnicas ou acesso a dados pessoais. Os participantes ingressam no mesmo Reino ao usar a plataforma, observadas as regras publicadas e aceitas.
 
 Uma **Arena de debate** é o espaço hoje existente para uma afirmação, posições e argumentos. Ela é uma atividade **dentro** do Reino, não o Reino inteiro. Uma disputa futura poderá nascer de um debate, contrato, desafio ou violação de segurança, mas isso não transforma automaticamente todo debate em processo, desafio ou julgamento.
 
@@ -28,6 +28,8 @@ Na lógica constitucional do anexo, o Rei é a **exceção declarada** às restr
 > O Rei pode fazer qualquer coisa dentro do Arena, mas o Arena nunca deve esconder que o Rei fez.
 
 Esta frase define **atribuição da intervenção**, não exposição irrestrita. Toda intervenção real precisa deixar claro que a autoridade utilizada foi a Coroa, o que mudou, quando e quais atos foram afetados. O motivo pode ser uma escolha discricionária declarada; nunca se deve atribuir uma escolha do Rei a um Árbitro, algoritmo, votação ou “erro técnico”.
+
+A frase pertence à Constituição original. O adendo sazonal delimita a função conquistável: respeitar duração, oferta, contratos, critérios de riqueza, dados e impedimentos; não alterar sua própria seleção, apropriar o Tesouro ou usar privilégios técnicos. Esses limites constam da Carta antes da adesão.
 
 O **Livro Real** registra decretos, Perdões e Bençãos com versões e correções vinculadas. O público pode receber um resumo seguro quando a íntegra revelar dados privados, prova perigosa ou informações de segurança. Redigir detalhes sensíveis não é esconder a existência da intervenção; apagar ou falsificar sua autoria seria.
 
@@ -94,7 +96,8 @@ Apostas e previsões são elementos das Cartas, mas não pertencem ao MVP vigent
 6. Nenhum rito formal declara automaticamente verdade universal ou reescreve posições privadas do debate.
 7. Status real, reputação de profissão e métricas de argumentação são camadas distintas.
 8. Provas sensíveis e dados pessoais não precisam ser expostos publicamente para preservar a autoria auditável de um ato.
-9. A direção futura do INK é a oferta fixa e circulação descritas na Carta Econômica; até uma transição expressa, o INK já implantado conserva seus contratos e limites vigentes. Esta documentação não ativa apostas, pagamentos entre usuários, Títulos ou cauções.
+9. A direção futura do INK é a oferta fixa e circulação descritas na Carta Econômica, **por temporada de 90 dias** conforme o adendo; até uma transição expressa, o INK já implantado conserva seus contratos e limites vigentes. Esta documentação não ativa apostas, pagamentos entre usuários, Títulos ou cauções.
 10. Nada aqui ativa cargos, decretos, julgamentos, mercados ou estados de morte/ressurreição de contas.
+11. O encerramento da temporada expira sua riqueza gastável e cargos de jogo com termos prévios; conserva história, contas, conteúdo, direitos externos e controles de segurança. Cargo real conquistado segue a versão de reinado, sem apropriação pessoal do Tesouro ou herança automática no próximo ciclo.
 
 As decisões ainda necessárias constam em [QUESTOES_ABERTAS.md](QUESTOES_ABERTAS.md). Esta é uma base de **lógica de negócio**, não um plano de trabalho.

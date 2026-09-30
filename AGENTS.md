@@ -5,6 +5,7 @@ Este documento estabelece as regras mandatórias de execução técnica, arquite
 ## 1. Regras de Execução e Git
 
 - **Uma microtarefa por vez:** execute estritamente uma única tarefa por ciclo. É proibido acumular tarefas, pular etapas ou ampliar escopo não solicitado.
+- **Ajuste sazonal:** economia, Coroa, contratos e arquivos seguem `docs/reino/TEMPORADAS_SUCESSAO.md`. Dependências restantes: P39 → P46 → P40 → P41 → P42 → P43 → P47 → P44 → P45. IDs preservados; não escolher próxima fase por ordem numérica. P46/P47 devem estar mergeadas antes da certificação de release P45. Rei sazonal é cargo de jogo, separado do operador técnico.
 - **Commits atômicos:** cada tarefa concluída deve gerar exatamente um commit atômico após todos os gates passarem.
 - **Padrão de commit:** utilize o formato Conventional Commits (`type(scope): descrição`), conforme documentado em `docs/COMMITS.md`.
 - **Publicação autorizada (branch de fase + PR + merge):** uma branch por microfase (`phase-NN-<slug>`), um commit por microtarefa e um PR por fase. Após os testes direcionados e o exit gate, o merge exige `make quick-verify` local e o check remoto `Quick verification` verde. A suíte completa é gate de release somente depois do merge de todas as fases atuais até P44, na futura P45; P30/P44 apenas preparam os gates. Ferramenta canônica: `.local/git-flow.sh`. Nunca empurre direto em `main`; nunca use `--force`, `--admin` ou `--no-verify`.

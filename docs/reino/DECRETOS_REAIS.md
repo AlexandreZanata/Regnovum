@@ -2,6 +2,8 @@
 
 **Estado:** significado funcional da prerrogativa do Rei no **Regnovum/Reino**; nenhum decreto concreto foi promulgado, e nenhum mecanismo de decreto está ativo por este texto.
 
+**Ajuste sazonal:** o [adendo de temporadas e sucessão](TEMPORADAS_SUCESSAO.md) distingue Rei de jogo e operador técnico. Ato sazonal identifica `season_id` e `reign_version`; ex-Rei não executa novo ato por sessão ou aprovação antiga. Sucessão pelo algoritmo é registro automático de autoridade, não decreto sujeito ao veto do antecessor. Nenhum Rei muda o reset, o limiar, o próprio critério de riqueza ou recebe o Tesouro como saldo pessoal.
+
 Decreto Real é manifestação identificável da vontade do Rei sobre o domínio interno do Regnovum. Não é ato de outro produto, resultado de enquete, sentença ordinária ou ajuste oculto de dados. A decisão de haver um Rei e um Reino já está tomada; **alcance material, garantias e procedimentos dos decretos** ainda requerem respostas específicas.
 
 ## Identidade mínima de um ato real
