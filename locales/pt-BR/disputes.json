@@ -1,0 +1,27 @@
+{
+  "disputes": {
+    "case": {
+      "title": "Caso privado",
+      "proposal": "Proposta {key} · versão {version}",
+      "accepted": "{count} de 2 aceites",
+      "defenses": "{count} defesas",
+      "decided": "Decidido em {date}",
+      "appeal_due": "Recurso até {date}"
+    },
+    "notice": {
+      "proposal": "Proposta selada",
+      "accept": "Aceite registrado",
+      "defense": "Defesa apresentada",
+      "ruling": "Sentença fundamentada",
+      "appeal": "Recurso aberto"
+    },
+    "ruling": {
+      "title": "Sentença do rito",
+      "verdict": "Veredito {code}"
+    },
+    "failure": {
+      "title": "Caso indisponível",
+      "detail": "Confira os dados e tente novamente."
+    }
+  }
+}

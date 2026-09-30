@@ -60,6 +60,19 @@ func TestNegotiateFiltersByAllowlist(t *testing.T) {
 	}
 }
 
+func TestPrefersPortugueseSharedHelper(t *testing.T) {
+	t.Parallel()
+
+	for header, want := range map[string]bool{
+		"pt-BR": true, "pt-BR, en-US": true, "en-US, pt-BR;q=0.1": false,
+		"en-US": false, "": true, "es-ES, fr-FR": true,
+	} {
+		if got := PrefersPortuguese(header); got != want {
+			t.Errorf("PrefersPortuguese(%q) = %v, want %v", header, got, want)
+		}
+	}
+}
+
 func TestResolverPrecedence(t *testing.T) {
 	t.Parallel()
 

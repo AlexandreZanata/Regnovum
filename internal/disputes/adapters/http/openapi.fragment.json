@@ -1,0 +1,91 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Regnovum disputes staged API",
+    "version": "0.1.0",
+    "description": "Staged private case lifecycle (P39-T08): proposal, acceptance, defense, ruling and appeal, in Portuguese and English. Unmounted until the P44 gate and the separate holder authorization; not part of the published contract."
+  },
+  "paths": {
+    "/api/v1/me/disputes/cases/{key}": {
+      "get": {
+        "operationId": "readPrivateCaseFile",
+        "summary": "Read one owned private case file with notices",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
+        ],
+        "responses": {
+          "200": { "description": "Case file document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "404": { "description": "Unknown case for this account" }
+        }
+      }
+    },
+    "/api/v1/me/disputes/cases/{key}/accepts": {
+      "post": {
+        "operationId": "acceptPrivateCaseTerms",
+        "summary": "Record the session account acceptance of the filed terms",
+        "security": [{ "sessionCookie": [] }, { "csrfToken": [] }],
+        "parameters": [
+          { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
+        ],
+        "responses": {
+          "200": { "description": "Case file document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "403": { "description": "Account is not a named party" },
+          "404": { "description": "Unknown case for this account" },
+          "409": { "description": "Acceptance past the terms deadline" }
+        }
+      }
+    },
+    "/api/v1/me/disputes/cases/{key}/defenses": {
+      "post": {
+        "operationId": "filePrivateCaseDefense",
+        "summary": "File one proportional-access defense exhibit",
+        "security": [{ "sessionCookie": [] }, { "csrfToken": [] }],
+        "parameters": [
+          { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
+        ],
+        "responses": {
+          "200": { "description": "Case file document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "403": { "description": "Account is not a named party" },
+          "404": { "description": "Unknown case for this account" },
+          "409": { "description": "Defense past the evidence deadline" }
+        }
+      }
+    },
+    "/api/v1/me/disputes/cases/{key}/ruling": {
+      "get": {
+        "operationId": "readPrivateCaseRuling",
+        "summary": "Read the stable ruling of one owned private case",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
+        ],
+        "responses": {
+          "200": { "description": "Ruling document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "404": { "description": "Unknown case or no ruling yet for this account" }
+        }
+      }
+    },
+    "/api/v1/me/disputes/cases/{key}/appeals": {
+      "post": {
+        "operationId": "appealPrivateCaseRuling",
+        "summary": "Contest the filed ruling once with an explicit reason",
+        "security": [{ "sessionCookie": [] }, { "csrfToken": [] }],
+        "parameters": [
+          { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
+        ],
+        "responses": {
+          "200": { "description": "Case file document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "403": { "description": "Account is not a named party" },
+          "404": { "description": "Unknown case for this account" },
+          "409": { "description": "Second appeal over the same ruling" }
+        }
+      }
+    }
+  }
+}

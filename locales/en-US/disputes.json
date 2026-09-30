@@ -1,0 +1,27 @@
+{
+  "disputes": {
+    "case": {
+      "title": "Private case",
+      "proposal": "Proposal {key} · version {version}",
+      "accepted": "{count} of 2 acceptances",
+      "defenses": "{count} defenses",
+      "decided": "Decided {date}",
+      "appeal_due": "Appeal until {date}"
+    },
+    "notice": {
+      "proposal": "Sealed proposal",
+      "accept": "Acceptance recorded",
+      "defense": "Defense filed",
+      "ruling": "Reasoned ruling",
+      "appeal": "Appeal opened"
+    },
+    "ruling": {
+      "title": "Rite ruling",
+      "verdict": "Verdict {code}"
+    },
+    "failure": {
+      "title": "Case unavailable",
+      "detail": "Check the data and try again."
+    }
+  }
+}

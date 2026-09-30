@@ -16,6 +16,11 @@
         "detail": "This Arena was removed by moderation and is no longer available."
       }
     },
+    "realm": {
+      "kingdom": "Regnovum — the Kingdom",
+      "arena": "Debate arena — controversy instance",
+      "no_official_outcome": "Debates carry no winner and no official truth"
+    },
     "participation": {
       "page_title": "Take part — {subject}",
       "refusal_page_title": "Participation — Regnovum",
