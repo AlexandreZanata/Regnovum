@@ -14,6 +14,8 @@
 
 ## 2. Opções por direito (sem conversão automática)
 
+O [adendo sazonal](TEMPORADAS_SUCESSAO.md) não acrescenta expiração a direitos legados. Conversão voluntária para INK de temporada precisa mostrar o término e consumir o crédito convertido uma única vez; o reset não cria uma nova concessão do mesmo crédito. Refund/obrigação fiat antiga mantém vínculo ao recibo original e não é liquidado por INK novo por inferência.
+
 Toda transição exige aceite expresso e versionado da nova Carta onde aplicável (Q05, proposta); quem recusar conserva acesso razoável a histórico, exportação, recurso e liquidação de direitos anteriores.
 
 - **Permanência:** manter o direito no livro legado com utilidade e prazo dos termos aceitos.

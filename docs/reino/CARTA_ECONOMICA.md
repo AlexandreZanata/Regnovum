@@ -4,14 +4,16 @@
 
 **Estado:** direção monetária do Reino, documentada como lógica de negócio. Não é o funcionamento atualmente implantado nem uma oferta pública de investimento, aposta, resgate em Bitcoin ou moeda conversível. As fórmulas marcadas como **sugestão** no anexo continuam propostas. Operações com direitos financeiros ou risco regulatório dependem de definições e análise especializadas antes de qualquer oferta.
 
+**Adendo sazonal de 2026-09-30:** [TEMPORADAS_SUCESSAO.md](TEMPORADAS_SUCESSAO.md) estabelece temporadas de 90 dias e reinício econômico em livros distintos. Oferta, Genesis, custódia e métricas desta Carta passam a ter escopo **por temporada**. Saldo histórico é preservado, sem gasto ou conversão na sucessora. Expiração e direitos pagos dependem de contrato previamente aceito; o adendo não ativa vendas sazonais.
+
 ## 1. Constituição monetária
 
 O INK passa a ser concebido pela nova Carta como **unidade econômica interna oficial do Reino**. Isso substitui, como direção futura de produto, a concepção atual de INK exclusivamente como capacidade de publicação. A mudança não converte automaticamente o saldo de ninguém: o produto em operação continua regido por [MONETIZATION.md](../MONETIZATION.md) e seus contratos até que a compatibilização seja decidida e comunicada.
 
 Os quatro princípios constitucionais da Carta são:
 
-1. O único evento de criação é o **Genesis de 2.100.000.000 INK**; após ele não há emissão adicional.
-2. Nenhum INK é queimado ou desaparece por uso, expiração, falha ou sanção; ele muda de custódia ou titularidade.
+1. Há um único **Genesis por temporada**; o montante proposto é **2.100.000.000 INK**, sujeito ao registro de ratificação. Após ele não há emissão adicional naquele livro.
+2. Nenhum INK é queimado ou apagado por uso, expiração, falha ou sanção; durante a temporada ele muda de custódia ou titularidade. No encerramento, o saldo é preservado como histórico não gastável, conforme o adendo sazonal.
 3. Cada unidade pertence a um titular ou a um cofre definido do Reino, e é contabilizada **uma só vez**.
 4. Pagamento por serviço próprio da Arena transfere INK do pagador ao Tesouro Real, de onde poderá circular novamente.
 

@@ -27,6 +27,8 @@ saldo, preço, período ou vigência.
 
 ## 2. Intervalos `[início, fim)`
 
+**Ajuste sazonal:** temporadas duram exatamente 7.776.000 segundos em UTC, não três meses civis. O [adendo](TEMPORADAS_SUCESSAO.md) define `season_id`, barreira de fecho e `cutoff_revision`. Uma intenção antiga não adquire direito a crédito na sucessora por webhook tardio; quote e liquidação são limitados pelo fim da temporada. As regras dos exemplos abaixo continuam distinguindo aceitação/postagem, mas não autorizam efeito econômico entre temporadas.
+
 Vigências, benefícios, quarentenas e janelas são intervalos semiabertos:
 no instante exato de `fim`, a oferta expirou. Exemplo canônico: benefício
 válido em `[2026-09-01T00:00:00Z, 2026-10-01T00:00:00Z)` está ativo em
