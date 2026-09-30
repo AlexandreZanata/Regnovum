@@ -22,6 +22,10 @@ const (
 	// CodeRetroactiveCorrection names a correction backdated before
 	// now: corrections take effect prospectively only.
 	CodeRetroactiveCorrection ErrorCode = "CHARTER_RETROACTIVE_CORRECTION"
+	// CodeConsentConflict names a second divergent verdict for one
+	// account and version: the first verdict stands, replays of the
+	// identical verdict return it, and anything else refuses.
+	CodeConsentConflict ErrorCode = "CHARTER_CONSENT_CONFLICT"
 )
 
 // DomainError represents an invariant or rule failure in the charter domain.
@@ -68,5 +72,12 @@ var (
 	ErrRetroactiveCorrection = DomainError{
 		Code:    CodeRetroactiveCorrection,
 		Message: "charter corrections take effect prospectively: backdated corrections refuse",
+	}
+	// ErrConsentConflict refuses a second divergent verdict for one
+	// account and version: change of mind travels via a newer
+	// version, never by rewriting the recorded verdict.
+	ErrConsentConflict = DomainError{
+		Code:    CodeConsentConflict,
+		Message: "one verdict per account and version: replays return it, divergent re-verdicts refuse",
 	}
 )
