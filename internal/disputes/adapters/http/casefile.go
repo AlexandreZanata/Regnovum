@@ -5,7 +5,6 @@ import (
 
 	disputesapp "github.com/AlexandreZanata/Regnovum/internal/disputes/application"
 	disputesdomain "github.com/AlexandreZanata/Regnovum/internal/disputes/domain"
-	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
 )
 
 // noticeEntry is one localized lifecycle notice: the stable event
@@ -114,10 +113,9 @@ func describe(record disputesapp.CaseRecord, account string, titles disputesdoma
 
 // getCaseFile resolves one owned case file.
 func (h *Handler) getCaseFile(w http.ResponseWriter, r *http.Request) {
-	account, ok := h.identity(r)
+	account, ok := h.account(w, r)
 	if !ok {
 		h.log(r.Method, r.URL.Path, http.StatusUnauthorized, r.PathValue("key"))
-		deny(w, r, apperr.New(apperr.KindUnauthorized, "unauthorized", "authentication is required"))
 		return
 	}
 	record, err := h.read.Execute(r.PathValue("key"), account)
@@ -133,10 +131,9 @@ func (h *Handler) getCaseFile(w http.ResponseWriter, r *http.Request) {
 // postAccept records the session account's acceptance of the filed
 // terms. Replays answer unchanged.
 func (h *Handler) postAccept(w http.ResponseWriter, r *http.Request) {
-	account, ok := h.identity(r)
+	account, ok := h.account(w, r)
 	if !ok {
 		h.log(r.Method, r.URL.Path, http.StatusUnauthorized, r.PathValue("key"))
-		deny(w, r, apperr.New(apperr.KindUnauthorized, "unauthorized", "authentication is required"))
 		return
 	}
 	record, err := h.accept.Execute(r.PathValue("key"), account, h.clock.Now())
@@ -158,14 +155,13 @@ type defenseInput struct {
 // postDefense files one proportional-access exhibit of the session
 // account.
 func (h *Handler) postDefense(w http.ResponseWriter, r *http.Request) {
-	account, ok := h.identity(r)
+	account, ok := h.account(w, r)
 	if !ok {
 		h.log(r.Method, r.URL.Path, http.StatusUnauthorized, r.PathValue("key"))
-		deny(w, r, apperr.New(apperr.KindUnauthorized, "unauthorized", "authentication is required"))
 		return
 	}
 	var input defenseInput
-	if !decodeBody(w, r, &input) {
+	if !decodeInput(w, r, &input) {
 		h.log(r.Method, r.URL.Path, http.StatusBadRequest, r.PathValue("key"))
 		return
 	}
@@ -198,10 +194,9 @@ type rulingDocument struct {
 // getRuling resolves the stable ruling of one owned case. Without a
 // reasoned decision there is nothing to read yet.
 func (h *Handler) getRuling(w http.ResponseWriter, r *http.Request) {
-	account, ok := h.identity(r)
+	account, ok := h.account(w, r)
 	if !ok {
 		h.log(r.Method, r.URL.Path, http.StatusUnauthorized, r.PathValue("key"))
-		deny(w, r, apperr.New(apperr.KindUnauthorized, "unauthorized", "authentication is required"))
 		return
 	}
 	record, err := h.read.Execute(r.PathValue("key"), account)
@@ -234,14 +229,13 @@ type appealInput struct {
 // postAppeal contests the filed ruling once. A second appeal over
 // the same ruling conflicts.
 func (h *Handler) postAppeal(w http.ResponseWriter, r *http.Request) {
-	account, ok := h.identity(r)
+	account, ok := h.account(w, r)
 	if !ok {
 		h.log(r.Method, r.URL.Path, http.StatusUnauthorized, r.PathValue("key"))
-		deny(w, r, apperr.New(apperr.KindUnauthorized, "unauthorized", "authentication is required"))
 		return
 	}
 	var input appealInput
-	if !decodeBody(w, r, &input) {
+	if !decodeInput(w, r, &input) {
 		h.log(r.Method, r.URL.Path, http.StatusBadRequest, r.PathValue("key"))
 		return
 	}

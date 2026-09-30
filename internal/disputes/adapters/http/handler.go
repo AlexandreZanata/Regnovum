@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	disputesapp "github.com/AlexandreZanata/Regnovum/internal/disputes/application"
@@ -92,10 +91,13 @@ func (h *Handler) csrf(next http.Handler) http.Handler {
 	return h.security.CSRFMiddleware()(next)
 }
 
-// identity extracts the authenticated account id.
-func (h *Handler) identity(r *http.Request) (string, bool) {
+// account resolves the session account or answers 401 as a private
+// no-store problem: unauthenticated readers never reach the file.
+func (h *Handler) account(w http.ResponseWriter, r *http.Request) (string, bool) {
 	identity, ok := security.FromContext(r.Context())
 	if !ok {
+		httpcache.NoStore(w)
+		_ = httperror.WriteProblem(w, r, apperr.New(apperr.KindUnauthorized, "unauthorized", "authentication is required"))
 		return "", false
 	}
 	return identity.AccountID, true
@@ -106,11 +108,7 @@ func (h *Handler) identity(r *http.Request) (string, bool) {
 // untouched either way; the locale only renders the surrounding
 // words.
 func titles(r *http.Request) disputesdomain.NoticeTitles {
-	tag, ok := locale.Negotiate(r.Header.Get("Accept-Language"))
-	if !ok {
-		tag = locale.Default()
-	}
-	if strings.HasPrefix(string(tag), "pt") {
+	if locale.PrefersPortuguese(r.Header.Get("Accept-Language")) {
 		return disputesdomain.NoticeTitlesFor(disputesdomain.NoticeLocalePortuguese)
 	}
 	return disputesdomain.NoticeTitlesFor(disputesdomain.NoticeLocaleEnglish)
@@ -167,17 +165,13 @@ func conflict(w http.ResponseWriter, r *http.Request, err error, stranger int) {
 	_ = httperror.WriteProblem(w, r, err)
 }
 
-// deny answers authentication failures as private no-store problems.
-func deny(w http.ResponseWriter, r *http.Request, err error) {
-	httpcache.NoStore(w)
-	_ = httperror.WriteProblem(w, r, err)
-}
-
-// decodeBody bounds and decodes one mutation body.
-func decodeBody(w http.ResponseWriter, r *http.Request, target any) bool {
+// decodeInput bounds and decodes one mutation body, answering 400
+// as a private no-store problem when the bytes are not JSON.
+func decodeInput(w http.ResponseWriter, r *http.Request, target any) bool {
 	r.Body = http.MaxBytesReader(w, r.Body, maxCaseBodyBytes)
 	if err := json.NewDecoder(r.Body).Decode(target); err != nil {
-		deny(w, r, apperr.New(apperr.KindValidation, "invalid_json", "request body must be valid JSON within the size limit"))
+		httpcache.NoStore(w)
+		_ = httperror.WriteProblem(w, r, apperr.New(apperr.KindValidation, "invalid_json", "request body must be valid JSON within the size limit"))
 		return false
 	}
 	return true

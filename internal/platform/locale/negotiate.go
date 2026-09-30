@@ -117,6 +117,19 @@ func Negotiate(header string) (Tag, bool) {
 	return "", false
 }
 
+// PrefersPortuguese reports whether an Accept-Language header
+// negotiates to Portuguese under the allowlist, falling back to the
+// product default when nothing negotiates. Staged adapters share
+// this helper instead of copying the negotiate-or-default block, so
+// the locale only ever selects titles, never values.
+func PrefersPortuguese(header string) bool {
+	tag, ok := Negotiate(header)
+	if !ok {
+		tag = Default()
+	}
+	return strings.HasPrefix(string(tag), "pt")
+}
+
 // NegotiatedTags parses an Accept-Language header into canonical tags
 // ordered by descending quality weight, excluding q=0. The full ordered
 // list (including unknown locales) is exposed for diagnostics; production
