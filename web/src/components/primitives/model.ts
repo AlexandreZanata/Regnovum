@@ -136,6 +136,12 @@ export interface ErrorSummaryItem {
  * errorSummaryItems normalizes the errors a form reports: blank entries are
  * dropped, a field appears once (keeping the first message) and the order the
  * page supplied — form order — is preserved.
+ *
+ * A field id that cannot be a fragment target is dropped as well. The element
+ * refuses to move focus to an unusable target, so offering one would render a
+ * link that looks like a path to the error and does nothing; the field keeps
+ * its own error paragraph in that case. This is the same refusal the adopted
+ * server summary applies through `summaryErrors`.
  */
 export function errorSummaryItems(errors: readonly FieldError[]): readonly ErrorSummaryItem[] {
   const seen = new Set<string>();
@@ -147,6 +153,9 @@ export function errorSummaryItems(errors: readonly FieldError[]): readonly Error
       continue;
     }
     if (seen.has(fieldId)) {
+      continue;
+    }
+    if (focusTargetId(`#${fieldId}`) === null) {
       continue;
     }
     seen.add(fieldId);
@@ -170,6 +179,31 @@ export function focusTargetId(href: string): string | null {
     return null;
   }
   return identifier;
+}
+
+/** One link of a summary the server rendered: its fragment and its message. */
+export interface SummaryLink {
+  readonly href: string;
+  readonly message: string;
+}
+
+/**
+ * summaryErrors reads the links of a server-rendered summary as field errors,
+ * so the element can complete what the document already lists instead of
+ * wiping it. A link whose fragment is not a usable target is dropped, exactly
+ * as `errorSummaryItems` drops a blank error; the order the document wrote is
+ * the order a person reads, and it is preserved.
+ */
+export function summaryErrors(links: readonly SummaryLink[]): readonly FieldError[] {
+  const errors: FieldError[] = [];
+  for (const link of links) {
+    const fieldId = focusTargetId(link.href);
+    if (fieldId === null) {
+      continue;
+    }
+    errors.push({ fieldId, message: link.message });
+  }
+  return errors;
 }
 
 /** Input of the busy presentation. */

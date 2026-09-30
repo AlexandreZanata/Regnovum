@@ -15,6 +15,7 @@ import {
   BUSY_ELEMENT,
   BUSY_REGION_ATTRIBUTES,
   BUSY_SUBMITTER_ATTRIBUTES,
+  BUSY_SUBMITTER_MARKER,
   busyAttributes,
   idleAttributes,
   submissionStart,
@@ -44,6 +45,16 @@ test("the busy state marks the region, the submitter and the primitive", () => {
 
 test("the busy state targets the element the primitives register", () => {
   assert.equal(BUSY_ELEMENT, "ga-busy");
+});
+
+test("the guard marks the control it disables, so a restore frees exactly it", () => {
+  const busy = busyAttributes();
+  const idle = idleAttributes();
+
+  assert.equal(BUSY_SUBMITTER_MARKER, "data-ga-busy-submitter");
+  assert.ok(BUSY_SUBMITTER_ATTRIBUTES.includes(BUSY_SUBMITTER_MARKER));
+  assert.equal(busy.submitter[BUSY_SUBMITTER_MARKER], "");
+  assert.equal(Object.hasOwn(idle.submitter, BUSY_SUBMITTER_MARKER), false);
 });
 
 test("the idle state clears every attribute the busy state set", () => {

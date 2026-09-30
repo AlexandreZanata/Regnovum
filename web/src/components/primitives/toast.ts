@@ -1,18 +1,40 @@
 /**
  * `ga-toast` — accessible transient message (P18-T04).
  *
- * Attributes:
+ * Tag: `ga-toast`.
+ *
+ * Responsibility: present one transient message — interrupting for problems,
+ * waiting its turn for everything else — and then get out of the way.
+ *
+ * Attributes (observed: a change re-renders the toast and re-arms the
+ * dismissal, so an attribute is never a value the element silently ignores):
  *
  *   severity       `info` (default), `success`, `warning` or `error`
  *   duration       auto-dismiss delay in milliseconds; `0` keeps it sticky
  *   dismiss-label  translated accessible name of the dismiss button (required
  *                  for the button to be reachable by assistive technology)
  *
- * Rules the primitive enforces: errors and warnings interrupt (`role="alert"`),
- * informational messages wait their turn (`role="status"`); errors never
- * auto-dismiss; a toast that is focused or hovered keeps its time; `Escape`
- * dismisses it; and when the toast had focus, focus returns to wherever the
- * user was before it appeared — never to a node that no longer exists.
+ * Events: none. Dismissal is an effect of the element itself, not an intent
+ * another component observes.
+ *
+ * States: informational (polite, auto-dismissed), problem (assertive, sticky),
+ * and dismissed (removed from the document). Rules the primitive enforces:
+ * errors and warnings interrupt (`role="alert"`), informational messages wait
+ * their turn (`role="status"`); errors never auto-dismiss; a toast that is
+ * focused or hovered keeps its time.
+ *
+ * Keyboard and focus: `Escape` dismisses it; and when the toast had focus,
+ * focus returns to wherever the user was before it appeared — never to a node
+ * that no longer exists.
+ *
+ * CSS: `ga-toast`, its `ga-toast--<severity>` variants and its `__dismiss`
+ * button, styled by primitives.css with the tokens of tokens.css.
+ *
+ * External effects: the dismissal timer and the listeners, all cancelled in
+ * `disconnectedCallback`, so a removed toast never fires.
+ *
+ * Usage:
+ *   <ga-toast severity="info"><p>Posição confirmada.</p></ga-toast>
  */
 import { ensureChild, toggleHidden } from "./dom.js";
 import { TOAST_DEFAULT_DURATION_MS, shouldRestoreFocus, toastLiveRegion, toastTiming } from "./model.js";
@@ -57,6 +79,15 @@ export class GaToastElement extends HTMLElement {
     this.removeEventListener("focusout", this.onFocusChange);
     this.removeEventListener("keydown", this.onKeyDown);
     this.removeEventListener("click", this.onClick);
+  }
+
+  /** Re-reads the observed attributes; the upgrade renders them once more. */
+  attributeChangedCallback(): void {
+    if (!this.isConnected) {
+      return;
+    }
+    this.render();
+    this.schedule();
   }
 
   /** Severity of this toast, defaulting to `info`. */

@@ -22,6 +22,7 @@
  * this file.
  */
 import type { ArenaPositionForm } from "../contracts/generated.js";
+import type { Translator } from "../i18n/translator.js";
 
 /** The position vocabulary, taken from the generated contract. */
 export type Position = ArenaPositionForm["position"];
@@ -45,12 +46,28 @@ export const ATTRIBUTION_GROUP_SELECTOR = "[data-ga-attribution-group]";
 const STORAGE_PREFIX = "ga.arena.position.";
 
 /**
- * choiceStorageKey is the address of the local choice of one Arena. The
- * identifier is scoped per Arena because a person may be reading two of them in
- * two tabs.
+ * choiceStorageKey is the address of the local choice of one Arena. The key is
+ * scoped by the Arena slug — the stable part of the URL, which every visit
+ * carries — and not by the opaque identifier, because the choice has to survive
+ * the sign-in navigation that turns it into the first value of the confirmation
+ * form, and the signed-in page no longer renders the identifier.
  */
-export function choiceStorageKey(arenaID: string): string {
-  return `${STORAGE_PREFIX}${arenaID}`;
+export function choiceStorageKey(arenaSlug: string): string {
+  return `${STORAGE_PREFIX}${arenaSlug}`;
+}
+
+/**
+ * arenaSlugFromPath returns the Arena slug of a participation pathname, or null
+ * when the address is not one. The slug is the canonical part of the URL and it
+ * does not change with the interface locale (I18N_STANDARD.md section 7), which
+ * is what makes it a usable scope for a value that lives in this browser only.
+ */
+export function arenaSlugFromPath(pathname: string): string | null {
+  const segments = pathname.split("/").filter((segment) => segment !== "");
+  if (segments.length !== 2 || segments[0] !== "arenas") {
+    return null;
+  }
+  return segments[1] ?? null;
 }
 
 /**
@@ -124,4 +141,14 @@ export function attributionSelection(
     return { allowed: false, selected: [...selected] };
   }
   return { allowed: true, selected: [...selected, toggled] };
+}
+
+/**
+ * attributionLimitMessage is the text of the refusal the browser shows when a
+ * tick would pass the limit. It is the message the server renders for the same
+ * refusal, read from the same catalog key, so a person who acts with scripts
+ * and one who submits without them read the same sentence.
+ */
+export function attributionLimitMessage(translator: Translator, limit: number): string {
+  return translator.translate("arenas.participation.errors.too_many_attributions", { max: limit });
 }

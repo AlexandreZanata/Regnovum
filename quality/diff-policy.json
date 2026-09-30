@@ -130,6 +130,12 @@
       "prefixes": ["web/src/components/"]
     },
     {
+      "name": "web-page",
+      "role": "production",
+      "reason": "Páginas web entregam comportamento provado por web/tests/pages (convenção do repositório desde P18, mesma impossibilidade estrutural dos componentes: o gate de arquitetura do frontend proíbe imports Node em fontes do browser e o executor Node só executa test-build/tests/**). Isenção autorizada pelo titular em 2026-09-30 para o PR #82, espelho da Opção A dos componentes; exigir testes na área src forçaria uma violação de gate para satisfazer outra.",
+      "prefixes": ["web/src/pages/"]
+    },
+    {
       "name": "production",
       "role": "production",
       "reason": "O código do produto: um arquivo novo é comportamento novo e chega com o teste da mesma área.",

@@ -19,8 +19,20 @@ export const BUSY_ELEMENT = "ga-busy";
 /** Attributes the guard manages on a region while a submission is in flight. */
 export const BUSY_REGION_ATTRIBUTES: readonly string[] = ["aria-busy"];
 
+/**
+ * Marker the guard puts on the control it disables, so a page restored from the
+ * back-forward cache frees exactly that control: the module keeps no memory of
+ * the element, and a control the server disabled for its own reason carries no
+ * marker and is never touched.
+ */
+export const BUSY_SUBMITTER_MARKER = "data-ga-busy-submitter";
+
 /** Attributes the guard manages on the control that started the submission. */
-export const BUSY_SUBMITTER_ATTRIBUTES: readonly string[] = ["disabled", "aria-disabled"];
+export const BUSY_SUBMITTER_ATTRIBUTES: readonly string[] = [
+  "disabled",
+  "aria-disabled",
+  BUSY_SUBMITTER_MARKER,
+];
 
 /** Attribute that switches the `ga-busy` element on. */
 export const BUSY_ATTRIBUTE = "busy";
@@ -56,7 +68,7 @@ export interface BusyAttributes {
 export function busyAttributes(): BusyAttributes {
   return {
     region: { "aria-busy": "true" },
-    submitter: { disabled: "", "aria-disabled": "true" },
+    submitter: { disabled: "", "aria-disabled": "true", [BUSY_SUBMITTER_MARKER]: "" },
     busyElement: { [BUSY_ATTRIBUTE]: "" },
   };
 }
@@ -65,7 +77,9 @@ export function busyAttributes(): BusyAttributes {
  * idleAttributes is the state a page returns to when the browser restores it
  * from its back-forward cache: the submission that was in flight was abandoned
  * by the navigation, so the form must be usable again instead of frozen in a
- * busy state nobody will ever clear.
+ * busy state nobody will ever clear. Empty maps mean the managed attributes are
+ * removed, never rewritten — that is how a disabled submitter becomes pressable
+ * again, and it is why the restore looks for the marker the busy state left.
  */
 export function idleAttributes(): BusyAttributes {
   return { region: {}, submitter: {}, busyElement: {} };

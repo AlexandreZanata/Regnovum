@@ -144,6 +144,23 @@ test("primitives remove their animation under reduced motion", () => {
   assert.match(reducedMotion?.[1] ?? "", /animation:\s*none/, "the reduced-motion block must stop the animation");
 });
 
+test("the local choice shows the chosen button, in forced colors too", () => {
+  const css = withoutComments(sheet("src/styles/arena.css"));
+
+  assert.match(
+    css,
+    /\.ga-arena__choices \[aria-pressed="true"\]/,
+    "the chosen local choice must have a rule of its own",
+  );
+  const forcedColors = /@media \(forced-colors: active\)\s*\{([\s\S]*?)\n\s*\}/.exec(css);
+  assert.notEqual(forcedColors, null, "arena.css must carry a forced-colors block");
+  assert.match(
+    forcedColors?.[1] ?? "",
+    /\[aria-pressed="true"\]/,
+    "the chosen state must stay distinguishable when the palette is forced",
+  );
+});
+
 test("the token sheet publishes the motion and zoom tokens the primitives rely on", () => {
   const defined = definedTokens(sheet("src/styles/tokens.css"));
 
