@@ -1,0 +1,226 @@
+{
+  "schema": 1,
+  "note": "Trace TEMP-01–TEMP-12 do adendo sazonal a requisitos, ameaças, contratos, módulos, testes planejados e donos (P46-T01). TEMP-01–TEMP-04 registram intenção de produto aprovada pelo titular em 2026-09-30, sem autorização de lançamento; detalhes que dependem de aceite ainda ausente ficam BLOQUEADO e não avançam para execução financeira. Proposta não ratificada não vira regra por inferência. Refs apontam somente arquivos existentes; módulos ainda não criados (internal/seasons) carregam o marcador (planejado).",
+  "owners": [
+    "economia",
+    "tesouro",
+    "coroa",
+    "legado",
+    "disputas",
+    "arquivo"
+  ],
+  "states": [
+    "INTENCAO-APROVADA",
+    "PLANEJADO",
+    "BLOQUEADO"
+  ],
+  "entries": [
+    {
+      "temp": "TEMP-01",
+      "state": "INTENCAO-APROVADA",
+      "req": "REQ-SEASON-01",
+      "threats": [
+        "THR-SEASON-01"
+      ],
+      "contracts": "temporada de 90 dias (7.776.000s, UTC, [starts_at, ends_at)) como intenção aprovada em 2026-09-30; sem lançamento autorizado",
+      "modules": "seasons (planejado); calendário usa início anterior mais 90 dias",
+      "tests": "tick antes/no/depois do fim, DST, fevereiro e relógio regressivo (planejado P46-T02)",
+      "owner": "economia",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "intenção de produto aprovada em 2026-09-30; duração e janela não mudam sem nova versão prospectiva"
+    },
+    {
+      "temp": "TEMP-02",
+      "state": "INTENCAO-APROVADA",
+      "req": "REQ-SEASON-02",
+      "threats": [
+        "THR-SEASON-02"
+      ],
+      "contracts": "reinício econômico no estado inicial sem apagar memória como intenção aprovada em 2026-09-30; sem lançamento autorizado",
+      "modules": "seasons (planejado); arquivo preserva diário e saldos finais não gastáveis",
+      "tests": "restore sintético preserva ambos os livros, sem carry-over (planejado P46-T10)",
+      "owner": "arquivo",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "intenção de produto aprovada em 2026-09-30; zerar/apagar/confiscar continua proibido"
+    },
+    {
+      "temp": "TEMP-03",
+      "state": "INTENCAO-APROVADA",
+      "req": "REQ-SEASON-03",
+      "threats": [
+        "THR-SEASON-03"
+      ],
+      "contracts": "preservação de dados e destaques históricos, incluindo a pessoa mais rica, como intenção aprovada em 2026-09-30; sem lançamento autorizado",
+      "modules": "seasons (planejado); ranking de corte e histórico corrigível sem apagar fatos",
+      "tests": "checksum adulterado impede abertura; edição corretiva vinculada preserva original (planejado P46-T10)",
+      "owner": "arquivo",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "intenção de produto aprovada em 2026-09-30; pessoa mais rica e último Rei seguem fatos distintos"
+    },
+    {
+      "temp": "TEMP-04",
+      "state": "INTENCAO-APROVADA",
+      "req": "REQ-SEASON-04",
+      "threats": [
+        "THR-SEASON-04"
+      ],
+      "contracts": "sucessão automática quando participante ultrapassa a riqueza da Coroa como intenção aprovada em 2026-09-30; sem lançamento autorizado",
+      "modules": "seasons (planejado); avaliação automática por snapshot confirmado",
+      "tests": "P(u) maior que C sucede; igualdade conserva; empate conserva incumbente (planejado P46-T12)",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "intenção de produto aprovada em 2026-09-30; critérios de riqueza e desempate seguem BLOQUEADO em TEMP-08"
+    },
+    {
+      "temp": "TEMP-05",
+      "state": "PLANEJADO",
+      "req": "REQ-SEASON-05",
+      "threats": [
+        "THR-SEASON-05"
+      ],
+      "contracts": "um Genesis por temporada; soma S individual; zero transferência entre temporadas; zero carry-over (planejado, sem valor de S inventado)",
+      "modules": "economy com season_id obrigatório (planejado P46-T04); seasons (planejado)",
+      "tests": "dois livros sintéticos com soma S cada; season omitida e cross-season recusados (planejado P46-T04/P46-T12)",
+      "owner": "economia",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "mecânica sem parâmetro aprovado; oferta S e milliINK seguem pendentes de ratificação específica"
+    },
+    {
+      "temp": "TEMP-06",
+      "state": "BLOQUEADO",
+      "req": "REQ-SEASON-06",
+      "threats": [
+        "THR-SEASON-06"
+      ],
+      "contracts": "corte [início,fim), barreira de transações, fechamento recuperável e no máximo uma temporada ativa (planejado); cláusula terminal de escrow sem aceite",
+      "modules": "seasons worker interno (planejado P46-T09); escrows consumidores (planejado P46-T07)",
+      "tests": "dois closers, crash antes/depois de cada checkpoint, timeout de lease (planejado P46-T09)",
+      "owner": "economia",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy",
+        "internal/commerce"
+      ],
+      "note": "BLOQUEADO: política terminal de escrow depende de aceite do titular; barreira e cutoff mecânicos avançam em P46-T09 sem distribuir valor"
+    },
+    {
+      "temp": "TEMP-07",
+      "state": "BLOQUEADO",
+      "req": "REQ-SEASON-07",
+      "threats": [
+        "THR-SEASON-07"
+      ],
+      "contracts": "expiração aceita antes da aquisição; legados e obrigações externas preservados; evento tardio não concede INK atual (planejado)",
+      "modules": "billing/pricing com season e deadline limitados pelo fim (planejado P46-T06); legado e opt-in (planejado P46-T05)",
+      "tests": "compra pendente no fecho, webhook duplicado/fora de ordem, refund tardio sem crédito cruzado (planejado P46-T06)",
+      "owner": "legado",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/billing",
+        "internal/wallet"
+      ],
+      "note": "BLOQUEADO: expiração de compras sem termos ratificados de venda/expiração/reembolso; checkout sazonal permanece bloqueado"
+    },
+    {
+      "temp": "TEMP-08",
+      "state": "BLOQUEADO",
+      "req": "REQ-SEASON-08",
+      "threats": [
+        "THR-SEASON-08"
+      ],
+      "contracts": "cada valor contado uma vez por propriedade econômica; dívidas e terceiros não dão trono; bolsas institucionais não mudam o limiar por reclassificação (planejado)",
+      "modules": "seasons com fórmula wealth-v1 A/L/W (planejado); sem número vigente",
+      "tests": "terceiro excluído de A sem subtrair de L; reclassificação de cofre não move C; mutante carry-over morto (planejado P46-T12)",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "BLOQUEADO: critérios de riqueza e desempate (wealth-v1) dependem de aceite do titular; fórmula do adendo não é parâmetro vigente"
+    },
+    {
+      "temp": "TEMP-09",
+      "state": "BLOQUEADO",
+      "req": "REQ-SEASON-09",
+      "threats": [
+        "THR-SEASON-09"
+      ],
+      "contracts": "sucessão determinística P maior que C; empate conservador; uma autoridade vigente; nenhum veto do perdedor (planejado)",
+      "modules": "seasons com reign_version no efeito (planejado); cargos e atos em P40",
+      "tests": "empate conserva incumbente; sem incumbente vence o alcance confirmado mais antigo; ex-Rei não bypassa (planejado P46-T12)",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "BLOQUEADO: titular inicial e regência dependem de aceite do titular; sem incumbente publicado, nenhuma coroação é avaliada"
+    },
+    {
+      "temp": "TEMP-10",
+      "state": "PLANEJADO",
+      "req": "REQ-SEASON-10",
+      "threats": [
+        "THR-SEASON-10"
+      ],
+      "contracts": "versão de reinado e temporada no efeito; ex-Rei, worker atrasado e decreto não bypassam os controles (planejado)",
+      "modules": "seasons com (season_id, reign_version, competência) por ato (planejado); worker interno em P46-T09",
+      "tests": "ato com snapshot stale recusado; aprovação de outro reinado revalidada (planejado P46-T09/P46-T12)",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "mecânica sem parâmetro aprovado; nenhum poder técnico entregue antes de P40"
+    },
+    {
+      "temp": "TEMP-11",
+      "state": "PLANEJADO",
+      "req": "REQ-SEASON-11",
+      "threats": [
+        "THR-SEASON-11"
+      ],
+      "contracts": "ranking de corte e histórico corrigível sem apagar fatos; sem saldo ou poder herdado e sem vazamento pessoal (planejado)",
+      "modules": "seasons com snapshot, cutoff_revision e recibos (planejado P46-T10)",
+      "tests": "ranking provisório não certificado antes da reconciliação; alias não identificável retido (planejado P46-T10)",
+      "owner": "arquivo",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/economy"
+      ],
+      "note": "mecânica sem parâmetro aprovado; saldos pessoais exatos dependem de política de publicação aceita"
+    },
+    {
+      "temp": "TEMP-12",
+      "state": "BLOQUEADO",
+      "req": "REQ-SEASON-12",
+      "threats": [
+        "THR-SEASON-12"
+      ],
+      "contracts": "nova temporada não remove sanção de segurança, fraude, direito de defesa e export, nem produto deliberadamente desativado (planejado)",
+      "modules": "crumbs com elegibilidade (person_subject, season_id) (planejado P46-T08); sanções globais intactas",
+      "tests": "conta antiga ingressa uma vez por season se aprovada; banimento atravessa reset; replay após reset não duplica (planejado P46-T08)",
+      "owner": "disputas",
+      "refs": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "internal/crumbs",
+        "internal/charter"
+      ],
+      "note": "BLOQUEADO: elegibilidade de Migalhas por temporada depende de aceite do titular; antifraude e banimento nunca resetam"
+    }
+  ]
+}

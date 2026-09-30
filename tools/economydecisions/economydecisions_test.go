@@ -8,8 +8,10 @@ import (
 )
 
 // TestGateGreenAndRedFamilies drives every fixture: the green tree
-// holds, and each mutated tree fails with exactly its own rule. One
-// family per rule is what makes a green gate mean the rule still bites.
+// holds, and each mutated tree fails with exactly its own rules. One
+// family per rule is what makes a green gate mean the rule still
+// bites; the addendum family proves the pending block survives even
+// when the addendum claims the approval.
 func TestGateGreenAndRedFamilies(t *testing.T) {
 	t.Parallel()
 
@@ -23,6 +25,7 @@ func TestGateGreenAndRedFamilies(t *testing.T) {
 		{family: "red-time", rules: []string{"ambiguous-time"}},
 		{family: "red-threat", rules: []string{"threat-without-control"}},
 		{family: "red-offer", rules: []string{"prohibited-offer"}},
+		{family: "red-addendum", rules: []string{"critical-pending", "addendum-bypass"}},
 	}
 
 	for _, test := range tests {
