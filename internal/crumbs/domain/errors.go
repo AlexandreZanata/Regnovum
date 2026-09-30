@@ -12,6 +12,13 @@ const (
 	// CodeInvalidReflux names a malformed reflux query: an empty or
 	// inverted window settles nothing.
 	CodeInvalidReflux ErrorCode = "CRUMBS_INVALID_REFLUX"
+	// CodeInvalidBudget names a malformed weekly budget query: more
+	// than four sealed nets or a negative free Treasury.
+	CodeInvalidBudget ErrorCode = "CRUMBS_INVALID_BUDGET"
+	// CodeNegativeR4Blocked names a negative R4 median: refunds
+	// outran revenue, so weekly distribution blocks until a rule is
+	// ratified, never moving a negative amount.
+	CodeNegativeR4Blocked ErrorCode = "CRUMBS_NEGATIVE_R4_BLOCKED"
 )
 
 // DomainError represents an invariant or rule failure in the crumbs domain.
@@ -44,5 +51,18 @@ var (
 	ErrInvalidReflux = DomainError{
 		Code:    CodeInvalidReflux,
 		Message: "regular reflux needs an ordered [start, end) window: empty or inverted windows sum nothing",
+	}
+	// ErrInvalidBudget refuses a weekly budget that cannot exist:
+	// more than four sealed nets or a negative free Treasury.
+	ErrInvalidBudget = DomainError{
+		Code:    CodeInvalidBudget,
+		Message: "weekly budget needs up to four sealed nets and a non-negative free Treasury: unsealed weeks never count",
+	}
+	// ErrNegativeR4Blocked refuses to fund a week from a negative
+	// R4 median: the deficit stays visible and distribution waits
+	// for a ratified rule, never transferring a negative amount.
+	ErrNegativeR4Blocked = DomainError{
+		Code:    CodeNegativeR4Blocked,
+		Message: "negative R4 blocks weekly distribution until a rule is ratified: no negative transfer leaves the Treasury",
 	}
 )
