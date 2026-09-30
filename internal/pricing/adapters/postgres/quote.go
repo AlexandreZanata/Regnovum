@@ -31,7 +31,23 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 // transaction: the quote row and every sighting commit together, or
 // nothing is stored at all. Sightings arrive already sealed by the
 // use case; the adapter binds them to rows without re-judging them.
+// Season travels beside the seal: seasonal books cap the expiry by
+// the book end, verified here against the registry before any write.
 func (r *Repository) Store(ctx context.Context, quote domain.Quote) (string, error) {
+	season := quote.Season
+	if season.String() == "" {
+		season = domain.SeasonKey(domain.CompatSeasonKey)
+	}
+	if season.String() != domain.CompatSeasonKey {
+		var endsAt time.Time
+		if err := r.pool.QueryRow(ctx,
+			`SELECT ends_at FROM app.seasons WHERE season_key = $1`, season.String()).Scan(&endsAt); err != nil {
+			return "", fmt.Errorf("read season end: %w", err)
+		}
+		if quote.ExpiresAt.After(endsAt.UTC()) {
+			return "", fmt.Errorf("quote expiry passes the book end: %w", domain.ErrInvalidQuote)
+		}
+	}
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return "", fmt.Errorf("begin store quote transaction: %w", err)
@@ -40,9 +56,9 @@ func (r *Repository) Store(ctx context.Context, quote domain.Quote) (string, err
 
 	var id string
 	err = tx.QueryRow(ctx,
-		`INSERT INTO app.pricing_quotes (price_minor, observed_at, accepted_at, expires_at, quote_hash)
-		 VALUES ($1, $2, $3, $4, $5) RETURNING id::text`,
-		quote.Price.Int64(), quote.ObservedAt, quote.AcceptedAt, quote.ExpiresAt, quote.Hash).Scan(&id)
+		`INSERT INTO app.pricing_quotes (price_minor, observed_at, accepted_at, expires_at, quote_hash, season_key)
+		 VALUES ($1, $2, $3, $4, $5, $6) RETURNING id::text`,
+		quote.Price.Int64(), quote.ObservedAt, quote.AcceptedAt, quote.ExpiresAt, quote.Hash, season.String()).Scan(&id)
 	if err != nil {
 		return "", fmt.Errorf("insert quote: %w", err)
 	}
@@ -66,10 +82,11 @@ func (r *Repository) Store(ctx context.Context, quote domain.Quote) (string, err
 func (r *Repository) Find(ctx context.Context, id string) (*domain.Quote, error) {
 	var quote domain.Quote
 	var price int64
+	var seasonKey string
 	err := r.pool.QueryRow(ctx,
-		`SELECT price_minor, observed_at, accepted_at, expires_at, quote_hash
+		`SELECT price_minor, observed_at, accepted_at, expires_at, quote_hash, season_key
 		 FROM app.pricing_quotes WHERE id = $1::uuid`,
-		id).Scan(&price, &quote.ObservedAt, &quote.AcceptedAt, &quote.ExpiresAt, &quote.Hash)
+		id).Scan(&price, &quote.ObservedAt, &quote.AcceptedAt, &quote.ExpiresAt, &quote.Hash, &seasonKey)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -82,6 +99,11 @@ func (r *Repository) Find(ctx context.Context, id string) (*domain.Quote, error)
 	}
 	quote.ID = id
 	quote.Price = millis
+	season, err := domain.ParseSeasonKey(seasonKey)
+	if err != nil {
+		return nil, fmt.Errorf("stored quote book %q: %w", seasonKey, err)
+	}
+	quote.Season = season
 	rows, err := r.pool.Query(ctx,
 		`SELECT source, price_minor, observed_at, payload_hash
 		 FROM app.pricing_quote_sources WHERE quote_id = $1::uuid ORDER BY source`,

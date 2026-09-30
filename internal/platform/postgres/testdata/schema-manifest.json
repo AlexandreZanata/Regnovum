@@ -2004,6 +2004,13 @@
           "nullable": false,
           "default": "",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this purchase: vault, hold and legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -2051,6 +2058,11 @@
           "name": "billing_ink_intents_quote_id_fkey",
           "kind": "f",
           "definition": "FOREIGN KEY (quote_id) REFERENCES app.pricing_quotes(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_intents_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "billing_ink_intents_status_check",
@@ -2146,6 +2158,13 @@
           "nullable": false,
           "default": "",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this liquidation: the receipt never leaves its book; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -2183,6 +2202,11 @@
           "name": "billing_ink_settlements_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "billing_ink_settlements_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         }
       ],
       "indexes": [
@@ -8061,6 +8085,13 @@
           "nullable": false,
           "default": "",
           "comment": "Canonical hash binding price, ordered sources and instants: tampering is detectable by recomputation"
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this quotation: expiry is capped by the book end at acceptance; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -8083,6 +8114,11 @@
           "name": "pricing_quotes_price_check",
           "kind": "c",
           "definition": "CHECK (price_minor \u003e= 1 AND price_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "pricing_quotes_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         }
       ],
       "indexes": [
@@ -14642,6 +14678,42 @@
     },
     {
       "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
       "column": "status",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -14889,6 +14961,42 @@
     {
       "table": "app.billing_ink_settlements",
       "column": "intent_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -27585,6 +27693,42 @@
     {
       "table": "app.pricing_quotes",
       "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

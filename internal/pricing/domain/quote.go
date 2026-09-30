@@ -14,9 +14,11 @@ import (
 // observation instant, the acceptance instant, the expiry instant and
 // the hash binding them. The ID travels empty until persistence names
 // it; it never enters the hash, so a stored row recomputes exactly
-// what acceptance sealed. Later webhooks judge the persisted expiry
-// instead of recomputing it, and a withdrawn source never rewrites
-// these terms.
+// what acceptance sealed. Season names the purchase book and travels
+// beside the seal: the seal covers price and instants, the book check
+// matches seasons before any intent opens. Later webhooks judge the
+// persisted expiry instead of recomputing it, and a withdrawn source
+// never rewrites these terms.
 type Quote struct {
 	ID         string
 	Price      PriceMinor
@@ -25,6 +27,7 @@ type Quote struct {
 	AcceptedAt time.Time
 	ExpiresAt  time.Time
 	Hash       string
+	Season     SeasonKey
 }
 
 // Sources returns the snapshot source set in canonical order.
@@ -118,4 +121,42 @@ func (q Quote) VerifyHash() error {
 func (q Quote) Live(at time.Time) bool {
 	instant := at.UTC()
 	return !instant.Before(q.AcceptedAt) && instant.Before(q.ExpiresAt)
+}
+
+// SeasonalQuoteRequest carries one seasonal quotation attempt: the
+// guarded price and sightings, the acceptance instant and lifetime
+// with freshness windows, the purchase book with its exclusive end,
+// and the reset acknowledgement shown before acceptance.
+type SeasonalQuoteRequest struct {
+	Price             PriceMinor
+	Sightings         []Observation
+	AcceptedAt        time.Time
+	TTL               time.Duration
+	Freshness         ObservationLimits
+	Season            SeasonKey
+	SeasonEndsAt      time.Time
+	ResetAcknowledged bool
+}
+
+// AcceptSeasonalQuote seals one quotation in one purchase book: the
+// reset disclosure is required outside compat-legacy, and the expiry
+// is capped by the book end before sealing, so the settlement
+// deadline never passes ends_at. The seal still covers price and the
+// capped instants; the book travels beside it and is matched before
+// any intent opens.
+func AcceptSeasonalQuote(request SeasonalQuoteRequest) (Quote, error) {
+	if err := RequireSeasonalReset(request.Season, request.ResetAcknowledged); err != nil {
+		return Quote{}, err
+	}
+	quote, err := AcceptQuote(request.Price, request.Sightings, request.AcceptedAt, request.TTL, request.Freshness)
+	if err != nil {
+		return Quote{}, err
+	}
+	capped := CapExpiryBySeasonEnd(quote.AcceptedAt, quote.ExpiresAt, request.Season, request.SeasonEndsAt)
+	if !capped.Equal(quote.ExpiresAt) {
+		quote.ExpiresAt = capped
+		quote.Hash = sealQuote(quote)
+	}
+	quote.Season = request.Season
+	return quote, nil
 }
