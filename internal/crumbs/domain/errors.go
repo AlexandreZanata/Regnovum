@@ -46,6 +46,11 @@ const (
 	// CodeRunState names an illegal run move: paying outside an open
 	// run, closing twice or reopening a closed epoch.
 	CodeRunState ErrorCode = "CRUMBS_RUN_STATE"
+	// CodeInvalidMetric names a malformed reflux metric query: a
+	// non-positive leg amount, an unknown outflow kind or an
+	// overflowing ratio. A zero denominator is defined, never an
+	// error: it reports N/A.
+	CodeInvalidMetric ErrorCode = "CRUMBS_INVALID_METRIC"
 )
 
 // DomainError represents an invariant or rule failure in the crumbs domain.
@@ -142,5 +147,13 @@ var (
 	ErrRunState = DomainError{
 		Code:    CodeRunState,
 		Message: "crumb run pays each planned account once while open: closed epochs never reopen, retries never double-pay",
+	}
+	// ErrInvalidMetric refuses a reflux metric that cannot be
+	// computed: every leg needs a known kind and a positive amount,
+	// and the floored ratio must fit int64. A zero outflow total is
+	// not an error: the index reports N/A.
+	ErrInvalidMetric = DomainError{
+		Code:    CodeInvalidMetric,
+		Message: "real reflux index needs known kinds with positive amounts and a fitting ratio: zero outflows report N/A, never divide",
 	}
 )
