@@ -221,7 +221,7 @@ func TestRestitutionFrozenRefuses(t *testing.T) {
 	beneficiary, approverOne, approverTwo := disburseParties(t, ctx, pool)
 	makeCustody(t, ctx, pool, "user", beneficiary)
 	freezeWithOrphan(t, ctx, pool, beneficiary)
-	if _, err := repo.Reconcile(ctx); err != nil {
+	if _, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey)); err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
 	useCase := application.NewRestituteUseCase(repo)

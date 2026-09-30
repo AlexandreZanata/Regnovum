@@ -18,7 +18,7 @@ type stubReconciliationRepository struct {
 	err    error
 }
 
-func (s *stubReconciliationRepository) Reconcile(_ context.Context) (*application.ReconciliationReport, error) {
+func (s *stubReconciliationRepository) Reconcile(_ context.Context, _ domain.SeasonKey) (*application.ReconciliationReport, error) {
 	s.called++
 	return s.report, s.err
 }
@@ -36,7 +36,7 @@ func TestReconcileUseCaseForwardsReport(t *testing.T) {
 		report: &application.ReconciliationReport{SupplyMillis: supply.Millis()},
 	}
 	useCase := application.NewReconcileUseCase(stub)
-	got, err := useCase.Execute(context.Background())
+	got, err := useCase.Execute(context.Background(), application.ReconcileCommand{Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}

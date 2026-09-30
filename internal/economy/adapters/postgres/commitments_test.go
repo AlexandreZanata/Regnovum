@@ -35,7 +35,8 @@ func commitFunds(t *testing.T, ctx context.Context, repo *postgres.Repository, v
 	t.Helper()
 	useCase := application.NewCommitFundsUseCase(repo, fixedHoldClock{now: commitNow()})
 	view, err := useCase.Execute(ctx, application.CommitFundsCommand{
-		Vault: vault, Purpose: purpose, Millis: millis, ExpiresAt: expiresAt,
+		Season: domain.CompatSeasonKey,
+		Vault:  vault, Purpose: purpose, Millis: millis, ExpiresAt: expiresAt,
 	})
 	if err != nil {
 		t.Fatalf("CommitFunds(%s, %d): %v", vault, millis, err)
@@ -105,7 +106,8 @@ func TestCommitFundsNeverExceedsAvailable(t *testing.T) {
 	commitFunds(t, ctx, repo, "commercial_stock", "sale A", 600, commitNow().Add(time.Hour))
 	useCase := application.NewCommitFundsUseCase(repo, fixedHoldClock{now: commitNow()})
 	if _, err := useCase.Execute(ctx, application.CommitFundsCommand{
-		Vault: "commercial_stock", Purpose: "sale B", Millis: 600, ExpiresAt: commitNow().Add(time.Hour),
+		Season: domain.CompatSeasonKey,
+		Vault:  "commercial_stock", Purpose: "sale B", Millis: 600, ExpiresAt: commitNow().Add(time.Hour),
 	}); !errors.Is(err, domain.ErrInsufficientMilliInk) {
 		t.Fatalf("over-commit = %v, want ErrInsufficientMilliInk", err)
 	}
@@ -142,7 +144,8 @@ func TestCommitFundsRacesSerializeOnAvailable(t *testing.T) {
 			defer wg.Done()
 			useCase := application.NewCommitFundsUseCase(repo, fixedHoldClock{now: commitNow()})
 			views[i], errs[i] = useCase.Execute(ctx, application.CommitFundsCommand{
-				Vault: "commercial_stock", Purpose: "race sale", Millis: 600, ExpiresAt: commitNow().Add(time.Hour),
+				Season: domain.CompatSeasonKey,
+				Vault:  "commercial_stock", Purpose: "race sale", Millis: 600, ExpiresAt: commitNow().Add(time.Hour),
 			})
 		}(i)
 	}
@@ -229,7 +232,8 @@ func TestCommitFundsCrashLeavesNoDuplicate(t *testing.T) {
 	stop()
 	useCase := application.NewCommitFundsUseCase(repo, fixedHoldClock{now: commitNow()})
 	if _, err := useCase.Execute(cancelled, application.CommitFundsCommand{
-		Vault: "commercial_stock", Purpose: "torn sale", Millis: 100, ExpiresAt: commitNow().Add(time.Hour),
+		Season: domain.CompatSeasonKey,
+		Vault:  "commercial_stock", Purpose: "torn sale", Millis: 100, ExpiresAt: commitNow().Add(time.Hour),
 	}); err == nil {
 		t.Fatal("cancelled commitment succeeded")
 	}

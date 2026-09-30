@@ -19,7 +19,7 @@ type stubStockRepository struct {
 	err       error
 }
 
-func (s *stubStockRepository) ReadStock(_ context.Context, _ domain.TreasuryVault) (int64, int64, error) {
+func (s *stubStockRepository) ReadStock(_ context.Context, _ domain.TreasuryVault, _ domain.SeasonKey) (int64, int64, error) {
 	s.called++
 	return s.balance, s.committed, s.err
 }
@@ -29,7 +29,7 @@ func TestSellableStockUseCaseDisplaysConservatively(t *testing.T) {
 
 	stub := &stubStockRepository{balance: 400, committed: 600}
 	useCase := application.NewSellableStockUseCase(stub)
-	report, err := useCase.Execute(context.Background(), application.SellableStockCommand{Vault: "commercial_stock"})
+	report, err := useCase.Execute(context.Background(), application.SellableStockCommand{Vault: "commercial_stock", Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestSellableStockUseCaseRefusesUnknownVault(t *testing.T) {
 
 	stub := &stubStockRepository{}
 	useCase := application.NewSellableStockUseCase(stub)
-	if _, err := useCase.Execute(context.Background(), application.SellableStockCommand{Vault: "slush"}); !errors.Is(err, domain.ErrUnknownCustody) {
+	if _, err := useCase.Execute(context.Background(), application.SellableStockCommand{Vault: "slush", Season: domain.CompatSeasonKey}); !errors.Is(err, domain.ErrUnknownCustody) {
 		t.Errorf("Execute = %v, want ErrUnknownCustody", err)
 	}
 	if stub.called != 0 {
@@ -62,7 +62,7 @@ func TestSaleCheckUseCaseRefusesShortStockWithoutCharge(t *testing.T) {
 
 		stub := &stubStockRepository{}
 		useCase := application.NewSaleCheckUseCase(stub)
-		if _, err := useCase.Execute(context.Background(), application.SaleCheckCommand{Vault: "commercial_stock", Millis: 100}); !errors.Is(err, domain.ErrInsufficientMilliInk) {
+		if _, err := useCase.Execute(context.Background(), application.SaleCheckCommand{Vault: "commercial_stock", Season: domain.CompatSeasonKey, Millis: 100}); !errors.Is(err, domain.ErrInsufficientMilliInk) {
 			t.Errorf("Execute = %v, want ErrInsufficientMilliInk", err)
 		}
 	})
@@ -71,7 +71,7 @@ func TestSaleCheckUseCaseRefusesShortStockWithoutCharge(t *testing.T) {
 
 		stub := &stubStockRepository{balance: 400, committed: 600}
 		useCase := application.NewSaleCheckUseCase(stub)
-		if _, err := useCase.Execute(context.Background(), application.SaleCheckCommand{Vault: "commercial_stock", Millis: 401}); !errors.Is(err, domain.ErrInsufficientMilliInk) {
+		if _, err := useCase.Execute(context.Background(), application.SaleCheckCommand{Vault: "commercial_stock", Season: domain.CompatSeasonKey, Millis: 401}); !errors.Is(err, domain.ErrInsufficientMilliInk) {
 			t.Errorf("Execute = %v, want ErrInsufficientMilliInk", err)
 		}
 	})
@@ -80,7 +80,7 @@ func TestSaleCheckUseCaseRefusesShortStockWithoutCharge(t *testing.T) {
 
 		stub := &stubStockRepository{balance: 400, committed: 600}
 		useCase := application.NewSaleCheckUseCase(stub)
-		report, err := useCase.Execute(context.Background(), application.SaleCheckCommand{Vault: "commercial_stock", Millis: 400})
+		report, err := useCase.Execute(context.Background(), application.SaleCheckCommand{Vault: "commercial_stock", Season: domain.CompatSeasonKey, Millis: 400})
 		if err != nil {
 			t.Fatalf("Execute: %v", err)
 		}
@@ -93,7 +93,7 @@ func TestSaleCheckUseCaseRefusesShortStockWithoutCharge(t *testing.T) {
 
 		stub := &stubStockRepository{balance: 400}
 		useCase := application.NewSaleCheckUseCase(stub)
-		if _, err := useCase.Execute(context.Background(), application.SaleCheckCommand{Vault: "commercial_stock", Millis: 0}); !errors.Is(err, domain.ErrInvalidGrant) {
+		if _, err := useCase.Execute(context.Background(), application.SaleCheckCommand{Vault: "commercial_stock", Season: domain.CompatSeasonKey, Millis: 0}); !errors.Is(err, domain.ErrInvalidGrant) {
 			t.Errorf("Execute = %v, want ErrInvalidGrant", err)
 		}
 	})

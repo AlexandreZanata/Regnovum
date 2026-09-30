@@ -39,14 +39,21 @@ type ResolveCommand struct {
 	Note       string
 }
 
+// ReconcileCommand names the season book one conservation pass
+// judges. Conservation holds per book: every Σ answers for its own
+// S, never for another book's.
+type ReconcileCommand struct {
+	Season string
+}
+
 // ReconciliationRepository recomputes conservation and owns the
 // read-only mode. Detection and freezing share one transaction, so a
 // break cannot slip between the report and the flag.
 type ReconciliationRepository interface {
-	// Reconcile recomputes supply, custody positions and pairing, and
-	// freezes the book with an incident when anything diverges. Clean
-	// books report no mismatch and stay open.
-	Reconcile(ctx context.Context) (*ReconciliationReport, error)
+	// Reconcile recomputes supply, custody positions and pairing of
+	// one book, and freezes the book with an incident when anything
+	// diverges. Clean books report no mismatch and stay open.
+	Reconcile(ctx context.Context, season domain.SeasonKey) (*ReconciliationReport, error)
 	// Resolve records the compensated resolution of one open break and
 	// reopens the book. Resolutions without an open break are refused.
 	Resolve(ctx context.Context, cmd ResolveCommand) error
@@ -63,9 +70,14 @@ func NewReconcileUseCase(reconciliation ReconciliationRepository) *ReconcileUseC
 	return &ReconcileUseCase{reconciliation: reconciliation}
 }
 
-// Execute runs one conservation pass, freezing on mismatch.
-func (uc *ReconcileUseCase) Execute(ctx context.Context) (*ReconciliationReport, error) {
-	return uc.reconciliation.Reconcile(ctx)
+// Execute runs one conservation pass over one season book, freezing
+// on mismatch.
+func (uc *ReconcileUseCase) Execute(ctx context.Context, cmd ReconcileCommand) (*ReconciliationReport, error) {
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
+	return uc.reconciliation.Reconcile(ctx, season)
 }
 
 // ResolveUseCase reopens the book after an audited compensation. It is

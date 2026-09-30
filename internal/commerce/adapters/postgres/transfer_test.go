@@ -57,7 +57,7 @@ func fundCommerceHolder(t *testing.T, ctx context.Context, db *dbtest.TestDB, ac
 	}
 	// Genesis runs once per database; later holders reuse the funded
 	// Treasury.
-	if _, err := repo.RunGenesis(ctx, economyapp.GenesisRequest{Key: key}); err != nil {
+	if _, err := repo.RunGenesis(ctx, economyapp.GenesisRequest{Key: key, Season: economydomain.SeasonKey(economydomain.CompatSeasonKey)}); err != nil {
 		if !errors.Is(err, economydomain.ErrGenesisAlreadyExists) {
 			t.Fatalf("seed Genesis: %v", err)
 		}
@@ -74,7 +74,10 @@ func fundCommerceHolder(t *testing.T, ctx context.Context, db *dbtest.TestDB, ac
 	fromKind, _ := economydomain.ParseCustodyKind("treasury")
 	toKind, _ := economydomain.ParseCustodyKind("user")
 	if _, err := repo.Transfer(ctx, economyapp.TransferRequest{
-		FromKind: fromKind, FromLabel: "main", ToKind: toKind, ToLabel: account, Amount: amount,
+		FromSeason: economydomain.SeasonKey(economydomain.CompatSeasonKey),
+		FromKind:   fromKind, FromLabel: "main",
+		ToSeason: economydomain.SeasonKey(economydomain.CompatSeasonKey),
+		ToKind:   toKind, ToLabel: account, Amount: amount,
 	}); err != nil {
 		t.Fatalf("fund holder: %v", err)
 	}

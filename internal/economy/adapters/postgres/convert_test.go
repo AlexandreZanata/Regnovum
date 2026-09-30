@@ -257,8 +257,10 @@ func TestConversionRefusesEmptyTreasury(t *testing.T) {
 	fundTreasury(t, ctx, repo)
 	makeCustody(t, ctx, pool, "user", "convert-drain")
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyUser, ToLabel: "convert-drain",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "convert-drain",
 		Amount: mustConvertTreasuryRemainder(t, ctx, pool, 100),
 	}); err != nil {
 		t.Fatalf("drain treasury: %v", err)
@@ -423,7 +425,7 @@ func TestConversionFrozenRefuses(t *testing.T) {
 	recordOptIn(t, ctx, repo, holder, "v1", 2000)
 	makeCustody(t, ctx, pool, "user", holder)
 	freezeWithOrphan(t, ctx, pool, holder)
-	if _, err := repo.Reconcile(ctx); err != nil {
+	if _, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey)); err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
 	if _, err := convertOnce(t, ctx, repo, holder, "v1"); !errors.Is(err, domain.ErrEconomyFrozen) {

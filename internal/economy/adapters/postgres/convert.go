@@ -269,19 +269,22 @@ func (r *Repository) extinguishLegacy(ctx context.Context, tx pgx.Tx, accountID,
 // holder custody created for the account. Stock is rechecked inside the
 // row locks: an empty Treasury refuses instead of minting.
 func (r *Repository) payFromTreasury(ctx context.Context, tx pgx.Tx, accountID string, converted domain.MilliInk) (string, error) {
+	// Legacy conversion binds the compat book: per-family season
+	// references land in P46-T05 with their own tests.
 	var treasury string
 	if err := tx.QueryRow(ctx,
-		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main'`).Scan(&treasury); err != nil {
+		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main' AND season_key = $1`,
+		domain.CompatSeasonKey).Scan(&treasury); err != nil {
 		return "", fmt.Errorf("resolve treasury: %w", err)
 	}
 	var holder string
 	if err := tx.QueryRow(ctx,
-		`INSERT INTO app.economy_custodies (kind, label) VALUES ('user', $1)
-		 ON CONFLICT (kind, label) DO NOTHING RETURNING id::text`,
-		accountID).Scan(&holder); err != nil {
+		`INSERT INTO app.economy_custodies (kind, label, season_key) VALUES ('user', $1, $2)
+		 ON CONFLICT (kind, label, season_key) DO NOTHING RETURNING id::text`,
+		accountID, domain.CompatSeasonKey).Scan(&holder); err != nil {
 		if err := tx.QueryRow(ctx,
-			`SELECT id::text FROM app.economy_custodies WHERE kind = 'user' AND label = $1`,
-			accountID).Scan(&holder); err != nil {
+			`SELECT id::text FROM app.economy_custodies WHERE kind = 'user' AND label = $1 AND season_key = $2`,
+			accountID, domain.CompatSeasonKey).Scan(&holder); err != nil {
 			return "", fmt.Errorf("resolve holder custody: %w", err)
 		}
 	}
@@ -299,7 +302,7 @@ func (r *Repository) payFromTreasury(ctx context.Context, tx pgx.Tx, accountID s
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return "", fmt.Errorf("generate transfer id: %w", err)
 	}
-	if err := moveLegs(ctx, tx, transferID, treasury, holder, converted.Millis()); err != nil {
+	if err := moveLegs(ctx, tx, legMove{transferID: transferID, fromID: treasury, toID: holder, millis: converted.Millis(), season: domain.CompatSeasonKey}); err != nil {
 		return "", err
 	}
 	return transferID, nil

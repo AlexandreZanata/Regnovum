@@ -72,7 +72,7 @@ func TestReserveAllocationSettlesFromExistingStock(t *testing.T) {
 	if got := custodyBalance(t, ctx, pool, "treasury", "main"); got != domain.GenesisSupplyMillis-1000 {
 		t.Fatalf("home = %d, want S-1000", got)
 	}
-	report, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx)
+	report, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx, application.TreasuryCommand{Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("vaults report: %v", err)
 	}
@@ -275,7 +275,7 @@ func TestReserveAllocationFrozenRefuses(t *testing.T) {
 	mustAllocate(t, ctx, repo, "act-before-freeze", 100)
 	makeCustody(t, ctx, pool, "user", "reserve-frozen-holder")
 	freezeWithOrphan(t, ctx, pool, "reserve-frozen-holder")
-	if _, err := repo.Reconcile(ctx); err != nil {
+	if _, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey)); err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
 	if _, err := allocateOnce(t, ctx, repo, "act-frozen", 100); !errors.Is(err, domain.ErrEconomyFrozen) {

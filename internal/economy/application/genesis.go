@@ -6,16 +6,20 @@ import (
 	"github.com/AlexandreZanata/Regnovum/internal/economy/domain"
 )
 
-// GenesisCommand carries the creation event key. The amount is never a
-// parameter: Genesis always credits exactly S to the Treasury, so a
-// caller cannot ask for a partial or larger supply.
+// GenesisCommand carries the creation event key and its season book.
+// The amount is never a parameter: Genesis always credits exactly S
+// to the Treasury, so a caller cannot ask for a partial or larger
+// supply. The season is mandatory: callers without a book are
+// refused before anything is read.
 type GenesisCommand struct {
-	Key string
+	Key    string
+	Season string
 }
 
 // GenesisRequest is a validated creation event for the repository port.
 type GenesisRequest struct {
-	Key domain.GenesisKey
+	Key    domain.GenesisKey
+	Season domain.SeasonKey
 }
 
 // GenesisResult is the outcome of the creation event: the Treasury
@@ -27,33 +31,46 @@ type GenesisResult struct {
 	Replayed          bool
 }
 
-// GenesisRepository persists the single creation event. Implementations
-// run every step in one transaction: custody, partition, attestation and
-// the credit leg commit together or not at all.
+// GenesisRepository persists the single creation event per book.
+// Implementations run every step in one transaction: custody,
+// partition, attestation and the credit leg commit together or not
+// at all.
 type GenesisRepository interface {
-	// RunGenesis records the creation event under its key. The same key
-	// resolves to the original attestation untouched; a different key
-	// after Genesis fails with domain.ErrGenesisAlreadyExists.
+	// RunGenesis records the creation event under its key in its
+	// book. The same key resolves to the original attestation
+	// untouched; a different key after Genesis in the same book
+	// fails with domain.ErrGenesisAlreadyExists. Another book keeps
+	// its own Genesis.
 	RunGenesis(ctx context.Context, request GenesisRequest) (*GenesisResult, error)
 }
 
-// GenesisUseCase validates and records the guarded creation event. It is
-// an internal initializer: nothing in production startup or any public
-// surface calls it.
+// GenesisUseCase validates and records the guarded creation event in
+// a prepared book. It is an internal initializer: nothing in
+// production startup or any public surface calls it, and activation
+// stays a separate step.
 type GenesisUseCase struct {
 	genesis GenesisRepository
+	books   SeasonBooks
 }
 
 // NewGenesisUseCase creates an instance of GenesisUseCase.
-func NewGenesisUseCase(genesis GenesisRepository) *GenesisUseCase {
-	return &GenesisUseCase{genesis: genesis}
+func NewGenesisUseCase(genesis GenesisRepository, books SeasonBooks) *GenesisUseCase {
+	return &GenesisUseCase{genesis: genesis, books: books}
 }
 
-// Execute validates the event key and records Genesis exactly once.
+// Execute validates the event key and its book and records Genesis
+// exactly once per book.
 func (uc *GenesisUseCase) Execute(ctx context.Context, cmd GenesisCommand) (*GenesisResult, error) {
 	key, err := domain.ParseGenesisKey(cmd.Key)
 	if err != nil {
 		return nil, err
 	}
-	return uc.genesis.RunGenesis(ctx, GenesisRequest{Key: key})
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.books.RequirePrepared(ctx, season); err != nil {
+		return nil, err
+	}
+	return uc.genesis.RunGenesis(ctx, GenesisRequest{Key: key, Season: season})
 }

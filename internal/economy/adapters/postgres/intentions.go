@@ -15,23 +15,24 @@ import (
 var _ application.IdempotentTransferRepository = (*Repository)(nil)
 
 // intentionConstraints names the unique guards the adapter tells apart:
-// the triple (a concurrent run of the same intention) and the transfer
-// (a random id collision, retried with a fresh id).
+// the triple per book (a concurrent run of the same intention) and the
+// transfer per book (a random id collision, retried with a fresh id).
 const (
-	intentionTripleConstraint   = "economy_intentions_triple_unique"
-	intentionTransferConstraint = "economy_intentions_transfer_unique"
+	intentionTripleConstraint   = "economy_intentions_book_triple_unique"
+	intentionTransferConstraint = "economy_intentions_book_transfer_unique"
 )
 
-// findIntention resolves a settled triple to its stored response. A
-// matching payload replays untouched; a different payload under the same
-// triple is a conflict, never a merge.
+// findIntention resolves a settled triple to its stored response in one
+// book. A matching payload replays untouched; a different payload under
+// the same triple is a conflict, never a merge; another book settles
+// its own outcome instead of redirecting this replay.
 func findIntention(ctx context.Context, q rowQuerier, request application.IdempotentTransferRequest) (*application.IdempotentTransferResult, error) {
 	var storedHash, transferID string
 	var millis int64
 	err := q.QueryRow(ctx,
 		`SELECT payload_hash, transfer_id::text, amount_milli FROM app.economy_intentions
-		 WHERE intention_key = $1 AND actor = $2 AND operation = $3`,
-		string(request.Key), string(request.Actor), string(request.Operation),
+		 WHERE intention_key = $1 AND actor = $2 AND operation = $3 AND season_key = $4`,
+		string(request.Key), string(request.Actor), string(request.Operation), request.FromSeason.String(),
 	).Scan(&storedHash, &transferID, &millis)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -97,14 +98,24 @@ func (r *Repository) createIntention(ctx context.Context, request application.Id
 		return nil, false, err
 	}
 
+	if request.FromSeason != request.ToSeason {
+		return nil, false, domain.ErrCrossSeason
+	}
+
+	// Sealed books settle nothing either, judged in this same
+	// transaction.
+	if err := requireActiveTx(ctx, tx, request.FromSeason); err != nil {
+		return nil, false, err
+	}
+
 	if stored, err := findIntention(ctx, tx, request); err != nil || stored != nil {
 		return stored, false, err
 	}
-	fromID, err := resolveCustody(ctx, tx, request.FromKind.String(), request.FromLabel)
+	fromID, err := resolveCustody(ctx, tx, request.FromKind.String(), request.FromLabel, request.FromSeason.String())
 	if err != nil {
 		return nil, false, err
 	}
-	toID, err := resolveCustody(ctx, tx, request.ToKind.String(), request.ToLabel)
+	toID, err := resolveCustody(ctx, tx, request.ToKind.String(), request.ToLabel, request.FromSeason.String())
 	if err != nil {
 		return nil, false, err
 	}
@@ -160,17 +171,17 @@ func recordIntentionLegs(ctx context.Context, tx pgx.Tx, request application.Ide
 		{toID, "credit"},
 	} {
 		if _, err := tx.Exec(ctx,
-			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-			 VALUES ($1::uuid, $2::uuid, $3, $4)`,
-			transferID, leg.custody, leg.direction, request.Amount.Millis()); err != nil {
+			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+			 VALUES ($1::uuid, $2::uuid, $3, $4, $5)`,
+			transferID, leg.custody, leg.direction, request.Amount.Millis(), request.FromSeason.String()); err != nil {
 			return "", false, fmt.Errorf("record %s leg: %w", leg.direction, err)
 		}
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_intentions (intention_key, actor, operation, payload_hash, transfer_id, amount_milli)
-		 VALUES ($1, $2, $3, $4, $5::uuid, $6)`,
+		`INSERT INTO app.economy_intentions (intention_key, actor, operation, payload_hash, transfer_id, amount_milli, season_key)
+		 VALUES ($1, $2, $3, $4, $5::uuid, $6, $7)`,
 		string(request.Key), string(request.Actor), string(request.Operation),
-		request.PayloadHash, transferID, request.Amount.Millis()); err != nil {
+		request.PayloadHash, transferID, request.Amount.Millis(), request.FromSeason.String()); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" &&
 			(pgErr.ConstraintName == intentionTripleConstraint || pgErr.ConstraintName == intentionTransferConstraint) {

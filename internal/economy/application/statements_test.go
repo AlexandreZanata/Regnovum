@@ -23,13 +23,14 @@ func (s *stubStatementRepository) ReadStatement(_ context.Context, _ application
 	return s.page, s.err
 }
 
-func (s *stubStatementRepository) RebuildAll(_ context.Context) ([]application.CustodyProjection, error) {
+func (s *stubStatementRepository) RebuildAll(_ context.Context, _ domain.SeasonKey) ([]application.CustodyProjection, error) {
 	return nil, nil
 }
 
 func statementCommand() application.StatementCommand {
 	return application.StatementCommand{
-		Kind: "user", Label: "ana", CallerAccountID: "account-ana", Limit: 10,
+		Season: domain.CompatSeasonKey,
+		Kind:   "user", Label: "ana", CallerAccountID: "account-ana", Limit: 10,
 	}
 }
 

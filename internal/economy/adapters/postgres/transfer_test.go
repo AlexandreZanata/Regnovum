@@ -40,7 +40,7 @@ func mustTransferKey(t testing.TB, key string) domain.GenesisKey {
 
 func fundTreasury(t *testing.T, ctx context.Context, repo *postgres.Repository) {
 	t.Helper()
-	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-seed")}); err != nil {
+	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-seed"), Season: domain.SeasonKey(domain.CompatSeasonKey)}); err != nil {
 		t.Fatalf("seed Genesis: %v", err)
 	}
 }
@@ -48,7 +48,7 @@ func fundTreasury(t *testing.T, ctx context.Context, repo *postgres.Repository) 
 func makeCustody(t testing.TB, ctx context.Context, pool *pgxpool.Pool, kind, label string) {
 	t.Helper()
 	if _, err := pool.Exec(ctx,
-		`INSERT INTO app.economy_custodies (kind, label) VALUES ($1, $2)`, kind, label); err != nil {
+		`INSERT INTO app.economy_custodies (kind, label, season_key) VALUES ($1, $2, $3)`, kind, label, domain.CompatSeasonKey); err != nil {
 		t.Fatalf("create custody %s/%s: %v", kind, label, err)
 	}
 }
@@ -93,11 +93,13 @@ func doTransfer(t *testing.T, ctx context.Context, repo *postgres.Repository, fr
 		t.Fatalf("NewMilliInk(%d): %v", millis, err)
 	}
 	result, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind:  mustCustodyKind(t, fromKind),
-		FromLabel: fromLabel,
-		ToKind:    mustCustodyKind(t, toKind),
-		ToLabel:   toLabel,
-		Amount:    amount,
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   mustCustodyKind(t, fromKind),
+		FromLabel:  fromLabel,
+		ToSeason:   domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:     mustCustodyKind(t, toKind),
+		ToLabel:    toLabel,
+		Amount:     amount,
 	})
 	if err != nil {
 		t.Fatalf("Transfer %s/%s -> %s/%s %d: %v", fromKind, fromLabel, toKind, toLabel, millis, err)
@@ -168,8 +170,10 @@ func TestTransferRefusesInsufficientSource(t *testing.T) {
 
 	amount, _ := domain.NewMilliInk(1)
 	_, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyUser, FromLabel: "poor",
-		ToKind: domain.CustodyUser, ToLabel: "rich",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyUser, FromLabel: "poor",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "rich",
 		Amount: amount,
 	})
 	if !errors.Is(err, domain.ErrInsufficientMilliInk) {
@@ -199,24 +203,30 @@ func TestTransferRefusesLockedAndSameCustody(t *testing.T) {
 
 	amount, _ := domain.NewMilliInk(100)
 	_, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyEscrow, FromLabel: "deal",
-		ToKind: domain.CustodyUser, ToLabel: "ana",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyEscrow, FromLabel: "deal",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "ana",
 		Amount: amount,
 	})
 	if !errors.Is(err, domain.ErrUnauthorizedCustody) {
 		t.Fatalf("escrow source = %v, want ErrUnauthorizedCustody", err)
 	}
 	_, err = repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyTreasury, ToLabel: "main",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyTreasury, ToLabel: "main",
 		Amount: amount,
 	})
 	if !errors.Is(err, domain.ErrSameCustody) {
 		t.Fatalf("same custody = %v, want ErrSameCustody", err)
 	}
 	_, err = repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyUser, FromLabel: "ghost",
-		ToKind: domain.CustodyUser, ToLabel: "ana",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyUser, FromLabel: "ghost",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "ana",
 		Amount: amount,
 	})
 	if !errors.Is(err, domain.ErrUnknownCustody) {
@@ -243,8 +253,10 @@ func TestTransferCancelledContextWritesNothing(t *testing.T) {
 	stop()
 	amount, _ := domain.NewMilliInk(100)
 	if _, err := repo.Transfer(cancelled, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyUser, ToLabel: "ana",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "ana",
 		Amount: amount,
 	}); err == nil {
 		t.Fatalf("cancelled transfer succeeded")
@@ -321,8 +333,10 @@ func TestTransferConcurrentPreservesSupply(t *testing.T) {
 			defer wg.Done()
 			amount, _ := domain.NewMilliInk(1000)
 			_, errs[i] = repo.Transfer(ctx, application.TransferRequest{
-				FromKind: domain.CustodyTreasury, FromLabel: "main",
-				ToKind: domain.CustodyUser, ToLabel: fmt.Sprintf("holder-%d", i),
+				FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+				FromKind:   domain.CustodyTreasury, FromLabel: "main",
+				ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+				ToKind:   domain.CustodyUser, ToLabel: fmt.Sprintf("holder-%d", i),
 				Amount: amount,
 			})
 		}(i)
@@ -366,8 +380,10 @@ func TestTransferContentionSerializes(t *testing.T) {
 			defer wg.Done()
 			amount, _ := domain.NewMilliInk(500)
 			_, errs[i] = repo.Transfer(ctx, application.TransferRequest{
-				FromKind: domain.CustodyUser, FromLabel: "carol",
-				ToKind: domain.CustodyUser, ToLabel: fmt.Sprintf("dave-%d", i),
+				FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+				FromKind:   domain.CustodyUser, FromLabel: "carol",
+				ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+				ToKind:   domain.CustodyUser, ToLabel: fmt.Sprintf("dave-%d", i),
 				Amount: amount,
 			})
 		}(i)

@@ -209,8 +209,9 @@ func TestBondStaysReservationNeverFee(t *testing.T) {
 
 	economyRepo := economypg.NewRepository(pool)
 	clock := publishClock{now: accepted.Add(time.Minute)}
-	reserveUC := economyapp.NewReserveUseCase(economyRepo, clock)
+	reserveUC := economyapp.NewReserveUseCase(economyRepo, clock, economyRepo)
 	hold, err := reserveUC.Execute(ctx, economyapp.ReserveCommand{
+		Season:    "compat-legacy",
 		OwnerKind: "user", OwnerLabel: citizen, Purpose: "challenge-bond",
 		Millis: bond, ExpiresAt: accepted.Add(time.Hour),
 	})

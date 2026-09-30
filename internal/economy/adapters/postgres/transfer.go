@@ -13,11 +13,11 @@ import (
 
 var _ application.TransferRepository = (*Repository)(nil)
 
-// Transfer debits the source custody and credits the destination in one
-// transaction. Both custody rows are locked in id order before any balance
-// is read, so concurrent transfers serialize instead of double-spending;
-// the balance is rechecked inside the lock, and the two legs commit
-// together or not at all.
+// Transfer debits the source custody and credits the destination of one
+// season book in one transaction. Both custody rows are locked in id
+// order before any balance is read, so concurrent transfers serialize
+// instead of double-spending; the balance is rechecked inside the
+// lock, and the two legs commit together or not at all.
 func (r *Repository) Transfer(ctx context.Context, request application.TransferRequest) (*application.TransferResult, error) {
 	// Fail-closed order mirrors the use case: known kinds, resolved
 	// custodies, distinct pair, authorized source, positive amount.
@@ -36,11 +36,20 @@ func (r *Repository) Transfer(ctx context.Context, request application.TransferR
 		return nil, err
 	}
 
-	fromID, err := resolveCustody(ctx, tx, request.FromKind.String(), request.FromLabel)
+	if request.FromSeason != request.ToSeason {
+		return nil, domain.ErrCrossSeason
+	}
+
+	// Sealed books move nothing either: the archive is history.
+	if err := requireActiveTx(ctx, tx, request.FromSeason); err != nil {
+		return nil, err
+	}
+
+	fromID, err := resolveCustody(ctx, tx, request.FromKind.String(), request.FromLabel, request.FromSeason.String())
 	if err != nil {
 		return nil, err
 	}
-	toID, err := resolveCustody(ctx, tx, request.ToKind.String(), request.ToLabel)
+	toID, err := resolveCustody(ctx, tx, request.ToKind.String(), request.ToLabel, request.FromSeason.String())
 	if err != nil {
 		return nil, err
 	}
@@ -71,15 +80,15 @@ func (r *Repository) Transfer(ctx context.Context, request application.TransferR
 		return nil, fmt.Errorf("generate transfer id: %w", err)
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'debit', $3)`,
-		transferID, fromID, request.Amount.Millis()); err != nil {
+		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+		 VALUES ($1::uuid, $2::uuid, 'debit', $3, $4)`,
+		transferID, fromID, request.Amount.Millis(), request.FromSeason.String()); err != nil {
 		return nil, fmt.Errorf("record debit leg: %w", err)
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'credit', $3)`,
-		transferID, toID, request.Amount.Millis()); err != nil {
+		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+		 VALUES ($1::uuid, $2::uuid, 'credit', $3, $4)`,
+		transferID, toID, request.Amount.Millis(), request.FromSeason.String()); err != nil {
 		return nil, fmt.Errorf("record credit leg: %w", err)
 	}
 	if err := tx.Commit(ctx); err != nil {
@@ -92,13 +101,14 @@ func (r *Repository) Transfer(ctx context.Context, request application.TransferR
 	}, nil
 }
 
-// resolveCustody maps a (kind, label) pair to its registry id. Unknown
-// pairs fail before any lock is taken or leg written.
-func resolveCustody(ctx context.Context, tx pgx.Tx, kind, label string) (string, error) {
+// resolveCustody maps a (kind, label, book) triple to its registry id.
+// Unknown triples fail before any lock is taken or leg written: the
+// same label in another book is another custody, never a fallback.
+func resolveCustody(ctx context.Context, tx pgx.Tx, kind, label, season string) (string, error) {
 	var id string
 	err := tx.QueryRow(ctx,
-		`SELECT id::text FROM app.economy_custodies WHERE kind = $1 AND label = $2`,
-		kind, label).Scan(&id)
+		`SELECT id::text FROM app.economy_custodies WHERE kind = $1 AND label = $2 AND season_key = $3`,
+		kind, label, season).Scan(&id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", domain.ErrUnknownCustody

@@ -56,6 +56,7 @@ func ParseStatementCursor(raw string) (StatementCursor, error) {
 // by kind and label, the caller the journal must belong to, the page size
 // and the cursor to continue from.
 type StatementCommand struct {
+	Season          string
 	Kind            string
 	Label           string
 	CallerAccountID string
@@ -84,6 +85,7 @@ type StatementPage struct {
 
 // StatementRequest is a validated private read for the port.
 type StatementRequest struct {
+	Season          domain.SeasonKey
 	Kind            domain.CustodyKind
 	Label           string
 	CallerAccountID string
@@ -97,9 +99,10 @@ type StatementRepository interface {
 	// balance derived from all its legs. Other holders, system
 	// custodies and inactive owners are refused before any leg is read.
 	ReadStatement(ctx context.Context, request StatementRequest) (*StatementPage, error)
-	// RebuildAll re-derives every custody projection from the journal
-	// without editing it, returning one checkpoint per custody.
-	RebuildAll(ctx context.Context) ([]CustodyProjection, error)
+	// RebuildAll re-derives every custody projection of one book
+	// from the journal without editing it, returning one checkpoint
+	// per custody.
+	RebuildAll(ctx context.Context, season domain.SeasonKey) ([]CustodyProjection, error)
 }
 
 // ReadStatementUseCase validates and serves one private statement page.
@@ -129,7 +132,12 @@ func (uc *ReadStatementUseCase) Execute(ctx context.Context, cmd StatementComman
 	if err != nil {
 		return nil, err
 	}
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
 	return uc.statements.ReadStatement(ctx, StatementRequest{
+		Season:          season,
 		Kind:            kind,
 		Label:           cmd.Label,
 		CallerAccountID: cmd.CallerAccountID,
@@ -192,7 +200,16 @@ func NewRebuildUseCase(statements StatementRepository) *RebuildUseCase {
 	return &RebuildUseCase{statements: statements}
 }
 
-// Execute rebuilds the whole book without editing the journal.
-func (uc *RebuildUseCase) Execute(ctx context.Context) ([]CustodyProjection, error) {
-	return uc.statements.RebuildAll(ctx)
+// RebuildCommand names the season book one rebuild re-derives.
+type RebuildCommand struct {
+	Season string
+}
+
+// Execute rebuilds one book without editing the journal.
+func (uc *RebuildUseCase) Execute(ctx context.Context, cmd RebuildCommand) ([]CustodyProjection, error) {
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
+	return uc.statements.RebuildAll(ctx, season)
 }

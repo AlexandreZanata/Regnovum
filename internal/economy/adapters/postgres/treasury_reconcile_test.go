@@ -52,7 +52,7 @@ func treconIncident(t *testing.T, ctx context.Context, pool *pgxpool.Pool, incid
 // named incident instead of failing silent.
 func treconReconcileFreezes(t *testing.T, ctx context.Context, pool *pgxpool.Pool, repo *postgres.Repository) *application.ReconciliationReport {
 	t.Helper()
-	report, err := repo.Reconcile(ctx)
+	report, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
@@ -74,7 +74,8 @@ func treconMutationsRefused(t *testing.T, ctx context.Context, repo *postgres.Re
 	}
 	commitUseCase := application.NewCommitFundsUseCase(repo, fixedHoldClock{now: commitNow()})
 	if _, err := commitUseCase.Execute(ctx, application.CommitFundsCommand{
-		Vault: vault, Purpose: "frozen probe", Millis: 100, ExpiresAt: commitNow().Add(time.Hour),
+		Season: domain.CompatSeasonKey,
+		Vault:  vault, Purpose: "frozen probe", Millis: 100, ExpiresAt: commitNow().Add(time.Hour),
 	}); !errors.Is(err, domain.ErrEconomyFrozen) {
 		t.Fatalf("commitment while frozen = %v, want ErrEconomyFrozen", err)
 	}
@@ -87,7 +88,7 @@ func treconReadsStayLive(t *testing.T, ctx context.Context, repo *postgres.Repos
 	if got := stockReport(t, ctx, repo, vault); got.Available != got.Balance {
 		t.Fatalf("stock projection broke while frozen: %+v", got)
 	}
-	if _, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx); err != nil {
+	if _, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx, application.TreasuryCommand{Season: domain.CompatSeasonKey}); err != nil {
 		t.Fatalf("vault reading while frozen: %v (reads must continue serving)", err)
 	}
 }
@@ -117,7 +118,7 @@ func TestTreasuryReconciliationBindsEveryVault(t *testing.T) {
 		t.Fatalf("settle disbursement: %v", err)
 	}
 
-	report, err := repo.Reconcile(ctx)
+	report, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
@@ -128,7 +129,7 @@ func TestTreasuryReconciliationBindsEveryVault(t *testing.T) {
 		t.Fatalf("supply = %d, want S", report.SupplyMillis)
 	}
 
-	vaults, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx)
+	vaults, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx, application.TreasuryCommand{Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("vault partitions: %v", err)
 	}

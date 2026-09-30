@@ -232,8 +232,10 @@ func fundOwned(t *testing.T, ctx context.Context, repo *postgres.Repository, lab
 		t.Fatalf("NewMilliInk(%d): %v", millis, err)
 	}
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyUser, ToLabel: label,
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: label,
 		Amount: amount,
 	}); err != nil {
 		t.Fatalf("fund %s: %v", label, err)
@@ -257,17 +259,20 @@ func TestFrozenBookDeniesEveryMutation(t *testing.T) {
 	makeOwnedCustody(t, ctx, db.Pool.Pool(), owner, "user", "ana")
 	fundOwned(t, ctx, repo, "ana", 1000)
 
-	useCases := application.NewIdempotentTransferUseCase(repo)
+	useCases := application.NewIdempotentTransferUseCase(repo, repo)
 	settled, err := useCases.Execute(ctx, application.IdempotentTransferCommand{
-		Key: "frozen-replay", Actor: "ophelia", Operation: "sale",
+		FromSeason: domain.CompatSeasonKey,
+		Key:        "frozen-replay", Actor: "ophelia", Operation: "sale",
 		FromKind: "treasury", FromLabel: "main",
-		ToKind: "user", ToLabel: "ana", Millis: 100,
+		ToSeason: domain.CompatSeasonKey,
+		ToKind:   "user", ToLabel: "ana", Millis: 100,
 	})
 	if err != nil {
 		t.Fatalf("settle intention: %v", err)
 	}
-	reserve := application.NewReserveUseCase(repo, fixedHoldClock{now: time.Now().UTC()})
+	reserve := application.NewReserveUseCase(repo, fixedHoldClock{now: time.Now().UTC()}, repo)
 	held, err := reserve.Execute(ctx, application.ReserveCommand{
+		Season:    domain.CompatSeasonKey,
 		OwnerKind: "user", OwnerLabel: "ana", Purpose: "frozen probe",
 		Millis: 100, ExpiresAt: time.Now().UTC().Add(time.Hour),
 	})
@@ -276,7 +281,7 @@ func TestFrozenBookDeniesEveryMutation(t *testing.T) {
 	}
 
 	freezeWithOrphan(t, ctx, db.Pool.Pool(), "ana")
-	report, err := repo.Reconcile(ctx)
+	report, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
@@ -290,26 +295,31 @@ func TestFrozenBookDeniesEveryMutation(t *testing.T) {
 		call func() error
 	}{
 		{"genesis", func() error {
-			_, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-frozen")})
+			_, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-frozen"), Season: domain.SeasonKey(domain.CompatSeasonKey)})
 			return err
 		}},
 		{"transfer", func() error {
 			_, err := repo.Transfer(ctx, application.TransferRequest{
-				FromKind: domain.CustodyTreasury, FromLabel: "main",
-				ToKind: domain.CustodyUser, ToLabel: "ana", Amount: amount,
+				FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+				FromKind:   domain.CustodyTreasury, FromLabel: "main",
+				ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+				ToKind:   domain.CustodyUser, ToLabel: "ana", Amount: amount,
 			})
 			return err
 		}},
 		{"intention", func() error {
 			_, err := useCases.Execute(ctx, application.IdempotentTransferCommand{
 				Key: "frozen-fresh", Actor: "ophelia", Operation: "sale",
-				FromKind: "treasury", FromLabel: "main",
-				ToKind: "user", ToLabel: "ana", Millis: 10,
+				FromSeason: domain.CompatSeasonKey,
+				FromKind:   "treasury", FromLabel: "main",
+				ToSeason: domain.CompatSeasonKey,
+				ToKind:   "user", ToLabel: "ana", Millis: 10,
 			})
 			return err
 		}},
 		{"reserve", func() error {
 			_, err := reserve.Execute(ctx, application.ReserveCommand{
+				Season:    domain.CompatSeasonKey,
 				OwnerKind: "user", OwnerLabel: "ana", Purpose: "frozen probe",
 				Millis: 10, ExpiresAt: time.Now().UTC().Add(time.Hour),
 			})
@@ -338,26 +348,31 @@ func TestFrozenBookDeniesEveryMutation(t *testing.T) {
 
 	replayed, err := useCases.Execute(ctx, application.IdempotentTransferCommand{
 		Key: "frozen-replay", Actor: "ophelia", Operation: "sale",
-		FromKind: "treasury", FromLabel: "main",
-		ToKind: "user", ToLabel: "ana", Millis: 100,
+		FromSeason: domain.CompatSeasonKey,
+		FromKind:   "treasury", FromLabel: "main",
+		ToSeason: domain.CompatSeasonKey,
+		ToKind:   "user", ToLabel: "ana", Millis: 100,
 	})
 	if err != nil || !replayed.Replayed || replayed.TransferID != settled.TransferID {
 		t.Fatalf("settled intention did not replay while frozen: %+v, %v", replayed, err)
 	}
 	if _, err := repo.ReadStatement(ctx, application.StatementRequest{
-		Kind: domain.CustodyUser, Label: "ana", CallerAccountID: owner, Limit: 10,
+		Season: domain.SeasonKey(domain.CompatSeasonKey),
+		Kind:   domain.CustodyUser, Label: "ana", CallerAccountID: owner, Limit: 10,
 	}); err != nil {
 		t.Fatalf("statement while frozen: %v (reads must continue serving)", err)
 	}
-	if _, err := repo.RebuildAll(ctx); err != nil {
+	if _, err := repo.RebuildAll(ctx, domain.SeasonKey(domain.CompatSeasonKey)); err != nil {
 		t.Fatalf("rebuild while frozen: %v (reads must continue serving)", err)
 	}
 	if err := repo.Resolve(ctx, application.ResolveCommand{IncidentID: report.IncidentID, Note: "access probe compensation"}); err != nil {
 		t.Fatalf("Resolve: %v", err)
 	}
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyUser, ToLabel: "ana", Amount: amount,
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "ana", Amount: amount,
 	}); err != nil {
 		t.Fatalf("transfer after resolution: %v", err)
 	}

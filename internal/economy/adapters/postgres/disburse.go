@@ -107,11 +107,13 @@ func (r *Repository) createDisbursement(ctx context.Context, request application
 	if err := requireUnfrozen(ctx, tx); err != nil {
 		return nil, err
 	}
-	origin, err := resolveCustody(ctx, tx, string(domain.CustodyTreasury), request.Vault.String())
+	// Legacy disbursement binds the compat book: per-family season
+	// references land in P46-T05 with their own tests.
+	origin, err := resolveCustody(ctx, tx, string(domain.CustodyTreasury), request.Vault.String(), domain.CompatSeasonKey)
 	if err != nil {
 		return nil, err
 	}
-	beneficiary, err := ensureCustody(ctx, tx, string(domain.CustodyUser), string(request.Beneficiary))
+	beneficiary, err := ensureCustody(ctx, tx, string(domain.CustodyUser), string(request.Beneficiary), domain.CompatSeasonKey)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +131,7 @@ func (r *Repository) createDisbursement(ctx context.Context, request application
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return nil, fmt.Errorf("generate transfer id: %w", err)
 	}
-	if err := moveLegs(ctx, tx, transferID, origin, beneficiary, request.Amount.Millis()); err != nil {
+	if err := moveLegs(ctx, tx, legMove{transferID: transferID, fromID: origin, toID: beneficiary, millis: request.Amount.Millis(), season: domain.CompatSeasonKey}); err != nil {
 		return nil, err
 	}
 	if err := recordDisbursement(ctx, tx, request, transferID); err != nil {

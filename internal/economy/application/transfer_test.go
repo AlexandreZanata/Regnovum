@@ -25,11 +25,35 @@ func (s *stubTransferRepository) Transfer(_ context.Context, _ application.Trans
 
 func transferCommand(fromKind, fromLabel, toKind, toLabel string, millis int64) application.TransferCommand {
 	return application.TransferCommand{
-		FromKind:  fromKind,
-		FromLabel: fromLabel,
-		ToKind:    toKind,
-		ToLabel:   toLabel,
-		Millis:    millis,
+		FromSeason: domain.CompatSeasonKey,
+		FromKind:   fromKind,
+		FromLabel:  fromLabel,
+		ToSeason:   domain.CompatSeasonKey,
+		ToKind:     toKind,
+		ToLabel:    toLabel,
+		Millis:     millis,
+	}
+}
+
+func TestTransferUseCaseRefusesSeasonViolations(t *testing.T) {
+	t.Parallel()
+
+	stub := &stubTransferRepository{}
+	useCase := application.NewTransferUseCase(stub, stubSeasonBooks{})
+	sound := transferCommand("user", "a", "user", "b", 100)
+
+	seasonless := sound
+	seasonless.FromSeason = ""
+	if _, err := useCase.Execute(context.Background(), seasonless); !errors.Is(err, domain.ErrMissingSeason) {
+		t.Errorf("seasonless Execute = %v, want ErrMissingSeason", err)
+	}
+	crossed := sound
+	crossed.ToSeason = "temporada-2"
+	if _, err := useCase.Execute(context.Background(), crossed); !errors.Is(err, domain.ErrCrossSeason) {
+		t.Errorf("cross-season Execute = %v, want ErrCrossSeason", err)
+	}
+	if stub.called != 0 {
+		t.Errorf("bookless commands reached the repository: missing books never touch storage")
 	}
 }
 
@@ -60,7 +84,7 @@ func TestTransferUseCaseRefusesInvalidCommands(t *testing.T) {
 			t.Parallel()
 
 			stub := &stubTransferRepository{result: &application.TransferResult{Debited: amount, Credited: amount}}
-			useCase := application.NewTransferUseCase(stub)
+			useCase := application.NewTransferUseCase(stub, stubSeasonBooks{})
 			if _, err := useCase.Execute(context.Background(), test.cmd); !errors.Is(err, test.err) {
 				t.Errorf("Execute = %v, want %v", err, test.err)
 			}
@@ -80,7 +104,7 @@ func TestTransferUseCaseMapsRepositoryOutcome(t *testing.T) {
 	}
 	want := &application.TransferResult{TransferID: "transfer-id", Debited: debited, Credited: debited}
 	stub := &stubTransferRepository{result: want}
-	useCase := application.NewTransferUseCase(stub)
+	useCase := application.NewTransferUseCase(stub, stubSeasonBooks{})
 	got, err := useCase.Execute(context.Background(), transferCommand("treasury", "main", "user", "ana", 250))
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
@@ -90,7 +114,7 @@ func TestTransferUseCaseMapsRepositoryOutcome(t *testing.T) {
 	}
 
 	stub = &stubTransferRepository{err: domain.ErrInsufficientMilliInk}
-	useCase = application.NewTransferUseCase(stub)
+	useCase = application.NewTransferUseCase(stub, stubSeasonBooks{})
 	if _, err := useCase.Execute(context.Background(), transferCommand("user", "poor", "user", "rich", 250)); !errors.Is(err, domain.ErrInsufficientMilliInk) {
 		t.Fatalf("Execute without balance = %v, want ErrInsufficientMilliInk", err)
 	}

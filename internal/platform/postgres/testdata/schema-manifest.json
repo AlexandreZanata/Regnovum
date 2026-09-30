@@ -4807,18 +4807,30 @@
           "nullable": true,
           "default": "",
           "comment": "Holder account of this custody, set once at creation; NULL marks a system custody no private statement may read"
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this custody: the same label in another book is another custody; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
         {
+          "name": "economy_custodies_book_unique",
+          "kind": "u",
+          "definition": "UNIQUE (kind, label, season_key)"
+        },
+        {
+          "name": "economy_custodies_identity_unique",
+          "kind": "u",
+          "definition": "UNIQUE (id, season_key)"
+        },
+        {
           "name": "economy_custodies_kind_check",
           "kind": "c",
           "definition": "CHECK (kind = ANY (ARRAY['treasury'::text, 'user'::text, 'escrow'::text, 'contract'::text, 'title'::text]))"
-        },
-        {
-          "name": "economy_custodies_kind_label_unique",
-          "kind": "u",
-          "definition": "UNIQUE (kind, label)"
         },
         {
           "name": "economy_custodies_label_check",
@@ -4836,6 +4848,11 @@
           "definition": "PRIMARY KEY (id)"
         },
         {
+          "name": "economy_custodies_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        },
+        {
           "name": "economy_treasury_label_check",
           "kind": "c",
           "definition": "CHECK (kind \u003c\u003e 'treasury'::text OR (label = ANY (ARRAY['main'::text, 'sovereign_reserve'::text, 'commercial_stock'::text, 'operating_cash'::text, 'free_treasury'::text])))"
@@ -4843,8 +4860,13 @@
       ],
       "indexes": [
         {
-          "name": "economy_custodies_kind_label_unique",
-          "definition": "CREATE UNIQUE INDEX economy_custodies_kind_label_unique ON app.economy_custodies USING btree (kind, label)",
+          "name": "economy_custodies_book_unique",
+          "definition": "CREATE UNIQUE INDEX economy_custodies_book_unique ON app.economy_custodies USING btree (kind, label, season_key)",
+          "valid": true
+        },
+        {
+          "name": "economy_custodies_identity_unique",
+          "definition": "CREATE UNIQUE INDEX economy_custodies_identity_unique ON app.economy_custodies USING btree (id, season_key)",
           "valid": true
         },
         {
@@ -4929,6 +4951,13 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book of this leg: the composite key refuses legs mixing a custody of another book"
         }
       ],
       "constraints": [
@@ -4936,6 +4965,11 @@
           "name": "economy_entries_amount_range_check",
           "kind": "c",
           "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_entries_book_custody_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (custody_id, season_key) REFERENCES app.economy_custodies(id, season_key) ON DELETE RESTRICT"
         },
         {
           "name": "economy_entries_custody_id_fkey",
@@ -4951,6 +4985,11 @@
           "name": "economy_entries_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "economy_entries_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "economy_entries_transfer_leg_unique",
@@ -5193,6 +5232,13 @@
           "nullable": true,
           "default": "",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book of this hold: owner and hold custodies must live in the same book"
         }
       ],
       "constraints": [
@@ -5200,6 +5246,16 @@
           "name": "economy_holds_amount_range_check",
           "kind": "c",
           "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_holds_book_hold_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (hold_custody_id, season_key) REFERENCES app.economy_custodies(id, season_key) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_holds_book_owner_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (owner_custody_id, season_key) REFERENCES app.economy_custodies(id, season_key) ON DELETE RESTRICT"
         },
         {
           "name": "economy_holds_closed_check",
@@ -5230,6 +5286,11 @@
           "name": "economy_holds_purpose_check",
           "kind": "c",
           "definition": "CHECK (TRIM(BOTH FROM purpose) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_holds_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "economy_holds_status_check",
@@ -5428,6 +5489,13 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book of this intention: replays resolve per book, never redirecting another book outcome"
         }
       ],
       "constraints": [
@@ -5440,6 +5508,16 @@
           "name": "economy_intentions_amount_range_check",
           "kind": "c",
           "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_intentions_book_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id, season_key)"
+        },
+        {
+          "name": "economy_intentions_book_triple_unique",
+          "kind": "u",
+          "definition": "UNIQUE (intention_key, actor, operation, season_key)"
         },
         {
           "name": "economy_intentions_key_check",
@@ -5457,14 +5535,9 @@
           "definition": "CHECK (payload_hash ~ '^[0-9a-f]{64}$'::text)"
         },
         {
-          "name": "economy_intentions_transfer_unique",
-          "kind": "u",
-          "definition": "UNIQUE (transfer_id)"
-        },
-        {
-          "name": "economy_intentions_triple_unique",
-          "kind": "u",
-          "definition": "UNIQUE (intention_key, actor, operation)"
+          "name": "economy_intentions_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         }
       ],
       "indexes": [
@@ -5474,13 +5547,13 @@
           "valid": true
         },
         {
-          "name": "economy_intentions_transfer_unique",
-          "definition": "CREATE UNIQUE INDEX economy_intentions_transfer_unique ON app.economy_intentions USING btree (transfer_id)",
+          "name": "economy_intentions_book_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX economy_intentions_book_transfer_unique ON app.economy_intentions USING btree (transfer_id, season_key)",
           "valid": true
         },
         {
-          "name": "economy_intentions_triple_unique",
-          "definition": "CREATE UNIQUE INDEX economy_intentions_triple_unique ON app.economy_intentions USING btree (intention_key, actor, operation)",
+          "name": "economy_intentions_book_triple_unique",
+          "definition": "CREATE UNIQUE INDEX economy_intentions_book_triple_unique ON app.economy_intentions USING btree (intention_key, actor, operation, season_key)",
           "valid": true
         }
       ],
@@ -20640,6 +20713,42 @@
       "privilege": "UPDATE"
     },
     {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
       "table": "app.economy_entries",
       "column": "amount_milli",
       "grantee": "arena_app",
@@ -20816,6 +20925,42 @@
     {
       "table": "app.economy_entries",
       "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -21373,6 +21518,48 @@
     },
     {
       "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
       "column": "status",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -21806,6 +21993,42 @@
     {
       "table": "app.economy_intentions",
       "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

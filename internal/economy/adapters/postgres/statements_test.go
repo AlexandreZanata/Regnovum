@@ -57,8 +57,10 @@ func settleForStatement(t *testing.T, ctx context.Context, repo *postgres.Reposi
 		t.Fatalf("NewMilliInk(%d): %v", millis, err)
 	}
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: fromLabel,
-		ToKind: domain.CustodyUser, ToLabel: toLabel,
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: fromLabel,
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: toLabel,
 		Amount: amount,
 	}); err != nil {
 		t.Fatalf("transfer %s -> %s %d: %v", fromLabel, toLabel, millis, err)
@@ -68,7 +70,8 @@ func settleForStatement(t *testing.T, ctx context.Context, repo *postgres.Reposi
 func readPage(t *testing.T, ctx context.Context, repo *postgres.Repository, caller, label, cursor string, limit int) *application.StatementPage {
 	t.Helper()
 	page, err := repo.ReadStatement(ctx, application.StatementRequest{
-		Kind: domain.CustodyUser, Label: label, CallerAccountID: caller, Limit: limit,
+		Season: domain.SeasonKey(domain.CompatSeasonKey),
+		Kind:   domain.CustodyUser, Label: label, CallerAccountID: caller, Limit: limit,
 		Cursor: mustParseCursor(t, cursor),
 	})
 	if err != nil {
@@ -110,7 +113,7 @@ func TestProjectionEqualsIndependentSum(t *testing.T) {
 		settleForStatement(t, ctx, repo, "main", to, amount)
 	}
 
-	projections, err := repo.RebuildAll(ctx)
+	projections, err := repo.RebuildAll(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("RebuildAll: %v", err)
 	}
@@ -216,12 +219,14 @@ func TestStatementRefusesOtherAndSuspended(t *testing.T) {
 	settleForStatement(t, ctx, repo, "main", "ana", 100)
 
 	if _, err := repo.ReadStatement(ctx, application.StatementRequest{
-		Kind: domain.CustodyUser, Label: "ana", CallerAccountID: bia, Limit: 10,
+		Season: domain.SeasonKey(domain.CompatSeasonKey),
+		Kind:   domain.CustodyUser, Label: "ana", CallerAccountID: bia, Limit: 10,
 	}); !errors.Is(err, domain.ErrStatementForbidden) {
 		t.Fatalf("other holder read = %v, want ErrStatementForbidden", err)
 	}
 	if _, err := repo.ReadStatement(ctx, application.StatementRequest{
-		Kind: domain.CustodyTreasury, Label: "main", CallerAccountID: ana, Limit: 10,
+		Season: domain.SeasonKey(domain.CompatSeasonKey),
+		Kind:   domain.CustodyTreasury, Label: "main", CallerAccountID: ana, Limit: 10,
 	}); !errors.Is(err, domain.ErrStatementForbidden) {
 		t.Fatalf("system treasury read = %v, want ErrStatementForbidden", err)
 	}
@@ -230,12 +235,14 @@ func TestStatementRefusesOtherAndSuspended(t *testing.T) {
 		t.Fatalf("suspend ana: %v", err)
 	}
 	if _, err := repo.ReadStatement(ctx, application.StatementRequest{
-		Kind: domain.CustodyUser, Label: "ana", CallerAccountID: ana, Limit: 10,
+		Season: domain.SeasonKey(domain.CompatSeasonKey),
+		Kind:   domain.CustodyUser, Label: "ana", CallerAccountID: ana, Limit: 10,
 	}); !errors.Is(err, domain.ErrStatementSuspended) {
 		t.Fatalf("suspended owner read = %v, want ErrStatementSuspended", err)
 	}
 	if _, err := repo.ReadStatement(ctx, application.StatementRequest{
-		Kind: domain.CustodyUser, Label: "ghost", CallerAccountID: ana, Limit: 10,
+		Season: domain.SeasonKey(domain.CompatSeasonKey),
+		Kind:   domain.CustodyUser, Label: "ghost", CallerAccountID: ana, Limit: 10,
 	}); !errors.Is(err, domain.ErrUnknownCustody) {
 		t.Fatalf("unknown custody read = %v, want ErrUnknownCustody", err)
 	}
@@ -255,11 +262,11 @@ func TestCheckpointDetectsTampering(t *testing.T) {
 	makeOwnedCustody(t, ctx, pool, owner, "user", "ana")
 	settleForStatement(t, ctx, repo, "main", "ana", 250)
 
-	first, err := repo.RebuildAll(ctx)
+	first, err := repo.RebuildAll(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("RebuildAll: %v", err)
 	}
-	second, err := repo.RebuildAll(ctx)
+	second, err := repo.RebuildAll(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("RebuildAll: %v", err)
 	}
@@ -283,7 +290,7 @@ func TestCheckpointDetectsTampering(t *testing.T) {
 
 func fundTreasuryForStatement(t *testing.T, ctx context.Context, repo *postgres.Repository) {
 	t.Helper()
-	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-statements")}); err != nil {
+	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-statements"), Season: domain.SeasonKey(domain.CompatSeasonKey)}); err != nil {
 		t.Fatalf("seed Genesis: %v", err)
 	}
 }

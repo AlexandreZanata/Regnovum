@@ -54,13 +54,13 @@ type reconcileData struct {
 }
 
 // readReconciliation recomputes supply, custody positions and leg
-// pairing in one transaction without writing anything.
-func readReconciliation(ctx context.Context, tx pgx.Tx) (reconcileData, error) {
+// pairing of one book in one transaction without writing anything.
+func readReconciliation(ctx context.Context, tx pgx.Tx, season domain.SeasonKey) (reconcileData, error) {
 	var data reconcileData
 	if err := tx.QueryRow(ctx,
 		`SELECT COALESCE(SUM(amount_milli) FILTER (WHERE direction = 'credit'), 0),
 		        COALESCE(SUM(amount_milli) FILTER (WHERE direction = 'debit'), 0)
-		 FROM app.economy_entries`).Scan(&data.credits, &data.debits); err != nil {
+		 FROM app.economy_entries WHERE season_key = $1`, season.String()).Scan(&data.credits, &data.debits); err != nil {
 		return data, fmt.Errorf("sum journal: %w", err)
 	}
 
@@ -70,8 +70,9 @@ func readReconciliation(ctx context.Context, tx pgx.Tx) (reconcileData, error) {
 		        COUNT(e.id), COALESCE(MAX(e.id::text), '')
 		 FROM app.economy_custodies c
 		 LEFT JOIN app.economy_entries e ON e.custody_id = c.id
+		 WHERE c.season_key = $1
 		 GROUP BY c.id, c.kind, c.label
-		 ORDER BY c.kind, c.label`)
+		 ORDER BY c.kind, c.label`, season.String())
 	if err != nil {
 		return data, fmt.Errorf("sum custodies: %w", err)
 	}
@@ -94,7 +95,7 @@ func readReconciliation(ctx context.Context, tx pgx.Tx) (reconcileData, error) {
 	}
 
 	legs, err := tx.Query(ctx,
-		`SELECT transfer_id::text, direction, count(*) FROM app.economy_entries GROUP BY transfer_id, direction`)
+		`SELECT transfer_id::text, direction, count(*) FROM app.economy_entries WHERE season_key = $1 GROUP BY transfer_id, direction`, season.String())
 	if err != nil {
 		return data, fmt.Errorf("tally legs: %w", err)
 	}
@@ -120,10 +121,10 @@ func readReconciliation(ctx context.Context, tx pgx.Tx) (reconcileData, error) {
 
 	if err := tx.QueryRow(ctx,
 		`SELECT e.transfer_id::text FROM app.economy_entries e
-		 JOIN app.economy_genesis g ON g.treasury_custody_id = e.custody_id
-		 WHERE e.direction = 'credit' AND e.amount_milli = $1
+		 JOIN app.economy_genesis g ON g.treasury_custody_id = e.custody_id AND g.season_key = e.season_key
+		 WHERE e.direction = 'credit' AND e.amount_milli = $1 AND e.season_key = $2
 		 ORDER BY e.created_at LIMIT 1`,
-		domain.GenesisSupplyMillis).Scan(&data.genesisID); err != nil {
+		domain.GenesisSupplyMillis, season.String()).Scan(&data.genesisID); err != nil {
 		data.genesisID = ""
 	}
 	return data, nil
@@ -179,17 +180,17 @@ func freezeIncident(ctx context.Context, tx pgx.Tx, mismatches []string) (string
 	return incident, nil
 }
 
-// Reconcile recomputes conservation and freezes the book with an
-// incident when anything diverges. Clean books report no mismatch and
-// stay open, writing nothing.
-func (r *Repository) Reconcile(ctx context.Context) (*application.ReconciliationReport, error) {
+// Reconcile recomputes conservation of one season book and freezes
+// the book with an incident when anything diverges. Clean books
+// report no mismatch and stay open, writing nothing.
+func (r *Repository) Reconcile(ctx context.Context, season domain.SeasonKey) (*application.ReconciliationReport, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin reconcile transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
-	data, err := readReconciliation(ctx, tx)
+	data, err := readReconciliation(ctx, tx, season)
 	if err != nil {
 		return nil, err
 	}
