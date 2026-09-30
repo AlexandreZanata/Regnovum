@@ -63,8 +63,16 @@ type rowQuerier interface {
 // token: the commerce row and the ledger legs commit together.
 // Replays resolve the original settlement untouched, divergent terms
 // under one key conflict, and ineligible parties or uncovered
-// balances refuse without writing.
+// balances refuse without writing. The book travels beside the
+// seal: the same key in another book settles its own outcome, and
+// a sealed book admits nothing new.
 func (r *Repository) Transfer(ctx context.Context, request application.TransferRequest) (*application.TransferResult, error) {
+	if request.Season.String() == "" {
+		request.Season = commercedomain.SeasonKey(commercedomain.CompatSeasonKey)
+	}
+	if err := requireCommerceBookActive(ctx, r.pool, request.Season); err != nil {
+		return nil, err
+	}
 	if replayed, err := r.lookupSettlement(ctx, r.pool, request); err != nil || replayed != nil {
 		return replayed, err
 	}
@@ -88,17 +96,19 @@ func (r *Repository) Transfer(ctx context.Context, request application.TransferR
 // lookupSettlement resolves a settled intention without writing:
 // the post-commit retry path that makes crash recovery exactly-once.
 // Terms that settle nothing resolve to absence, and divergent terms
-// under one key are a conflict, never a replay.
+// under one key are a conflict, never a replay. The book travels
+// with the receipt: a cross-book reuse conflicts instead of
+// redirecting another book outcome.
 func (r *Repository) lookupSettlement(ctx context.Context, q rowQuerier, request application.TransferRequest) (*application.TransferResult, error) {
 	var result application.TransferResult
 	var kind, payee string
 	var amount int64
-	var hash string
+	var hash, seasonKey string
 	err := q.QueryRow(ctx,
-		`SELECT id::text, kind, payee_id::text, amount_milli, payload_hash, transfer_id::text
+		`SELECT id::text, kind, payee_id::text, amount_milli, payload_hash, transfer_id::text, season_key
 		 FROM app.commerce_transfers WHERE payer_id = $1::uuid AND intention_key = $2`,
 		request.Payer, request.Key).Scan(
-		&result.TransferRowID, &kind, &payee, &amount, &hash, &result.TransferID)
+		&result.TransferRowID, &kind, &payee, &amount, &hash, &result.TransferID, &seasonKey)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -113,11 +123,19 @@ func (r *Repository) lookupSettlement(ctx context.Context, q rowQuerier, request
 		amount != request.AmountMilli || hash != request.PayloadHash {
 		return nil, commercedomain.ErrIntentionConflict
 	}
+	season, err := commercedomain.ParseSeasonKey(seasonKey)
+	if err != nil {
+		return nil, fmt.Errorf("stored transfer book %q: %w", seasonKey, err)
+	}
+	if err := commercedomain.CheckSeasonMatch(season, request.Season); err != nil {
+		return nil, commercedomain.ErrIntentionConflict
+	}
 	if _, err := commercedomain.ParseTransferKind(kind); err != nil {
 		return nil, fmt.Errorf("stored transfer holds kind %q: %w", kind, err)
 	}
 	result.AmountMilli = amount
 	result.Replayed = true
+	result.Season = season
 	return &result, nil
 }
 
@@ -126,7 +144,8 @@ func (r *Repository) lookupSettlement(ctx context.Context, q rowQuerier, request
 // legs share it, so a transfer settles whole or not at all. A
 // unique collision retries once through re-lookup, so concurrent
 // runs of one key resolve the single settlement instead of paying
-// twice.
+// twice. The book, its ACTIVE stage and its half-open window are
+// judged on the database clock inside the same transaction.
 func (r *Repository) createSettlement(ctx context.Context, request application.TransferRequest) (*application.TransferResult, bool, error) {
 	ends, err := validateTransferEnds(request)
 	if err != nil {
@@ -144,21 +163,24 @@ func (r *Repository) createSettlement(ctx context.Context, request application.T
 		}
 		return nil, false, economydomain.ErrEconomyFrozen
 	}
+	if err := requireCommerceBookActiveTx(ctx, tx, request.Season); err != nil {
+		return nil, false, err
+	}
 	if replayed, err := r.lookupSettlement(ctx, tx, request); err != nil || replayed != nil {
 		return replayed, false, err
 	}
-	fromID, toID, err := r.authorizeTransferParties(ctx, tx, request)
+	fromID, toID, err := r.authorizeSeasonTransferParties(ctx, tx, request)
 	if err != nil {
 		return nil, false, err
 	}
 	if replayed, err := r.coverTransferFunds(ctx, tx, request, fromID, toID, ends.amountMilli); err != nil || replayed != nil {
 		return replayed, false, err
 	}
-	transferID, err := recordTransferLegs(ctx, tx, fromID, toID, ends.amountMilli)
+	transferID, err := recordSeasonTransferLegs(ctx, tx, fromID, toID, ends.amountMilli, request.Season)
 	if err != nil {
 		return nil, false, err
 	}
-	result, retry, err := recordTransferRow(ctx, tx, request, transferID)
+	result, retry, err := recordSeasonTransferRow(ctx, tx, request, transferID)
 	if err != nil {
 		return nil, retry, err
 	}
@@ -186,11 +208,10 @@ func validateTransferEnds(request application.TransferRequest) (transferEnds, er
 	return transferEnds{amountMilli: request.AmountMilli}, nil
 }
 
-// authorizeTransferParties resolves every party-side fact inside the
-// transaction: active accounts, sanction clearance, approved limits
-// and provisioned custodies. The payer custody derives solely from
-// the caller account: no from-label exists to confuse.
-func (r *Repository) authorizeTransferParties(ctx context.Context, tx pgx.Tx, request application.TransferRequest) (string, string, error) {
+// authorizeSeasonTransferParties resolves every party-side fact in
+// one commerce book: the same label in another book is another
+// custody, and a leg mixing a custody of another book never writes.
+func (r *Repository) authorizeSeasonTransferParties(ctx context.Context, tx pgx.Tx, request application.TransferRequest) (string, string, error) {
 	if err := requireActiveAccount(ctx, tx, request.Payer); err != nil {
 		return "", "", err
 	}
@@ -203,24 +224,34 @@ func (r *Repository) authorizeTransferParties(ctx context.Context, tx pgx.Tx, re
 	if err := r.checkLimits(ctx, tx, request); err != nil {
 		return "", "", err
 	}
-	fromID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", request.Payer)
-	if err != nil || !found {
-		if err == nil {
-			return "", "", commercedomain.ErrUnknownAccount
-		}
+	fromID, err := resolveSeasonCustody(ctx, tx, "user", request.Payer, request.Season)
+	if err != nil {
 		return "", "", err
 	}
-	toID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", request.Payee)
-	if err != nil || !found {
-		if err == nil {
-			return "", "", commercedomain.ErrUnknownAccount
-		}
+	toID, err := resolveSeasonCustody(ctx, tx, "user", request.Payee, request.Season)
+	if err != nil {
 		return "", "", err
 	}
 	if fromID == toID {
 		return "", "", commercedomain.ErrSelfTransfer
 	}
 	return fromID, toID, nil
+}
+
+// resolveSeasonCustody maps a (kind, label, book) triple to its
+// registry id: the same label in another book is another custody.
+func resolveSeasonCustody(ctx context.Context, tx pgx.Tx, kind, label string, season commercedomain.SeasonKey) (string, error) {
+	var id string
+	err := tx.QueryRow(ctx,
+		`SELECT id::text FROM app.economy_custodies WHERE kind = $1 AND label = $2 AND season_key = $3`,
+		kind, label, season.String()).Scan(&id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", commercedomain.ErrUnknownAccount
+		}
+		return "", fmt.Errorf("resolve custody: %w", err)
+	}
+	return id, nil
 }
 
 // coverTransferFunds locks both custodies in id order and rechecks
@@ -343,34 +374,37 @@ func isTransferConflict(err error) bool {
 }
 
 // recordTransferLegs writes the debit/credit pair moving the exact
-// amount inside the caller transaction.
-func recordTransferLegs(ctx context.Context, tx pgx.Tx, fromID, toID string, millis int64) (string, error) {
+// amount inside the caller transaction. The legacy writer stays
+// for callers that already scope by book; seasonal settlements use
+// recordSeasonTransferLegs below.
+// recordSeasonTransferLegs writes the debit/credit pair in one
+// commerce book: the legs carry the book, so statement and row
+// always point at one book.
+func recordSeasonTransferLegs(ctx context.Context, tx pgx.Tx, fromID, toID string, millis int64, season commercedomain.SeasonKey) (string, error) {
 	var transferID string
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return "", fmt.Errorf("generate transfer id: %w", err)
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $4)`,
-		transferID, fromID, toID, millis); err != nil {
+		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+		 VALUES ($1::uuid, $2::uuid, 'debit', $4, $5), ($1::uuid, $3::uuid, 'credit', $4, $5)`,
+		transferID, fromID, toID, millis, season.String()); err != nil {
 		return "", fmt.Errorf("record transfer legs: %w", err)
 	}
 	return transferID, nil
 }
 
-// recordTransferRow stores the settlement naming the same transfer
-// as the legs and returns the database posted instant. A unique
-// collision reports a worthwhile retry: a concurrent run may have
-// committed the same intention first.
-func recordTransferRow(ctx context.Context, tx pgx.Tx, request application.TransferRequest, transferID string) (application.TransferResult, bool, error) {
+// recordSeasonTransferRow stores the settlement pinning the commerce
+// book beside the seal: the receipt never leaves its book.
+func recordSeasonTransferRow(ctx context.Context, tx pgx.Tx, request application.TransferRequest, transferID string) (application.TransferResult, bool, error) {
 	var result application.TransferResult
 	if err := tx.QueryRow(ctx,
 		`INSERT INTO app.commerce_transfers
-		 (intention_key, kind, payer_id, payee_id, amount_milli, consent_ref, payload_hash, transfer_id)
-		 VALUES ($1, $2, $3::uuid, $4::uuid, $5, $6, $7, $8::uuid)
+		 (intention_key, kind, payer_id, payee_id, amount_milli, consent_ref, payload_hash, transfer_id, season_key)
+		 VALUES ($1, $2, $3::uuid, $4::uuid, $5, $6, $7, $8::uuid, $9)
 		 RETURNING id::text`,
 		request.Key, request.Kind.String(), request.Payer, request.Payee,
-		request.AmountMilli, request.ConsentRef, request.PayloadHash, transferID).Scan(&result.TransferRowID); err != nil {
+		request.AmountMilli, request.ConsentRef, request.PayloadHash, transferID, request.Season.String()).Scan(&result.TransferRowID); err != nil {
 		if isTransferConflict(err) {
 			return application.TransferResult{}, true, fmt.Errorf("concurrent transfer race: %w", err)
 		}
@@ -378,5 +412,6 @@ func recordTransferRow(ctx context.Context, tx pgx.Tx, request application.Trans
 	}
 	result.TransferID = transferID
 	result.AmountMilli = request.AmountMilli
+	result.Season = request.Season
 	return result, false, nil
 }

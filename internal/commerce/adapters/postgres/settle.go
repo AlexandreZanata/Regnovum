@@ -163,6 +163,9 @@ func (r *EscrowRepository) moveEscrow(ctx context.Context, order settleOrder, au
 	if err != nil || replay != nil {
 		return replay, err
 	}
+	if err := requireCommerceBookActiveTx(ctx, tx, row.view.Season); err != nil {
+		return nil, err
+	}
 	if order.toProvider {
 		return r.settleProvider(ctx, tx, row, order)
 	}
@@ -192,22 +195,25 @@ func (r *EscrowRepository) loadAuthorizedEscrow(ctx context.Context, tx pgx.Tx, 
 }
 
 // resolveProviderPayout computes the tithe split and resolves the
-// provider and Treasury custodies before any lock is taken.
+// provider and Treasury custodies in the original book before any
+// lock is taken. The tithe parks in the genesis home of the same
+// book the escrow locked in.
 func resolveProviderPayout(ctx context.Context, tx pgx.Tx, row *escrowRow) (payoutPlan, error) {
 	tithe, net, err := commercedomain.SplitTithe(row.view.AmountMill)
 	if err != nil {
 		return payoutPlan{}, err
 	}
-	toID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", row.providerID)
-	if err != nil || !found {
-		if err == nil {
-			return payoutPlan{}, commercedomain.ErrUnknownAccount
-		}
+	season := row.view.Season.String()
+	if season == "" {
+		season = commercedomain.CompatSeasonKey
+	}
+	toID, err := resolveSeasonCommerceCustody(ctx, tx, "user", row.providerID, row.view.Season)
+	if err != nil {
 		return payoutPlan{}, err
 	}
 	plan := payoutPlan{toID: toID, tithe: tithe, net: net}
 	if tithe > 0 {
-		treasuryID, err := resolveTitheTreasury(ctx, tx)
+		treasuryID, err := resolveTitheTreasury(ctx, tx, season)
 		if err != nil {
 			return payoutPlan{}, err
 		}
@@ -216,14 +222,11 @@ func resolveProviderPayout(ctx context.Context, tx pgx.Tx, row *escrowRow) (payo
 	return plan, nil
 }
 
-// resolveBuyerPayout resolves the buyer custody for a whole refund:
-// refunds never bear tithe.
+// resolveBuyerPayout resolves the buyer custody in the original
+// book for a whole refund: refunds never bear tithe.
 func resolveBuyerPayout(ctx context.Context, tx pgx.Tx, row *escrowRow) (payoutPlan, error) {
-	toID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", row.view.Buyer)
-	if err != nil || !found {
-		if err == nil {
-			return payoutPlan{}, commercedomain.ErrUnknownAccount
-		}
+	toID, err := resolveSeasonCommerceCustody(ctx, tx, "user", row.view.Buyer, row.view.Season)
+	if err != nil {
 		return payoutPlan{}, err
 	}
 	return payoutPlan{toID: toID}, nil
@@ -268,7 +271,8 @@ func (r *EscrowRepository) commitPayoutSettlement(ctx context.Context, tx pgx.Tx
 }
 
 // settleProvider pays an accepted escrow to the provider with the
-// floor(10%) tithe split in the same transaction.
+// floor(10%) tithe split in the same transaction. The tithe parks
+// in the genesis home of the original book.
 func (r *EscrowRepository) settleProvider(ctx context.Context, tx pgx.Tx, row *escrowRow, order settleOrder) (*application.ContractView, error) {
 	plan, err := resolveProviderPayout(ctx, tx, row)
 	if err != nil {
@@ -287,7 +291,7 @@ func (r *EscrowRepository) settleProvider(ctx context.Context, tx pgx.Tx, row *e
 	legs := PayoutLegs{
 		TransferID: transferID, EscrowID: row.escrowID, ToID: plan.toID,
 		TreasuryID: plan.treasuryID, Amount: row.view.AmountMill,
-		Tithe: plan.tithe, Net: plan.net,
+		Tithe: plan.tithe, Net: plan.net, Season: row.view.Season.String(),
 	}
 	if err := recordPayoutLegs(ctx, tx, legs); err != nil {
 		return nil, err
@@ -296,7 +300,7 @@ func (r *EscrowRepository) settleProvider(ctx context.Context, tx pgx.Tx, row *e
 }
 
 // settleBuyer refunds one escrow whole to the buyer: refunds never
-// bear tithe.
+// bear tithe. The return carries the original book.
 func (r *EscrowRepository) settleBuyer(ctx context.Context, tx pgx.Tx, row *escrowRow, order settleOrder) (*application.ContractView, error) {
 	plan, err := resolveBuyerPayout(ctx, tx, row)
 	if err != nil {
@@ -314,7 +318,7 @@ func (r *EscrowRepository) settleBuyer(ctx context.Context, tx pgx.Tx, row *escr
 	}
 	legs := PayoutLegs{
 		TransferID: transferID, EscrowID: row.escrowID, ToID: plan.toID,
-		Amount: row.view.AmountMill,
+		Amount: row.view.AmountMill, Season: row.view.Season.String(),
 	}
 	if err := recordPayoutLegs(ctx, tx, legs); err != nil {
 		return nil, err

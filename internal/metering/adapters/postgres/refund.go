@@ -21,7 +21,9 @@ import (
 var _ application.RefundRepository = (*Repository)(nil)
 
 // originalSettlement is the compensated cause: the settled row with
-// the custody pair its transfer moved between.
+// the custody pair its transfer moved between. The season pins the
+// original book: the compensation reverses in the same book, never
+// in the current one, and never after the seal.
 type originalSettlement struct {
 	publicationID string
 	amountMilli   int64
@@ -29,6 +31,7 @@ type originalSettlement struct {
 	debitLabel    string
 	creditKind    string
 	creditLabel   string
+	season        meteringdomain.SeasonKey
 }
 
 // Refund compensates one settled publication in full keyed
@@ -91,20 +94,26 @@ func (r *Repository) lookupRefund(ctx context.Context, q rowQuerier, request app
 // readOriginalSettlement resolves the compensated cause with the
 // custody pair its transfer moved between. Another account's
 // publications resolve to absence: refunds settle only the owner's
-// settled intentions.
+// settled intentions. The season pins the original book for the
+// same-book reversal below.
 func readOriginalSettlement(ctx context.Context, q rowQuerier, account, originalKey string) (originalSettlement, error) {
 	var settled originalSettlement
-	var transfer string
+	var transfer, seasonKey string
 	err := q.QueryRow(ctx,
-		`SELECT id::text, amount_milli, transfer_id::text
+		`SELECT id::text, amount_milli, transfer_id::text, season_key
 		 FROM app.metering_publications WHERE account_label = $1 AND intention_key = $2`,
-		account, originalKey).Scan(&settled.publicationID, &settled.amountMilli, &transfer)
+		account, originalKey).Scan(&settled.publicationID, &settled.amountMilli, &transfer, &seasonKey)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return originalSettlement{}, meteringdomain.ErrUnknownPublication
 		}
 		return originalSettlement{}, fmt.Errorf("lookup original publication: %w", err)
 	}
+	season, err := meteringdomain.ParseSeasonKey(seasonKey)
+	if err != nil {
+		return originalSettlement{}, fmt.Errorf("stored publication book %q: %w", seasonKey, err)
+	}
+	settled.season = season
 	rows, err := q.Query(ctx,
 		`SELECT c.kind, c.label, e.direction, e.amount_milli FROM app.economy_entries e
 		 JOIN app.economy_custodies c ON c.id = e.custody_id
@@ -146,6 +155,9 @@ func readOriginalSettlement(ctx context.Context, q rowQuerier, account, original
 // transaction: the legs reverse the original pair under a new
 // transfer and the refund row links to the untouched cause, so the
 // correction lands current without backdating or reopening history.
+// The reversal carries the original book, never the current one,
+// and refuses after the seal: a sealed book is readable history,
+// never a live ledger.
 func (r *Repository) createRefund(ctx context.Context, request application.RefundRequest) (*application.RefundResult, bool, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -163,11 +175,14 @@ func (r *Repository) createRefund(ctx context.Context, request application.Refun
 	if err != nil {
 		return nil, false, err
 	}
-	fromID, err := resolveLedgerCustody(ctx, tx, original.creditKind, original.creditLabel)
+	if err := requireSeasonBookActiveTx(ctx, tx, original.season); err != nil {
+		return nil, false, err
+	}
+	fromID, err := resolveSeasonCustody(ctx, tx, original.creditKind, original.creditLabel, original.season)
 	if err != nil {
 		return nil, false, err
 	}
-	toID, err := resolveLedgerCustody(ctx, tx, original.debitKind, original.debitLabel)
+	toID, err := resolveSeasonCustody(ctx, tx, original.debitKind, original.debitLabel, original.season)
 	if err != nil {
 		return nil, false, err
 	}
@@ -188,7 +203,7 @@ func (r *Repository) createRefund(ctx context.Context, request application.Refun
 		}
 		return nil, false, err
 	}
-	transferID, err := recordSettlementLegs(ctx, tx, fromID, toID, original.amountMilli)
+	transferID, err := recordSettlementLegs(ctx, tx, fromID, toID, original.amountMilli, original.season)
 	if err != nil {
 		return nil, false, err
 	}

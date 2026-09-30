@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -58,7 +59,22 @@ type rowQuerier interface {
 // Replays resolve the original settlement untouched, divergent terms
 // under one key conflict, uncovered balances refuse without writing,
 // and services outside the approved table refuse before any lock.
+// The book travels beside the seal: a stale or cross-book preview
+// conflicts instead of charging another book, and a sealed book
+// admits nothing new.
 func (r *Repository) Publish(ctx context.Context, request application.PublishRequest) (*application.PublishResult, error) {
+	if request.Season.String() == "" {
+		request.Season = meteringdomain.SeasonKey(meteringdomain.CompatSeasonKey)
+	}
+	if request.Quote.Season.String() == "" {
+		request.Quote.Season = meteringdomain.SeasonKey(meteringdomain.CompatSeasonKey)
+	}
+	if err := meteringdomain.CheckSeasonMatch(request.Quote.Season, request.Season); err != nil {
+		return nil, err
+	}
+	if err := requireSeasonBookActive(ctx, r.pool, request.Season); err != nil {
+		return nil, err
+	}
 	if err := r.resolveApprovedPrice(request); err != nil {
 		return nil, err
 	}
@@ -110,16 +126,18 @@ func (r *Repository) resolveApprovedPrice(request application.PublishRequest) er
 // lookupSettlement resolves a settled intention without writing:
 // the post-commit retry path that makes crash recovery exactly-once.
 // Terms that settle nothing resolve to absence, and divergent terms
-// under one key are a conflict, never a replay.
+// under one key are a conflict, never a replay. The book travels
+// with the receipt: a cross-book reuse conflicts instead of
+// redirecting another book outcome.
 func (r *Repository) lookupSettlement(ctx context.Context, q rowQuerier, request application.PublishRequest) (*application.PublishResult, error) {
 	var result application.PublishResult
 	var amount int64
-	var contentHash, quoteHash, payloadHash, transfer string
+	var contentHash, quoteHash, payloadHash, transfer, seasonKey string
 	err := q.QueryRow(ctx,
-		`SELECT id::text, amount_milli, content_hash, quote_hash, payload_hash, transfer_id::text, posted_at
+		`SELECT id::text, amount_milli, content_hash, quote_hash, payload_hash, transfer_id::text, posted_at, season_key
 		 FROM app.metering_publications WHERE account_label = $1 AND intention_key = $2`,
 		request.Account, request.Key.String()).Scan(
-		&result.PublicationID, &amount, &contentHash, &quoteHash, &payloadHash, &transfer, &result.PostedAt)
+		&result.PublicationID, &amount, &contentHash, &quoteHash, &payloadHash, &transfer, &result.PostedAt, &seasonKey)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -130,9 +148,17 @@ func (r *Repository) lookupSettlement(ctx context.Context, q rowQuerier, request
 		contentHash != request.Quote.ContentHash.String() || quoteHash != request.Quote.Hash {
 		return nil, meteringdomain.ErrPublishConflict
 	}
+	season, err := meteringdomain.ParseSeasonKey(seasonKey)
+	if err != nil {
+		return nil, fmt.Errorf("stored publication book %q: %w", seasonKey, err)
+	}
+	if err := meteringdomain.CheckSeasonMatch(season, request.Season); err != nil {
+		return nil, meteringdomain.ErrPublishConflict
+	}
 	result.TransferID = transfer
 	result.TotalMilli = amount
 	result.Replayed = true
+	result.Season = season
 	return &result, nil
 }
 
@@ -178,16 +204,18 @@ func coverSettlement(ctx context.Context, tx pgx.Tx, fromID, toID string, amount
 }
 
 // recordSettlementLegs writes the debit/credit pair moving the exact
-// quoted cost inside the caller transaction.
-func recordSettlementLegs(ctx context.Context, tx pgx.Tx, fromID, toID string, millis int64) (string, error) {
+// quoted cost inside the caller transaction. The legs carry the
+// publication book, so statement and content always point at one
+// book.
+func recordSettlementLegs(ctx context.Context, tx pgx.Tx, fromID, toID string, millis int64, season meteringdomain.SeasonKey) (string, error) {
 	var transferID string
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return "", fmt.Errorf("generate transfer id: %w", err)
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $4)`,
-		transferID, fromID, toID, millis); err != nil {
+		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+		 VALUES ($1::uuid, $2::uuid, 'debit', $4, $5), ($1::uuid, $3::uuid, 'credit', $4, $5)`,
+		transferID, fromID, toID, millis, season.String()); err != nil {
 		return "", fmt.Errorf("record charge legs: %w", err)
 	}
 	return transferID, nil
@@ -196,19 +224,20 @@ func recordSettlementLegs(ctx context.Context, tx pgx.Tx, fromID, toID string, m
 // recordPublicationRow stores the publication naming the same
 // transfer as the legs and returns the database posted instant. A
 // unique collision reports a worthwhile retry: a concurrent run may
-// have committed the same intention first.
+// have committed the same intention first. The row pins the
+// publication book beside the seal.
 func recordPublicationRow(ctx context.Context, tx pgx.Tx, request application.PublishRequest, transferID string, millis int64) (application.PublishResult, bool, error) {
 	var result application.PublishResult
 	if err := tx.QueryRow(ctx,
 		`INSERT INTO app.metering_publications
 		 (intention_key, account_label, service, price_version, units, amount_milli,
-		  content_hash, quote_hash, payload_hash, transfer_id)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::uuid)
+		  content_hash, quote_hash, payload_hash, transfer_id, season_key)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::uuid, $11)
 		 RETURNING id::text, posted_at`,
 		request.Key.String(), request.Account, request.Quote.Service.String(),
 		request.Quote.Version, request.Quote.Units, millis,
 		request.Quote.ContentHash.String(), request.Quote.Hash,
-		request.PayloadHash, transferID).Scan(&result.PublicationID, &result.PostedAt); err != nil {
+		request.PayloadHash, transferID, request.Season.String()).Scan(&result.PublicationID, &result.PostedAt); err != nil {
 		if isPublishConflict(err) {
 			return application.PublishResult{}, true, fmt.Errorf("concurrent publication race: %w", err)
 		}
@@ -216,7 +245,58 @@ func recordPublicationRow(ctx context.Context, tx pgx.Tx, request application.Pu
 	}
 	result.TransferID = transferID
 	result.TotalMilli = millis
+	result.Season = request.Season
 	return result, false, nil
+}
+
+// admitSeasonPublication judges the book inside the writing
+// transaction: the frozen flag, the ACTIVE stage with its half-open
+// window on the database clock, and the quote liveness there. A
+// stale preview or a cutoff arrival refuses without writing.
+func admitSeasonPublication(ctx context.Context, tx pgx.Tx, request application.PublishRequest) error {
+	if err := requireLedgerOpen(ctx, tx); err != nil {
+		return err
+	}
+	if err := requireSeasonBookActiveTx(ctx, tx, request.Season); err != nil {
+		return err
+	}
+	if request.Season == meteringdomain.SeasonKey(meteringdomain.CompatSeasonKey) {
+		return nil
+	}
+	var dbNow time.Time
+	if err := tx.QueryRow(ctx, `SELECT now()`).Scan(&dbNow); err != nil {
+		return fmt.Errorf("read database clock: %w", err)
+	}
+	if !request.Quote.Live(dbNow) {
+		return meteringdomain.ErrQuoteExpired
+	}
+	return nil
+}
+
+type publicationCustodies struct {
+	fromID string
+	toID   string
+}
+
+// resolvePublicationCustodies maps both ledger endpoints in the
+// publication book: the same label in another book is another
+// custody, and a spendable source is required.
+func resolvePublicationCustodies(ctx context.Context, tx pgx.Tx, request application.PublishRequest, ends settlementEnds) (publicationCustodies, error) {
+	fromID, err := resolveSeasonCustody(ctx, tx, ends.fromKind.String(), request.FromLabel, request.Season)
+	if err != nil {
+		return publicationCustodies{}, err
+	}
+	toID, err := resolveSeasonCustody(ctx, tx, ends.toKind.String(), request.ToLabel, request.Season)
+	if err != nil {
+		return publicationCustodies{}, err
+	}
+	if fromID == toID {
+		return publicationCustodies{}, economydomain.ErrSameCustody
+	}
+	if !ends.fromKind.CanSpend() {
+		return publicationCustodies{}, economydomain.ErrUnauthorizedCustody
+	}
+	return publicationCustodies{fromID: fromID, toID: toID}, nil
 }
 
 // createSettlement attempts the publication once in a single
@@ -241,27 +321,17 @@ func (r *Repository) createSettlement(ctx context.Context, request application.P
 	}
 	defer tx.Rollback(ctx)
 
-	if err := requireLedgerOpen(ctx, tx); err != nil {
+	if err := admitSeasonPublication(ctx, tx, request); err != nil {
 		return nil, false, err
 	}
 	if replayed, err := r.lookupSettlement(ctx, tx, request); err != nil || replayed != nil {
 		return replayed, false, err
 	}
-	fromID, err := resolveLedgerCustody(ctx, tx, ends.fromKind.String(), request.FromLabel)
+	custodies, err := resolvePublicationCustodies(ctx, tx, request, ends)
 	if err != nil {
 		return nil, false, err
 	}
-	toID, err := resolveLedgerCustody(ctx, tx, ends.toKind.String(), request.ToLabel)
-	if err != nil {
-		return nil, false, err
-	}
-	if fromID == toID {
-		return nil, false, economydomain.ErrSameCustody
-	}
-	if !ends.fromKind.CanSpend() {
-		return nil, false, economydomain.ErrUnauthorizedCustody
-	}
-	if err := coverSettlement(ctx, tx, fromID, toID, ends.amount); err != nil {
+	if err := coverSettlement(ctx, tx, custodies.fromID, custodies.toID, ends.amount); err != nil {
 		// A concurrent run of the same key may have settled while
 		// this attempt waited on the custody locks: resolve it
 		// before refusing, so losers replay instead of mistaking a
@@ -275,7 +345,7 @@ func (r *Repository) createSettlement(ctx context.Context, request application.P
 		}
 		return nil, false, err
 	}
-	transferID, err := recordSettlementLegs(ctx, tx, fromID, toID, ends.amount.Millis())
+	transferID, err := recordSettlementLegs(ctx, tx, custodies.fromID, custodies.toID, ends.amount.Millis(), request.Season)
 	if err != nil {
 		return nil, false, err
 	}
@@ -315,13 +385,14 @@ func requireLedgerOpen(ctx context.Context, tx pgx.Tx) error {
 	return nil
 }
 
-// resolveLedgerCustody maps a (kind, label) pair to its registry id.
-// Unknown pairs fail before any lock is taken or leg written.
-func resolveLedgerCustody(ctx context.Context, tx pgx.Tx, kind, label string) (string, error) {
+// resolveSeasonCustody maps a (kind, label, book) triple to its
+// registry id: the same label in another book is another custody,
+// and a leg mixing a custody of another book never writes.
+func resolveSeasonCustody(ctx context.Context, tx pgx.Tx, kind, label string, season meteringdomain.SeasonKey) (string, error) {
 	var id string
 	err := tx.QueryRow(ctx,
-		`SELECT id::text FROM app.economy_custodies WHERE kind = $1 AND label = $2`,
-		kind, label).Scan(&id)
+		`SELECT id::text FROM app.economy_custodies WHERE kind = $1 AND label = $2 AND season_key = $3`,
+		kind, label, season.String()).Scan(&id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", economydomain.ErrUnknownCustody

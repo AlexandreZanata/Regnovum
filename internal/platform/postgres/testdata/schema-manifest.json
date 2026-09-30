@@ -3172,6 +3172,41 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this escrow: the locked legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace"
+        },
+        {
+          "name": "terminal_policy_ref",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Terminal clause reference of section 5.1: versioned policy accepted by both parties before funding; empty on legacy contracts without the clause"
+        },
+        {
+          "name": "terminal_policy_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Digest of the terminal clause (64 lowercase hex) bound at funding; empty on legacy contracts without the clause"
+        },
+        {
+          "name": "buyer_accept_ref",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Buyer accept evidence recorded before funding; empty on legacy contracts without the clause"
+        },
+        {
+          "name": "provider_accept_ref",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Provider accept evidence recorded before funding; empty on legacy contracts without the clause"
         }
       ],
       "constraints": [
@@ -3224,6 +3259,11 @@
           "name": "commerce_contracts_provider_id_fkey",
           "kind": "f",
           "definition": "FOREIGN KEY (provider_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_contracts_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         }
       ],
       "indexes": [
@@ -4121,6 +4161,13 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this transfer: the legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -4168,6 +4215,11 @@
           "name": "commerce_transfers_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_transfers_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "commerce_transfers_transfer_unique",
@@ -6362,6 +6414,13 @@
           "nullable": false,
           "default": "now()",
           "comment": "Database clock at write, visible only after commit: never a request or browser instant"
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this publication: the legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -6404,6 +6463,11 @@
           "name": "metering_publications_quote_check",
           "kind": "c",
           "definition": "CHECK (TRIM(BOTH FROM quote_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "metering_publications_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "metering_publications_service_check",
@@ -17180,6 +17244,42 @@
     },
     {
       "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
       "column": "buyer_id",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -17468,6 +17568,42 @@
     },
     {
       "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
       "column": "provider_id",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -17499,6 +17635,114 @@
     {
       "table": "app.commerce_contracts",
       "column": "provider_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -19281,6 +19525,42 @@
     {
       "table": "app.commerce_transfers",
       "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -23979,6 +24259,42 @@
     {
       "table": "app.metering_publications",
       "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

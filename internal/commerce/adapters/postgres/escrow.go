@@ -44,26 +44,66 @@ type escrowRow struct {
 	providerID string
 }
 
+// sealFundRequest binds one funding to its book and terminal clause
+// before any lock: the dormant book seals the formal terms alone,
+// seasonal books additionally seal the 5.1 clause beside them.
+func sealFundRequest(request *application.FundRequest) (commercedomain.TradeContract, error) {
+	if request.Season.String() == "" {
+		request.Season = commercedomain.SeasonKey(commercedomain.CompatSeasonKey)
+	}
+	if request.Season == commercedomain.SeasonKey(commercedomain.CompatSeasonKey) {
+		return commercedomain.FundContract(commercedomain.ContractRequest{
+			Key: request.Key, Object: request.Object, Buyer: request.Buyer,
+			Provider: request.Provider, AmountMill: request.AmountMill,
+			ExpiresAt: request.ExpiresAt, Now: request.Now,
+		})
+	}
+	return commercedomain.FundSeasonalContract(commercedomain.SeasonalContractRequest{
+		ContractRequest: commercedomain.ContractRequest{
+			Key: request.Key, Object: request.Object, Buyer: request.Buyer,
+			Provider: request.Provider, AmountMill: request.AmountMill,
+			ExpiresAt: request.ExpiresAt, Now: request.Now,
+		},
+		Season: request.Season, PolicyRef: request.PolicyRef, PolicyHash: request.PolicyHash,
+		BuyerAccept: request.BuyerAccept, ProviderAccept: request.ProviderAccept,
+		SeasonEndsAt: request.SeasonEndsAt, ResetAcknowledged: true,
+	})
+}
+
+// matchFundReplay refuses a divergent reuse under one key: the seal,
+// the object, the provider, the amount and the book must all agree,
+// or the second writer conflicts instead of locking twice.
+func matchFundReplay(found *application.ContractView, sealed commercedomain.TradeContract, season commercedomain.SeasonKey) error {
+	if found.Hash != sealed.Hash || found.Object != sealed.Object ||
+		found.Provider != sealed.Provider || found.AmountMill != sealed.AmountMill {
+		return commercedomain.ErrIntentionConflict
+	}
+	if found.Season.String() != "" && found.Season != season {
+		return commercedomain.ErrIntentionConflict
+	}
+	return nil
+}
+
 // FundContract seals one trade contract locking the buyer amount in
 // exclusive escrow, keyed idempotently by buyer and token. Replays
 // resolve the original contract untouched; divergent terms under one
-// key conflict instead of locking twice.
+// key conflict instead of locking twice. The book and the terminal
+// clause travel beside the seal: absence or divergence refuses new
+// seasonal funding, and a sealed book admits nothing new.
 func (r *EscrowRepository) FundContract(ctx context.Context, request application.FundRequest) (*application.ContractView, error) {
-	sealed, err := commercedomain.FundContract(commercedomain.ContractRequest{
-		Key: request.Key, Object: request.Object, Buyer: request.Buyer,
-		Provider: request.Provider, AmountMill: request.AmountMill,
-		ExpiresAt: request.ExpiresAt, Now: request.Now,
-	})
+	sealed, err := sealFundRequest(&request)
 	if err != nil {
+		return nil, err
+	}
+	if err := requireCommerceBookActive(ctx, r.pool, request.Season); err != nil {
 		return nil, err
 	}
 	if found, err := r.lookupContract(ctx, r.pool, request.Buyer, request.Key); err != nil || found != nil {
 		if err != nil {
 			return nil, err
 		}
-		if found.Hash != sealed.Hash || found.Object != sealed.Object ||
-			found.Provider != sealed.Provider || found.AmountMill != sealed.AmountMill {
-			return nil, commercedomain.ErrIntentionConflict
+		if err := matchFundReplay(found, sealed, request.Season); err != nil {
+			return nil, err
 		}
 		return found, nil
 	}
@@ -106,7 +146,9 @@ func (r *EscrowRepository) lookupContract(ctx context.Context, q platformpg.Ledg
 // createContract attempts the funding once: eligibility, locks, the
 // buyer debit into exclusive escrow and the contract row share one
 // transaction. A unique collision retries once through re-lookup,
-// so concurrent runs of one key resolve the single contract.
+// so concurrent runs of one key resolve the single contract. The
+// book, its ACTIVE stage and its half-open window are judged on
+// the database clock inside the same transaction.
 func (r *EscrowRepository) createContract(ctx context.Context, request application.FundRequest, sealed commercedomain.TradeContract) (*application.ContractView, bool, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -119,6 +161,9 @@ func (r *EscrowRepository) createContract(ctx context.Context, request applicati
 			return nil, false, err
 		}
 		return nil, false, economydomain.ErrEconomyFrozen
+	}
+	if err := requireCommerceBookActiveTx(ctx, tx, request.Season); err != nil {
+		return nil, false, err
 	}
 	if found, err := r.lookupContract(ctx, tx, request.Buyer, request.Key); err != nil || found != nil {
 		return found, false, err
@@ -147,7 +192,7 @@ func (r *EscrowRepository) createContract(ctx context.Context, request applicati
 		}
 		return nil, false, economydomain.ErrInsufficientMilliInk
 	}
-	transferID, err := recordFundLegs(ctx, tx, buyerID, escrowID, request.AmountMill)
+	transferID, err := recordFundLegs(ctx, tx, buyerID, escrowID, request.AmountMill, request.Season)
 	if err != nil {
 		return nil, false, err
 	}
@@ -175,19 +220,18 @@ func checkFundingParties(ctx context.Context, tx pgx.Tx, request application.Fun
 }
 
 // lockBuyerEscrow creates the exclusive escrow custody and locks
-// both sides in id order before any balance is read.
+// both sides in id order before any balance is read. The buyer and
+// the escrow custodies live in the funding book: the same label in
+// another book is another custody.
 func lockBuyerEscrow(ctx context.Context, tx pgx.Tx, request application.FundRequest, contractID string) (string, string, error) {
-	buyerID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", request.Buyer)
-	if err != nil || !found {
-		if err == nil {
-			return "", "", commercedomain.ErrUnknownAccount
-		}
+	buyerID, err := resolveSeasonCommerceCustody(ctx, tx, "user", request.Buyer, request.Season)
+	if err != nil {
 		return "", "", err
 	}
 	var escrowID string
 	if err := tx.QueryRow(ctx,
-		`INSERT INTO app.economy_custodies (kind, label) VALUES ('escrow', $1) RETURNING id::text`,
-		"commerce-escrow-"+contractID).Scan(&escrowID); err != nil {
+		`INSERT INTO app.economy_custodies (kind, label, season_key) VALUES ('escrow', $1, $2) RETURNING id::text`,
+		"commerce-escrow-"+contractID, request.Season.String()).Scan(&escrowID); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return "", "", fmt.Errorf("concurrent escrow race: %w", err)
@@ -200,17 +244,33 @@ func lockBuyerEscrow(ctx context.Context, tx pgx.Tx, request application.FundReq
 	return buyerID, escrowID, nil
 }
 
+// resolveSeasonCommerceCustody maps a (kind, label, book) triple to
+// its registry id for escrow funding.
+func resolveSeasonCommerceCustody(ctx context.Context, tx pgx.Tx, kind, label string, season commercedomain.SeasonKey) (string, error) {
+	var id string
+	err := tx.QueryRow(ctx,
+		`SELECT id::text FROM app.economy_custodies WHERE kind = $1 AND label = $2 AND season_key = $3`,
+		kind, label, season.String()).Scan(&id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", commercedomain.ErrUnknownAccount
+		}
+		return "", fmt.Errorf("resolve custody: %w", err)
+	}
+	return id, nil
+}
+
 // recordFundLegs writes the buyer debit into exclusive escrow
-// inside the caller transaction.
-func recordFundLegs(ctx context.Context, tx pgx.Tx, buyerID, escrowID string, millis int64) (string, error) {
+// inside the caller transaction. The legs carry the funding book.
+func recordFundLegs(ctx context.Context, tx pgx.Tx, buyerID, escrowID string, millis int64, season commercedomain.SeasonKey) (string, error) {
 	var transferID string
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return "", fmt.Errorf("generate transfer id: %w", err)
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $4)`,
-		transferID, buyerID, escrowID, millis); err != nil {
+		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+		 VALUES ($1::uuid, $2::uuid, 'debit', $4, $5), ($1::uuid, $3::uuid, 'credit', $4, $5)`,
+		transferID, buyerID, escrowID, millis, season.String()); err != nil {
 		return "", fmt.Errorf("record escrow legs: %w", err)
 	}
 	return transferID, nil
@@ -219,16 +279,19 @@ func recordFundLegs(ctx context.Context, tx pgx.Tx, buyerID, escrowID string, mi
 // errShortFunds marks an uncovered funding for the caller re-lookup.
 
 // recordFundedContract stores the contract row naming the locking
-// transfer. A unique collision reports a worthwhile retry.
+// transfer. A unique collision reports a worthwhile retry. The row
+// pins the commerce book with the terminal clause beside the seal.
 func recordFundedContract(ctx context.Context, tx pgx.Tx, request application.FundRequest, sealed commercedomain.TradeContract, contractID, transferID string) (application.ContractView, bool, error) {
 	var posted time.Time
 	if err := tx.QueryRow(ctx,
 		`INSERT INTO app.commerce_contracts
-		 (id, contract_key, kind, buyer_id, provider_id, object, amount_milli, terms_hash, escrow_transfer_id, expires_at)
-		 VALUES ($1::uuid, $2, 'trade', $3::uuid, $4::uuid, $5, $6, $7, $8::uuid, $9)
+		 (id, contract_key, kind, buyer_id, provider_id, object, amount_milli, terms_hash, escrow_transfer_id, expires_at,
+		  season_key, terminal_policy_ref, terminal_policy_hash, buyer_accept_ref, provider_accept_ref)
+		 VALUES ($1::uuid, $2, 'trade', $3::uuid, $4::uuid, $5, $6, $7, $8::uuid, $9, $10, $11, $12, $13, $14)
 		 RETURNING posted_at`,
 		contractID, request.Key, request.Buyer, request.Provider, request.Object,
-		request.AmountMill, sealed.Hash, transferID, sealed.ExpiresAt).Scan(&posted); err != nil {
+		request.AmountMill, sealed.Hash, transferID, sealed.ExpiresAt,
+		request.Season.String(), request.PolicyRef, request.PolicyHash, request.BuyerAccept, request.ProviderAccept).Scan(&posted); err != nil {
 		if isContractConflict(err) {
 			return application.ContractView{}, true, fmt.Errorf("concurrent fund race: %w", err)
 		}
@@ -242,22 +305,25 @@ func recordFundedContract(ctx context.Context, tx pgx.Tx, request application.Fu
 		ID: contractID, Key: request.Key, Object: request.Object,
 		Buyer: request.Buyer, Provider: request.Provider, AmountMill: request.AmountMill,
 		ExpiresAt: sealed.ExpiresAt, Status: commercedomain.ContractFunded,
-		Hash: sealed.Hash, PostedAt: posted,
+		Hash: sealed.Hash, PostedAt: posted, Season: request.Season,
+		PolicyRef: request.PolicyRef, BuyerAccept: request.BuyerAccept, ProviderAccept: request.ProviderAccept,
 	}, false, nil
 }
 
 // scanEscrowRow resolves one buyer contract with the status derived
-// from its latest settlement step: funded with no steps yet.
+// from its latest settlement step: funded with no steps yet. The
+// book and the terminal clause travel beside the seal.
 func scanEscrowRow(ctx context.Context, q platformpg.LedgerQuerier, buyer, key string) (*escrowRow, error) {
 	var row escrowRow
-	var provider, termsHash, escrowTransfer string
+	var provider, termsHash, escrowTransfer, seasonKey, policyRef, policyHash, buyerAccept, providerAccept string
 	var expires, posted time.Time
 	err := q.QueryRow(ctx,
 		`SELECT id::text, object, provider_id::text, amount_milli, terms_hash,
-		  escrow_transfer_id::text, expires_at, posted_at
+		  escrow_transfer_id::text, expires_at, posted_at, season_key,
+		  terminal_policy_ref, terminal_policy_hash, buyer_accept_ref, provider_accept_ref
 		 FROM app.commerce_contracts WHERE buyer_id = $1::uuid AND contract_key = $2`,
 		buyer, key).Scan(&row.view.ID, &row.view.Object, &provider, &row.view.AmountMill,
-		&termsHash, &escrowTransfer, &expires, &posted)
+		&termsHash, &escrowTransfer, &expires, &posted, &seasonKey, &policyRef, &policyHash, &buyerAccept, &providerAccept)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -274,6 +340,14 @@ func scanEscrowRow(ctx context.Context, q platformpg.LedgerQuerier, buyer, key s
 	row.view.ExpiresAt = expires
 	row.view.PostedAt = posted
 	row.providerID = provider
+	season, err := commercedomain.ParseSeasonKey(seasonKey)
+	if err != nil {
+		return nil, fmt.Errorf("stored contract book %q: %w", seasonKey, err)
+	}
+	row.view.Season = season
+	row.view.PolicyRef = policyRef
+	row.view.BuyerAccept = buyerAccept
+	row.view.ProviderAccept = providerAccept
 	var action string
 	err = q.QueryRow(ctx,
 		`SELECT action FROM app.commerce_settlements WHERE contract_id = $1::uuid

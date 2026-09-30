@@ -15,20 +15,26 @@ import (
 // amount and the explicit consent reference. The payer is the
 // authenticated caller: there is no separate actor field, so a
 // caller can never debit another account by naming it elsewhere.
+// Season names the commerce book (empty binds compat-legacy for the
+// legacy path); seasonal books need an explicit reset
+// acknowledgement shown before settlement.
 type TransferCommand struct {
-	Key         string
-	Kind        string
-	Payer       string
-	Payee       string
-	AmountMilli int64
-	ConsentRef  string
+	Key               string
+	Kind              string
+	Payer             string
+	Payee             string
+	AmountMilli       int64
+	ConsentRef        string
+	Season            string
+	ResetAcknowledged bool
 }
 
 // TransferRequest is the validated transfer for the repository
 // port: the token, the sealed kind, both parties, the amount, the
 // consent reference and the payload seal telling a replay from a
 // conflict. Custody mapping and ledger checks resolve inside the
-// repository transaction.
+// repository transaction. Season names the commerce book the legs
+// settle in.
 type TransferRequest struct {
 	Key         string
 	Kind        domain.TransferKind
@@ -37,16 +43,19 @@ type TransferRequest struct {
 	AmountMilli int64
 	ConsentRef  string
 	PayloadHash string
+	Season      domain.SeasonKey
 }
 
 // TransferResult is the settled transfer: the stored row, the
 // journal transfer moving the exact amount and whether the call
-// replayed the original settlement.
+// replayed the original settlement. Season names the commerce book
+// the receipt stays pinned to.
 type TransferResult struct {
 	TransferRowID string
 	TransferID    string
 	AmountMilli   int64
 	Replayed      bool
+	Season        domain.SeasonKey
 }
 
 // TransferRepository settles voluntary transfers with their ledger
@@ -92,7 +101,9 @@ func transferPayload(kind domain.TransferKind, payer, payee string, amount int64
 // token, the closed kind, both parties, a positive amount and an
 // explicit consent reference stop malformed calls before any store
 // is touched; self-payments refuse here, and every eligibility,
-// limit and ledger fact resolves inside the repository.
+// limit and ledger fact resolves inside the repository. The book
+// travels beside the seal: the same key in another book settles
+// its own outcome instead of redirecting a replay.
 func (uc *TransferUseCase) Execute(ctx context.Context, cmd TransferCommand) (*TransferResult, error) {
 	if strings.TrimSpace(cmd.Key) == "" || strings.TrimSpace(cmd.Key) != cmd.Key {
 		return nil, domain.ErrInvalidIntention
@@ -116,9 +127,20 @@ func (uc *TransferUseCase) Execute(ctx context.Context, cmd TransferCommand) (*T
 	if strings.TrimSpace(cmd.ConsentRef) == "" || strings.TrimSpace(cmd.ConsentRef) != cmd.ConsentRef {
 		return nil, domain.ErrConsentRequired
 	}
+	season := domain.SeasonKey(domain.CompatSeasonKey)
+	if cmd.Season != "" {
+		season, err = domain.ParseSeasonKey(cmd.Season)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := domain.RequireSeasonalReset(season, cmd.ResetAcknowledged); err != nil {
+		return nil, err
+	}
 	return uc.transfers.Transfer(ctx, TransferRequest{
 		Key: cmd.Key, Kind: kind, Payer: cmd.Payer, Payee: cmd.Payee,
 		AmountMilli: cmd.AmountMilli, ConsentRef: strings.TrimSpace(cmd.ConsentRef),
 		PayloadHash: transferPayload(kind, cmd.Payer, cmd.Payee, cmd.AmountMilli, strings.TrimSpace(cmd.ConsentRef)),
+		Season:      season,
 	})
 }

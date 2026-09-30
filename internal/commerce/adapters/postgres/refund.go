@@ -72,13 +72,16 @@ func (r *ServiceRefundRepository) RefundService(ctx context.Context, request app
 }
 
 // refundableCause is one liquidated contract with the remainder
-// still refundable and the split of the requested refund.
+// still refundable and the split of the requested refund. Season
+// pins the original book: the compensation reverses there, never
+// in the current book, and never after the seal.
 type refundableCause struct {
 	contractID string
 	providerID string
 	amount     int64
 	tithe      int64
 	share      int64
+	season     commercedomain.SeasonKey
 }
 
 // refundCover is the locked funding of one refund: the resolved
@@ -171,7 +174,7 @@ func readRefundableContract(ctx context.Context, tx pgx.Tx, request application.
 	}
 	return refundableCause{
 		contractID: row.view.ID, providerID: row.providerID,
-		amount: row.view.AmountMill, tithe: tithe, share: share,
+		amount: row.view.AmountMill, tithe: tithe, share: share, season: row.view.Season,
 	}, nil
 }
 
@@ -200,23 +203,21 @@ func refuseUnliquidatedRefund(ctx context.Context, tx pgx.Tx, row *escrowRow, re
 // and splits the funding inside the locks: the provider moves up
 // to its balance with the shortfall owed explicitly, while the
 // Treasury returns the tithe reversal in full or refuses with
-// nothing written.
+// nothing written. All three custodies live in the original book.
 func coverRefundShares(ctx context.Context, tx pgx.Tx, cause refundableCause, request application.ServiceRefundRequest) (refundCover, error) {
-	providerID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", cause.providerID)
-	if err != nil || !found {
-		if err == nil {
-			return refundCover{}, commercedomain.ErrUnknownAccount
-		}
+	providerID, err := resolveSeasonCommerceCustody(ctx, tx, "user", cause.providerID, cause.season)
+	if err != nil {
 		return refundCover{}, err
 	}
-	buyerID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", request.Buyer)
-	if err != nil || !found {
-		if err == nil {
-			return refundCover{}, commercedomain.ErrUnknownAccount
-		}
+	buyerID, err := resolveSeasonCommerceCustody(ctx, tx, "user", request.Buyer, cause.season)
+	if err != nil {
 		return refundCover{}, err
 	}
-	treasuryID, err := resolveTitheTreasury(ctx, tx)
+	seasonStr := cause.season.String()
+	if seasonStr == "" {
+		seasonStr = commercedomain.CompatSeasonKey
+	}
+	treasuryID, err := resolveTitheTreasury(ctx, tx, seasonStr)
 	if err != nil {
 		return refundCover{}, err
 	}
@@ -252,7 +253,8 @@ func coverRefundShares(ctx context.Context, tx pgx.Tx, cause refundableCause, re
 // debit of the tithe reversal and the buyer credit of their sum.
 // A zero side writes no leg (the journal CHECK refuses 0); dust
 // with a broke provider moves only the tithe, and a fully broke
-// dust refund moves nothing with a NULL transfer.
+// dust refund moves nothing with a NULL transfer. The legs carry
+// the original book.
 func recordRefundLegs(ctx context.Context, tx pgx.Tx, transferID string, cover refundCover, cause refundableCause) error {
 	type leg struct {
 		custody   string
@@ -269,11 +271,15 @@ func recordRefundLegs(ctx context.Context, tx pgx.Tx, transferID string, cover r
 	if cover.moved+cause.tithe > 0 {
 		legs = append(legs, leg{cover.buyerID, "credit", cover.moved + cause.tithe})
 	}
+	seasonStr := cause.season.String()
+	if seasonStr == "" {
+		seasonStr = commercedomain.CompatSeasonKey
+	}
 	for _, l := range legs {
 		if _, err := tx.Exec(ctx,
-			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-			 VALUES ($1::uuid, $2::uuid, $3, $4)`,
-			transferID, l.custody, l.direction, l.millis); err != nil {
+			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+			 VALUES ($1::uuid, $2::uuid, $3, $4, $5)`,
+			transferID, l.custody, l.direction, l.millis, seasonStr); err != nil {
 			return fmt.Errorf("record refund legs: %w", err)
 		}
 	}
@@ -364,7 +370,8 @@ func isServiceRefundConflict(err error) bool {
 // and both rows share it, so a refund compensates whole or not at
 // all. A unique collision retries once through re-lookup, so
 // concurrent runs of one key resolve the single compensation
-// instead of reversing twice.
+// instead of reversing twice. The compensation reverses in the
+// original book and refuses after the seal.
 func (r *ServiceRefundRepository) createServiceRefund(ctx context.Context, request application.ServiceRefundRequest) (*application.ServiceRefundResult, bool, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -383,6 +390,9 @@ func (r *ServiceRefundRepository) createServiceRefund(ctx context.Context, reque
 	}
 	cause, err := readRefundableContract(ctx, tx, request)
 	if err != nil {
+		return nil, false, err
+	}
+	if err := requireCommerceBookActiveTx(ctx, tx, cause.season); err != nil {
 		return nil, false, err
 	}
 	cover, err := coverRefundShares(ctx, tx, cause, request)
