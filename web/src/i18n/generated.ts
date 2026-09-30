@@ -240,6 +240,16 @@ export const messageKeys = {
     "transparency.document.period",
     "transparency.document.updated",
     "transparency.document.value",
+    "transparency.metrics.circulation",
+    "transparency.metrics.crumbs",
+    "transparency.metrics.irr",
+    "transparency.metrics.irr_unavailable",
+    "transparency.metrics.r4",
+    "transparency.metrics.supply",
+    "transparency.metrics.suppressed",
+    "transparency.metrics.title",
+    "transparency.metrics.treasury",
+    "transparency.metrics.window",
   ] as const,
 } as const;
 
@@ -469,6 +479,16 @@ export type MessageKey =
   | "transparency.document.period"
   | "transparency.document.updated"
   | "transparency.document.value"
+  | "transparency.metrics.circulation"
+  | "transparency.metrics.crumbs"
+  | "transparency.metrics.irr"
+  | "transparency.metrics.irr_unavailable"
+  | "transparency.metrics.r4"
+  | "transparency.metrics.supply"
+  | "transparency.metrics.suppressed"
+  | "transparency.metrics.title"
+  | "transparency.metrics.treasury"
+  | "transparency.metrics.window"
 ;
 
 /** Named placeholders per message key: the exact values one translation accepts. */
@@ -697,6 +717,16 @@ export const messagePlaceholders = Object.freeze({
   "transparency.document.period": ["end", "start", "timezone"],
   "transparency.document.updated": ["at", "version"],
   "transparency.document.value": [],
+  "transparency.metrics.circulation": ["total"],
+  "transparency.metrics.crumbs": ["heads", "total"],
+  "transparency.metrics.irr": ["ratio"],
+  "transparency.metrics.irr_unavailable": [],
+  "transparency.metrics.r4": ["epoch", "total"],
+  "transparency.metrics.supply": ["total"],
+  "transparency.metrics.suppressed": [],
+  "transparency.metrics.title": [],
+  "transparency.metrics.treasury": ["total"],
+  "transparency.metrics.window": ["end", "start"],
 } as const satisfies Readonly<Record<string, readonly string[]>>);
 
 /** Localized messages per locale per key. */
@@ -926,6 +956,16 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.document.period": "Period: {start} – {end} ({timezone})",
     "transparency.document.updated": "Updated at {at} · methodology v{version}",
     "transparency.document.value": "Value",
+    "transparency.metrics.circulation": "In circulation: {total} thousandths of INK",
+    "transparency.metrics.crumbs": "Crumbs granted: {total} thousandths of INK to {heads} accounts",
+    "transparency.metrics.irr": "Real reflux index: {ratio}",
+    "transparency.metrics.irr_unavailable": "Real reflux index: unavailable (no outflows in the period)",
+    "transparency.metrics.r4": "R4 reference for week {epoch}: {total} thousandths of INK",
+    "transparency.metrics.supply": "Total supply (S): {total} thousandths of INK",
+    "transparency.metrics.suppressed": "Low count withheld to reduce reidentification",
+    "transparency.metrics.title": "Crumbs and reflux — weekly aggregate",
+    "transparency.metrics.treasury": "Treasury: {total} thousandths of INK",
+    "transparency.metrics.window": "Sealed window: {start} – {end} (UTC)",
   }),
   "pt-BR": Object.freeze({
     "arenas.document.gone.detail": "Esta Arena foi removida pela moderação e não está mais disponível.",
@@ -1152,5 +1192,15 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.document.period": "Período: {start} – {end} ({timezone})",
     "transparency.document.updated": "Atualizado em {at} · metodologia v{version}",
     "transparency.document.value": "Valor",
+    "transparency.metrics.circulation": "Em circulação: {total} milésimos de INK",
+    "transparency.metrics.crumbs": "Migalhas concedidas: {total} milésimos de INK para {heads} contas",
+    "transparency.metrics.irr": "Índice de refluxo real: {ratio}",
+    "transparency.metrics.irr_unavailable": "Índice de refluxo real: indisponível (sem saídas no período)",
+    "transparency.metrics.r4": "Referência R4 da semana {epoch}: {total} milésimos de INK",
+    "transparency.metrics.supply": "Oferta total (S): {total} milésimos de INK",
+    "transparency.metrics.suppressed": "Contagem baixa omitida para reduzir reidentificação",
+    "transparency.metrics.title": "Migalhas e refluxo — agregado semanal",
+    "transparency.metrics.treasury": "Tesouro: {total} milésimos de INK",
+    "transparency.metrics.window": "Janela selada: {start} – {end} (UTC)",
   }),
 });
