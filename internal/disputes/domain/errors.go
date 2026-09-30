@@ -48,8 +48,27 @@ const (
 	// the award never exceeds the declared value.
 	CodeBeyondContract ErrorCode = "DISPUTES_BEYOND_CONTRACT"
 	// CodeDuplicateAppeal names a second appeal over one ruling:
-	// the previste recurso opens once.
+	// the previsto recurso opens once.
 	CodeDuplicateAppeal ErrorCode = "DISPUTES_DUPLICATE_APPEAL"
+	// CodeInvalidSettlement names a malformed settlement entry: a
+	// blank claim key, a non-positive value or amount, an unknown
+	// origin or verdict, a ruling bound to other terms, or a payee
+	// that does not follow the verdict.
+	CodeInvalidSettlement ErrorCode = "DISPUTES_INVALID_SETTLEMENT"
+	// CodeNoEscrow names a proposal without pledged escrow: there
+	// is nothing to release, and no external account is ever
+	// debited instead.
+	CodeNoEscrow ErrorCode = "DISPUTES_NO_ESCROW"
+	// CodeAlreadyReleased names a new release over drained custody:
+	// the escrow releases once, never twice.
+	CodeAlreadyReleased ErrorCode = "DISPUTES_ALREADY_RELEASED"
+	// CodeNotFinal names a ruling that cannot authorize a release
+	// yet: inside the appeal window, or under appeal.
+	CodeNotFinal ErrorCode = "DISPUTES_NOT_FINAL"
+	// CodeSettlementConflict names a divergent claim under a
+	// recorded key: replays return the custody unchanged, conflicts
+	// refuse instead of paying twice.
+	CodeSettlementConflict ErrorCode = "DISPUTES_SETTLEMENT_CONFLICT"
 )
 
 // DomainError represents an invariant or rule failure in the disputes domain.
@@ -149,5 +168,38 @@ var (
 	ErrDuplicateAppeal = DomainError{
 		Code:    CodeDuplicateAppeal,
 		Message: "one appeal per ruling: a second appeal over the same ruling refuses",
+	}
+	// ErrInvalidSettlement refuses a settlement entry that cannot
+	// name its custody: the entry needs a claim key, a positive
+	// amount, a payee following the verdict and a ruling bound to
+	// the same sealed terms.
+	ErrInvalidSettlement = DomainError{
+		Code:    CodeInvalidSettlement,
+		Message: "settlement entry needs a claim key, a positive amount and a payee following an authorized outcome of the same sealed terms",
+	}
+	// ErrNoEscrow refuses to open custody without pledged escrow:
+	// no external account is ever debited instead.
+	ErrNoEscrow = DomainError{
+		Code:    CodeNoEscrow,
+		Message: "no pledged escrow, no custody: proposals without escrow never debit an external account",
+	}
+	// ErrAlreadyReleased refuses a new release over drained custody:
+	// the escrow releases once, never twice.
+	ErrAlreadyReleased = DomainError{
+		Code:    CodeAlreadyReleased,
+		Message: "escrow releases once: new releases over drained custody refuse",
+	}
+	// ErrNotFinal refuses a ruling that cannot authorize a release
+	// yet: the appeal window must lapse with no appeal pending.
+	ErrNotFinal = DomainError{
+		Code:    CodeNotFinal,
+		Message: "only final rulings authorize a release: inside the appeal window, or under appeal, nothing releases",
+	}
+	// ErrSettlementConflict refuses a divergent claim under a
+	// recorded key: replays return the custody unchanged, conflicts
+	// refuse instead of paying twice.
+	ErrSettlementConflict = DomainError{
+		Code:    CodeSettlementConflict,
+		Message: "recorded claim keys never pay twice: replays return the custody unchanged, divergent claims conflict",
 	}
 )
