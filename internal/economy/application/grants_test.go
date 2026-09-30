@@ -17,11 +17,11 @@ type stubGrantPolicy struct {
 	err     error
 }
 
-func (s *stubGrantPolicy) GenesisHappened(_ context.Context) (bool, error) {
+func (s *stubGrantPolicy) GenesisHappened(_ context.Context, _ domain.SeasonKey) (bool, error) {
 	return s.genesis, s.err
 }
 
-func (s *stubGrantPolicy) TreasuryStock(_ context.Context) (domain.MilliInk, error) {
+func (s *stubGrantPolicy) TreasuryStock(_ context.Context, _ domain.SeasonKey) (domain.MilliInk, error) {
 	return s.stock, s.err
 }
 

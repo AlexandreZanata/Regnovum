@@ -10,21 +10,30 @@ import (
 // ConvertCommand converts one recorded opt-in: account, charter version
 // and the rate the caller honors, which must equal the recorded terms
 // exactly. The quantity converted is the recorded one, never a new
-// amount smuggled in the call.
+// amount smuggled in the call. Season names the Treasury book that
+// pays: empty binds the explicitly inactive compat-legacy namespace
+// for the legacy path, any other book needs an explicit seasonal
+// reset acknowledgement or the conversion is refused.
 type ConvertCommand struct {
-	AccountID string
-	Charter   string
-	RateNum   int64
-	RateDen   int64
+	AccountID         string
+	Charter           string
+	RateNum           int64
+	RateDen           int64
+	Season            string
+	ResetAcknowledged bool
 }
 
 // ConversionResult is the settled conversion: the Genesis transfer that
 // paid the holder and the converted amount, with replay marking the
-// retries that resolved the original settlement.
+// retries that resolved the original settlement. Season and SeasonEndsAt
+// identify the paying book and its exclusive end: the receipt never
+// leaves its book, and the legacy intent is consumed globally once.
 type ConversionResult struct {
-	TransferID string
-	Converted  domain.MilliInk
-	Replayed   bool
+	TransferID   string
+	Converted    domain.MilliInk
+	Replayed     bool
+	Season       domain.SeasonKey
+	SeasonEndsAt time.Time
 }
 
 // OptInTermsView is the recorded intent the conversion matches against.
@@ -51,11 +60,14 @@ type ConversionRepository interface {
 
 // ConversionRequest carries the caller-honored rate for agreement
 // checking: the adapter loads the recorded terms transactionally and
-// matches them exactly before moving anything.
+// matches them exactly before moving anything. Season is the paying
+// book; ResetAcknowledged proves the seasonal disclosure was shown.
 type ConversionRequest struct {
-	AccountID string
-	Charter   domain.CharterVersion
-	Rate      domain.ConversionRate
+	AccountID         string
+	Charter           domain.CharterVersion
+	Rate              domain.ConversionRate
+	Season            domain.SeasonKey
+	ResetAcknowledged bool
 }
 
 // ConvertUseCase settles one recorded opt-in without creating value. It
@@ -82,6 +94,16 @@ func (uc *ConvertUseCase) Execute(ctx context.Context, cmd ConvertCommand) (*Con
 	}
 	rate, err := domain.ParseConversionRate(cmd.RateNum, cmd.RateDen)
 	if err != nil {
+		return nil, err
+	}
+	season := domain.SeasonKey(domain.CompatSeasonKey)
+	if cmd.Season != "" {
+		season, err = domain.ParseSeasonKey(cmd.Season)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := domain.RequireSeasonalReset(season, cmd.ResetAcknowledged); err != nil {
 		return nil, err
 	}
 	consent, err := uc.consents.FindConsent(ctx, cmd.AccountID, charter)
@@ -112,8 +134,10 @@ func (uc *ConvertUseCase) Execute(ctx context.Context, cmd ConvertCommand) (*Con
 		return nil, err
 	}
 	return uc.conversions.Convert(ctx, ConversionRequest{
-		AccountID: cmd.AccountID,
-		Charter:   charter,
-		Rate:      rate,
+		AccountID:         cmd.AccountID,
+		Charter:           charter,
+		Rate:              rate,
+		Season:            season,
+		ResetAcknowledged: cmd.ResetAcknowledged,
 	})
 }
