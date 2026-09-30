@@ -6,7 +6,7 @@
 
 ## 1. Princípio
 
-Goyim Arena modera conduta e categorias de conteúdo proibido, não qual lado de uma controvérsia deve vencer. Neutralidade aqui significa aplicar a mesma regra a casos equivalentes; não significa manter todo conteúdo no ar.
+Regnovum modera conduta e categorias de conteúdo proibido, não qual lado de uma controvérsia deve vencer. Neutralidade aqui significa aplicar a mesma regra a casos equivalentes; não significa manter todo conteúdo no ar.
 
 ## 2. Conteúdo geralmente permitido
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 func TestTargetTypeVocabulary(t *testing.T) {
@@ -60,5 +60,24 @@ func TestReportContextBounds(t *testing.T) {
 	}
 	if _, err := domain.ParseReportContext("valid context with reason"); err != nil {
 		t.Fatalf("valid context: %v", err)
+	}
+}
+
+func TestReportContextExactBoundAndControlBytes(t *testing.T) {
+	t.Parallel()
+
+	// A context of exactly MaxReportContextLength is valid; NUL and DEL
+	// are never content, even beside the allowed tab and newline
+	// (mutation gate: report.go:126,130).
+	if _, err := domain.ParseReportContext(strings.Repeat("x", domain.MaxReportContextLength)); err != nil {
+		t.Fatalf("2000-char context: %v", err)
+	}
+	for _, input := range []string{"with\x00nul", "with\x7fdel"} {
+		if _, err := domain.ParseReportContext(input); !errors.Is(err, domain.ErrInvalidContext) {
+			t.Fatalf("context %q error = %v, want ErrInvalidContext", input, err)
+		}
+	}
+	if _, err := domain.ParseReportContext("tab\there and\nnewline"); err != nil {
+		t.Fatalf("tab/newline context: %v", err)
 	}
 }

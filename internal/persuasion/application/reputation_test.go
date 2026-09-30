@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/application"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
 )
 
 const reputationAuthorRaw = "018f6b2a-0000-7000-8000-0000000000a1"
@@ -167,6 +167,20 @@ func TestAuthorReputationValidateRejectsIncoherentProjections(t *testing.T) {
 		ArenaID: zeroArena, Category: "technology", Language: "pt-BR", DistinctPeople: 2, ValidAttributions: 3,
 	}).Validate(); err != nil {
 		t.Fatalf("valid projection rejected: %v", err)
+	}
+
+	// Zero is a fact and equality is coherent: the fences refuse only
+	// below zero and strictly above the events (mutation gate:
+	// reputation.go:145,148).
+	if err := mustAuthorReputation(t, application.ArenaReputation{
+		ArenaID: zeroArena, Category: "technology", Language: "pt-BR", DistinctPeople: 0, ValidAttributions: 0,
+	}).Validate(); err != nil {
+		t.Fatalf("zeroed arena rejected: %v", err)
+	}
+	if err := mustAuthorReputation(t, application.ArenaReputation{
+		ArenaID: zeroArena, Category: "technology", Language: "pt-BR", DistinctPeople: 2, ValidAttributions: 2,
+	}).Validate(); err != nil {
+		t.Fatalf("equal counts rejected: %v", err)
 	}
 }
 

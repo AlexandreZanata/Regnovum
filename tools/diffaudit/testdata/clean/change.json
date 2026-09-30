@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaaa2",
+      "message": "docs(ci): describe the diff gate",
+      "files": [
+        { "status": "M", "path": "docs/CI.md" },
+        { "status": "M", "path": "Makefile" }
+      ]
+    }
+  ]
+}

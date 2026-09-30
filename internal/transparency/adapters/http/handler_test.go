@@ -13,12 +13,12 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	adapterhttp "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/adapters/http"
-	transparencypg "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	adapterhttp "github.com/AlexandreZanata/Regnovum/internal/transparency/adapters/http"
+	transparencypg "github.com/AlexandreZanata/Regnovum/internal/transparency/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/application"
 )
 
 func setupTransparencyHarness(t *testing.T) (http.Handler, *pgxpool.Pool) {

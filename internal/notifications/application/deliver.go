@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 // DeliverRequest is one transactional email to compose and deliver. The

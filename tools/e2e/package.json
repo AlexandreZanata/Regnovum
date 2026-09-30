@@ -1,8 +1,8 @@
 {
-  "name": "@goyim-arena/e2e",
+  "name": "@regnovum/e2e",
   "version": "0.0.0",
   "private": true,
-  "description": "Browser end-to-end tooling of Goyim Arena (P18-T07). Isolated on purpose: it is never a dependency of web/, never part of the delivered build, and it is refused in production.",
+  "description": "Browser end-to-end tooling of Regnovum (P18-T07). Isolated on purpose: it is never a dependency of web/, never part of the delivered build, and it is refused in production.",
   "type": "module",
   "engines": {
     "node": ">=24"

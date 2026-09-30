@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
 )
 
 // GetPublicArenaUseCase resolves a public Arena by its slug. Drafts are never

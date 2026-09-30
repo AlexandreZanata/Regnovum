@@ -1,0 +1,26 @@
+{
+  "metering": {
+    "quote": {
+      "title": "INK metering price",
+      "total": "{total} thousandths of INK for {units} graphemes",
+      "expires": "Acceptance valid until {date}",
+      "confirm": "Confirm publication",
+      "retry": "Request a new quote"
+    },
+    "receipt": {
+      "title": "INK receipt",
+      "total": "{total} thousandths of INK for {units} graphemes",
+      "posted": "Posted {date}",
+      "refunded": "Refunded {date}"
+    },
+    "statement": {
+      "title": "INK statement",
+      "balance": "Balance: {total} thousandths of INK",
+      "empty": "No publications yet"
+    },
+    "failure": {
+      "title": "Charge unavailable",
+      "detail": "Check the data and request a new quote."
+    }
+  }
+}

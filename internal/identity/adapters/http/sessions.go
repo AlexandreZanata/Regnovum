@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
 // maxSessionBodyBytes bounds the revocation body: it is a session identifier

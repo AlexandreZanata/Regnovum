@@ -15,15 +15,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	persuasionhttp "github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/adapters/http"
-	persuasionpg "github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
+	persuasionhttp "github.com/AlexandreZanata/Regnovum/internal/persuasion/adapters/http"
+	persuasionpg "github.com/AlexandreZanata/Regnovum/internal/persuasion/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/application"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
 const (

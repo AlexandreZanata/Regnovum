@@ -19,8 +19,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
 // Sessions is the identity capability this adapter consumes: the use case that

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
 )
 
 // ModerationAuthorizer verifies that the acting account may moderate

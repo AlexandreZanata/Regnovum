@@ -19,10 +19,10 @@ import (
 	"strings"
 	"testing"
 
-	arenashtml "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/html"
-	identityhtml "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/html"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/assets"
-	transparencyhttp "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/adapters/http"
+	arenashtml "github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/html"
+	identityhtml "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/html"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
+	transparencyhttp "github.com/AlexandreZanata/Regnovum/internal/transparency/adapters/http"
 )
 
 // dataBlockType is the only script type a server-rendered page may carry. The

@@ -59,7 +59,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
 )
 
 // Action is one challenged operation of the product. Actions are stable names:
@@ -269,7 +269,10 @@ type Config struct {
 	// RedeemedCapacity is how many redeemed tokens are remembered at most.
 	// Zero means DefaultRedeemedCapacity.
 	RedeemedCapacity int
-	// Now is the clock, for tests. Nil means time.Now.
+	// Now is the clock. Nil means the system clock, read through the package
+	// that owns that effect; a test injects its own source instead, so that the
+	// single-use window of a challenge is decided against an instant the test
+	// chose rather than against the machine it runs on.
 	Now func() time.Time
 }
 

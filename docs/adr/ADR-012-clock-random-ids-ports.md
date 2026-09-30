@@ -1,6 +1,6 @@
 # ADR-012 — Ports de clock, aleatoriedade e identificadores
 
-**Status:** aceito
+**Status:** aceito em parte — a forma do portão de efeitos e a regra sobre stubs determinísticos foram revistas pelo [ADR-015](ADR-015-deterministic-test-sources.md)
 
 **Data:** 2026-09-16
 
@@ -16,7 +16,7 @@ Criar o package `internal/ports` com três interfaces pequenas e orientadas ao c
 - `Random` — `Read([]byte) (int, error)` sobre fonte criptográfica;
 - `IDGenerator` — `NewID() string` opaco e resistente a colisão.
 
-As implementações de produção ficam em `internal/platform/clockseed`: `System` (relógio real arredondado ao microssegundo), `CryptoRandom` (leitor `crypto/rand`) e `RandomIDs` (128 bits de entropia + timestamp de segundo + checksum, URL-safe, seguro para concorrência). Stubs determinísticos são definidos junto de cada teste, nunca compartilhados globalmente. Nenhum service locator: construtores e casos de uso recebem os ports como parâmetros comuns.
+As implementações de produção ficam em `internal/platform/clockseed`: `System` (relógio real arredondado ao microssegundo), `CryptoRandom` (leitor `crypto/rand`) e `RandomIDs` (128 bits de entropia + timestamp de segundo + checksum, URL-safe, seguro para concorrência). Stubs determinísticos vivem em `internal/platform/testsource`, alcançáveis somente de arquivos de teste — o portão de arquitetura prova o fecho, e por isso eles podem ser compartilhados sem virarem estado global (ver [ADR-015](ADR-015-deterministic-test-sources.md)). Nenhum service locator: construtores e casos de uso recebem os ports como parâmetros comuns.
 
 A partir desta decisão, a busca `rg 'time\.Now|rand\.' internal` só admite ocorrências em adapters documentados e `internal/platform` (hoje `clockseed`); o teste `internal/architecture_test.go` passa a enforcement automático.
 

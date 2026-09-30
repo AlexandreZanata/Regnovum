@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
 )
 
 type fakeDocumentRepo struct {

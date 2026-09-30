@@ -1,7 +1,14 @@
-# Goyim Arena
+# Regnovum
 
-Goyim Arena é uma plataforma pública de debates estruturados que mede mudanças de
+Regnovum é uma plataforma pública de debates estruturados que mede mudanças de
 opinião e os argumentos que contribuíram para elas.
+
+**Nome público:** Regnovum (decisão de 2026-09-23). Identificadores técnicos já
+implantados — caminho local do repositório, URL remota, módulo Go, binário `arena`,
+variáveis `ARENA_*`, tags de imagem e nomes de serviços — permanecem como estão.
+A interface e os emails ainda podem exibir a marca anterior; esta mudança é
+documental, não uma migração do runtime. A [direção constitucional do Reino](docs/reino/README.md)
+continua separada do comportamento atualmente entregue.
 
 O backend está implementado: o binário `arena`, a plataforma de browser em
 TypeScript nativo, o PostgreSQL 18 com o ledger de INK e os gates de verificação
@@ -15,6 +22,7 @@ registro das decisões em [docs/GOVERNANCE.md](docs/GOVERNANCE.md).
 
 - [Índice da documentação](docs/README.md) — a ordem de precedência e todos os documentos.
 - [Visão do produto](docs/PRODUCT.md), [Constituição](docs/CONSTITUTION.md) e [Regras de negócio](docs/BUSINESS_RULES.md).
+- [Diretrizes do Reino](docs/reino/README.md) e [Carta Econômica](docs/reino/CARTA_ECONOMICA.md) — direção futura ainda não implantada.
 - [Arquitetura](docs/ARCHITECTURE.md), [backend](docs/BACKEND.md) e [frontend](docs/FRONTEND.md).
 - [Stack](docs/STACK.md), [CI](docs/CI.md) e [rastreabilidade dos requisitos](docs/REQUIREMENTS.md).
 - [Deploy](docs/DEPLOYMENT.md), [runbooks](docs/RUNBOOKS.md) e [backup](docs/DEPLOYMENT.md).

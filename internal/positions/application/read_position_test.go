@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/application"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 func TestGetMyPositionReturnsTheOwnerProjection(t *testing.T) {

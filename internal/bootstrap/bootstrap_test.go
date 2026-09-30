@@ -13,10 +13,10 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/assets"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
 )
 
 // manifestFixture is the asset build the composition needs. It is loaded from

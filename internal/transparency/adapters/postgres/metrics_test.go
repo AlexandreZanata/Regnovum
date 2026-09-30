@@ -12,11 +12,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	transparencypg "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	transparencypg "github.com/AlexandreZanata/Regnovum/internal/transparency/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/application"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/domain"
 )
 
 func TestMetricsReconstructFromSources(t *testing.T) {
@@ -165,7 +165,6 @@ func TestMetricsReconstructFromSources(t *testing.T) {
 
 	// Passes: six purchased lots of two, six member lots of one, six
 	// consumptions in window.
-	var purchaseLots []pgtype.UUID
 	for i := 0; i < 6; i++ {
 		var lotID pgtype.UUID
 		if err := pool.QueryRow(ctx, `
@@ -174,7 +173,6 @@ func TestMetricsReconstructFromSources(t *testing.T) {
 			RETURNING id`, authors[i].ID, fmt.Sprintf("metrics-purchase-%d", i), inWindow).Scan(&lotID); err != nil {
 			t.Fatalf("seed purchase lot: %v", err)
 		}
-		purchaseLots = append(purchaseLots, lotID)
 		if _, err := pool.Exec(ctx, `
 			INSERT INTO app.arena_pass_lots (account_id, origin, quantity, remaining_quantity, reference, expires_at, created_at)
 			VALUES ($1, 'MEMBER', 1, 1, $2, $3, $3)`, authors[i].ID, fmt.Sprintf("metrics-member-%d", i), inWindow); err != nil {
@@ -327,7 +325,7 @@ func transparencyRepoRoot(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("read go.mod: %v", err)
 	}
-	if !strings.Contains(string(data), "module github.com/AlexandreZanata/Goyim-Arena") {
+	if !strings.Contains(string(data), "module github.com/AlexandreZanata/Regnovum") {
 		t.Fatalf("go.mod does not declare the arena module")
 	}
 	return root

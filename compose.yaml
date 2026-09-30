@@ -1,4 +1,4 @@
-# Development-only Compose for Goyim Arena (P03-T01).
+# Development-only Compose for Regnovum (P03-T01).
 #
 # Isolation policy:
 #   - image pinned by patch version (never :latest, never floating);

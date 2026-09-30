@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 // GetWalletBalanceUseCase answers the derived balance query of the owner.

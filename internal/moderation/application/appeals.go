@@ -10,7 +10,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // AppealStatus is the review lifecycle the repository reports.

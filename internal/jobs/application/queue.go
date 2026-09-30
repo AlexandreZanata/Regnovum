@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 // Clock exposes the current instant. It is a local port (the application layer

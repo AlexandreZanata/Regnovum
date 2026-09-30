@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/assets"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
 )
 
 // The build under test, written the way cmd/assetgen writes one: the same bytes

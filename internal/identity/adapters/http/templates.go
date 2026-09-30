@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/websurface"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/websurface"
 )
 
 // The landing pages of the transactional links (P04-T08) are documents a person

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
 )
 
 // GetArenaFeedCommand holds the optional feed filters and pagination

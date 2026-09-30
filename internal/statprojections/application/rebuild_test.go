@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/statprojections/application"
+	"github.com/AlexandreZanata/Regnovum/internal/statprojections/application"
 )
 
 type fakeRepository struct {

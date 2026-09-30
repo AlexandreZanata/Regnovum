@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/application"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 const (
@@ -69,7 +69,6 @@ type fakeTx struct {
 	stored  map[string]*domain.DebatePosition
 	changes []domain.PositionChange
 	updates []updateCall
-	inserts int
 }
 
 type fakeTxKey struct{}

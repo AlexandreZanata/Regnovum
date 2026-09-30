@@ -10,7 +10,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // defaultBuckets are the duration buckets of every histogram in the registry.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dev role lifecycle for Goyim Arena (P03-T03, development only).
+# Dev role lifecycle for Regnovum (P03-T03, development only).
 #
 # Provisions or rotates the login credential of the application runtime
 # role (arena_app) and the operational roles (arena_backup,

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 func TestParseReasonValidCases(t *testing.T) {

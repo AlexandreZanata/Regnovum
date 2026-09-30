@@ -12,8 +12,8 @@ import (
 	"errors"
 	"fmt"
 
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	jobsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	jobsdomain "github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 // ErrMissingDependency reports a handler composed without the use case it runs

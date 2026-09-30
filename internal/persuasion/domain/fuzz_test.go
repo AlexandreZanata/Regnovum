@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
 )
 
 // fuzzCandidate builds one candidate from a deterministic token: the fuzz

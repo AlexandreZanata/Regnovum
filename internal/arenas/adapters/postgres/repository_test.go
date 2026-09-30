@@ -12,12 +12,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 func uuidString(u pgtype.UUID) string {

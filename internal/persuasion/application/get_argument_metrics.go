@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
 )
 
 // GetArgumentMetricsQuery addresses the counts of one argument.

@@ -25,7 +25,7 @@ func placeholdersOf(t *testing.T, message string) []string {
 func TestPseudoMessagePreservesPlaceholders(t *testing.T) {
 	t.Parallel()
 
-	source := "{subject} — Goyim Arena ({count} replies, up to {max})"
+	source := "{subject} — Regnovum ({count} replies, up to {max})"
 	derived := PseudoMessage(source)
 
 	if got, want := placeholdersOf(t, derived), placeholdersOf(t, source); !equalStrings(got, want) {
@@ -78,8 +78,8 @@ func TestPseudoDerivationIsDeterministicAndLeavesTheSourceAlone(t *testing.T) {
 	t.Parallel()
 
 	source := map[string]string{
-		"arenas.document.page_title": "{subject} — Goyim Arena",
-		"auth.brand":                 "Goyim Arena",
+		"arenas.document.page_title": "{subject} — Regnovum",
+		"auth.brand":                 "Regnovum",
 	}
 	before := map[string]string{}
 	for key, message := range source {

@@ -15,7 +15,7 @@ import (
 
 // Link-time variables. The Makefile/CI injects real values with, for example:
 //
-//	go build -ldflags "-X github.com/AlexandreZanata/Goyim-Arena/internal/buildinfo.version=1.2.3 ..."
+//	go build -ldflags "-X github.com/AlexandreZanata/Regnovum/internal/buildinfo.version=1.2.3 ..."
 //
 // Unset values keep the zero values below, which the fallbacks normalize
 // to the development defaults.

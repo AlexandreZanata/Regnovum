@@ -22,7 +22,8 @@
 #   ARENA_IMAGE             unused by the drill (it runs the binaries it builds)
 #   ARENA_DRILL_REPORT      where the report is written (default docs/DISASTER_DRILL.md)
 #   ARENA_DRILL_KEEP        when set, the work directory is kept for inspection
-#   ARENA_BACKUP_S3_IMAGE   the S3-compatible store to run (default: the MinIO digest)
+#   ARENA_BACKUP_S3_IMAGE   the S3-compatible store to run (default: the MinIO
+#                           digest, pulled from quay.io, where MinIO publishes it)
 set -euo pipefail
 
 TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,7 +34,7 @@ COMPOSE_FILE="compose.production.yaml"
 PROJECT="arena-drill-$$"
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/arena-drill-XXXXXX")"
 NETWORK="${PROJECT}-net"
-S3_IMAGE="${ARENA_BACKUP_S3_IMAGE:-minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e}"
+S3_IMAGE="${ARENA_BACKUP_S3_IMAGE:-quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e}"
 BUCKET="arena-backups"
 PREFIX="arena"
 S3_USER="arena-backup"

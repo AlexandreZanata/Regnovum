@@ -10,7 +10,7 @@ import (
 	"html/template"
 	"io"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/websurface"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/websurface"
 )
 
 // documentTemplateSrc renders the public Arena document. Void elements are
@@ -31,7 +31,7 @@ const documentTemplateSrc = `<!DOCTYPE html>
 	<meta property="og:description" content="{{.Description}}" />
 	<meta property="og:url" content="{{.Canonical}}" />
 	<meta property="og:locale" content="{{.OGLocale}}" />
-	<meta property="og:site_name" content="Goyim Arena" />
+	<meta property="og:site_name" content="Regnovum" />
 	<script type="application/ld+json">{{.JSONLD}}</script>
 </head>
 <body>
@@ -68,7 +68,7 @@ type DocumentData struct {
 	// locale of the document (I18N standard: the Arena uses its
 	// content_language in metadata and in the main content).
 	Lang string
-	// PageTitle is the localized "{subject} — Goyim Arena" pattern.
+	// PageTitle is the localized "{subject} — Regnovum" pattern.
 	PageTitle string
 	// Statement and Context are user content, escaped by html/template.
 	Statement string

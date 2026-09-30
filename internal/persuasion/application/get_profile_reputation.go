@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
 )
 
 // errMissingCanonicalUsername reports an adapter that resolved a username

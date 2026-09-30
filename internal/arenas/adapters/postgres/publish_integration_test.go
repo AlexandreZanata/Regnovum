@@ -10,16 +10,16 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/billingpass"
-	arenaspg "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/postgres"
-	arenasapp "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	billingpg "github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/postgres"
-	billingapp "github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	billingdomain "github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/billingpass"
+	arenaspg "github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/postgres"
+	arenasapp "github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	billingpg "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/postgres"
+	billingapp "github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	billingdomain "github.com/AlexandreZanata/Regnovum/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // grantPass seeds one valid bought Arena Pass for the creator.

@@ -34,21 +34,21 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/postgres"
-	arenasapp "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	arenasdomain "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/argon2id"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/fakeemail"
-	identitypostgres "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/postgres"
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbpool"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
-	walletpostgres "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/adapters/postgres"
-	walletapp "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
-	walletdomain "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/postgres"
+	arenasapp "github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	arenasdomain "github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/argon2id"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/fakeemail"
+	identitypostgres "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/postgres"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbpool"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
+	walletpostgres "github.com/AlexandreZanata/Regnovum/internal/wallet/adapters/postgres"
+	walletapp "github.com/AlexandreZanata/Regnovum/internal/wallet/application"
+	walletdomain "github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 const usage = `e2e-seed prepares the state the browser journeys of tools/e2e start from.
@@ -77,9 +77,14 @@ func main() {
 	}
 }
 
+// errUsage is the sentinel of a bad invocation: the usage text is printed on the
+// output, and the error says what is missing without carrying the whole manual.
+var errUsage = errors.New("invalid invocation")
+
 func run(args []string, stdout io.Writer) error {
 	if len(args) == 0 {
-		return errors.New("a subcommand is required\n\n" + usage)
+		fmt.Fprint(stdout, usage)
+		return fmt.Errorf("%w: a subcommand is required", errUsage)
 	}
 
 	switch args[0] {
@@ -91,7 +96,8 @@ func run(args []string, stdout io.Writer) error {
 		fmt.Fprintln(stdout, usage)
 		return nil
 	default:
-		return fmt.Errorf("unknown subcommand %q\n\n%s", args[0], usage)
+		fmt.Fprint(stdout, usage)
+		return fmt.Errorf("%w: unknown subcommand %q", errUsage, args[0])
 	}
 }
 

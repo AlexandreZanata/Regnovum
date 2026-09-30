@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/profiling"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/profiling"
 )
 
 func TestHandlerExposesProfilesOnThePrivateSurface(t *testing.T) {

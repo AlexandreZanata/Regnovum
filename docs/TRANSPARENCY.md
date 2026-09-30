@@ -4,7 +4,7 @@
 
 ## 1. Objetivo
 
-A transparência do Goyim Arena deve permitir que uma pessoa entenda o que as métricas significam, como o conteúdo é ordenado e quando uma regra mudou, sem expor dados pessoais ou facilitar abuso.
+A transparência do Regnovum deve permitir que uma pessoa entenda o que as métricas significam, como o conteúdo é ordenado e quando uma regra mudou, sem expor dados pessoais ou facilitar abuso.
 
 ## 2. Página pública
 

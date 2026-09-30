@@ -3,7 +3,7 @@ package html
 import (
 	"net/http"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
 )
 
 func init() {

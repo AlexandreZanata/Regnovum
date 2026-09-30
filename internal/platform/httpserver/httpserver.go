@@ -1,4 +1,4 @@
-// Package httpserver owns the transport lifecycle of Goyim Arena (P02-T05):
+// Package httpserver owns the transport lifecycle of Regnovum (P02-T05):
 // a hardened net/http server with explicit timeouts, a bounded header size,
 // graceful shutdown driven by a context, and the health endpoints required
 // by the plan.
@@ -24,11 +24,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httplimits"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/requestid"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httplimits"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/requestid"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // Default hardening values. They are constants, not configuration, because

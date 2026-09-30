@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
-	stripeadapter "github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/stripe"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
+	stripeadapter "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/stripe"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
 )
 
 // stubSecret is the credential the stub provider expects. It is deliberately

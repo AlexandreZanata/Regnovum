@@ -1,4 +1,4 @@
-# Caddy origin for Goyim Arena (P19-T03).
+# Caddy origin for Regnovum (P19-T03).
 #
 # Cloudflare terminates the visitor's TLS and connects to this process, so this
 # file answers one question: what may the process that speaks to the internet

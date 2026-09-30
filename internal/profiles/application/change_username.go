@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 // ChangeUsernameCommand holds the parameters for claiming a new username.

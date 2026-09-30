@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/emailsink"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/emailsink"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // fixedClock is the delivery instant the tests assert, so a message documents

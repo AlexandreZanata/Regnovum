@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // DefaultTouchThreshold is the minimum duration that must elapse before writing an updated last_seen_at

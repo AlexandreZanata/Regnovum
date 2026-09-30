@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // IssueEmailVerificationCommand holds the email address requesting a verification link.

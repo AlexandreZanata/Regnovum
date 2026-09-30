@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/application"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 // Sender satisfies the identity module's email port by queueing the message

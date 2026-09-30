@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18ngen"
+	"github.com/AlexandreZanata/Regnovum/internal/i18ngen"
 )
 
 // writeTree materializes a locales tree from locale -> filename -> content.

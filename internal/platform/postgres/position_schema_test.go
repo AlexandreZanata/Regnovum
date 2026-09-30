@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // TestPositionSchemaConstraints proves the P09-T01 invariants: one initial

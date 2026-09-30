@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 // Clock exposes wall-clock time to profiles use cases, keeping the domain

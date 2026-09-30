@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/adapters/localesource"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/adapters/localesource"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/application"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 const accountID = "018f6b2a-0000-7000-8000-000000000070"

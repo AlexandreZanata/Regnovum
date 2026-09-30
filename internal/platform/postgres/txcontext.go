@@ -52,6 +52,12 @@ func NewTxManager(pool *pgxpool.Pool) *TxManager {
 // WithinTransaction begins a transaction, runs fn with its context and
 // commits only when fn returns nil; any error (including a panic-free
 // failure inside fn) rolls the whole transaction back.
+//
+// A fault armed with WithTxFault fires after fn succeeds: FailBeforeCommit
+// refuses the commit so every write rolls back, and FailAfterCommit commits
+// for real and then reports ErrInjectedTxFault, which is exactly the
+// after-commit uncertainty (the commit may have landed) that idempotent
+// operations must survive.
 func (m *TxManager) WithinTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	tx, err := m.pool.Begin(ctx)
 	if err != nil {
@@ -63,8 +69,14 @@ func (m *TxManager) WithinTransaction(ctx context.Context, fn func(ctx context.C
 		return err
 	}
 
+	if txFaultFromContext(ctx) == TxFaultBeforeCommit {
+		return ErrInjectedTxFault
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("postgres: commit shared transaction: %w", err)
+	}
+	if txFaultFromContext(ctx) == TxFaultAfterCommit {
+		return ErrInjectedTxFault
 	}
 	return nil
 }

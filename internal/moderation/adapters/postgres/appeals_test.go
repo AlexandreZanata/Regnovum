@@ -9,11 +9,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // mustDecidedSuspension sanctions the owner with a suspension through the

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbpool"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbpool"
 )
 
 func TestConfigValidation(t *testing.T) {

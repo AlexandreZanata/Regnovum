@@ -6,8 +6,8 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/text"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/text"
 )
 
 // runeCounter is the deterministic fake used for structural tests; the

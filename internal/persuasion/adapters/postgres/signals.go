@@ -7,9 +7,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/application"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // LoadAbuseSignalFacts aggregates, inside the half-open window

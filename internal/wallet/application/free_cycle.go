@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 // PeriodRenewal describes one processed free-cycle period. Replayed marks a

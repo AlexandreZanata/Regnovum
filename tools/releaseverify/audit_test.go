@@ -22,7 +22,7 @@ func head(t *testing.T) string {
 	command := exec.Command("git", "-C", repositoryRoot, "rev-parse", "HEAD")
 	output, err := command.Output()
 	if err != nil {
-		t.Skipf("this suite needs a git checkout: %v", err)
+		t.Fatalf("this suite reads the history of the checkout it runs in: %v", err)
 	}
 	return strings.TrimSpace(string(output))
 }
@@ -567,7 +567,7 @@ func TestOneMutationPerRule(t *testing.T) {
 func TestADeclaredOverlayWithItsDigestIsAccepted(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join(repositoryRoot, "docs/PRIVACY_AUDIT.md"))
 	if err != nil {
-		t.Skipf("this control needs a committed document to overlay: %v", err)
+		t.Fatalf("this control overlays the committed document, which is part of the tree: %v", err)
 	}
 	facts := fixture(t)
 	facts.Checkout.Kind += " com sobreposição"
@@ -586,7 +586,7 @@ func TestADeclaredOverlayWithItsDigestIsAccepted(t *testing.T) {
 func TestAPageOverTheCommitIsAdmitted(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join(repositoryRoot, "README.md"))
 	if err != nil {
-		t.Skipf("this control needs the root page: %v", err)
+		t.Fatalf("this control reads the root page of the commit, which is part of the tree: %v", err)
 	}
 	facts := fixture(t)
 	facts.Checkout.Kind += " com sobreposição"
@@ -603,7 +603,7 @@ func TestAPageOverTheCommitIsAdmitted(t *testing.T) {
 func TestTheDeliveredChecklistIsJudgedAsItIs(t *testing.T) {
 	path := filepath.Join(repositoryRoot, documentPath)
 	if _, err := os.Stat(path); err != nil {
-		t.Skipf("the checklist is not committed yet: %v", err)
+		t.Fatalf("the checklist is a committed document and this control judges it as it is: %v", err)
 	}
 	document, err := ReadDocument(path)
 	if err != nil {

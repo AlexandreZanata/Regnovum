@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/adapters/operatorbridge"
-	moderationapp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	moderationdomain "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/operatorbridge"
+	moderationapp "github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	moderationdomain "github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // roleStub answers the one question the bridge asks. It embeds the port so the

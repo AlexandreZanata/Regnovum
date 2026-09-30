@@ -22,10 +22,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/requestid"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/requestid"
 )
 
 // mediaType is the RFC 9457 problem media type mandated by the master plan.

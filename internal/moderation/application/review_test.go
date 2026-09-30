@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 type fakeCases struct {

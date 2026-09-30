@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 func validJob(t *testing.T) domain.Job {

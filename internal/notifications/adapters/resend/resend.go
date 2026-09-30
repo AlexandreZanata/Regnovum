@@ -24,9 +24,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/application"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
 )
 
 // The provider endpoint path and the transport defaults.

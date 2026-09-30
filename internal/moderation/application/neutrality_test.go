@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // mirroredPairs holds ideologically inverted statements with equal
@@ -263,7 +263,7 @@ func repositoryRoot(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("read go.mod: %v", err)
 	}
-	if !strings.Contains(string(data), "module github.com/AlexandreZanata/Goyim-Arena") {
+	if !strings.Contains(string(data), "module github.com/AlexandreZanata/Regnovum") {
 		t.Fatalf("go.mod does not declare the arena module")
 	}
 	return root

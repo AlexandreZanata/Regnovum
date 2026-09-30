@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 // RetentionHoldSelection is what the job tells the repository about the

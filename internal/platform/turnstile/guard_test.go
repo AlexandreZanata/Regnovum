@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clientip"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/turnstile"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clientip"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/turnstile"
 )
 
 // recordingVerifier is a Verifier that answers whatever the test told it to and

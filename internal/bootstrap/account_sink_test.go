@@ -18,14 +18,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/emailsink"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/emailsink"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 )
 
 // readSinkMessages is a reader from outside the process under test: it knows

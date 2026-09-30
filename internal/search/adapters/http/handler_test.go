@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	adapterhttp "github.com/AlexandreZanata/Goyim-Arena/internal/search/adapters/http"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/search/application"
+	adapterhttp "github.com/AlexandreZanata/Regnovum/internal/search/adapters/http"
+	"github.com/AlexandreZanata/Regnovum/internal/search/application"
 )
 
 type arenaRepo struct{}

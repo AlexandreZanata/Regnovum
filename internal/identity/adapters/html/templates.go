@@ -30,8 +30,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/assets"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/websurface"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/websurface"
 )
 
 // Logical names of the assets the pages load, as produced by cmd/assetgen

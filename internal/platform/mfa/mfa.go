@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // Errors of the mechanism. They are sentinels because the caller (a use case)

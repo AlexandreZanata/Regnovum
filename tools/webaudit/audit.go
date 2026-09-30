@@ -46,8 +46,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/assets"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 )
 
 // The initial budgets of docs/FRONTEND.md section 11, read as decimal

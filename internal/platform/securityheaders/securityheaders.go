@@ -1,4 +1,4 @@
-// Package securityheaders owns the browser security policy of Goyim Arena
+// Package securityheaders owns the browser security policy of Regnovum
 // (P16-T01): one middleware carries the policy on every response the arena
 // binary emits, so no route can opt out — not the module handlers, not the
 // health endpoints, not the 404 of an unknown path.

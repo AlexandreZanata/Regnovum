@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
 )
 
 // argumentCursorVersion prefixes every cursor payload so a future layout can

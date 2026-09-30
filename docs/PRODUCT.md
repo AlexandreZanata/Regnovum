@@ -6,7 +6,7 @@
 
 ## Resumo
 
-Goyim Arena é uma plataforma pública de debates estruturados. Uma Arena começa com uma afirmação clara. A pessoa registra se concorda, discorda ou está indecisa; depois explora argumentos dos diferentes lados e pode registrar mudanças de posição. Ao mudar, pode indicar até três argumentos que contribuíram para a mudança.
+Regnovum é uma plataforma pública de debates estruturados. Uma Arena começa com uma afirmação clara. A pessoa registra se concorda, discorda ou está indecisa; depois explora argumentos dos diferentes lados e pode registrar mudanças de posição. Ao mudar, pode indicar até três argumentos que contribuíram para a mudança.
 
 A unidade social central não é curtida nem número de seguidores. É **pessoas que declararam ter mudado de opinião e reconheceram argumentos que contribuíram para isso**.
 
@@ -22,7 +22,7 @@ Discussões online comuns misturam popularidade, identidade, velocidade e entret
 
 ## Proposta de valor
 
-Para quem quer compreender ou participar de uma controvérsia, Goyim Arena organiza uma afirmação, posições e argumentos em um histórico público, permitindo observar mudanças de opinião e atribuir influência a argumentos específicos.
+Para quem quer compreender ou participar de uma controvérsia, Regnovum organiza uma afirmação, posições e argumentos em um histórico público, permitindo observar mudanças de opinião e atribuir influência a argumentos específicos.
 
 ## Público inicial recomendado
 
@@ -65,11 +65,11 @@ Essa escolha é uma estratégia de lançamento, não uma restrição permanente 
 
 ## Posicionamento editorial
 
-Goyim Arena hospeda o processo de argumentação; não arbitra a verdade de uma afirmação. Isso não significa ausência de regras: fraude, ameaça, doxxing, assédio, spam, ilegalidade e manipulação coordenada continuam sujeitos a intervenção.
+Regnovum hospeda o processo de argumentação; não arbitra a verdade de uma afirmação. Isso não significa ausência de regras: fraude, ameaça, doxxing, assédio, spam, ilegalidade e manipulação coordenada continuam sujeitos a intervenção.
 
 ## Não objetivos
 
-Goyim Arena não pretende, no MVP:
+Regnovum não pretende, no MVP:
 
 - produzir pesquisas representativas;
 - encontrar consenso automaticamente;

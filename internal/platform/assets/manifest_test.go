@@ -7,7 +7,7 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/assets"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
 )
 
 const manifestJSON = `{"version":1,"assets":{"main.js":{"path":"/assets/main-abc123.js","sha256":"abc123"}}}`

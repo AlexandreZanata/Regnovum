@@ -33,11 +33,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbpool"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbpool"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
 )
 
 const administrationUsage = `arena admin administers the installation from the host.

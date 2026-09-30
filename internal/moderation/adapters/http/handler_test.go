@@ -14,14 +14,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	adapterhttp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/adapters/http"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
+	adapterhttp "github.com/AlexandreZanata/Regnovum/internal/moderation/adapters/http"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
 const (

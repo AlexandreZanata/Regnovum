@@ -4,6 +4,8 @@
 package localized
 
 // localizedDocument is the shape the rules must accept.
+//
+//lint:ignore U1000 o analisador não vê o leitor: o i18naudit lê este literal como documento e é dele que sai a prova de que as regras aceitam
 const localizedDocument = `<!DOCTYPE html>
 <html lang="{{.Lang}}" dir="{{dir .Lang}}">
 <head>

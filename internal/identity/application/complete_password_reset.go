@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // CompletePasswordResetCommand holds the parameters required to reset an account's password.

@@ -28,7 +28,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
 )
 
 //go:embed products.json

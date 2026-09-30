@@ -1,13 +1,25 @@
 {
   "transparency": {
     "document": {
-      "page_title": "Transparency — Goyim Arena",
+      "page_title": "Transparency — Regnovum",
       "heading": "Platform transparency",
       "period": "Period: {start} – {end} ({timezone})",
       "updated": "Updated at {at} · methodology v{version}",
       "methodology": "Aggregated metrics per period; counts below 5 are suppressed to reduce reidentification.",
       "metric": "Metric",
       "value": "Value"
+    },
+    "metrics": {
+      "title": "Crumbs and reflux — weekly aggregate",
+      "supply": "Total supply (S): {total} thousandths of INK",
+      "treasury": "Treasury: {total} thousandths of INK",
+      "circulation": "In circulation: {total} thousandths of INK",
+      "r4": "R4 reference for week {epoch}: {total} thousandths of INK",
+      "crumbs": "Crumbs granted: {total} thousandths of INK to {heads} accounts",
+      "irr": "Real reflux index: {ratio}",
+      "irr_unavailable": "Real reflux index: unavailable (no outflows in the period)",
+      "window": "Sealed window: {start} – {end} (UTC)",
+      "suppressed": "Low count withheld to reduce reidentification"
     }
   }
 }

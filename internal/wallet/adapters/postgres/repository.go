@@ -16,9 +16,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/application"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 // Repository implements the wallet application ports using PostgreSQL.

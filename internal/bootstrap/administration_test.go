@@ -28,12 +28,12 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	moderationapp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	moderationapp "github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
 )
 
 func administrationLogger() *slog.Logger {

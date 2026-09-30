@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 func TestExportSchemaVersionIsPinned(t *testing.T) {

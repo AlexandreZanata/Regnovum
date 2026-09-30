@@ -1,0 +1,4401 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "QUAL-REQ-AUTH-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Cadastro de conta com email e senha forte (Argon2id) e login com emissão de token opaco em cookie seguro (HttpOnly, Secure, SameSite=Lax).",
+      "risk": "Q0",
+      "modules": [
+        "internal/identity"
+      ],
+      "actors": [
+        "visitor",
+        "account"
+      ],
+      "states": [
+        "registered",
+        "verified",
+        "session"
+      ],
+      "tests": {
+        "positive": [
+          "internal/identity/application/usecases_test.go::TestRegisterAccount_SuccessAndVerification",
+          "internal/identity/application/session_test.go::TestLoginSuccessAndSessionIssuance",
+          "internal/identity/adapters/argon2id/hasher_test.go::TestHashAndVerifySuccess"
+        ],
+        "negative": [
+          "internal/identity/application/usecases_test.go::TestRegisterAccount_WeakPasswordAndInvalidEmail",
+          "internal/identity/adapters/argon2id/hasher_test.go::TestVerifyWrongPassword"
+        ],
+        "limit": [
+          "internal/identity/adapters/http/auth_http_test.go::TestThrottledLoginIsRefusedBeforeTheUseCase"
+        ],
+        "authorization": [
+          "internal/identity/application/session_test.go::TestLoginAccountStatusRestrictions"
+        ],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O cadastro é aberto e a conta suspensa é recusada antes de qualquer sessão ser emitida.",
+      "concurrency": "O cadastro é uma inserção única sob a chave do email e o login não escreve a conta.",
+      "idempotency": "Cada login emite uma sessão nova por desenho, então repetir não é uma repetição sem efeito.",
+      "security": "Argon2id com sal único para a senha e token opaco de 256 bits em cookie HttpOnly, Secure e SameSite.",
+      "privacy": "Somente o email é tocado, e a resposta não revela se ele já existe.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "concurrency": "O cadastro é uma inserção única sob a chave do email e o login não escreve a conta, então não há duas escritas concorrentes nesta regra",
+        "idempotency": "Cada login emite sessão nova por desenho, então repetir tem efeito e não há chave de idempotência nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-AUTH-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Verificação de email via token criptográfico de uso único com validade limitada; apenas contas verificadas participam ativamente.",
+      "risk": "Q0",
+      "modules": [
+        "internal/identity"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "pending",
+        "verified"
+      ],
+      "tests": {
+        "positive": [
+          "internal/identity/application/usecases_test.go::TestRegisterAccount_SuccessAndVerification"
+        ],
+        "negative": [
+          "internal/identity/application/usecases_test.go::TestVerifyEmail_ReplayProtection",
+          "internal/identity/application/usecases_test.go::TestVerifyEmail_ExpiredToken"
+        ],
+        "limit": [
+          "internal/identity/application/usecases_test.go::TestVerifyEmail_ExpiredToken"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/identity/application/usecases_test.go::TestIssueEmailVerification_ReissuanceInvalidatesPreviousToken",
+          "internal/identity/adapters/postgres/repository_test.go::TestRepository_ReissuanceInvalidatesPreviousTokens"
+        ],
+        "failure": []
+      },
+      "authorization": "A posse do token de uso único é a autorização da jornada, que não tem papel a conferir.",
+      "concurrency": "A reemissão substitui o token anterior numa escrita sob a chave da conta, sem leitura disputada.",
+      "idempotency": "Reemitir invalida o token anterior e reusar o consumido é recusado.",
+      "security": "Token criptográfico de uso único, guardado por hash e com validade curta.",
+      "privacy": "A confirmação não expõe a terceiros se o email já estava confirmado.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "O token de uso único é a própria autorização, então não há papel nem escopo de terceiro nesta regra",
+        "concurrency": "A reemissão e o consumo escrevem sob a chave da conta e do token, então não há duas escritas concorrentes nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-AUTH-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Gerenciamento de sessões ativas com rotação compulsória de token após login/elevação e encerramento voluntário (logout) de sessão atual e de outras sessões.",
+      "risk": "Q0",
+      "modules": [
+        "internal/identity"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "session",
+        "rotated",
+        "revoked"
+      ],
+      "tests": {
+        "positive": [
+          "internal/identity/application/session_test.go::TestRotateSession",
+          "internal/identity/application/session_test.go::TestLogoutCurrentAndAllSessions"
+        ],
+        "negative": [
+          "internal/identity/adapters/http/sessions_http_test.go::TestSessionRotationEndsTheOldTokenAndIssuesANewOne"
+        ],
+        "limit": [
+          "internal/identity/application/session_test.go::TestAuthenticateSessionLifecycleAndThrottling"
+        ],
+        "authorization": [
+          "internal/identity/adapters/http/sessions_http_test.go::TestSessionRevocationEndsOnlyTheAddressedSession"
+        ],
+        "concurrency": [
+          "internal/identity/adapters/http/sessions_http_test.go::TestSessionRevocationIsAtomicUnderConcurrency"
+        ],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a conta titular lê, rotaciona e revoga as próprias sessões, e a revogação exige a senha.",
+      "concurrency": "A revogação é atômica sob concorrência e a rotação consome o token anterior na mesma transação.",
+      "idempotency": "O token consumido não autentica de novo, então repetir exige uma sessão nova.",
+      "security": "Token opaco com hash no banco, rotação no login e revogação de todas as sessões no logout.",
+      "privacy": "A listagem marca a sessão chamadora e nunca devolve o token.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "idempotency": "A rotação consome o token anterior, então repetir com o token velho é a recusa que o negativo já prova e não há repetição neutra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-AUTH-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Recuperação de conta via link seguro com token de uso único, com respostas que não revelam se o email existe na base (prevenção de enumeração).",
+      "risk": "Q0",
+      "modules": [
+        "internal/identity"
+      ],
+      "actors": [
+        "visitor",
+        "account"
+      ],
+      "states": [
+        "requested",
+        "consumed",
+        "expired"
+      ],
+      "tests": {
+        "positive": [
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection"
+        ],
+        "negative": [
+          "internal/identity/application/password_reset_test.go::TestRequestPasswordReset_AntiEnumeration",
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_ExpiredTokenRejection",
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_SuspendedAccountRejection"
+        ],
+        "limit": [
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_ExpiredTokenRejection"
+        ],
+        "authorization": [
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_SuspendedAccountRejection"
+        ],
+        "concurrency": [
+          "internal/identity/adapters/postgres/password_reset_test.go::TestRepository_PasswordResetConcurrentRace"
+        ],
+        "idempotency": [
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection",
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_ReissuanceInvalidatesPreviousToken"
+        ],
+        "failure": []
+      },
+      "authorization": "O pedido é anônimo e a confirmação exige o token do titular, com conta suspensa recusada.",
+      "concurrency": "Duas confirmações com o mesmo token são resolvidas pela corrida do repositório: uma consome, a outra recusa.",
+      "idempotency": "Reemitir invalida o token anterior, e o consumo é único.",
+      "security": "Token CSPRNG guardado por hash, de uso único, com validade curta e resposta anti-enumeração.",
+      "privacy": "A resposta não revela se o email existe, e a nova senha não passa por log.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-PROF-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Definição e alteração de username público único, validado sintaticamente, sem caracteres de controle ou termos reservados.",
+      "risk": "Q1",
+      "modules": [
+        "internal/profiles"
+      ],
+      "actors": [
+        "account",
+        "visitor"
+      ],
+      "states": [
+        "created",
+        "changed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/profiles/application/usecases_test.go::TestCreateProfileUseCase",
+          "internal/profiles/application/usecases_test.go::TestChangeUsernameUseCase"
+        ],
+        "negative": [
+          "internal/profiles/adapters/postgres/repository_test.go::TestRepository_CreateProfileRejectsDuplicates"
+        ],
+        "limit": [
+          "internal/profiles/domain/username_test.go::TestParseUsernameBoundaryLimits"
+        ],
+        "authorization": [
+          "internal/profiles/adapters/postgres/repository_test.go::TestRepository_UsernameConcurrency"
+        ],
+        "concurrency": [
+          "internal/profiles/adapters/postgres/repository_test.go::TestRepository_ApplyUsernameChangeIsAtomic"
+        ],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a conta titular cria e troca o próprio username, e a troca é atômica com a verificação.",
+      "concurrency": "A unicidade do username é decidida sob concorrência pelo repositório, que recusa a corrida.",
+      "idempotency": "A troca aplica uma vez, sob a chave da conta, e repetir não aplica duas vezes.",
+      "security": "O username é validado sintaticamente, sem caracteres de controle nem termos reservados.",
+      "privacy": "O username é público por desenho e não carrega nenhum outro dado da conta.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-PROF-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Configuração de locale e idioma de preferência do usuário (suporte inicial a pt-BR e en-US).",
+      "risk": "Q1",
+      "modules": [
+        "internal/profiles"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "preferred"
+      ],
+      "tests": {
+        "positive": [
+          "internal/profiles/application/usecases_test.go::TestChangeLocaleUseCase",
+          "internal/profiles/adapters/localesource/source_test.go::TestResolverPrecedenceWithProfileSource"
+        ],
+        "negative": [
+          "internal/profiles/domain/locale_test.go::TestParseLocaleInvalidAndUnsupported"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/profiles/adapters/postgres/repository_test.go::TestRepository_UpdateProfileLocale"
+        ],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a conta titular altera a própria preferência, que o resolvedor lê a cada requisição.",
+      "concurrency": "A troca é uma escrita sob a chave do perfil, e a leitura do locale não escreve.",
+      "idempotency": "Aplicar a mesma preferência de novo deixa o estado idêntico.",
+      "security": "O locale é validado contra um vocabulário fechado, e entrada desconhecida é recusada.",
+      "privacy": "A preferência é dado privado do perfil e não vaza para resposta pública.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A preferência é um vocabulário fechado de dois locales, então não há limiar entre aceitar e recusar"
+      }
+    },
+    {
+      "id": "QUAL-REQ-PROF-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Exibição de página de perfil público contendo estritamente métricas factuais (argumentos, respostas, fontes, pessoas influenciadas únicas por arena).",
+      "risk": "Q2",
+      "modules": [
+        "internal/profiles"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "public"
+      ],
+      "tests": {
+        "positive": [
+          "internal/profiles/application/queries_test.go::TestGetPublicProfileUseCase",
+          "internal/persuasion/adapters/http/persuasion_http_test.go::TestPublicProfileReputation"
+        ],
+        "negative": [
+          "internal/profiles/adapters/http/profiles_http_test.go::TestPublicProfileNotFoundNeverEchoesInput"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A leitura pública é aberta e mostra apenas as métricas factuais do perfil.",
+      "concurrency": "A projeção é reconstruída na leitura, sem escrita concorrente.",
+      "idempotency": "A mesma leitura devolve o mesmo documento enquanto o estado não muda.",
+      "security": "A resposta monta os campos permitidos e nunca ecoa a entrada do cliente.",
+      "privacy": "Somente métricas factuais: nenhum identificador de conta, email ou posição individual.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-PRIV-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Exportação de dados pessoais do titular em formato legível por máquina (JSON) e solicitação de exclusão/anonimização de conta preservando integridade histórica do debate.",
+      "risk": "Q0",
+      "modules": [
+        "internal/profiles",
+        "internal/transparency"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "requested",
+        "held",
+        "anonymized"
+      ],
+      "tests": {
+        "positive": [
+          "internal/profiles/application/deletion_test.go::TestDeletionJourneyRequestCoolDownExecute",
+          "internal/profiles/adapters/postgres/deletion_test.go::TestAccountDeletionJourneyAnonymizesAndPreservesObligations"
+        ],
+        "negative": [
+          "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPOwnerIsolationAndUnknownRequest",
+          "internal/profiles/adapters/http/export_test.go::TestExportHTTPRejectsExpiredLinks"
+        ],
+        "limit": [
+          "internal/profiles/adapters/postgres/export_test.go::TestPersonalExportDownloadIsSingleUseOwnerScopedAndExpiring",
+          "internal/profiles/domain/deletion_test.go::TestDeletionCancellableStates"
+        ],
+        "authorization": [
+          "internal/profiles/application/export_test.go::TestPersonalExportDocumentsDoNotMixAccounts",
+          "internal/profiles/adapters/http/export_test.go::TestExportHTTPRequiresAuthAndStepUp"
+        ],
+        "concurrency": [],
+        "idempotency": [
+          "internal/profiles/adapters/postgres/export_test.go::TestPersonalExportDownloadIsSingleUseOwnerScopedAndExpiring"
+        ],
+        "failure": []
+      },
+      "authorization": "Só a conta titular pede, baixa e cancela, e o download exige step-up.",
+      "concurrency": "A jornada de exclusão é uma máquina de estados do próprio titular, com transições serializadas.",
+      "idempotency": "O download consome o token uma vez e repetir é recusado.",
+      "security": "O documento sai por link de uso único e expirável, com step-up exigido.",
+      "privacy": "O pacote reúne apenas os dados do próprio titular, e a exclusão anonimiza preservando obrigações.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "concurrency": "A jornada é de um único titular e cada passo troca o estado serialmente, então não há duas escritas concorrentes da mesma jornada"
+      }
+    },
+    {
+      "id": "QUAL-REQ-DISC-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Feed público de arenas segregado por idioma com suporte a paginação keyset ordenada por data de publicação.",
+      "risk": "Q2",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/application/feed_test.go::TestGetArenaFeedUseCasePaginatesWithoutDuplicatesOrGaps"
+        ],
+        "negative": [],
+        "limit": [],
+        "authorization": [
+          "internal/arenas/adapters/postgres/feed_integration_test.go::TestRepository_PublicFeedKeysetWithIdenticalTimestamps",
+          "internal/arenas/adapters/postgres/feed_integration_test.go::TestRepository_PublicFeedUsesIndexOnSyntheticVolume"
+        ],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A leitura é pública e não exige conta, e nenhum campo privado entra no feed.",
+      "concurrency": "A página é montada numa consulta keyset única, então duas leituras concorrentes não se afetam.",
+      "idempotency": "O mesmo cursor devolve a mesma página, sem duplicar nem pular itens.",
+      "security": "O filtro e o limite são tipados, e o limite é fixado no servidor.",
+      "privacy": "O feed publica título, slug, idioma e categoria, e nenhum identificador de conta.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "negative": "O requisito é uma leitura sem entrada do cliente além do cursor, e a recusa de cursor ou filtro inválido pertence ao contrato do feed coberto por REQ-DISC-03"
+      }
+    },
+    {
+      "id": "QUAL-REQ-DISC-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Página pública de arena indexável e semântica com metadados estruturados, afirmação, contexto e listagem de argumentos.",
+      "risk": "Q2",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published",
+        "closed",
+        "removed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/adapters/html/arenas_html_test.go::TestArenaDocumentRendersCacheableHTML",
+          "internal/arenas/adapters/html/arenas_html_test.go::TestArenaDocumentUsesContentLanguage"
+        ],
+        "negative": [
+          "internal/arenas/application/get_arena_document_test.go::TestGetArenaDocumentDistinguishesRemovedFromMissing"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A página é pública e indexável, sem exigir conta.",
+      "concurrency": "O documento é lido do estado gravado, sem escrita concorrente.",
+      "idempotency": "O mesmo slug devolve o mesmo documento enquanto o estado não muda.",
+      "security": "O HTML é renderizado do estado do servidor e o slug pedido nunca é refletido.",
+      "privacy": "O documento publica a afirmação e o contexto, sem dado pessoal de participante.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-DISC-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Filtros de listagem de arenas por categoria e por status de ciclo de vida (published, closed).",
+      "risk": "Q2",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published",
+        "closed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/adapters/http/arenas_http_test.go::TestArenaFeedHTTPPaginationAndFilters",
+          "internal/arenas/adapters/postgres/feed_integration_test.go::TestRepository_PublicFeedFiltersAndVisibility"
+        ],
+        "negative": [
+          "internal/arenas/application/feed_test.go::TestGetArenaFeedUseCaseClampsLimitsAndValidatesFilters"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A leitura é pública, e os filtros vêm do visitante e são validados antes da consulta.",
+      "concurrency": "Filtro e página cabem numa consulta única, sem escrita.",
+      "idempotency": "Repetir a mesma combinação de filtros devolve a mesma página.",
+      "security": "O limite é fixado no servidor, e o filtro não alcança o banco fora do vocabulário tipado.",
+      "privacy": "O filtro de status não expõe arena removida nem dado de conta.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-DISC-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Busca pública por título e afirmação, com paginação por cursor e exclusão de conteúdo moderado. Entregue além do mínimo: o MVP a listava como dispensável se o feed bastasse, e a fase 17-performance-scale a entregou com índice de texto completo; sem requisito, uma superfície entregue ficaria sem rastro.",
+      "risk": "Q2",
+      "modules": [
+        "internal/search"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "indexed",
+        "moderated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/search/application/search_test.go::TestSearchUseCasesValidateAndPaginate"
+        ],
+        "negative": [
+          "internal/search/adapters/http/handler_test.go::TestSearchHandlerRejectsInvalidInputAsProblemDetails",
+          "internal/search/adapters/postgres/repository_test.go::TestPublicSearchIndexedLanguageAndModerationExclusion"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A busca é pública e restrita ao idioma e à visibilidade do conteúdo.",
+      "concurrency": "A consulta é de leitura, sem escrita concorrente.",
+      "idempotency": "A mesma consulta devolve a mesma página.",
+      "security": "A entrada é validada como Problem Details antes da consulta parametrizada.",
+      "privacy": "O resultado exclui conteúdo moderado e não expõe posição individual.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-ARN-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Criação e edição de rascunhos (draft) de arena visíveis exclusivamente ao criador, sem consumir Arena Pass.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "draft"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/application/drafts_test.go::TestCreateArenaDraftUseCase"
+        ],
+        "negative": [
+          "internal/arenas/adapters/http/arenas_http_test.go::TestArenaDraftOwnerScoped"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só o criador lê e edita os próprios rascunhos.",
+      "concurrency": "A edição do rascunho é uma escrita por identificador, sem disputa de passe.",
+      "idempotency": "Editar o rascunho duas vezes aplica a última versão, sem consumir passe.",
+      "security": "O rascunho é privado e não aparece em nenhuma leitura pública.",
+      "privacy": "Um rascunho guarda a afirmação ainda não publicada e nenhum dado de terceiro.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "Rascunhos não têm limite de quantidade nem de tamanho próprio, então não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARN-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Publicação de arena com consumo atômico de exatamente 1 Arena Pass; transição atômica de draft para published.",
+      "risk": "Q0",
+      "modules": [
+        "internal/arenas",
+        "internal/billing"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "draft",
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaEndToEndAtomic"
+        ],
+        "negative": [
+          "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseWithoutPassRollsBack"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/arenas/adapters/http/arenas_http_test.go::TestArenaDraftOwnerScoped"
+        ],
+        "concurrency": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassConcurrentSameArena",
+          "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaConcurrent"
+        ],
+        "idempotency": [
+          "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseReplay"
+        ],
+        "failure": [
+          "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseWithoutPassRollsBack",
+          "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaSlugConflictRollsBackConsumption"
+        ]
+      },
+      "authorization": "Só o dono do rascunho publica, e a publicação consome um passe da própria conta.",
+      "concurrency": "Duas publicações concorrentes da mesma arena disputam o passe sob a chave da arena.",
+      "idempotency": "O replay da publicação é recusado e não consome um segundo passe.",
+      "security": "O consumo do passe e a transição de estado acontecem na mesma transação, com rollback integral.",
+      "privacy": "A publicação torna público o conteúdo do rascunho e nada mais da conta.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A publicação consome exatamente um passe, um valor fixo, então não há limiar a variar"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARN-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Definição de afirmação proposicional clara, contexto opcional, categoria, idioma e encerramento programado opcional.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "draft",
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/domain/statement_test.go::TestParseStatementValidCases"
+        ],
+        "negative": [
+          "internal/arenas/domain/statement_test.go::TestParseStatementRejectsInvalidPolicy"
+        ],
+        "limit": [
+          "internal/arenas/domain/statement_test.go::TestParseStatementBoundaries"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A afirmação é do autor, que responde por ela, e o idioma é declarado por ele.",
+      "concurrency": "A validação é de domínio sobre a entrada, sem estado compartilhado.",
+      "idempotency": "A mesma afirmação é parseada para o mesmo resultado.",
+      "security": "O idioma e o limite do enunciado são validados no servidor antes da gravação.",
+      "privacy": "A afirmação é pública por desenho e não carrega dado de terceiro.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-ARN-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Máquina de estados formal de arena com transições controladas: draft → published → closed / restricted / removed.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "account",
+        "moderator"
+      ],
+      "states": [
+        "draft",
+        "published",
+        "closed",
+        "restricted",
+        "removed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/domain/arena_test.go::TestArenaStatusTransitionsMatrix",
+          "internal/arenas/adapters/postgres/repository_test.go::TestRepository_CloseRestrictRemoveTransitions"
+        ],
+        "negative": [
+          "internal/arenas/application/status_test.go::TestCloseArenaUseCaseRejectsOtherStates"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Fechar exige a conta autora, e restringir ou remover exige a capacidade de moderação.",
+      "concurrency": "Duas transições concorrentes da mesma arena são serializadas pelo estado lido na transação.",
+      "idempotency": "Repetir a transição já aplicada é recusado pelo estado, não reaplicado.",
+      "security": "As transições são decididas no servidor, e o cliente apenas pede a mudança.",
+      "privacy": "O estado da arena é público e não carrega dado de titular.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A máquina de estados é categórica, então não há limiar entre aceitar e recusar a transição"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARN-05",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Imutabilidade absoluta da afirmação principal e de seu idioma após a publicação; proibição de edição pós-publicação no MVP.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "draft",
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/domain/arena_test.go::TestArenaPublishTransition"
+        ],
+        "negative": [
+          "internal/arenas/application/drafts_test.go::TestUpdateArenaDraftUseCaseRejectsNonDraft",
+          "internal/platform/postgres/arena_schema_test.go::TestArenaDraftEditingAndPublishedImmutability"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Depois de publicada, a afirmação não é editável por ninguém, nem pelo autor.",
+      "concurrency": "A leitura do estado na transação é o que separa rascunho editável de arena publicada.",
+      "idempotency": "A edição de rascunho é idempotente no estado resultante.",
+      "security": "A recusa de edição é do domínio e do schema, não da interface.",
+      "privacy": "A regra protege a integridade do texto público, sem tocar dado pessoal.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A imutabilidade é categórica — rascunho editável ou publicado imutável — e não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARN-06",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Identificação perene da arena por identificador estável imutável (UUID) complementado por slug amigável para URLs.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "account",
+        "visitor"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/domain/slug_test.go::TestSlugifyCompositionIsParseable",
+          "internal/arenas/application/publish_test.go::TestDeriveSlugIsStableAndBounded"
+        ],
+        "negative": [
+          "internal/arenas/adapters/html/arenas_html_test.go::TestArenaDocumentNeverReflectsRequestedSlug"
+        ],
+        "limit": [
+          "internal/arenas/application/publish_test.go::TestDeriveSlugIsStableAndBounded"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O identificador é do servidor e o slug é derivado dele, nunca do pedido do cliente.",
+      "concurrency": "O identificador é gravado na publicação e o slug é derivado uma vez.",
+      "idempotency": "Derivar o slug do mesmo identificador devolve sempre o mesmo slug.",
+      "security": "O slug pedido nunca é refletido na página, e o identificador é um UUID ordenável.",
+      "privacy": "O slug é público e não carrega dado de conta.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-ARN-07",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Exportação pública versionada dos dados e debates da arena em formato estruturado padronizado.",
+      "risk": "Q2",
+      "modules": [
+        "internal/arenas",
+        "internal/transparency"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published",
+        "removed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/transparency/adapters/postgres/export_test.go::TestExportReconstructsPublicArena"
+        ],
+        "negative": [
+          "internal/transparency/adapters/postgres/export_test.go::TestExportUnknownDraftAndRemovedArenasAreNotFound",
+          "internal/transparency/application/export_test.go::TestExportRefusesIncompleteComposition"
+        ],
+        "limit": [
+          "internal/transparency/application/export_test.go::TestExportSuppressesSmallSamples"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A exportação é pública e só existe para arena publicada.",
+      "concurrency": "A exportação reconstrói o estado a partir das fontes, numa leitura por cursor.",
+      "idempotency": "A reconstrução é determinística para o mesmo estado gravado.",
+      "security": "O esquema é versionado e fixado, e a exportação recusa cursor forjado.",
+      "privacy": "A exportação suprime amostras pequenas antes de publicar qualquer contagem.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-POS-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Escolha local e volátil de visitante para liberar visualização de agregados na sessão corrente, sem contabilização oficial no banco.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "local",
+        "revealed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForVisitorKeepsTheChoiceLocal",
+          "internal/arenas/adapters/html/participation_test.go::TestParticipationAggregateIsRevealedOnRequest"
+        ],
+        "negative": [
+          "internal/positions/domain/purity_test.go::TestPositionsDomainCarriesNoPlanOrPaymentWeight"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/positions/domain/purity_test.go::TestPositionsDomainCarriesNoPlanOrPaymentWeight"
+        ],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A escolha local é do visitante e não exige conta, nem cria registro oficial.",
+      "concurrency": "A escolha vive na sessão do browser, e não há escrita concorrente no servidor.",
+      "idempotency": "Repetir a escolha local apenas a substitui na sessão.",
+      "security": "A página decide o que revelar a partir da própria escolha, sem confiar em parâmetro de terceiro.",
+      "privacy": "A escolha do visitante não é gravada, e nenhum identificador de sessão é contado.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "Não há limiar nesta regra: a escolha é local e volátil, sem quantidade que a restrinja"
+      }
+    },
+    {
+      "id": "QUAL-REQ-POS-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Registro e confirmação autenticada de posição inicial oficial entre os valores fixos: agree, disagree e undecided.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "confirmed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRecordsTheFirstChoice",
+          "internal/positions/adapters/postgres/repository_test.go::TestConfirmInitialPositionEndToEnd"
+        ],
+        "negative": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionValidatesInputsWithoutTouchingPorts"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionResolvesLostInsertRaces"
+        ],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a conta elegível confirma a própria posição inicial.",
+      "concurrency": "A primeira escrita é decidida sob a chave da arena e do titular, e as corridas são resolvidas pelo repositório.",
+      "idempotency": "Confirmar a mesma posição de novo não reescreve o registro.",
+      "security": "O valor é validado contra o vocabulário de três posições antes de qualquer escrita.",
+      "privacy": "A posição é privada por padrão e só entra no agregado de forma anônima.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A posição inicial é um valor de um vocabulário fechado de três, então não há limiar entre aceitar e recusar"
+      }
+    },
+    {
+      "id": "QUAL-REQ-POS-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Unicidade e imutabilidade da posição inicial confirmada: cada participante possui no máximo uma posição inicial por arena, que nunca é reescrita.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "confirmed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionResolvesLostInsertRaces"
+        ],
+        "negative": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRefusesDifferentInitialValue"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionConcurrentDifferentValues"
+        ],
+        "idempotency": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionIsIdempotentOnRetry"
+        ],
+        "failure": []
+      },
+      "authorization": "Ninguém reescreve a posição inicial de outro titular: a chave é arena e titular.",
+      "concurrency": "Inserções simultâneas com valores diferentes são resolvidas pela chave única, com o teste de corridas.",
+      "idempotency": "A posição inicial é gravada uma vez e nunca reescrita, nem por repetição.",
+      "security": "A unicidade é imposta pelo schema, não apenas pelo caso de uso.",
+      "privacy": "O registro é da conta titular e só aparece agregado.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A unicidade é categórica: existe ou não existe a posição inicial, então não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-POS-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Posição individual e histórico de mudanças de posição são estritamente privados por padrão; o público visualiza apenas agregados.",
+      "risk": "Q0",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "private",
+        "aggregated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly"
+        ],
+        "negative": [
+          "internal/positions/adapters/http/positions_http_test.go::TestPositionsAPIIsOwnerScoped"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/positions/adapters/http/positions_http_test.go::TestPositionsAPIIsOwnerScoped"
+        ],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a conta titular lê a própria posição e o próprio histórico, e o público vê apenas o agregado.",
+      "concurrency": "As duas leituras não escrevem nada, então não disputam linha.",
+      "idempotency": "A leitura é pura e devolve o mesmo resultado enquanto o estado não muda.",
+      "security": "A resposta do titular é owner-scoped, e o agregado conta uma linha por titular elegível.",
+      "privacy": "Nenhum identificador de conta sai no agregado, e a posição individual nunca é pública.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A visibilidade é categórica por proprietário, então não há limiar nesta regra",
+        "concurrency": "As leituras de posição e de agregado não escrevem, então não há duas escritas concorrentes",
+        "idempotency": "A leitura não altera estado, então repetir não muda nada"
+      }
+    },
+    {
+      "id": "QUAL-REQ-POS-05",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Registro imutável de mudança de posição registrando posição anterior, nova posição e timestamp em trilha histórica append-only.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "changed",
+        "chained"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/application/change_position_test.go::TestChangePositionRecordsTheTransitionAtomically"
+        ],
+        "negative": [
+          "internal/positions/domain/change_test.go::TestNewPositionChangeValidatesTheHistoryEntry"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A mudança é da própria conta e exige posição vigente.",
+      "concurrency": "A mudança e o lançamento do histórico são gravados na mesma transação.",
+      "idempotency": "A cadeia é append-only e reconstruível por replay, então repetir não apaga elo.",
+      "security": "A transição é decidida no servidor, com versão verificada contra corrida.",
+      "privacy": "O histórico individual é privado e só o agregado é público.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A cadeia é append-only e sem orçamento de tamanho declarado, então não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-POS-06",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Bloqueio de mudança de posição para o mesmo valor atualmente mantido pelo participante.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "changed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/domain/debate_position_test.go::TestChangeToAppliesAcceptedTransitionsOnly"
+        ],
+        "negative": [
+          "internal/positions/application/change_position_test.go::TestChangePositionRefusesTheSamePositionWithoutTransaction"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a conta titular muda a própria posição.",
+      "concurrency": "A recusa acontece antes de qualquer transação, então não há corrida a resolver.",
+      "idempotency": "Repetir a mesma posição é recusado sem escrever nada.",
+      "security": "A regra é de domínio e roda antes do acesso ao banco.",
+      "privacy": "Nenhum dado novo é gravado nesta recusa.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A recusa é de igualdade entre a posição atual e a pedida, categórica, então não há limiar"
+      }
+    },
+    {
+      "id": "QUAL-REQ-POS-07",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Arenas com status closed não aceitam registro de novas posições nem mudanças de posições existentes.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "closed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/adapters/eligibility/eligibility_test.go::TestEnsureAcceptsPositionsAsksTheArenaDomain"
+        ],
+        "negative": [
+          "internal/positions/application/change_position_test.go::TestChangePositionRefusesClosedArenaWithoutWriting"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A elegibilidade é conferida contra o estado da arena no servidor.",
+      "concurrency": "A pré-condição é lida do estado da arena, e a transição segue serializada.",
+      "idempotency": "A recusa por arena fechada não escreve nada, nem em repetição.",
+      "security": "A decisão não confia em parâmetro do cliente, e sim no estado gravado.",
+      "privacy": "A recusa não toca dado pessoal.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "O estado da arena é categórico, aberta ou fechada, e não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-POS-08",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Exibição de agregados oficiais calculados exclusivamente a partir de contas elegíveis, contendo total de participantes e aviso metodológico de não representatividade.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "aggregated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateInvalidationExcludesAccounts",
+          "internal/positions/adapters/http/positions_http_test.go::TestPositionAggregateHTTPIsPublicAndCacheable"
+        ],
+        "negative": [
+          "internal/positions/application/get_position_aggregate_test.go::TestGetPositionAggregateValidatesPolicyAndQuery"
+        ],
+        "limit": [
+          "internal/positions/application/get_position_aggregate_test.go::TestGetPositionAggregateSuppressesSmallSamples"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O agregado é público e não revela quem votou o quê.",
+      "concurrency": "O agregado é projetado na leitura a partir das posições válidas.",
+      "idempotency": "A mesma leitura do agregado devolve a mesma projeção.",
+      "security": "O limiar metodológico é aplicado no servidor antes de responder.",
+      "privacy": "Conta apenas titulares elegíveis e suprime amostras pequenas antes de publicar.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-POS-09",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Bloqueio server-side de visualização da distribuição agregada de posições antes que o usuário registre sua própria escolha ou posição inicial.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "aggregated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForOwnerWithoutPositionOffersTheConfirmation"
+        ],
+        "negative": [
+          "internal/positions/application/get_position_aggregate_test.go::TestGetPositionAggregateValidatesPolicyAndQuery"
+        ],
+        "limit": [
+          "internal/positions/domain/aggregate_test.go::TestAggregatePolicyThreshold"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A distribuição só é servida a quem já registrou a própria escolha.",
+      "concurrency": "A decisão é de leitura, sem escrita concorrente.",
+      "idempotency": "A mesma consulta, no mesmo estado, decide o mesmo.",
+      "security": "O gate é server-side, e o cliente não escolhe se vê o agregado.",
+      "privacy": "A recusa não revela a distribuição nem quem já votou.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-POS-10",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Histórico pessoal de posição e de mudanças visível ao próprio participante, ao lado do agregado público.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "history"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/application/read_position_test.go::TestGetMyPositionReturnsTheOwnerProjection",
+          "internal/positions/application/read_position_test.go::TestListPositionChangesReturnsNewestFirst"
+        ],
+        "negative": [
+          "internal/positions/application/read_position_test.go::TestGetMyPositionValidatesInputs"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a conta titular lê o próprio histórico e a própria posição.",
+      "concurrency": "A leitura não escreve e devolve a cadeia como está gravada.",
+      "idempotency": "A mesma leitura devolve a mesma cadeia, ordenada do mais novo.",
+      "security": "A consulta é owner-scoped e paginada por cursor.",
+      "privacy": "O histórico individual é privado e nunca entra em resposta pública.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A leitura entrega a cadeia do titular sem limiar de amostra, então não há threshold nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARG-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Publicação de argumento associado a uma arena com declaração explícita de relação com a afirmação (a favor, contra, contextual).",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRecordsAtomically",
+          "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentEndToEndAtomic"
+        ],
+        "negative": [
+          "internal/arguments/domain/relation_test.go::TestParseRelationAcceptsOnlyCanonicalVocabulary"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a conta elegível publica na própria identidade.",
+      "concurrency": "A publicação grava o argumento numa transação sob a chave de idempotência.",
+      "idempotency": "A chave de idempotência impede a segunda publicação do mesmo envio.",
+      "security": "A relação é validada contra o vocabulário canônico antes de gravar.",
+      "privacy": "O argumento é público por desenho e carrega apenas o texto e as fontes.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A relação é um vocabulário fechado de três valores, então não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARG-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Publicação de respostas diretamente a outro argumento da mesma arena em estrutura lógica encadeada de 1 nível recursivo.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRepliesCarryTheirParent",
+          "internal/arguments/domain/reply_policy_test.go::TestReplyPolicyAcceptsOneRecursionLevel"
+        ],
+        "negative": [
+          "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRejectsDeepReplies"
+        ],
+        "limit": [
+          "internal/arguments/domain/reply_policy_test.go::TestReplyPolicyAcceptsOneRecursionLevel"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A resposta é publicada pela conta titular, referenciando o argumento pai.",
+      "concurrency": "A profundidade é decidida na transação, lendo o pai da mesma arena.",
+      "idempotency": "A resposta carrega o próprio identificador de idempotência.",
+      "security": "A recursão é limitada a um nível pelo domínio e pelo schema.",
+      "privacy": "A resposta é pública e não acrescenta dado de terceiro.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-ARG-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Adição de fontes estruturadas por URL válida e descrição curta, associadas ao argumento sem custo de INK, com validação de esquema de protocolo.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/domain/source_test.go::TestParseSourceCanonicalizesAndValidates"
+        ],
+        "negative": [
+          "internal/arguments/domain/source_test.go::TestReconstituteSourceValidatesStoredState"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "As fontes são do autor do argumento e não têm custo de INK.",
+      "concurrency": "As fontes entram na mesma transação da publicação do argumento.",
+      "idempotency": "A mesma URL é canonicalizada para a mesma fonte.",
+      "security": "O esquema de protocolo é validado e canonicalizado no domínio.",
+      "privacy": "A fonte é pública por desenho e não carrega dado de terceiro.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "As fontes não têm teto de quantidade nesta regra, então não há limiar a variar"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARG-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Limite estrito de no máximo 3.000 grapheme clusters de texto por argumento, computados com biblioteca precisa de segmentação Unicode.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/domain/content_test.go::TestParseContentNormalizesAndMeasures",
+          "internal/arguments/domain/content_test.go::TestParseContentUnicodeCorpus"
+        ],
+        "negative": [
+          "internal/arguments/domain/content_test.go::TestParseContentRejections"
+        ],
+        "limit": [
+          "internal/arguments/domain/content_test.go::TestParseContentRejections"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O conteúdo é do autor e medido antes de qualquer débito.",
+      "concurrency": "A medição é pura sobre o texto, sem estado compartilhado.",
+      "idempotency": "O mesmo texto normalizado mede sempre o mesmo.",
+      "security": "A contagem é de grapheme clusters, com biblioteca precisa de segmentação Unicode.",
+      "privacy": "O conteúdo é público por desenho e não carrega dado de terceiro.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-ARG-05",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Interface de prévia obrigatória e exibição do cálculo exato de custo em INK antes da confirmação de publicação pelo participante.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments",
+        "internal/wallet"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "previewed",
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/application/queries_test.go::TestGetWalletBalanceUseCase",
+          "internal/arenas/adapters/html/participation_test.go::TestPublishArgumentReportsAnEmptyBalanceOnTheField"
+        ],
+        "negative": [
+          "internal/wallet/domain/allocation_test.go::TestAllocateDebitPriority"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A prévia é do próprio titular, que vê o saldo e o custo antes de confirmar.",
+      "concurrency": "O saldo lido para a prévia é uma leitura, sem reservar INK.",
+      "idempotency": "Repetir a prévia mostra o mesmo custo para o mesmo conteúdo.",
+      "security": "O custo é calculado no servidor a partir do texto medido, nunca informado pelo cliente.",
+      "privacy": "A prévia mostra apenas o saldo e o custo do próprio titular.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A prévia é categórica quanto ao custo exato, então não há threshold de amostra nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARG-06",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Retirada voluntária de argumento da exibição pública pelo autor, mantendo o registro histórico e auditável sem estorno automático de INK.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "published",
+        "withdrawn"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/application/withdraw_argument_test.go::TestWithdrawArgumentRetractsForTheAuthor"
+        ],
+        "negative": [
+          "internal/arguments/application/withdraw_argument_test.go::TestWithdrawArgumentIsOwnerScoped"
+        ],
+        "limit": [
+          "internal/arguments/application/withdraw_argument_test.go::TestWithdrawArgumentValidatesInputsWithoutWriting"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só o autor retira o próprio argumento, e a retirada é owner-scoped.",
+      "concurrency": "A retirada é decidida contra o estado gravado e não estorna INK.",
+      "idempotency": "Retirar de novo o mesmo argumento não muda o estado nem o histórico.",
+      "security": "A retirada muda a exibição e mantém o registro histórico auditável.",
+      "privacy": "A retirada não apaga o texto nem as atribuições já registradas.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-ARG-07",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Imutabilidade do conteúdo publicado: argumentos e respostas não sofrem edição silenciosa no MVP.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments"
+      ],
+      "actors": [
+        "account",
+        "moderator"
+      ],
+      "states": [
+        "published",
+        "moderated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/platform/postgres/argument_schema_test.go::TestArgumentImmutabilityAndRetention",
+          "internal/arguments/domain/content_test.go::TestContentHashIsStableAcrossExecutions"
+        ],
+        "negative": [
+          "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentRejectsInvalidParents"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Ninguém edita o conteúdo: nem o autor, nem a moderação, que muda a exibição e não o texto.",
+      "concurrency": "A escrita do conteúdo acontece uma vez, na publicação.",
+      "idempotency": "O hash do conteúdo é estável entre execuções, o que prova a imutabilidade.",
+      "security": "Não existe rota de edição, e o contrato é comparado com as rotas registradas.",
+      "privacy": "O conteúdo é do autor e a moderação preserva o registro histórico.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A imutabilidade é categórica: o conteúdo é gravado uma vez e não reescrito"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ARG-08",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Ordenação padrão de listas de argumentos por data (recente/antiga); exibição de contagem de persuasão sem tornar-se o ranking padrão obrigatório.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/application/public_arguments_test.go::TestListArenaArgumentsPaginatesWithLookahead",
+          "internal/arguments/adapters/postgres/queries_test.go::TestPublicArgumentListsPaginateWithTiesAndCounts"
+        ],
+        "negative": [
+          "internal/arguments/application/public_arguments_test.go::TestListArenaArgumentsClampsLimitsAndValidatesInputs"
+        ],
+        "limit": [
+          "internal/arguments/application/public_arguments_test.go::TestListArenaArgumentsClampsLimitsAndValidatesInputs"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A leitura é pública e não exige conta.",
+      "concurrency": "A página é montada numa consulta única, sem escrita.",
+      "idempotency": "O mesmo cursor devolve a mesma página, com empates resolvidos pelo desempate estável.",
+      "security": "A ordenação cronológica é o padrão, e o contador de persuasão não é ranking obrigatório.",
+      "privacy": "A lista publica texto, fontes e contagens, sem posição individual.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-PERS-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Apresentação de convite contextual e opcional para atribuição de influência imediatamente após uma mudança de posição confirmada.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "changed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/adapters/html/participation_test.go::TestAttributionRecordsTheSelectionForTheChange",
+          "internal/persuasion/adapters/http/persuasion_http_test.go::TestRecordAttributionsJourney"
+        ],
+        "negative": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsValidatesInputsAndPropagatesFailures"
+        ],
+        "limit": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsAcceptsEmptyAndSmallSelections"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O convite é opcional e a atribuição é do próprio titular da mudança.",
+      "concurrency": "A seleção é gravada contra a mudança, sob a chave dela.",
+      "idempotency": "Repetir a seleção da mesma mudança não cria segunda atribuição.",
+      "security": "A seleção só é aceita contra uma mudança confirmada.",
+      "privacy": "Quem atribuiu permanece privado, e só totais válidos são exibidos.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-PERS-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Seleção de no mínimo zero e no máximo três argumentos que contribuíram para a mudança de posição do participante.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "changed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit"
+        ],
+        "negative": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections",
+          "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyRejectsViolations"
+        ],
+        "limit": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A seleção é da conta titular da mudança e limitada a três argumentos.",
+      "concurrency": "A gravação cresce até o limite sob a chave da mudança.",
+      "idempotency": "Repetir a mesma seleção não duplica atribuições.",
+      "security": "O limite de três é validado no domínio e no schema.",
+      "privacy": "As atribuições são contadas em totais, sem expor quem atribuiu.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-PERS-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Critérios estritos de elegibilidade de argumentos: pertencer à mesma arena, ter sido publicado antes da mudança e ser de autoria de outro participante.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "changed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections"
+        ],
+        "negative": [
+          "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyValidatesChangeAndPolicy",
+          "internal/persuasion/adapters/postgres/repository_test.go::TestRecordAttributionsRejectsInvalidSelectionsEndToEnd"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A elegibilidade exige argumento da mesma arena, de outro autor e anterior à mudança.",
+      "concurrency": "A elegibilidade é avaliada no servidor contra o estado gravado.",
+      "idempotency": "A mesma seleção elegível é aceita de novo sem duplicar.",
+      "security": "Os critérios são de domínio, e o repositório recusa em transação.",
+      "privacy": "A identidade de quem atribuiu não é exposta pela elegibilidade.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A elegibilidade é categórica por critério, então não há limiar numérico nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-PERS-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Bloqueio server-side absoluto de autoatribuição: o participante é estritamente impedido de atribuir influência a argumentos de sua própria autoria.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "changed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections"
+        ],
+        "negative": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O autor não atribui influência a argumento próprio: a política recusa a autoria.",
+      "concurrency": "A recusa é do domínio e do repositório, avaliada na mesma transação.",
+      "idempotency": "Repetir a tentativa de autoatribuição é recusado de novo, sem gravar.",
+      "security": "O bloqueio é server-side absoluto e não depende da interface.",
+      "privacy": "A recusa não revela a autoria de outros argumentos.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A autoatribuição é categórica, própria ou de terceiro, e não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-PERS-05",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Preservação da privacidade do eleitor: a identidade de quem atribuiu influência permanece estritamente privada por padrão; exibição de totais válidos.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "account",
+        "moderator"
+      ],
+      "states": [
+        "changed",
+        "moderated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/adapters/http/persuasion_http_test.go::TestPublicResponsesNeverExposeSignals",
+          "internal/persuasion/domain/signals_test.go::TestAssessmentIsDeterministicAndOrdered"
+        ],
+        "negative": [
+          "internal/persuasion/adapters/http/persuasion_http_test.go::TestAttributionSignalsAreModeratorOnly"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Só a moderação autorizada vê os sinais de atribuição do autor.",
+      "concurrency": "As leituras públicas e as de moderação são consultas separadas.",
+      "idempotency": "A mesma consulta devolve a mesma avaliação determinística.",
+      "security": "O sinal é moderador-only, e a resposta pública nunca o carrega.",
+      "privacy": "A identidade de quem atribuiu permanece privada, e só totais válidos são exibidos.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A privacidade do eleitor é categórica, e não há limiar de amostra nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-PERS-06",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Cálculo e consolidação de métricas factuais de persuasão por argumento, por autor, por arena e por categoria.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/application/metrics_test.go::TestGetArgumentMetricsDerivesCounts",
+          "internal/persuasion/adapters/postgres/reputation_test.go::TestAuthorReputationProjectionMatchesSource"
+        ],
+        "negative": [
+          "internal/persuasion/application/metrics_test.go::TestArgumentMetricsValidateRejectsIncoherentProjections"
+        ],
+        "limit": [
+          "internal/persuasion/adapters/postgres/metrics_test.go::TestArgumentMetricsCountPeopleOnceAndFollowValidity"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "As métricas são públicas apenas como totais factuais.",
+      "concurrency": "A projeção é reconstruída das atribuições válidas na leitura.",
+      "idempotency": "A mesma projeção é recomposta dos mesmos fatos.",
+      "security": "A projeção é determinística e não é editada à mão.",
+      "privacy": "Nenhuma métrica expõe quem atribuiu ou como votou.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-PERS-07",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Métrica de manchete \"pessoas influenciadas\" computada contabilizando cada participante no máximo uma vez por autor em cada arena.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/application/reputation_test.go::TestAuthorReputationHeadlineCountsPeopleOncePerArena"
+        ],
+        "negative": [
+          "internal/persuasion/application/reputation_test.go::TestAuthorReputationValidateRejectsIncoherentProjections"
+        ],
+        "limit": [
+          "internal/persuasion/application/reputation_test.go::TestAuthorReputationHeadlineCountsPeopleOncePerArena"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O perfil público é aberto e mostra a manchete factual do autor.",
+      "concurrency": "A projeção é reconstruída das atribuições válidas.",
+      "idempotency": "A mesma fonte reconstrói a mesma manchete.",
+      "security": "A contagem por pessoa única é imposta pela projeção.",
+      "privacy": "A manchete conta pessoas, não identidades, e não expõe eleitores.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-PERS-08",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Invalidação administrativa de atribuições fraudulentas ou conspiratórias via moderação, preservando registro da decisão sem alterar dados do eleitor.",
+      "risk": "Q1",
+      "modules": [
+        "internal/moderation",
+        "internal/persuasion"
+      ],
+      "actors": [
+        "moderator"
+      ],
+      "states": [
+        "valid",
+        "invalidated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/application/moderate_attribution_test.go::TestInvalidateAttributionRecordsDecisionAndAudit",
+          "internal/persuasion/application/moderate_attribution_test.go::TestRestoreAttributionReversesInvalidation"
+        ],
+        "negative": [
+          "internal/persuasion/application/moderate_attribution_test.go::TestModerationDeniedByAuthorizer"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A invalidação exige a capacidade de moderação autorizada.",
+      "concurrency": "A decisão e a trilha de auditoria são gravadas na mesma transação.",
+      "idempotency": "O replay da decisão registrada não aplica duas vezes.",
+      "security": "A decisão é registrada com autor e justificativa, sem alterar o voto.",
+      "privacy": "Os dados do eleitor não são alterados pela invalidação.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A decisão é categórica, válida ou invalidada, e não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-WAL-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Ledger append-only de INK implementado em PostgreSQL como sistema de registro imutável; saldos são projeções derivadas dos lançamentos.",
+      "risk": "Q0",
+      "modules": [
+        "internal/wallet"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "credited",
+        "debited"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence"
+        ],
+        "negative": [
+          "internal/platform/postgres/wallet_test.go::TestWalletAppendOnlyPrivileges"
+        ],
+        "limit": [
+          "internal/platform/postgres/wallet_test.go::TestWalletBalancesNeverNegative"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/platform/postgres/wallet_test.go::TestWalletIdempotencyKeyUnique"
+        ],
+        "failure": []
+      },
+      "authorization": "O saldo é da própria conta, e o ledger não é alterável pela aplicação.",
+      "concurrency": "O ledger aceita lançamentos concorrentes sem reescrever os anteriores.",
+      "idempotency": "A chave de idempotência é única, e lançamentos repetidos não duplicam.",
+      "security": "O ledger é append-only por privilégio de banco, com quantidades em inteiros.",
+      "privacy": "O extrato é do titular, e nenhum dado pessoal entra no ledger.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "O saldo é sempre da própria conta e a aplicação não pode alterar o ledger, então não há papel a conferir nesta regra",
+        "concurrency": "O ledger é append-only e a disputa de débito pertence à regra de gasto, então não há corrida a resolver nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-WAL-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Custo de publicação fixado em exatamente 1 INK por grapheme cluster de texto do argumento, incluindo pontuações, espaços e quebras de linha.",
+      "risk": "Q0",
+      "modules": [
+        "internal/wallet"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "measured"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/domain/ink_test.go::TestNewInkBoundaries",
+          "internal/arguments/domain/content_test.go::TestParseContentNormalizesAndMeasures"
+        ],
+        "negative": [
+          "internal/wallet/domain/ink_test.go::TestParseInkRejectsFloatAndMalformed"
+        ],
+        "limit": [
+          "internal/wallet/domain/ink_test.go::TestNewInkBoundaries"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/arguments/domain/content_test.go::TestParseContentNormalizesAndMeasures"
+        ],
+        "failure": []
+      },
+      "authorization": "O custo é cobrado da conta que publica, calculado no servidor.",
+      "concurrency": "O custo é aritmética pura sobre o texto medido, sem estado compartilhado.",
+      "idempotency": "O mesmo texto normalizado mede o mesmo, e o custo não varia.",
+      "security": "INK é inteiro, com gramática própria, e nunca ponto flutuante.",
+      "privacy": "O custo não depende de dado pessoal, apenas do texto público.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "O custo é cobrado da conta que publica e não há papel administrativo nesta regra",
+        "concurrency": "A medição é aritmética pura sobre o texto, então não há corrida a resolver nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-WAL-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Atomicidade estrita entre débito de INK e publicação de argumento: execução na mesma transação de banco com controle de concorrência contra double-spend.",
+      "risk": "Q0",
+      "modules": [
+        "internal/arguments",
+        "internal/wallet"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "debited",
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentEndToEndAtomic"
+        ],
+        "negative": [
+          "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentDoubleSpendIsImpossible",
+          "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentRejectsInsufficientInk"
+        ],
+        "limit": [
+          "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRejectsInsufficientInkWithoutPartialState"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitConcurrentNoDoubleSpend"
+        ],
+        "idempotency": [
+          "internal/arguments/application/publish_argument_test.go::TestPublishArgumentReplaysRecordedAttempts"
+        ],
+        "failure": [
+          "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRollsBackAfterDebitOnLaterFailure"
+        ]
+      },
+      "authorization": "O débito é da conta que publica, decidido no servidor.",
+      "concurrency": "Débito e publicação disputam a mesma linha de saldo, sob lock.",
+      "idempotency": "A chave de idempotência impede o segundo débito do mesmo envio.",
+      "security": "A transação é única e o rollback é integral, com saldo nunca negativo.",
+      "privacy": "O débito é da própria conta, e o resultado não expõe dado de terceiro.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "O débito é da conta que publica, decidido no servidor, e não há papel administrativo a conferir"
+      }
+    },
+    {
+      "id": "QUAL-REQ-WAL-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Consumo prioritário de saldo: créditos promocionais/incluídos no plano são debitados compulsoriamente antes do saldo comprado.",
+      "risk": "Q0",
+      "modules": [
+        "internal/wallet"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "debited"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/domain/allocation_test.go::TestAllocateDebitPriority",
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitSplitsAcrossBuckets"
+        ],
+        "negative": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitInsufficientLeavesNoPartialState"
+        ],
+        "limit": [
+          "internal/wallet/domain/allocation_test.go::TestAllocationLinePriorityOrder"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitIsIdempotent"
+        ],
+        "failure": []
+      },
+      "authorization": "A precedência é decidida no servidor sobre os buckets da própria conta.",
+      "concurrency": "A alocação é aritmética pura sobre os buckets disponíveis.",
+      "idempotency": "A alocação repetida do mesmo débito não consome duas vezes.",
+      "security": "Os créditos promocionais são consumidos antes do saldo comprado, por desenho.",
+      "privacy": "A precedência não depende de dado pessoal, apenas dos buckets.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "A precedência é decidida no servidor sobre os buckets da própria conta, sem papel a conferir",
+        "concurrency": "A alocação é aritmética pura sobre os buckets, então não há corrida a resolver nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-WAL-05",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Extrato histórico completo e compreensível disponível ao usuário detalhando data, motivo, identificador do argumento/evento e montante de cada débito/crédito.",
+      "risk": "Q0",
+      "modules": [
+        "internal/wallet"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "statement"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/application/queries_test.go::TestWalletStatementPaginatesWithoutDuplicatesOrGaps"
+        ],
+        "negative": [
+          "internal/wallet/adapters/http/wallet_http_test.go::TestWalletStatementHTTPNeverLeaksRestrictedFields"
+        ],
+        "limit": [
+          "internal/wallet/application/queries_test.go::TestWalletStatementLimitClamping"
+        ],
+        "authorization": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_StatementIsPaginatedAndOwnerScoped"
+        ],
+        "concurrency": [],
+        "idempotency": [
+          "internal/wallet/application/queries_test.go::TestWalletStatementCursorRoundTrip"
+        ],
+        "failure": []
+      },
+      "authorization": "O extrato é do próprio titular, paginado por cursor.",
+      "concurrency": "A leitura do extrato não escreve e não disputa linha.",
+      "idempotency": "O mesmo cursor devolve a mesma página do extrato.",
+      "security": "A resposta do extrato é owner-scoped e nunca devolve campo restrito.",
+      "privacy": "O extrato mostra data, motivo, referência e montante do próprio titular.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "concurrency": "A leitura do extrato não escreve, então não há corrida a resolver nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-WAL-06",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Franquia mensal de INK do plano Free creditada por ciclo, de forma idempotente e ancorada no dia do ciclo do titular.",
+      "risk": "Q0",
+      "modules": [
+        "internal/wallet"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "credited"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/application/renew_free_cycle_test.go::TestRenewFreeCycleUseCaseNormalTurnAndKeys"
+        ],
+        "negative": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_RenewFreeCycleMissingWallet"
+        ],
+        "limit": [
+          "internal/wallet/domain/period_test.go::TestPeriodForAnchorDayClamping"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_RenewFreeCycleConcurrentWorkers"
+        ],
+        "idempotency": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_RenewFreeCycleIsIdempotentOnRetry"
+        ],
+        "failure": []
+      },
+      "authorization": "A franquia é creditada na conta do titular, decidida pelo ciclo gravado.",
+      "concurrency": "Dois workers concorrentes creditam um único ciclo, provado pelo teste de workers.",
+      "idempotency": "O replay do ciclo não credita duas vezes.",
+      "security": "O crédito é lançamento append-only com chave de idempotência.",
+      "privacy": "A franquia é do titular e não expõe dado pessoal.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "A franquia é creditada pelo ciclo gravado da própria conta, sem papel administrativo nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-ENT-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Controle de saldo de Arena Passes: publicação bem-sucedida de uma nova arena consome exatamente 1 passe; rascunhos não consomem passe.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/application/consume_passes_test.go::TestConsumeArenaPassUseCaseBuildsRequestAndPropagatesOutcome",
+          "internal/arenas/adapters/billingpass/bridge_test.go::TestBridgeConsumeArenaPass"
+        ],
+        "negative": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassCrossAccountRefused"
+        ],
+        "limit": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassExpiredLotNeverUsed"
+        ],
+        "authorization": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassCrossAccountRefused"
+        ],
+        "concurrency": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassConcurrentSameArena"
+        ],
+        "idempotency": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassIsIdempotentPerArena"
+        ],
+        "failure": []
+      },
+      "authorization": "O passe consumido é da conta que publica, e passe de outra conta é recusado.",
+      "concurrency": "Duas publicações concorrentes da mesma arena disputam o passe sob a chave da arena.",
+      "idempotency": "O consumo é idempotente por arena, e repetir não gasta um segundo passe.",
+      "security": "O consumo é append-only, com o lote escolhido pela validade mais próxima.",
+      "privacy": "O passe é da conta titular, e nenhum dado pessoal entra no lote.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-ENT-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Distinção formal e rastreável no ledger de passes entre passes avulsos comprados e passes periódicos incluídos na assinatura Member.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "granted",
+        "consumed",
+        "expired"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/application/queries_test.go::TestGetArenaPassSummaryUseCase",
+          "internal/billing/domain/pass_lot_test.go::TestPassOriginVocabulary"
+        ],
+        "negative": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_PassSummaryExcludesExpiredLotsAtBoundaries"
+        ],
+        "limit": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassSelectsNearestExpiration"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_GrantPassLotConcurrent"
+        ],
+        "idempotency": [
+          "internal/billing/adapters/postgres/repository_test.go::TestRepository_GrantPassLotIsIdempotentAndImmutableExpiry"
+        ],
+        "failure": []
+      },
+      "authorization": "O resumo de passes é do próprio titular.",
+      "concurrency": "A concessão concorrente de lotes é resolvida pelo repositório.",
+      "idempotency": "A concessão de lote é idempotente, e a validade é imutável.",
+      "security": "A origem do passe é um vocabulário fechado, e a expiração é gravada.",
+      "privacy": "O histórico de passes não expõe dado de pagamento além do necessário.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "O resumo é do próprio titular e não há papel administrativo nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-BIL-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Catálogo de compra avulsa de pacotes de INK e Arena Passes com redirecionamento para sessão segura de Stripe Checkout.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "account",
+        "buyer"
+      ],
+      "states": [
+        "checkout"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/adapters/stripe/gateway_test.go::TestCreateCheckoutSessionSendsTheServerDecidedPrice",
+          "internal/billing/adapters/catalog/catalog_test.go::TestVersionedCatalogMatchesTheDocumentedPriceList"
+        ],
+        "negative": [
+          "internal/billing/application/create_checkout_test.go::TestCreateCheckoutRefusesProductsOutsideTheCatalog",
+          "internal/billing/application/create_checkout_test.go::TestCreateCheckoutRefusesAProviderPriceMismatch"
+        ],
+        "limit": [
+          "internal/billing/application/create_checkout_test.go::TestCreateCheckoutRefusesAProviderModeSwitch"
+        ],
+        "authorization": [
+          "internal/billing/application/create_checkout_test.go::TestCreateCheckoutRefusesIneligibleAndUnknownAccounts"
+        ],
+        "concurrency": [],
+        "idempotency": [
+          "internal/billing/application/create_checkout_test.go::TestCreateCheckoutIsReplaySafe"
+        ],
+        "failure": []
+      },
+      "authorization": "O checkout é da própria conta, e conta inelegível ou desconhecida é recusada.",
+      "concurrency": "A criação da sessão é decidida por requisição, sem reservar saldo.",
+      "idempotency": "O replay da criação de checkout é seguro e não cria cobrança dupla.",
+      "security": "Todo fato comercial é resolvido no servidor, a partir do catálogo versionado.",
+      "privacy": "O checkout não recebe dado pessoal além do necessário para a sessão do provedor.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "concurrency": "A criação da sessão não reserva saldo nem disputa linha, então não há corrida a resolver nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-BIL-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Assinatura recorrente mensal Member com concessão de franquia de INK e passes no ciclo, gerenciada via Stripe Billing / Customer Portal.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "account",
+        "buyer"
+      ],
+      "states": [
+        "subscribed",
+        "active"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/application/apply_member_entitlements_test.go::TestApplyMemberEntitlements_ActiveGrantsPassAnd30kInk"
+        ],
+        "negative": [
+          "internal/billing/application/apply_member_entitlements_test.go::TestApplyMemberEntitlements_OutOfOrder_TerminalStatusCannotRevive"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/billing/application/apply_member_entitlements_test.go::TestApplyMemberEntitlements_ReactivationWithoutDuplication",
+          "internal/billing/adapters/postgres/subscription_test.go::TestRepository_SubscriptionLifecycleAndIdempotency"
+        ],
+        "failure": []
+      },
+      "authorization": "A assinatura é do titular que a contratou, e o estado vem do provedor.",
+      "concurrency": "Eventos fora de ordem não revivem estado terminal, provado pelo teste de replay.",
+      "idempotency": "Reaplicar o mesmo evento não concede um segundo lote.",
+      "security": "A concessão acontece só no processamento autenticado do evento.",
+      "privacy": "A concessão credita franquia e passes sem expor dado de pagamento.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "O ciclo de assinatura é um estado do provedor, não um limiar desta regra",
+        "concurrency": "Os eventos da assinatura chegam serializados pela unicidade do identificador do evento, então não há corrida de aplicação nesta regra",
+        "authorization": "A assinatura é do titular que a contratou e o estado vem do provedor, sem papel a conferir nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-BIL-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Processamento idempotente de webhooks Stripe com verificação de assinatura HMAC-SHA256 no payload bruto e gravação de stripe_event_id único.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "provider"
+      ],
+      "states": [
+        "received",
+        "processed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierAcceptsValidSignature",
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookHandlesCheckoutSessionCompleted"
+        ],
+        "negative": [
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsAlteredBody",
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookRejectsInvalidSignature"
+        ],
+        "limit": [
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsExpiredTimestamp"
+        ],
+        "authorization": [
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsInvalidSignature"
+        ],
+        "concurrency": [],
+        "idempotency": [
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookIsIdempotentOnReplay"
+        ],
+        "failure": []
+      },
+      "authorization": "A assinatura do provedor autoriza o evento, sobre o corpo bruto.",
+      "concurrency": "Cada requisição verifica a própria assinatura, sem estado compartilhado.",
+      "idempotency": "O replay do mesmo evento não reaplica mutação no ledger.",
+      "security": "HMAC-SHA256 sobre o corpo bruto, janela curta, comparação em tempo constante e identificador único.",
+      "privacy": "O evento carrega apenas o necessário para a concessão e não é logado em claro.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "concurrency": "A verificação lê o corpo bruto da própria requisição, sem estado compartilhado"
+      }
+    },
+    {
+      "id": "QUAL-REQ-BIL-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Tratamento explícito de reembolsos (refunds) e contestações (chargebacks) da Stripe via eventos de estorno auditados sem mutação silenciosa do histórico.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing",
+        "internal/wallet"
+      ],
+      "actors": [
+        "account",
+        "buyer"
+      ],
+      "states": [
+        "refunded",
+        "chargeback"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/application/apply_refund_test.go::TestApplyRefundCapsWhenConsumedWithoutNegative",
+          "internal/billing/adapters/postgres/refund_test.go::TestRefundLedgerDebitsPurchasedOnly"
+        ],
+        "negative": [
+          "internal/billing/application/apply_refund_test.go::TestApplyRefundChargebackAlwaysNeedsReview"
+        ],
+        "limit": [
+          "internal/billing/application/apply_refund_test.go::TestApplyRefundCapsWhenConsumedWithoutNegative"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/billing/adapters/postgres/refund_test.go::TestRefundJournalIsIdempotentAndAuditable"
+        ],
+        "failure": []
+      },
+      "authorization": "O reembolso é da compra do titular, decidido pelo evento do provedor.",
+      "concurrency": "A aplicação é por evento, com o journal como registro da decisão.",
+      "idempotency": "O journal de reembolsos é idempotente e auditável.",
+      "security": "O estorno nunca deixa o saldo negativo e não muta o histórico em silêncio.",
+      "privacy": "O reembolso não expõe dado além da compra afetada.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "O reembolso é do provedor sobre a compra do titular, sem papel administrativo nesta regra",
+        "concurrency": "O reembolso é aplicado uma vez por evento, com journal idempotente, então não há corrida a resolver"
+      }
+    },
+    {
+      "id": "QUAL-REQ-BIL-05",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Reconciliação das compras com o provedor: divergência de valor, moeda, estado ou evento remoto ausente é registrada e nunca corrigida em silêncio.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "operator"
+      ],
+      "states": [
+        "reconciled"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/application/reconcile_billing_test.go::TestReconcileRecordsUnprocessedEventsWithoutCorrecting"
+        ],
+        "negative": [
+          "internal/billing/application/reconcile_billing_test.go::TestReconcileDetectsMissingRemote",
+          "internal/billing/application/reconcile_billing_test.go::TestReconcileDetectsAmountAndCurrencyMismatch"
+        ],
+        "limit": [
+          "internal/billing/application/reconcile_billing_test.go::TestReconcileDetectsAmountAndCurrencyMismatch"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/billing/application/reconcile_billing_test.go::TestReconcileRecordsUnprocessedEventsWithoutCorrecting"
+        ],
+        "failure": []
+      },
+      "authorization": "A reconciliação é operação de manutenção, sem superfície de cliente.",
+      "concurrency": "O trabalho roda em varredura própria, sem disputar escrita com o checkout.",
+      "idempotency": "Reexecutar a reconciliação não corrige nem duplica nada.",
+      "security": "Divergência de valor, moeda ou estado é registrada e nunca corrigida em silêncio.",
+      "privacy": "O relatório de reconciliação não carrega dado pessoal.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "A reconciliação é operação de manutenção, então não há superfície de cliente a autorizar",
+        "concurrency": "O trabalho roda em varredura própria, então não há corrida de cliente a resolver nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-MOD-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Submissão de denúncias por usuários autenticados com seleção de categorias tipadas de infração e justificativa textual restrita.",
+      "risk": "Q1",
+      "modules": [
+        "internal/moderation"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "filed",
+        "deduplicated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/moderation/adapters/postgres/reports_test.go::TestReportsRoundTripDedupAndRate"
+        ],
+        "negative": [
+          "internal/moderation/application/file_report_test.go::TestFileReportRejectsUnknownAndRemovedTargets"
+        ],
+        "limit": [
+          "internal/moderation/application/file_report_test.go::TestFileReportDeduplicatesAndSignalsRate"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A denúncia é da conta autenticada, que responde por ela.",
+      "concurrency": "A denúncia é gravada uma vez por alvo, com a deduplicação do repositório.",
+      "idempotency": "Repetir a denúncia não cria segunda linha nem esconde conteúdo.",
+      "security": "Categorias tipadas e justificativa restrita, sem remoção automática.",
+      "privacy": "A identidade do denunciante é privada, e o conteúdo permanece acessível até julgamento.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-MOD-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Fila interna de triagem e análise de denúncias para deliberação de moderadores humanos autorizados.",
+      "risk": "Q0",
+      "modules": [
+        "internal/moderation"
+      ],
+      "actors": [
+        "moderator"
+      ],
+      "states": [
+        "queued",
+        "claimed",
+        "decided"
+      ],
+      "tests": {
+        "positive": [
+          "internal/moderation/application/queue_test.go::TestQueueListsFilteredPagesWithSignedCursors"
+        ],
+        "negative": [
+          "internal/moderation/application/queue_test.go::TestQueueDeniesUnknownViewerAndForgedCursor"
+        ],
+        "limit": [
+          "internal/moderation/adapters/postgres/review_test.go::TestReviewClaimConcurrentAndExpiredLease"
+        ],
+        "authorization": [
+          "internal/moderation/adapters/http/handler_test.go::TestModerationAPIRequiresAuthentication"
+        ],
+        "concurrency": [
+          "internal/moderation/application/review_test.go::TestClaimConcurrentModerators"
+        ],
+        "idempotency": [
+          "internal/moderation/application/review_test.go::TestDecideConflictDeclared"
+        ],
+        "failure": []
+      },
+      "authorization": "A fila e a análise exigem moderador autenticado com a capacidade.",
+      "concurrency": "Dois moderadores disputando o mesmo caso são resolvidos pela lease.",
+      "idempotency": "Decidir duas vezes é conflito declarado, não segunda decisão.",
+      "security": "A fila é paginada por cursor assinado, e o cursor forjado é recusado.",
+      "privacy": "A fila esconde a evidência do denunciante e não expõe a identidade dele.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-MOD-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Ações formais de moderação: advertência, restrição de interação, suspensão temporária de conta e remoção de conteúdo ilícito da exibição pública.",
+      "risk": "Q0",
+      "modules": [
+        "internal/moderation"
+      ],
+      "actors": [
+        "moderator"
+      ],
+      "states": [
+        "decided",
+        "applied"
+      ],
+      "tests": {
+        "positive": [
+          "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsMatrixPerTarget"
+        ],
+        "negative": [
+          "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsRollbackOnStaleTarget"
+        ],
+        "limit": [
+          "internal/moderation/domain/sanction_test.go::TestSanctionMatrixPerTarget"
+        ],
+        "authorization": [
+          "internal/moderation/application/authorizer_test.go::TestAuthorizerRevokedRoleDeniesActiveSession"
+        ],
+        "concurrency": [],
+        "idempotency": [
+          "internal/moderation/application/review_test.go::TestDecideConflictDeclared"
+        ],
+        "failure": []
+      },
+      "authorization": "A sanção exige decisão de moderador com a capacidade correspondente.",
+      "concurrency": "A sanção é aplicada na transação que detém a lease do caso.",
+      "idempotency": "A sanção é aplicada uma vez por decisão, e repetir é conflito declarado.",
+      "security": "A matriz de sanções por alvo é fixa, e a decisão é registrada com justificativa.",
+      "privacy": "A sanção muda a exibição e a interação, sem apagar dados de terceiros.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "concurrency": "A sanção é aplicada na transação que detém a lease do caso, então não há duas aplicações concorrentes"
+      }
+    },
+    {
+      "id": "QUAL-REQ-MOD-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Fluxo formal de recurso (appeal) pelo participante penalizado contra decisão de moderação, revisável por operador distinto.",
+      "risk": "Q0",
+      "modules": [
+        "internal/moderation"
+      ],
+      "actors": [
+        "account",
+        "moderator"
+      ],
+      "states": [
+        "appealed",
+        "reviewed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/moderation/application/appeals_test.go::TestDecideAppealRestoresWithoutDeletingAction",
+          "internal/moderation/adapters/postgres/appeals_test.go::TestAppealsReverseRestoresWithoutDeletingAction"
+        ],
+        "negative": [
+          "internal/moderation/application/appeals_test.go::TestClaimAppealRequiresDifferentReviewer"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/moderation/application/appeals_test.go::TestClaimAppealRequiresDifferentReviewer"
+        ],
+        "concurrency": [
+          "internal/moderation/adapters/postgres/review_test.go::TestReviewDecideAtomicAndInvalid"
+        ],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O recurso é do participante penalizado e revisado por operador distinto.",
+      "concurrency": "A decisão do recurso é atômica com a restauração do estado.",
+      "idempotency": "A decisão é registrada uma vez por caso, e a ação original nunca é apagada.",
+      "security": "A revisão exige operador distinto do que decidiu, provado pelo teste.",
+      "privacy": "A decisão de recurso preserva a trilha e não expõe dados além do caso.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "O prazo e a titularidade do recurso são do domínio e não formam limiar nesta regra",
+        "idempotency": "A decisão do recurso é uma transição única por caso, sob a lease do recurso, e repetir é conflito declarado em vez de segunda escrita"
+      }
+    },
+    {
+      "id": "QUAL-REQ-AUD-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Trilha de auditoria administrativa append-only registrando compulsoriamente autor, ação, justificativa, IP confiável e timestamp de toda intervenção operacional.",
+      "risk": "Q0",
+      "modules": [
+        "internal/audit"
+      ],
+      "actors": [
+        "operator",
+        "moderator"
+      ],
+      "states": [
+        "recorded",
+        "retained"
+      ],
+      "tests": {
+        "positive": [
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderJoinsSharedTransaction",
+          "internal/audit/adapters/postgres/recorder_test.go::TestBillingAndAdminEventsFitTheTrail"
+        ],
+        "negative": [
+          "internal/platform/postgres/audit_schema_test.go::TestAuditEventsRejectUpdatesAndDeletes",
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderRejectsSensitiveMetadata"
+        ],
+        "limit": [
+          "internal/audit/adapters/postgres/recorder_test.go::TestBillingAndAdminEventsFitTheTrail"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderJoinsSharedTransaction"
+        ],
+        "idempotency": [
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderRoundTripAndReplay"
+        ],
+        "failure": []
+      },
+      "authorization": "A trilha registra autor, ação e justificativa de toda intervenção operacional.",
+      "concurrency": "O registro entra na mesma transação da mutação que o exige.",
+      "idempotency": "O replay do mesmo evento não duplica o registro da trilha.",
+      "security": "A trilha é append-only por privilégio, e metadados sensíveis são recusados.",
+      "privacy": "A trilha guarda metadados tipados, e a recusa de dado sensível é testada.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "A trilha é escrita por dentro das mutações, sem rota própria a autorizar"
+      }
+    },
+    {
+      "id": "QUAL-REQ-TRP-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Publicação versionada e pública da constituição, das regras de moderação, do relatório de transparência e do roadmap — os três primeiros como documentos versionados e o relatório como página e API servidas pela aplicação.",
+      "risk": "Q2",
+      "modules": [
+        "internal/transparency"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/transparency/adapters/http/handler_test.go::TestTransparencyHTMLLocalizesAndCaches",
+          "internal/transparency/domain/metrics_test.go::TestMethodologyVersionIsPinned"
+        ],
+        "negative": [
+          "internal/transparency/adapters/http/handler_test.go::TestTransparencyJSONLowCountSuppresses",
+          "internal/transparency/adapters/postgres/metrics_test.go::TestTransparencyQuerySelectsNoPrivateData"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A página e a API são públicas e servem apenas o relatório e os documentos versionados.",
+      "concurrency": "A resposta é montada de projeções reconstruíveis, sem escrita.",
+      "idempotency": "A metodologia é versionada e fixada, então o relatório se reconstrói do mesmo estado.",
+      "security": "A resposta pública é cacheável com política explícita e não carrega dado privado.",
+      "privacy": "A consulta não seleciona dado privado, e contagens baixas são suprimidas.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-TRP-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Garantia de reconstrução matemática de métricas de reputação e agregados a partir exclusivamente de eventos históricos válidos e auditados.",
+      "risk": "Q2",
+      "modules": [
+        "internal/statprojections",
+        "internal/transparency"
+      ],
+      "actors": [
+        "operator"
+      ],
+      "states": [
+        "projected"
+      ],
+      "tests": {
+        "positive": [
+          "internal/transparency/adapters/postgres/metrics_test.go::TestMetricsReconstructFromSources",
+          "internal/statprojections/adapters/postgres/repository_test.go::TestRebuildArenaProjectionCanBeDeletedAndRebuilt"
+        ],
+        "negative": [],
+        "limit": [],
+        "authorization": [
+          "internal/statprojections/application/rebuild_test.go::TestRebuildArenaBatchResumesFromCursor"
+        ],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A reconstrução é operação de manutenção, sem superfície de cliente.",
+      "concurrency": "A reconstrução apaga e reconstrói projeções a partir dos fatos gravados.",
+      "idempotency": "A mesma fonte reconstrói os mesmos números, e o lote retoma do cursor.",
+      "security": "A projeção reconstruível não é fonte da verdade: ela é derivada dos fatos.",
+      "privacy": "A reconstrução lê os fatos gravados e não publica dado individual.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "negative": "A reconstrução não tem entrada a recusar: ela é trabalho de manutenção sobre fatos válidos, e a recusa pertence às métricas que ela recompõe"
+      }
+    },
+    {
+      "id": "QUAL-REQ-I18N-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Suporte completo na interface da plataforma aos idiomas Português do Brasil (pt-BR) e Inglês (en-US).",
+      "risk": "Q1",
+      "modules": [
+        "internal/i18n"
+      ],
+      "actors": [
+        "visitor",
+        "account"
+      ],
+      "states": [
+        "resolved"
+      ],
+      "tests": {
+        "positive": [
+          "internal/i18n/i18n_test.go::TestMessageReturnsBothLocales",
+          "internal/identity/adapters/http/landing_test.go::TestLandingPagesRenderInBothLocales"
+        ],
+        "negative": [
+          "internal/i18n/i18n_test.go::TestMessageRejectsUnknownLocaleAndKey"
+        ],
+        "limit": [
+          "internal/i18n/i18n_test.go::TestPlaceholdersAndDefaultLocale"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O idioma é do visitante e resolvido no servidor, com padrão declarado.",
+      "concurrency": "A mensagem é resolvida por requisição a partir de catálogo embutido.",
+      "idempotency": "A mesma chave e o mesmo idioma devolvem a mesma mensagem.",
+      "security": "Nenhuma mensagem é montada por concatenação de HTML, e chave desconhecida é recusada.",
+      "privacy": "Os catálogos não carregam dado pessoal.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-I18N-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Associação obrigatória e imutável de um idioma específico a cada arena criada.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "account",
+        "visitor"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/domain/slug_test.go::TestParseLanguage",
+          "internal/arenas/adapters/html/arenas_html_test.go::TestArenaDocumentUsesContentLanguage"
+        ],
+        "negative": [
+          "internal/platform/postgres/arena_schema_test.go::TestArenaSchemaConstraints"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O idioma é escolhido na criação pelo autor e não muda depois.",
+      "concurrency": "O idioma é gravado uma vez com a arena.",
+      "idempotency": "Publicar ou reabrir a mesma arena mantém o idioma gravado.",
+      "security": "O idioma é validado contra o vocabulário fechado no domínio e no schema.",
+      "privacy": "O idioma da arena é público e não é preferência de conta.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "O idioma é um vocabulário fechado de dois valores, então não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-I18N-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Segregação estrita de feeds públicos de arenas por idioma selecionado pelo participante ou visitante.",
+      "risk": "Q1",
+      "modules": [
+        "internal/arenas"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/adapters/postgres/feed_integration_test.go::TestRepository_PublicFeedFiltersAndVisibility",
+          "internal/search/adapters/postgres/repository_test.go::TestPublicSearchIndexedLanguageAndModerationExclusion"
+        ],
+        "negative": [],
+        "limit": [
+          "internal/arenas/application/feed_test.go::TestGetArenaFeedUseCaseClampsLimitsAndValidatesFilters"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O idioma do feed vem do visitante ou da preferência do titular, nunca do conteúdo.",
+      "concurrency": "A consulta é única por página, sem escrita.",
+      "idempotency": "O mesmo idioma e o mesmo cursor devolvem a mesma página.",
+      "security": "O idioma é validado contra o vocabulário antes da consulta parametrizada.",
+      "privacy": "O feed por idioma não acrescenta dado pessoal.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "negative": "O feed filtrado por idioma não tem recusa própria além do filtro tipado, cuja validação é a de REQ-DISC-03"
+      }
+    },
+    {
+      "id": "QUAL-REQ-I18N-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Ausência explícita de mecanismos de tradução automática pelo backend no MVP para preservar precisão textual de argumentos.",
+      "risk": "Q1",
+      "modules": [
+        "internal/i18n"
+      ],
+      "actors": [
+        "visitor",
+        "author"
+      ],
+      "states": [
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/architecture_test.go::TestDependencyDirectionAndEnvironmentGate"
+        ],
+        "negative": [
+          "internal/i18n/i18n_test.go::TestMessageRejectsUnknownLocaleAndKey"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Nenhum serviço traduz conteúdo de usuário: a ausência é a garantia.",
+      "concurrency": "Não há caminho de escrita de tradução, então não há corrida.",
+      "idempotency": "O conteúdo é servido como foi publicado, sem reescrita.",
+      "security": "A arquitetura recusa dependências que trariam tradução automática.",
+      "privacy": "O texto do usuário não é enviado a terceiros para tradução.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A ausência de tradução automática é categórica, e não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-01",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Dinheiro e planos pagos não alteram o peso ou o impacto de qualquer posição no agregado oficial.",
+      "risk": "Q1",
+      "modules": [
+        "internal/billing",
+        "internal/positions"
+      ],
+      "actors": [
+        "visitor",
+        "account"
+      ],
+      "states": [
+        "aggregated"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly"
+        ],
+        "negative": [
+          "internal/positions/domain/purity_test.go::TestPositionsDomainCarriesNoPlanOrPaymentWeight",
+          "internal/moderation/application/authorizer_test.go::TestAuthorizerIgnoresPaymentAndPopularity"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/moderation/application/authorizer_test.go::TestAuthorizerIgnoresPaymentAndPopularity"
+        ],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Nenhum papel ou plano altera o peso: autoridade e dinheiro não são entradas do agregado.",
+      "concurrency": "O agregado lê uma linha por titular, sem ponderar por plano.",
+      "idempotency": "A mesma posição contribui uma vez, sempre.",
+      "security": "O domínio de posição não conhece plano nem pagamento, provado pelo teste de pureza.",
+      "privacy": "O agregado conta contas elegíveis e não expõe quem votou.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A invariante é categórica: plano não altera peso, então não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-02",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Escolhas de visitantes não entram no agregado oficial sob nenhuma circunstância.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "visitor"
+      ],
+      "states": [
+        "local"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly"
+        ],
+        "negative": [
+          "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForVisitorKeepsTheChoiceLocal"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A escolha do visitante não entra no agregado oficial sob nenhuma circunstância.",
+      "concurrency": "A escolha vive no cliente, e o agregado lê posições confirmadas por conta elegível.",
+      "idempotency": "A escolha local não é gravada, então repetir não muda o oficial.",
+      "security": "O agregado filtra por conta elegível no servidor.",
+      "privacy": "Nenhuma escolha anônima é associada a uma pessoa.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A invariante é categórica: a escolha do visitante nunca entra no agregado, e não há limiar de amostra nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-03",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "A primeira posição confirmada por um participante em uma arena nunca é reescrita ou apagada.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "confirmed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionResolvesLostInsertRaces"
+        ],
+        "negative": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRefusesDifferentInitialValue"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionConcurrentDifferentValues"
+        ],
+        "failure": [
+          "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionIsIdempotentOnRetry"
+        ]
+      },
+      "authorization": "A primeira posição é do titular e nunca é reescrita.",
+      "concurrency": "Inserções concorrentes com valores diferentes são resolvidas pela chave única.",
+      "idempotency": "Confirmar de novo a mesma posição não reescreve o registro.",
+      "security": "A chave única por arena e titular é imposta pelo schema.",
+      "privacy": "O registro é privado por padrão e só aparece no agregado.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A unicidade é categórica: existe ou não existe a primeira posição, e não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-04",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Toda posição atual de um participante em uma arena deriva estritamente do seu histórico imutável de mudanças.",
+      "risk": "Q1",
+      "modules": [
+        "internal/positions"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "chained"
+      ],
+      "tests": {
+        "positive": [
+          "internal/positions/domain/change_test.go::TestDeriveCurrentPositionReplaysContiguousChains"
+        ],
+        "negative": [
+          "internal/positions/domain/change_test.go::TestNewPositionChangeValidatesTheHistoryEntry"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/positions/adapters/postgres/repository_test.go::TestChangePositionConcurrentUseCaseChainIntegrity"
+        ],
+        "concurrency": [
+          "internal/positions/application/change_position_test.go::TestChangePositionIsNaturallyIdempotentAfterSuccess"
+        ],
+        "idempotency": [
+          "internal/positions/adapters/postgres/repository_test.go::TestChangePositionRollbackLeavesNoDivergence"
+        ],
+        "failure": []
+      },
+      "authorization": "A posição atual é derivada do histórico do próprio titular.",
+      "concurrency": "Corridas de mudança mantêm a integridade da cadeia, provado pelo teste concorrente.",
+      "idempotency": "A cadeia é append-only, e o replay contíguo é a única forma de reconstruir o estado.",
+      "security": "A versão do registro é verificada contra corrida antes da escrita.",
+      "privacy": "O histórico individual é privado e só o agregado é público.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A cadeia é append-only e sem orçamento declarado, então não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-05",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Nenhum participante pode atribuir influência a argumentos de sua própria autoria.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "changed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections"
+        ],
+        "negative": [
+          "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyRejectsViolations",
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections",
+          "internal/persuasion/adapters/postgres/repository_test.go::TestRecordAttributionsRejectsInvalidSelectionsEndToEnd"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [
+          "internal/persuasion/adapters/postgres/repository_test.go::TestRecordAttributionsConcurrentLimit"
+        ],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A política compara o titular da mudança com o autor do argumento.",
+      "concurrency": "A recusa é do repositório, avaliada na transação da gravação.",
+      "idempotency": "Repetir a tentativa de autoatribuição é recusado de novo.",
+      "security": "O bloqueio vale para qualquer rota, porque mora no domínio e no repositório.",
+      "privacy": "A recusa não revela a autoria de argumentos de terceiros.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A autoatribuição é categórica, própria ou de terceiro, e não há limiar nesta regra",
+        "idempotency": "A recusa é avaliada antes de qualquer escrita, então não há operação a repetir nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-06",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "No máximo três argumentos podem receber atribuição de influência por evento de mudança de posição.",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "changed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit"
+        ],
+        "negative": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections"
+        ],
+        "limit": [
+          "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyValidatesChangeAndPolicy"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/persuasion/adapters/postgres/repository_test.go::TestRecordAttributionsConcurrentLimit"
+        ],
+        "idempotency": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit"
+        ],
+        "failure": []
+      },
+      "authorization": "A seleção é da conta titular da mudança.",
+      "concurrency": "A cardinalidade é resolvida sob a chave da mudança, com o teste concorrente no limite.",
+      "idempotency": "A gravação é idempotente e cresce até três, nunca além.",
+      "security": "O limite é validado no domínio e imposto pelo schema.",
+      "privacy": "As atribuições contam em totais e não expõem quem atribuiu.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-INV-07",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "A publicação de um argumento e o débito do saldo correspondente de INK formam uma unidade atômica indivisível.",
+      "risk": "Q0",
+      "modules": [
+        "internal/arguments",
+        "internal/wallet"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "debited",
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentEndToEndAtomic"
+        ],
+        "negative": [
+          "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentDoubleSpendIsImpossible"
+        ],
+        "limit": [
+          "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRejectsInsufficientInkWithoutPartialState"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitConcurrentNoDoubleSpend"
+        ],
+        "idempotency": [
+          "internal/arguments/application/publish_argument_test.go::TestPublishArgumentReplaysRecordedAttempts"
+        ],
+        "failure": [
+          "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentCancellationRollsBack",
+          "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentFailureAfterDebitRollsBack"
+        ]
+      },
+      "authorization": "O débito é da conta que publica, decidido no servidor.",
+      "concurrency": "Débito e publicação são uma unidade sob a mesma transação e a mesma linha de saldo.",
+      "idempotency": "A chave de idempotência cobre a unidade inteira, e o replay não debita duas vezes.",
+      "security": "O rollback é integral, e o saldo nunca fica negativo.",
+      "privacy": "O débito é da própria conta, e a publicação não expõe dado de terceiro.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "authorization": "O débito é da própria conta que publica, sem papel administrativo nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-08",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Um Arena Pass só é consumido quando a transição da arena de draft para published é bem-sucedida.",
+      "risk": "Q0",
+      "modules": [
+        "internal/arenas",
+        "internal/billing"
+      ],
+      "actors": [
+        "account"
+      ],
+      "states": [
+        "draft",
+        "published"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaEndToEndAtomic"
+        ],
+        "negative": [
+          "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseWithoutPassRollsBack",
+          "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaSlugConflictRollsBackConsumption"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/arenas/adapters/http/arenas_http_test.go::TestArenaDraftOwnerScoped"
+        ],
+        "concurrency": [
+          "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaConcurrent"
+        ],
+        "idempotency": [
+          "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseReplay"
+        ],
+        "failure": [
+          "internal/arenas/application/ports_test.go::TestPublicationRollsBackConsumptionWhenPublicationFails"
+        ]
+      },
+      "authorization": "A publicação abre a transação e consome o passe da própria conta dentro dela.",
+      "concurrency": "A transição de estado e o consumo são confirmados juntos ou desfeitos juntos.",
+      "idempotency": "O replay da publicação não consome um segundo passe.",
+      "security": "O passe só é gasto com a transição aplicada, e o conflito de slug desfaz o consumo.",
+      "privacy": "O passe consumido é da conta que publica, e nenhum dado pessoal entra no lote.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A publicação consome exatamente um passe, um valor fixo, então não há limiar a variar"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-09",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "A remoção de conteúdo da exibição pública não apaga registros de auditoria ou dados necessários à integridade.",
+      "risk": "Q0",
+      "modules": [
+        "internal/audit",
+        "internal/moderation"
+      ],
+      "actors": [
+        "moderator"
+      ],
+      "states": [
+        "removed",
+        "appealed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/moderation/adapters/postgres/appeals_test.go::TestAppealsReverseRestoresWithoutDeletingAction"
+        ],
+        "negative": [
+          "internal/platform/postgres/audit_schema_test.go::TestAuditEventsRejectUpdatesAndDeletes"
+        ],
+        "limit": [],
+        "authorization": [
+          "internal/moderation/application/review_test.go::TestDecideTargetActionMismatchDenies"
+        ],
+        "concurrency": [
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderJoinsSharedTransaction"
+        ],
+        "idempotency": [
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderRoundTripAndReplay"
+        ],
+        "failure": []
+      },
+      "authorization": "A remoção exige decisão de moderação registrada, e a trilha fica.",
+      "concurrency": "O registro de auditoria entra na transação da decisão que o exige.",
+      "idempotency": "A decisão é registrada uma vez, e o recurso restaura sem apagar a ação original.",
+      "security": "A trilha é append-only por privilégio de banco, e a remoção muda só a exibição.",
+      "privacy": "A remoção preserva dados necessários à integridade e não apaga a evidência do caso.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "limit": "A remoção é categórica quanto à trilha: ela permanece, e não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-REQ-INV-10",
+      "source": "docs/REQUIREMENTS.md",
+      "description": "Toda métrica de reputação e persuasão pode ser recalculada a partir dos fatos históricos válidos e auditados.",
+      "risk": "Q2",
+      "modules": [
+        "internal/persuasion",
+        "internal/transparency"
+      ],
+      "actors": [
+        "operator"
+      ],
+      "states": [
+        "projected"
+      ],
+      "tests": {
+        "positive": [
+          "internal/transparency/adapters/postgres/metrics_test.go::TestMetricsReconstructFromSources",
+          "internal/statprojections/adapters/postgres/repository_test.go::TestRebuildArenaProjectionCanBeDeletedAndRebuilt"
+        ],
+        "negative": [],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A reconstrução é operação de manutenção, sem superfície de cliente.",
+      "concurrency": "A projeção é derivada das atribuições válidas e reconstruída do zero.",
+      "idempotency": "A mesma fonte reconstrói os mesmos números.",
+      "security": "A projeção é derivada, e a fonte da verdade são os fatos gravados.",
+      "privacy": "A reconstrução lê fatos e não publica dado individual.",
+      "evidence": [
+        "docs/REQUIREMENTS.md",
+        "docs/BUSINESS_RULES.md"
+      ],
+      "not_applicable": {
+        "negative": "A reconstrução não tem entrada a recusar: ela é trabalho de manutenção sobre fatos válidos e auditados"
+      }
+    },
+    {
+      "id": "QUAL-THR-AUTH-01",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Sequestro de sessão via roubo de token em trânsito ou browser",
+      "risk": "Q0",
+      "modules": [
+        "internal/identity",
+        "internal/platform"
+      ],
+      "actors": [
+        "visitor",
+        "adversary"
+      ],
+      "states": [
+        "session"
+      ],
+      "tests": {
+        "positive": [
+          "internal/platform/security/cookies_test.go::TestCookieAttributesByEnvironment",
+          "internal/platform/security/lifecycle_test.go::TestPostLoginRotation"
+        ],
+        "negative": [
+          "internal/platform/security/lifecycle_test.go::TestPostLogoutLifecycle",
+          "internal/identity/adapters/http/sessions_http_test.go::TestSessionRotationEndsTheOldTokenAndIssuesANewOne"
+        ],
+        "limit": [
+          "internal/identity/application/session_test.go::TestAuthenticateSessionLifecycleAndThrottling"
+        ],
+        "authorization": [
+          "internal/identity/adapters/http/sessions_http_test.go::TestSessionEndpointsRequireASession"
+        ],
+        "concurrency": [
+          "internal/identity/adapters/http/sessions_http_test.go::TestSessionRevocationIsAtomicUnderConcurrency"
+        ],
+        "idempotency": [
+          "internal/platform/security/lifecycle_test.go::TestManagerChaining_FullPipeline"
+        ],
+        "failure": []
+      },
+      "authorization": "A sessão é do titular: rota autenticada recusa token ausente, expirado ou revogado.",
+      "concurrency": "A revogação é atômica sob concorrência, e a rotação consome o token anterior.",
+      "idempotency": "O token consumido não autentica de novo, nem depois do logout.",
+      "security": "Token opaco com hash no banco, cookie HttpOnly/Secure/SameSite, rotação e expiração inativa e absoluta.",
+      "privacy": "O cookie não carrega identidade legível, e a sessão nunca é adotada do cliente.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/platform/security/cookies.go",
+        "internal/platform/security/cookies_test.go",
+        "internal/platform/security/auth.go",
+        "internal/platform/security/lifecycle_test.go",
+        "internal/identity/application/rotate_session.go",
+        "internal/identity/application/complete_password_reset.go",
+        "internal/identity/application/logout.go"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-THR-AUTH-03",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Falsificação de requisição cross-site em mutações de conta (CSRF)",
+      "risk": "Q0",
+      "modules": [
+        "internal/platform"
+      ],
+      "actors": [
+        "adversary"
+      ],
+      "states": [
+        "csrf"
+      ],
+      "tests": {
+        "positive": [
+          "internal/platform/security/csrf_test.go::TestCSRFMiddleware_SameOriginSubmissionCarriesItsOrigin"
+        ],
+        "negative": [
+          "internal/platform/security/csrf_test.go::TestCSRFMiddleware_MutatingMethods_Enforcement",
+          "internal/platform/security/csrf_test.go::TestCSRFMiddleware_CrossOriginValidation"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O pedido mutante só passa com token de duplo envio assinado e origem conferida.",
+      "concurrency": "A verificação é por requisição e não guarda estado entre pedidos.",
+      "idempotency": "A verificação é pura: repetir o pedido reusa a mesma decisão.",
+      "security": "HMAC-SHA256 sobre o token, comparação em tempo constante, SameSite=Lax e métodos seguros isentos.",
+      "privacy": "O token CSRF não identifica a pessoa e não entra em log.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/platform/security/csrf.go",
+        "internal/platform/security/csrf_test.go",
+        "internal/platform/security/manager.go"
+      ],
+      "not_applicable": {
+        "limit": "A política é categórica por método: seguro isento, mutante exigido, então não há limiar nesta regra",
+        "authorization": "O token assinado é a própria autorização do pedido, sem papel de conta a conferir",
+        "concurrency": "A verificação é por requisição e sem estado compartilhado, então não há corrida nesta regra",
+        "idempotency": "A verificação não altera estado, então repetir reusa a mesma decisão"
+      }
+    },
+    {
+      "id": "QUAL-THR-AUTH-04",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Replay ou força bruta de token de recuperação de senha",
+      "risk": "Q0",
+      "modules": [
+        "internal/identity"
+      ],
+      "actors": [
+        "adversary",
+        "account"
+      ],
+      "states": [
+        "password-reset"
+      ],
+      "tests": {
+        "positive": [
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection"
+        ],
+        "negative": [
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_ExpiredTokenRejection",
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_ReissuanceInvalidatesPreviousToken"
+        ],
+        "limit": [
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_ExpiredTokenRejection"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/identity/adapters/postgres/password_reset_test.go::TestRepository_PasswordResetConcurrentRace"
+        ],
+        "idempotency": [
+          "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection"
+        ],
+        "failure": []
+      },
+      "authorization": "A posse do token é a autorização, e o token é de uso único com validade curta.",
+      "concurrency": "Duas confirmações com o mesmo token são resolvidas pela corrida do repositório.",
+      "idempotency": "Reemitir invalida o token anterior, e o consumo é único.",
+      "security": "Token CSPRNG guardado por hash, com expiração curta e invalidação no primeiro uso.",
+      "privacy": "O pedido não revela se o email existe na base.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/identity/application/request_password_reset.go",
+        "internal/identity/adapters/postgres/password_reset_test.go",
+        "internal/identity/application/complete_password_reset.go"
+      ],
+      "not_applicable": {
+        "authorization": "A posse do token de uso único é a autorização da jornada, sem papel a conferir"
+      }
+    },
+    {
+      "id": "QUAL-THR-WAL-01",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Gasto duplo de saldo INK em submissões concorrentes",
+      "risk": "Q0",
+      "modules": [
+        "internal/arguments",
+        "internal/wallet"
+      ],
+      "actors": [
+        "account",
+        "adversary"
+      ],
+      "states": [
+        "balance"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitSplitsAcrossBuckets"
+        ],
+        "negative": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitInsufficientLeavesNoPartialState"
+        ],
+        "limit": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitWithoutWalletIsInsufficient"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitConcurrentNoDoubleSpend",
+          "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentDoubleSpendIsImpossible"
+        ],
+        "idempotency": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitIsIdempotent"
+        ],
+        "failure": [
+          "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentCancellationRollsBack"
+        ]
+      },
+      "authorization": "O débito é da própria conta autenticada, decidido no servidor.",
+      "concurrency": "Submissões concorrentes disputam a mesma linha de saldo, com exatamente um sucesso.",
+      "idempotency": "A chave de idempotência cobre a submissão, e o replay não debita duas vezes.",
+      "security": "Débito e publicação na mesma transação, com saldo nunca negativo.",
+      "privacy": "O débito é da própria conta e não expõe dado de terceiro.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "db/queries/wallet.sql",
+        "internal/arguments/adapters/postgres/integrity_test.go",
+        "internal/wallet/adapters/postgres/repository_test.go"
+      ],
+      "not_applicable": {
+        "authorization": "O débito é da própria conta autenticada e não há papel administrativo nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-THR-WAL-02",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Alteração arbitrária de saldo ou manipulação direta do ledger",
+      "risk": "Q0",
+      "modules": [
+        "internal/platform",
+        "internal/wallet"
+      ],
+      "actors": [
+        "adversary",
+        "operator"
+      ],
+      "states": [
+        "ledger"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence"
+        ],
+        "negative": [
+          "internal/platform/postgres/wallet_test.go::TestWalletAppendOnlyPrivileges"
+        ],
+        "limit": [
+          "internal/platform/postgres/wallet_test.go::TestWalletBalancesNeverNegative"
+        ],
+        "authorization": [],
+        "concurrency": [
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyCreditConcurrent"
+        ],
+        "idempotency": [
+          "internal/platform/postgres/wallet_test.go::TestWalletIdempotencyKeyUnique"
+        ],
+        "failure": []
+      },
+      "authorization": "O runtime não tem permissão de alterar o ledger: o privilégio de banco é o controle.",
+      "concurrency": "Lançamentos concorrentes acumulam sem reescrever os anteriores.",
+      "idempotency": "A chave de idempotência é única, e o lançamento repetido não duplica.",
+      "security": "Ledger append-only por privilégio, quantidades em inteiros e saldo nunca negativo.",
+      "privacy": "O ledger guarda montante e referência, sem dado pessoal.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/platform/postgres/wallet_test.go",
+        "internal/wallet/adapters/postgres/repository_test.go",
+        "docs/MIGRATION_AUDIT.md",
+        "tools/migrationaudit/ledger.go"
+      ],
+      "not_applicable": {
+        "authorization": "O privilégio de banco é o controle de quem altera o ledger, sem papel de aplicação"
+      }
+    },
+    {
+      "id": "QUAL-THR-WAL-03",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Exploração de saldo promocional através de criação massiva de contas (Sybil Farming)",
+      "risk": "Q0",
+      "modules": [
+        "internal/arenas",
+        "internal/arguments",
+        "internal/billing"
+      ],
+      "actors": [
+        "adversary"
+      ],
+      "states": [
+        "grants"
+      ],
+      "tests": {
+        "positive": [
+          "internal/arguments/adapters/http/ratelimit_test.go::TestArgumentWritesCarryThePolicy"
+        ],
+        "negative": [
+          "internal/arenas/adapters/http/challenge_http_test.go::TestPublicationChallengedPlacement"
+        ],
+        "limit": [
+          "internal/billing/adapters/http/ratelimit_test.go::TestBillingWritesCarryThePolicy"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Os grants de INK ficam atrelados à conta validada, e o desafio antecede a publicação.",
+      "concurrency": "O limite é contado por janela no adapter, sem estado de domínio compartilhado.",
+      "idempotency": "A taxa é contada por requisição, não por operação repetida.",
+      "security": "Rate limit por IP e conta, desafio na borda e INK promocional não transferível.",
+      "privacy": "A heurística de automação usa apenas fatos de sessão e taxa.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/arenas/adapters/http/challenge_http_test.go",
+        "internal/arguments/adapters/http/ratelimit_test.go",
+        "internal/billing/adapters/http/ratelimit_test.go"
+      ],
+      "not_applicable": {
+        "authorization": "O controle é de taxa e de desafio na conta, sem papel a conferir",
+        "concurrency": "A taxa é contada por janela no adapter, sem estado compartilhado entre requisições",
+        "idempotency": "A taxa é contada por requisição, então repetir a operação não reusa o orçamento"
+      }
+    },
+    {
+      "id": "QUAL-THR-STRIPE-01",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Falsificação de webhook da Stripe forjando evento de pagamento aprovado",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "provider",
+        "adversary"
+      ],
+      "states": [
+        "webhook"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierAcceptsValidSignature"
+        ],
+        "negative": [
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsAlteredBody",
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsInvalidSignature",
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsFutureTimestamp"
+        ],
+        "limit": [
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsExpiredTimestamp"
+        ],
+        "authorization": [
+          "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierUsesConstantTimeComparison"
+        ],
+        "concurrency": [],
+        "idempotency": [
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookIsIdempotentOnReplay"
+        ],
+        "failure": []
+      },
+      "authorization": "O segredo compartilhado autoriza o evento, verificado sobre o corpo bruto.",
+      "concurrency": "A verificação lê a própria requisição, sem estado compartilhado.",
+      "idempotency": "O identificador do evento é único, e o reenvio não reexecuta mutações.",
+      "security": "HMAC-SHA256 sobre o corpo bruto, tolerância estrita, futuro recusado e comparação em tempo constante.",
+      "privacy": "O payload do provedor não é logado em claro e não carrega dado de terceiro.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/billing/adapters/stripe/webhook.go",
+        "internal/billing/adapters/stripe/webhook_test.go",
+        "internal/billing/application/process_webhook_test.go"
+      ],
+      "not_applicable": {
+        "concurrency": "A verificação lê o corpo bruto da própria requisição, sem estado compartilhado entre chamadas"
+      }
+    },
+    {
+      "id": "QUAL-THR-STRIPE-02",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Concessão de benefício baseada em visita à URL de sucesso no browser",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "provider",
+        "buyer"
+      ],
+      "states": [
+        "entitlement"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookHandlesCheckoutSessionCompleted",
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookAppliesMemberEntitlements"
+        ],
+        "negative": [
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookSuccessPageNeverGrantsBenefit"
+        ],
+        "limit": [
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookRejectsUnpaidCheckoutSession"
+        ],
+        "authorization": [
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookRejectsInvalidSignature"
+        ],
+        "concurrency": [],
+        "idempotency": [
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookIsIdempotentOnReplay"
+        ],
+        "failure": []
+      },
+      "authorization": "A concessão só acontece no evento autenticado, nunca na navegação do browser.",
+      "concurrency": "A concessão é aplicada pelo processamento do evento, serializada pelo identificador.",
+      "idempotency": "Reaplicar o evento não concede duas vezes.",
+      "security": "A página de sucesso é informativa, e o estado de autorização mora no banco.",
+      "privacy": "A concessão credita a própria conta e não expõe dado de pagamento.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/billing/application/process_webhook_test.go",
+        "internal/billing/adapters/http/billing.go"
+      ],
+      "not_applicable": {
+        "concurrency": "A concessão é aplicada no processamento do evento, serializada pela unicidade do identificador"
+      }
+    },
+    {
+      "id": "QUAL-THR-STRIPE-03",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Reenvio de webhook Stripe duplicando créditos ou passes concedidos",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing"
+      ],
+      "actors": [
+        "provider",
+        "adversary"
+      ],
+      "states": [
+        "webhook"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutGrantsINKOnSettledPayment"
+        ],
+        "negative": [
+          "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutRejectsAlreadySettledIntent",
+          "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutRejectsUnknownSession"
+        ],
+        "limit": [
+          "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutRejectsExpiredIntent"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [
+          "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutIsIdempotentOnReplay",
+          "internal/billing/application/process_webhook_test.go::TestProcessWebhookIsIdempotentOnReplay"
+        ],
+        "failure": []
+      },
+      "authorization": "O evento autenticado é a autorização, e o estado é conferido no banco.",
+      "concurrency": "Reentregas concorrentes do mesmo evento são serializadas pela unicidade do identificador.",
+      "idempotency": "O reenvio do mesmo evento não duplica créditos nem passes.",
+      "security": "O processamento é idempotente por identificador de evento, com registro transacional.",
+      "privacy": "O evento não expõe dado pessoal além do necessário à concessão.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/billing/application/process_webhook_test.go",
+        "internal/billing/application/settle_checkout_test.go",
+        "db/queries/billing.sql"
+      ],
+      "not_applicable": {
+        "authorization": "A autorização do evento é a assinatura do provedor, coberta por THR-STRIPE-01",
+        "concurrency": "Reentregas concorrentes do mesmo evento são serializadas pela unicidade do identificador no banco"
+      }
+    },
+    {
+      "id": "QUAL-THR-PERS-01",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Manipulação de persuasão por anel de contas cúmplices (Collusion / Self-voting)",
+      "risk": "Q1",
+      "modules": [
+        "internal/persuasion"
+      ],
+      "actors": [
+        "account",
+        "adversary"
+      ],
+      "states": [
+        "attributions"
+      ],
+      "tests": {
+        "positive": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit"
+        ],
+        "negative": [
+          "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections",
+          "internal/persuasion/adapters/postgres/repository_test.go::TestRecordAttributionsRejectsInvalidSelectionsEndToEnd"
+        ],
+        "limit": [
+          "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyValidatesChangeAndPolicy"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A política recusa a autoria própria e exige mudança real de posição.",
+      "concurrency": "A gravação é sob a chave da mudança, com o teste concorrente no limite.",
+      "idempotency": "Repetir a seleção não duplica atribuições.",
+      "security": "O bloqueio é server-side absoluto, e a elegibilidade é de domínio.",
+      "privacy": "A identidade de quem atribuiu permanece privada e só totais são exibidos.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/persuasion/application/record_attributions_test.go",
+        "internal/persuasion/application/moderate_attribution_test.go",
+        "internal/persuasion/domain"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-THR-MOD-01",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Censura de conteúdo via denúncias massivas coordenadas (Brigading)",
+      "risk": "Q1",
+      "modules": [
+        "internal/moderation"
+      ],
+      "actors": [
+        "adversary",
+        "moderator"
+      ],
+      "states": [
+        "reports"
+      ],
+      "tests": {
+        "positive": [
+          "internal/moderation/application/file_report_test.go::TestFileReportAcceptsSpamAndSelfReport"
+        ],
+        "negative": [
+          "internal/moderation/application/file_report_test.go::TestFileReportVolumeNeverRemovesAndHidesPII",
+          "internal/moderation/application/file_report_test.go::TestFileReportRejectsUnknownAndRemovedTargets"
+        ],
+        "limit": [
+          "internal/moderation/adapters/http/ratelimit_test.go::TestReportFilingCarriesThePolicy"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A denúncia é da conta autenticada, que responde por ela.",
+      "concurrency": "O volume de denúncias é contado por janela no adapter, sem remover conteúdo.",
+      "idempotency": "Repetir a denúncia não cria segunda linha nem esconde o alvo.",
+      "security": "Nenhuma remoção é automática: a fila vai para triagem humana.",
+      "privacy": "A identidade do denunciante é privada, e o conteúdo permanece acessível até julgamento.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/moderation/application/file_report_test.go",
+        "internal/moderation/adapters/http/ratelimit_test.go",
+        "internal/moderation/domain/report.go"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-THR-MOD-02",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Ações de moderação arbitrárias, abusivas ou não auditadas",
+      "risk": "Q0",
+      "modules": [
+        "internal/audit",
+        "internal/moderation"
+      ],
+      "actors": [
+        "moderator",
+        "operator"
+      ],
+      "states": [
+        "decided",
+        "audited"
+      ],
+      "tests": {
+        "positive": [
+          "internal/moderation/adapters/postgres/review_test.go::TestReviewDecideAtomicAndInvalid",
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderJoinsSharedTransaction"
+        ],
+        "negative": [
+          "internal/moderation/application/review_test.go::TestDecideTargetActionMismatchDenies",
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderRejectsSensitiveMetadata"
+        ],
+        "limit": [
+          "internal/moderation/application/review_test.go::TestDecideLeaseExpiredAndInvalidTransitions"
+        ],
+        "authorization": [
+          "internal/moderation/application/authorizer_test.go::TestAuthorizerRevokedRoleDeniesActiveSession"
+        ],
+        "concurrency": [
+          "internal/moderation/adapters/postgres/review_test.go::TestReviewClaimConcurrentAndExpiredLease"
+        ],
+        "idempotency": [
+          "internal/persuasion/application/moderate_attribution_test.go::TestInvalidateAttributionReplaysRecordedDecision"
+        ],
+        "failure": []
+      },
+      "authorization": "Toda mutação de moderação exige capacidade conferida no banco a cada requisição.",
+      "concurrency": "A decisão é atômica com a gravação do evento de auditoria.",
+      "idempotency": "O replay da decisão registrada não aplica duas vezes.",
+      "security": "A trilha é append-only, e a mutação falha inteira se a trilha não gravar.",
+      "privacy": "A trilha registra metadados tipados e recusa dado sensível.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/moderation/application/review.go",
+        "internal/moderation/adapters/postgres/review_test.go",
+        "internal/audit/adapters/postgres/recorder_test.go"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-THR-CACHE-01",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Vazamento de dados privados via Web Cache Deception ou cache em CDN",
+      "risk": "Q1",
+      "modules": [
+        "internal/arguments",
+        "internal/platform",
+        "internal/positions",
+        "internal/transparency",
+        "internal/wallet"
+      ],
+      "actors": [
+        "adversary"
+      ],
+      "states": [
+        "cached"
+      ],
+      "tests": {
+        "positive": [
+          "internal/platform/httpcache/policy_test.go::TestPrivateAndNoStorePolicies",
+          "internal/platform/httpcache/policy_test.go::TestPublicPolicyIsExplicitAndBounded"
+        ],
+        "negative": [
+          "internal/wallet/adapters/http/wallet_http_test.go::TestWalletStatementHTTPNeverLeaksRestrictedFields"
+        ],
+        "limit": [
+          "internal/platform/httpcache/policy_test.go::TestValidatorsUseStableFactsAndWeakMatching"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A política é decidida por superfície: privada é no-store, pública é explícita e limitada.",
+      "concurrency": "A política é aplicada por resposta, no adapter, sem estado compartilhado.",
+      "idempotency": "A resposta privada não é cacheável, então repetir não reusa corpo de outro.",
+      "security": "Resposta com Set-Cookie nunca é pública, e URL pública é isolada de rota privada.",
+      "privacy": "Nenhuma resposta autenticada é armazenável em cache compartilhado.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/platform/httpcache/policy.go",
+        "internal/platform/httpcache/policy_test.go",
+        "internal/arguments/adapters/http/arguments_http_test.go",
+        "internal/wallet/adapters/http/wallet_http_test.go",
+        "internal/positions/adapters/http/positions_http_test.go",
+        "internal/transparency/adapters/http/handler_test.go"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-THR-CACHE-02",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Envenenamento de cache (Cache Poisoning) via cabeçalhos HTTP forjados",
+      "risk": "Q1",
+      "modules": [
+        "internal/platform"
+      ],
+      "actors": [
+        "adversary"
+      ],
+      "states": [
+        "cached"
+      ],
+      "tests": {
+        "positive": [
+          "internal/platform/httpcache/policy_test.go::TestPublicPolicyIsExplicitAndBounded"
+        ],
+        "negative": [
+          "internal/identity/adapters/http/auth_http_test.go::TestSpoofedForwardedHeaderDoesNotMultiplyTheLoginBudget",
+          "internal/arenas/adapters/html/arenas_html_test.go::TestArenaDocumentNeverReflectsRequestedSlug"
+        ],
+        "limit": [],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O host e o esquema canônicos vêm da configuração, não do cabeçalho recebido.",
+      "concurrency": "A resposta é montada por requisição, e o cabeçalho forjado não altera URL nem orçamento.",
+      "idempotency": "A mesma requisição devolve a mesma página, sem depender de cabeçalho não confiável.",
+      "security": "O backend ignora cabeçalhos não confiáveis na construção de URLs canônicas.",
+      "privacy": "O cabeçalho forjado não acrescenta nem vaza conteúdo de terceiro.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "deploy/caddy/Caddyfile",
+        "tools/caddyaudit/verify.sh",
+        "internal/platform/httpcache/policy.go"
+      ],
+      "not_applicable": {
+        "limit": "O cabeçalho forjado é ignorado ou não, categoricamente, e não há limiar nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-THR-ADM-01",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Acesso indevido a painel administrativo por escalada de privilégios",
+      "risk": "Q0",
+      "modules": [
+        "internal/jobs",
+        "internal/moderation"
+      ],
+      "actors": [
+        "adversary",
+        "moderator"
+      ],
+      "states": [
+        "admin"
+      ],
+      "tests": {
+        "positive": [
+          "internal/moderation/adapters/http/handler_test.go::TestModerationQueueClaimDecideFlow"
+        ],
+        "negative": [
+          "internal/moderation/adapters/http/handler_test.go::TestModerationAdminRoutesDenyStrangers",
+          "internal/moderation/adapters/http/handler_test.go::TestModerationAPIRequiresAuthentication",
+          "internal/jobs/adapters/http/handler_test.go::TestOperationalSurfaceDeniesAnonymousCallers",
+          "internal/jobs/adapters/http/handler_test.go::TestOperationalSurfaceRequiresTheAdministrativeRole"
+        ],
+        "limit": [
+          "internal/moderation/adapters/http/handler_test.go::TestModerationStepUpDeniesStaleHighImpact"
+        ],
+        "authorization": [
+          "internal/moderation/adapters/http/handler_test.go::TestModerationGateFollowsTheRoleChangeImmediately",
+          "internal/moderation/adapters/http/handler_test.go::TestModerationAdminGateRequiresSecondFactor"
+        ],
+        "concurrency": [
+          "internal/moderation/application/authorizer_test.go::TestAuthorizerRevokedRoleDeniesActiveSession"
+        ],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "A superfície administrativa exige capacidade conferida no banco, com segundo fator recente.",
+      "concurrency": "A autorização é conferida a cada requisição, e o gate segue a mudança de papel imediatamente.",
+      "idempotency": "A autorização é uma decisão por requisição, sem operação a repetir.",
+      "security": "Papel revogado perde acesso na hora, e a sessão antiga não sobrevive à mudança.",
+      "privacy": "A superfície administrativa não expõe dado de terceiro fora do caso.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/moderation/adapters/http/handler.go",
+        "internal/moderation/adapters/http/handler_test.go",
+        "internal/moderation/application/authorizer.go",
+        "internal/moderation/application/authorizer_test.go",
+        "internal/jobs/adapters/http/handler_test.go"
+      ],
+      "not_applicable": {
+        "idempotency": "A autorização é conferida a cada requisição e não tem operação a repetir, então não há chave de idempotência nesta regra"
+      }
+    },
+    {
+      "id": "QUAL-THR-ADM-02",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Operações administrativas financeiras ou de sistema sem rastreabilidade",
+      "risk": "Q0",
+      "modules": [
+        "internal/audit",
+        "internal/wallet"
+      ],
+      "actors": [
+        "operator"
+      ],
+      "states": [
+        "adjusted",
+        "audited"
+      ],
+      "tests": {
+        "positive": [
+          "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseCreditPositive",
+          "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseDebitNegative"
+        ],
+        "negative": [
+          "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseValidatesInput",
+          "internal/audit/adapters/postgres/recorder_test.go::TestRecorderRejectsSensitiveMetadata"
+        ],
+        "limit": [
+          "internal/audit/adapters/postgres/recorder_test.go::TestBillingAndAdminEventsFitTheTrail"
+        ],
+        "authorization": [
+          "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseNegativeAuthorization",
+          "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseAuthorizationErrorFromPort"
+        ],
+        "concurrency": [],
+        "idempotency": [
+          "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseReplayStillRecordsAudit",
+          "internal/wallet/adapters/postgres/repository_test.go::TestRepository_AdminAdjustmentReplayKeepsSingleOperation"
+        ],
+        "failure": [
+          "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCasePropagatesLedgerAndAuditFailures"
+        ]
+      },
+      "authorization": "O ajuste exige operador autorizado, com justificativa tipada.",
+      "concurrency": "O ajuste roda numa transação com a trilha, e a reapresentação é resolvida pela chave da operação.",
+      "idempotency": "Reapresentar o ajuste não duplica a operação, mas o replay ainda registra auditoria.",
+      "security": "Se a trilha não gravar, o ajuste sofre rollback total.",
+      "privacy": "A trilha registra metadados tipados e recusa dado sensível.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "internal/wallet/application/adjust_ink_test.go",
+        "internal/audit/adapters/postgres/recorder_test.go",
+        "internal/audit/domain"
+      ],
+      "not_applicable": {
+        "concurrency": "O ajuste roda numa transação com a trilha e a reapresentação é resolvida pela chave da operação, então não há duas escritas concorrentes"
+      }
+    },
+    {
+      "id": "QUAL-THR-ECON-22",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Cotação BTC/BRL por mediana guardada de ao menos três fontes independentes com preço, fonte, horário e proveniência; sem cotação confiável, novas vendas suspendem; validade conta na aceitação, intenção expirada exige nova cotação.",
+      "risk": "Q1",
+      "modules": [
+        "internal/pricing"
+      ],
+      "actors": [
+        "oracle",
+        "buyer"
+      ],
+      "states": [
+        "quoted",
+        "suspended"
+      ],
+      "tests": {
+        "positive": [
+          "internal/pricing/adapters/remote/source_test.go::TestHTTPSourceCollectsThreeIndependentSources",
+          "internal/pricing/domain/median_test.go::TestMedianPriceOrdersBeforeArithmetic",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialCollectorSeesNoCache"
+        ],
+        "negative": [
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialFalseSourceSuspendsRound",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialStaleQuoteSuspendsSale",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialRedirectNeverFollowed",
+          "internal/pricing/adapters/remote/source_test.go::TestHTTPSourceRefusesMalformedAnswers"
+        ],
+        "limit": [
+          "internal/pricing/domain/median_test.go::TestMedianPriceSuspendsAnomalies",
+          "internal/pricing/adapters/remote/source_test.go::TestHTTPSourceTimesOut",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialBurstStopsAtBreaker"
+        ],
+        "authorization": [],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O oracle não distingue atores: fontes entram por registro explícito e nenhuma URL chega por input.",
+      "concurrency": "A coleta é sequencial por round e o breaker contém rajadas de falha.",
+      "idempotency": "A mediana deriva de sightings, sem escrita e sem efeito a repetir.",
+      "security": "Fonte falsa, coludida ou fora da janela suspende a cotação em vez de precificar a mentira.",
+      "privacy": "A cotação carrega preço, fonte, instante e hash, sem dado de titular.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "docs/REQUIREMENTS.md"
+      ],
+      "not_applicable": {
+        "authorization": "O oracle não distingue atores: fontes entram por registro explícito do deployment, sem papel administrativo nesta regra",
+        "concurrency": "A coleta é sequencial por round e o breaker contém rajadas, então não há corrida a resolver",
+        "idempotency": "A mediana deriva de sightings sem escrever, então não há efeito a repetir"
+      }
+    },
+    {
+      "id": "QUAL-THR-ECON-30",
+      "source": "docs/THREAT_MODEL.md",
+      "description": "Liquidação e estorno de compras INK somente por evento autenticado HMAC com janela temporal e identificadores únicos; terceiro de boa-fé conserva o recebido e o operador cobre a diferença sem inventar INK.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing",
+        "internal/pricing"
+      ],
+      "actors": [
+        "account",
+        "buyer"
+      ],
+      "states": [
+        "pending",
+        "settled",
+        "failed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseLiquidatesOnce",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackRevokesInFull",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialWebhookReplayGrantsNothing"
+        ],
+        "negative": [
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialFraudFindsNoPurchase",
+          "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseRefusesWithoutEffect",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackRefusesShortTreasury"
+        ],
+        "limit": [
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialClockNeverExtends",
+          "internal/pricing/purchase_adversarial_cases_test.go::TestAdversarialSaleWithoutStockSuspends",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackSettlesPartialDispute"
+        ],
+        "authorization": [
+          "internal/pricing/purchase_authorization_test.go::TestPurchaseAuthorizationMatrix"
+        ],
+        "concurrency": [
+          "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseRacesCollapseToOne",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackRacesCollapseToOne",
+          "internal/billing/adapters/postgres/purchase_intent_test.go::TestPurchaseIntentRacesCollapseToOne"
+        ],
+        "idempotency": [
+          "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseReplaysDuplicates",
+          "internal/billing/adapters/postgres/purchase_chargeback_test.go::TestChargebackReplaysDuplicates",
+          "internal/billing/adapters/postgres/purchase_intent_test.go::TestPurchaseIntentReplaysWithoutDuplicating"
+        ],
+        "failure": []
+      },
+      "authorization": "Cada conta opera só suas chaves: chaves alheias resolvem ausência em aceitar, liquidar e estornar.",
+      "concurrency": "Corridas colapsam por UNIQUE com re-lookup: uma liquida, as demais replayam.",
+      "idempotency": "Redeliveries e eventos fora de ordem resolvem o registro sem novo efeito.",
+      "security": "Evento sem assinatura, adulterado ou fora da janela recusa; divergência conflita em vez de fundir.",
+      "privacy": "Erros e documentos carregam só dicionário fechado e inteiros, sem dado de titular.",
+      "evidence": [
+        "docs/THREAT_MODEL.md",
+        "docs/REQUIREMENTS.md"
+      ],
+      "not_applicable": {}
+    }
+  ]
+}

@@ -72,11 +72,11 @@ Sem argumentos suficientes dos diferentes lados, o primeiro visitante não encon
 
 **Mitigação:** lançar poucas Arenas por vez, recrutar participantes com perspectivas diferentes e preparar contribuições iniciais autênticas — identificadas por seus autores, nunca fabricadas pela plataforma.
 
-### R12 — Nome cria risco cultural e de marca
+### R12 — Nome e marca precisam de validação
 
-Goyim Arena é o nome escolhido, mas “goyim” possui significado cultural e religioso específico e pode ser percebido como excludente ou pejorativo dependendo do público e do contexto. Isso pode afetar confiança, aquisição, moderação, parceiros comerciais e registro de marca.
+Regnovum é o nome escolhido. A mudança reduz o risco cultural associado ao nome anterior, mas não comprova disponibilidade de marca, domínio ou boa compreensão em todos os mercados. Uma identidade ainda não validada pode afetar confiança, aquisição e parceiros comerciais.
 
-**Mitigação:** testar compreensão com públicos diversos, definir publicamente a intenção do nome e fazer busca jurídica de marca antes de investir em identidade visual ou aquisição. Não interpretar disponibilidade de domínio como liberação de marca.
+**Mitigação:** testar compreensão e pronúncia em pt-BR e en-US, fazer busca jurídica de marca e verificar domínios antes de investir em identidade visual ou aquisição. Disponibilidade de domínio não equivale a liberação de marca.
 
 ## 2. Hipóteses priorizadas
 

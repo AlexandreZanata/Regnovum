@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/turnstile"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/turnstile"
 )
 
 // TestFailureTrackerElevatesOnARunOfFailures is the risk signal's core

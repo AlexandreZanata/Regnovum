@@ -1,0 +1,36 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Regnovum commerce staged API",
+    "version": "0.1.0",
+    "description": "Staged trade receipt surface (P37-T07): private receipt and extract. Unmounted until the P44 gate and the separate holder authorization; not part of the published contract."
+  },
+  "paths": {
+    "/api/v1/me/commerce/contracts/{id}": {
+      "get": {
+        "operationId": "readTradeReceipt",
+        "summary": "Read one owned trade receipt with tithe split and compensations",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Receipt document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "404": { "description": "Unknown contract for this account" }
+        }
+      }
+    },
+    "/api/v1/me/commerce/statement": {
+      "get": {
+        "operationId": "readTradeStatement",
+        "summary": "Read the participant extract with owned trade lines",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": { "description": "Extract document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" }
+        }
+      }
+    }
+  }
+}

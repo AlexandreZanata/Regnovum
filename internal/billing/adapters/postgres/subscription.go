@@ -9,9 +9,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 var _ application.SubscriptionRepository = (*Repository)(nil)

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // Options specifies configuration for constructing the unified security Manager.

@@ -8,9 +8,9 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // The operational surface of the queue (P15-T06): what an operator reads and

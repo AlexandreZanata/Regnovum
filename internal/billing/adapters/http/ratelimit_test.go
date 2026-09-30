@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
-	adapterhttp "github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/http"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clientip"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/ratelimit"
+	adapterhttp "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/http"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clientip"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/ratelimit"
 )
 
 func TestBillingWritesCarryThePolicy(t *testing.T) {

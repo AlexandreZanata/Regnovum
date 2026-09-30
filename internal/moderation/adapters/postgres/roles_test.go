@@ -7,10 +7,10 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 func TestRepositoryResolvesActiveAndRevokedAssignments(t *testing.T) {

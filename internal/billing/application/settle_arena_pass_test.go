@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
 )
 
 // fakeSettlePassLots records pass lot grant requests for testing.
@@ -525,5 +525,43 @@ func mustNewCheckoutIntentWithProduct(t *testing.T, sessionID string, status dom
 		Status:         status,
 		SessionID:      sid,
 		CreatedAt:      time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC),
+	}
+}
+
+func TestSettleArenaPassAcceptsSinglePassGrant(t *testing.T) {
+	t.Parallel()
+
+	// A grant of exactly one pass is valid: the fence refuses only below
+	// one (mutation gate: settle_arena_pass.go:106).
+	catalog, err := domain.NewCatalog(1, []domain.Product{
+		mustNewPassProduct(t, domain.MarketBrazil, "pass_1", 990, domain.CurrencyBRL, 1, "price_1QbrPass"),
+	})
+	if err != nil {
+		t.Fatalf("NewCatalog: %v", err)
+	}
+	intents := newFakeSettleCheckoutIntents()
+	intent := mustNewCheckoutIntentWithProduct(t, "cs_test_session1", domain.CheckoutIntentOpen, "pass_1")
+	intents.intents[intent.ID] = intent
+	lots := &fakeSettlePassLots{
+		results: []application.GrantPassLotResult{{Replayed: false}},
+	}
+	useCase, err := application.NewSettleArenaPassUseCase(application.SettleArenaPassDependencies{
+		Catalog: catalog,
+		Intents: intents,
+		Lots:    lots,
+		Clock:   &fakeClock{now: time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)},
+	})
+	if err != nil {
+		t.Fatalf("NewSettleArenaPassUseCase: %v", err)
+	}
+	sessionID, _ := domain.ParseStripeCheckoutSessionID("cs_test_session1", false)
+	result, err := useCase.Execute(context.Background(), application.SettleCheckoutCommand{
+		SessionID: sessionID,
+	})
+	if err != nil {
+		t.Fatalf("single-pass settlement rejected: %v", err)
+	}
+	if result.AmountCredited != 1 {
+		t.Errorf("amountCredited = %d, want 1", result.AmountCredited)
 	}
 }

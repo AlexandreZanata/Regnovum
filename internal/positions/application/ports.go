@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 // Clock reports the current instant. The application never reads the system

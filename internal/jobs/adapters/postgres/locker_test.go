@@ -10,11 +10,11 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	jobsrepo "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/adapters/postgres"
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	jobsrepo "github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/postgres"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // schedulerClock is the stub clock of the scheduler integration tests.

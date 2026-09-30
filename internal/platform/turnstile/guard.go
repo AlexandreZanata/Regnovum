@@ -5,9 +5,9 @@ import (
 	"mime"
 	"net/http"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clientip"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clientip"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
 )
 
 // DefaultChallengeHeaderName is where a JSON client carries the token. It is

@@ -3,7 +3,7 @@ package websurface
 import (
 	"html/template"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
 )
 
 // Funcs are the template functions every served document shares (P18-T10).

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/application"
 )
 
 // FuzzPublishArgument is the P10-T09 fuzz smoke of the publication path:

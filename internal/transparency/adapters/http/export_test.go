@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	adapterhttp "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/adapters/http"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/application"
+	adapterhttp "github.com/AlexandreZanata/Regnovum/internal/transparency/adapters/http"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/application"
 )
 
 const exportTestSecret = "0123456789abcdef0123456789abcdef"

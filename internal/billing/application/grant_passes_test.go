@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
 )
 
 const testAccountID = "018f6b2a-0000-7000-8000-000000000010"

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
 )
 
 func TestParseRelationAcceptsOnlyCanonicalVocabulary(t *testing.T) {

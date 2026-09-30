@@ -1,5 +1,5 @@
 // Package dbtest provides an isolated, disposable PostgreSQL integration
-// test harness for Goyim Arena (P03-T05).
+// test harness for Regnovum (P03-T05).
 //
 // Per docs/ARCHITECTURE.md and the master plan:
 //   - Tests must run against real PostgreSQL;
@@ -22,16 +22,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbmigrate"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbpool"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbmigrate"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbpool"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// defaultLocalAdminDSN points to the dev PostgreSQL Compose service on loopback.
-const defaultLocalAdminDSN = "postgres://arena:arena-local-dev@127.0.0.1:54329/arena?sslmode=disable"
+// DefaultAdminDSN points to the dev PostgreSQL Compose service on loopback. It
+// is exported so that the tooling which audits what a run leaves behind
+// (tools/isolationaudit) connects to the same server this harness creates its
+// disposable databases on: two literals would be two servers the day one of them
+// changes.
+const DefaultAdminDSN = "postgres://arena:arena-local-dev@127.0.0.1:54329/arena?sslmode=disable"
 
 var (
 	nonAlphaNum = regexp.MustCompile(`[^a-zA-Z0-9]+`)
@@ -87,7 +91,7 @@ func New(t testing.TB, opts ...Option) *TestDB {
 	t.Helper()
 
 	cfg := options{
-		baseDSN:          defaultLocalAdminDSN,
+		baseDSN:          DefaultAdminDSN,
 		applyMigrations:  true,
 		poolMaxConns:     5,
 		poolMinConns:     1,
@@ -234,25 +238,71 @@ func applyAllMigrations(t testing.TB, dsn, dbName string) {
 	}
 }
 
+// cleanupDatabase removes the disposable database and refuses to remove it in
+// silence (P22-T06).
+//
+// The earlier version returned on every failure: an administrative connection
+// it could not open, a termination that did not take, a DROP the server
+// refused. A test whose database survived was a test that stayed green and a
+// server that kept every database of every run until somebody dropped them by
+// hand — and because the next run creates a *new* name, nothing ever failed.
+// The teardown is now the measurement: it reports, and it answers whether the
+// database is still there.
 func cleanupDatabase(t testing.TB, adminDSN, dbName string) {
 	t.Helper()
 
 	adminDB, err := sql.Open(dbmigrate.DriverName, adminDSN)
 	if err != nil {
+		t.Errorf("dbtest: open the administrative connection to drop %s: %v", dbName, logging.RedactValue(err.Error()))
 		return
 	}
-	defer adminDB.Close()
+	defer func() {
+		if err := adminDB.Close(); err != nil {
+			t.Errorf("dbtest: close the administrative connection that dropped %s: %v", dbName, logging.RedactValue(err.Error()))
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Terminate active connections to allow clean DROP
-	_, _ = adminDB.ExecContext(ctx,
+	if _, err := adminDB.ExecContext(ctx,
 		"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()",
 		dbName,
-	)
+	); err != nil {
+		t.Errorf("dbtest: terminate the connections to %s before dropping it: %v", dbName, logging.RedactValue(err.Error()))
+		return
+	}
 
 	// PostgreSQL 13+ supports WITH (FORCE)
 	quotedDB := quoteIdentifier(dbName)
-	_, _ = adminDB.ExecContext(ctx, "DROP DATABASE IF EXISTS "+quotedDB+" WITH (FORCE)")
+	if _, err := adminDB.ExecContext(ctx, "DROP DATABASE IF EXISTS "+quotedDB+" WITH (FORCE)"); err != nil {
+		t.Errorf("dbtest: drop %s: %v", dbName, logging.RedactValue(err.Error()))
+		return
+	}
+
+	// The question of the teardown is not "did the statement run" but "is the
+	// database gone": a DROP that answered nothing and removed nothing is the
+	// failure this check exists for.
+	exists, err := databaseExists(ctx, adminDB, dbName)
+	if err != nil {
+		t.Errorf("dbtest: ask whether %s survived its teardown: %v", dbName, logging.RedactValue(err.Error()))
+		return
+	}
+	if exists {
+		t.Errorf("dbtest: the disposable database %s survived its teardown; a run must leave no database behind", dbName)
+	}
+}
+
+// databaseExists answers whether a database is still there. The catalogue is
+// read rather than trusted: pg_database is the server's own answer.
+func databaseExists(ctx context.Context, adminDB *sql.DB, dbName string) (bool, error) {
+	var found bool
+	err := adminDB.QueryRowContext(ctx,
+		"SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $1)", dbName,
+	).Scan(&found)
+	if err != nil {
+		return false, err
+	}
+	return found, nil
 }

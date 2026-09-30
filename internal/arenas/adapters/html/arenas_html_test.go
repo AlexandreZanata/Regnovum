@@ -15,17 +15,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/billingpass"
-	adapterhtml "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/html"
-	arenaspg "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/postgres"
-	arenasapp "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	billingpg "github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/postgres"
-	billingapp "github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	billingdomain "github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/billingpass"
+	adapterhtml "github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/html"
+	arenaspg "github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/postgres"
+	arenasapp "github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	billingpg "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/postgres"
+	billingapp "github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	billingdomain "github.com/AlexandreZanata/Regnovum/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // --- Harness -------------------------------------------------------------
@@ -305,7 +305,7 @@ func TestArenaDocumentRendersCacheableHTML(t *testing.T) {
 	canonical := "/d/" + arena.Slug().String()
 	publishedAt := arena.PublishedAt().UTC().Format(time.RFC3339)
 
-	if want := statement + " — Goyim Arena"; document.Head.Title != want {
+	if want := statement + " — Regnovum"; document.Head.Title != want {
 		t.Fatalf("title = %q, want %q", document.Head.Title, want)
 	}
 	if got := metaContent(t, document.Head, "description", ""); got != contextText {
@@ -326,8 +326,8 @@ func TestArenaDocumentRendersCacheableHTML(t *testing.T) {
 	if got := metaContent(t, document.Head, "", "og:locale"); got != "pt_BR" {
 		t.Fatalf("og:locale = %q, want pt_BR", got)
 	}
-	if got := metaContent(t, document.Head, "", "og:site_name"); got != "Goyim Arena" {
-		t.Fatalf("og:site_name = %q, want Goyim Arena", got)
+	if got := metaContent(t, document.Head, "", "og:site_name"); got != "Regnovum" {
+		t.Fatalf("og:site_name = %q, want Regnovum", got)
 	}
 
 	var canonicalHref string
@@ -531,7 +531,7 @@ func TestArenaDocumentEscapesMaliciousContent(t *testing.T) {
 	}
 
 	document := parseDocument(t, body)
-	if want := statement + " — Goyim Arena"; document.Head.Title != want {
+	if want := statement + " — Regnovum"; document.Head.Title != want {
 		t.Fatalf("title = %q, want the escaped statement round-tripped", document.Head.Title)
 	}
 	if document.Body.Main.Heading != statement {

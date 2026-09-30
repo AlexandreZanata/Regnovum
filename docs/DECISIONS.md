@@ -189,3 +189,17 @@ O modelo de ameaças declara, em `THR-AUTH-01`, que os cookies de sessão carreg
 **Decisão:** o alvo existe no `Makefile` e é do operador, como o `release-gate` das decisões humanas; o **registro** entra em `verify` pela porta que já existe, porque `TestDeliveredRegisterStands` audita o documento entregue dentro de `go test ./tools/secaudit/...`. **Consequência:** uma evidência citada que deixa de existir quebra o CI no próximo merge que a tocar, e nenhum merge passa a pagar `make vuln` duas vezes.
 
 **Revisar quando:** a verificação reproduzível da fase (P20-T07) decidir se o portão completo vira job.
+
+## PD-015 — Nome público Regnovum
+
+**Data:** 2026-09-23
+
+**Status:** aceita
+
+**Contexto:** o titular decidiu substituir o nome público anterior do produto. A identidade do Reino e as regras de negócio não dependem da grafia antiga.
+
+**Decisão:** o produto passa a se chamar **Regnovum** em toda a documentação narrativa ativa.
+
+**Consequência:** títulos, apresentações e referências ao produto são atualizados. Caminho do repositório, URL remota, módulo Go, nomes de pacote, binário, variáveis, imagens, catálogos de interface e evidências históricas não são renomeados automaticamente; mudanças nesses identificadores exigem alteração técnica separada e verificação própria. Textos históricos permanecem rastreáveis.
+
+**Revisar quando:** a marca ou o domínio exigir ajuste, ou quando houver decisão de migrar os identificadores técnicos e a apresentação em runtime.

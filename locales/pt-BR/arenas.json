@@ -1,7 +1,7 @@
 {
   "arenas": {
     "document": {
-      "page_title": "{subject} — Goyim Arena",
+      "page_title": "{subject} — Regnovum",
       "status": {
         "published": "Publicada",
         "closed": "Fechada",
@@ -18,8 +18,8 @@
     },
     "participation": {
       "page_title": "Participar — {subject}",
-      "refusal_page_title": "Participação — Goyim Arena",
-      "brand": "Goyim Arena",
+      "refusal_page_title": "Participação — Regnovum",
+      "brand": "Regnovum",
       "nav": {
         "label": "Navegação",
         "arena": "Arena",

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 )
 
 // stubIDs satisfies the request ID port of the composition under test.

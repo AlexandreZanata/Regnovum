@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	stripeadapter "github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/stripe"
+	stripeadapter "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/stripe"
 )
 
 // testClock is a deterministic clock for tests.
@@ -236,6 +236,65 @@ func TestWebhookVerifierUsesConstantTimeComparison(t *testing.T) {
 	// Must be rejected despite being very close.
 	if err := verifier.Verify(body, signature, strconv.FormatInt(timestamp, 10)); err == nil {
 		t.Fatal("a nearly-correct signature must be rejected")
+	}
+}
+
+// TestWebhookVerifierRefusesAMissingClock states the requirement the verifier
+// gained with P22-T02: the tolerance window is a security rule, and a verifier
+// that cannot say what "now" is cannot apply it. Refusing at construction is
+// fail-closed — the alternative is a rule that silently reads the machine clock
+// on the first webhook of a release.
+func TestWebhookVerifierRefusesAMissingClock(t *testing.T) {
+	t.Parallel()
+
+	_, err := stripeadapter.NewWebhookVerifier("whsec_test_secret_key", 5*time.Minute, nil)
+	if !errors.Is(err, stripeadapter.ErrMissingClock) {
+		t.Fatalf("error = %v, want ErrMissingClock", err)
+	}
+}
+
+// TestTheToleranceIsDecidedByTheInjectedClock is the expiry scenario of the
+// webhook window, and it is the test that could not exist before: with a fully
+// fixed instant on both sides of the comparison, the two edges of the window
+// are decidable without the wall clock, so a failure of the rule is a failure
+// somebody can replay.
+func TestTheToleranceIsDecidedByTheInjectedClock(t *testing.T) {
+	t.Parallel()
+
+	const secret = "whsec_test_secret_key"
+	// A fixed instant: every timestamp below is an offset from it, and no part
+	// of this test reads the machine clock.
+	instant := time.Unix(1_700_000_000, 0)
+	verifier, err := stripeadapter.NewWebhookVerifier(secret, 5*time.Minute, &testClock{now: instant})
+	if err != nil {
+		t.Fatalf("NewWebhookVerifier error = %v", err)
+	}
+	body := []byte(`{"id":"evt_test"}`)
+
+	cases := []struct {
+		name     string
+		offset   time.Duration
+		accepted bool
+		because  string
+	}{
+		{name: "an event four minutes old", offset: -4 * time.Minute, accepted: true, because: "it is inside the five minute window"},
+		{name: "an event exactly at the edge", offset: -5 * time.Minute, accepted: true, because: "the window is inclusive"},
+		{name: "an event one second past the window", offset: -5*time.Minute - time.Second, accepted: false, because: "the replay window is what the tolerance is for"},
+		{name: "an event thirty seconds ahead", offset: 30 * time.Second, accepted: true, because: "the skew allowance is one minute"},
+		{name: "an event ten minutes ahead", offset: 10 * time.Minute, accepted: false, because: "a timestamp from the future is not a skew, it is a mistake or an attack"},
+	}
+	for _, testCase := range cases {
+		timestamp := instant.Add(testCase.offset).Unix()
+		signedPayload := fmt.Sprintf("%d.%s", timestamp, body)
+		signature := fmt.Sprintf("t=%d,v1=%s", timestamp, newHMAC(signedPayload, secret))
+
+		err := verifier.Verify(body, signature, strconv.FormatInt(timestamp, 10))
+		switch {
+		case testCase.accepted && err != nil:
+			t.Errorf("%s was refused (%v), and it is accepted %s", testCase.name, err, testCase.because)
+		case !testCase.accepted && err == nil:
+			t.Errorf("%s was accepted, and it must not be: %s", testCase.name, testCase.because)
+		}
 	}
 }
 

@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	auditapp "github.com/AlexandreZanata/Goyim-Arena/internal/audit/application"
-	auditdomain "github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/adapters/auditbridge"
-	moderationapp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	auditapp "github.com/AlexandreZanata/Regnovum/internal/audit/application"
+	auditdomain "github.com/AlexandreZanata/Regnovum/internal/audit/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/adapters/auditbridge"
+	moderationapp "github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // validatingRecorder stores the events the audit domain accepts and surfaces

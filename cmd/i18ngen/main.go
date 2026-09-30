@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18ngen"
+	"github.com/AlexandreZanata/Regnovum/internal/i18ngen"
 )
 
 const usage = `i18ngen generates the typed locale catalogs from locales/.

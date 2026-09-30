@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
 )
 
 // feedCursorVersion prefixes every cursor payload so a future layout can be

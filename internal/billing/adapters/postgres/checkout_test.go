@@ -9,11 +9,11 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // mustCheckoutAccount creates an account and drives it to the requested

@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/adapters/renderer"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/adapters/renderer"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 // testCatalog resolves through the real generated catalog and can be told to

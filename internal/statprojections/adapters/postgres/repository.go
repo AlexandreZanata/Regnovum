@@ -11,10 +11,10 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	statapp "github.com/AlexandreZanata/Goyim-Arena/internal/statprojections/application"
-	transparencypg "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/adapters/postgres"
-	transparencyapp "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/domain"
+	statapp "github.com/AlexandreZanata/Regnovum/internal/statprojections/application"
+	transparencypg "github.com/AlexandreZanata/Regnovum/internal/transparency/adapters/postgres"
+	transparencyapp "github.com/AlexandreZanata/Regnovum/internal/transparency/application"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/domain"
 )
 
 type Repository struct {

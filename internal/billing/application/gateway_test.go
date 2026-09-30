@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
 )
 
 // fakeGateway is the contract fake of the payment port: it implements the
@@ -166,8 +166,8 @@ func TestPortTypesNeverMentionTheProvider(t *testing.T) {
 		"":        true,
 		"context": true,
 		"time":    true,
-		"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application": true,
-		"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain":      true,
+		"github.com/AlexandreZanata/Regnovum/internal/billing/application": true,
+		"github.com/AlexandreZanata/Regnovum/internal/billing/domain":      true,
 	}
 
 	seen := map[reflect.Type]bool{}

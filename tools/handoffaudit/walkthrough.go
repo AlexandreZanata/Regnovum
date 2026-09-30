@@ -331,7 +331,7 @@ func (run *walkthrough) gitRaw(args ...string) (string, error) {
 	command.Stdout = &out
 	command.Stderr = &errOut
 	if err := command.Run(); err != nil {
-		return "", fmt.Errorf("handoffaudit: git %s: %v: %s", strings.Join(args, " "), err, strings.TrimSpace(errOut.String()))
+		return "", fmt.Errorf("handoffaudit: git %s: %w: %s", strings.Join(args, " "), err, strings.TrimSpace(errOut.String()))
 	}
 	return out.String(), nil
 }

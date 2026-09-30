@@ -25,8 +25,10 @@ const (
 	RuleGatesWired    = "gates-wired"
 	RuleDatabase      = "database-service"
 	RuleDraftSkip     = "draft-skip-without-reduction"
+	RuleCadence       = "release-only-cadence"
 	RuleSurface       = "trigger-and-secret-surface"
 	RuleBudget        = "job-budget"
+	RuleFullMatrix    = "full-matrix-cadence"
 )
 
 // ciBudgetMinutes is the phase's CI budget: `.local/git-flow.sh` waits 1800
@@ -54,6 +56,16 @@ type gate struct {
 // release gate (docs/CI.md).
 var requiredGates = []gate{
 	{"formatting", "fmt-check"},
+	{"static analysis", "lint"},
+	{"complexity, duplication and size", "audit-complexity"},
+	{"dead code, placeholders and impossible paths", "audit-deadcode"},
+	{"errors, contexts and resources", "audit-errors"},
+	{"generated-artifact provenance", "audit-provenance"},
+	{"test quality", "audit-tests"},
+	{"production change evidence", "audit-diff"},
+	{"dependency provenance", "audit-deps"},
+	{"mutation testing of critical rules", "audit-mutations"},
+	{"line coverage floors and diff", "audit-coverage"},
 	{"generated-artifact drift", "generate-check"},
 	{"unit tests", "test-unit"},
 	{"PostgreSQL integration", "test-integration"},
@@ -139,7 +151,56 @@ func Audit(root string) (Report, error) {
 	report.Findings = append(report.Findings, auditDraftSkips(workflows)...)
 	report.Findings = append(report.Findings, auditSurface(workflows)...)
 	report.Findings = append(report.Findings, auditBudget(workflows)...)
+	report.Findings = append(report.Findings, auditFullMatrixCadence(workflows)...)
 	return report, nil
+}
+
+// fullMatrixTargets are the gates that run the complete verification:
+// the P30 canonical tiers and the release aggregate. They execute
+// integrally only in P45, so no workflow may trigger them on a pull
+// request or a branch push — schedules, tags and manual runs are the
+// only cadences that cannot surprise a merge.
+var fullMatrixTargets = []string{"quality-nightly", "quality-weekly", "quality-certify", "verify"}
+
+// releaseFiles are the workflows whose triggers the release-only-cadence
+// rule already owns; this rule judges every other file, so the two rules
+// never double-judge one trigger.
+var releaseFiles = map[string]bool{
+	".github/workflows/verify.yml":       true,
+	".github/workflows/supply-chain.yml": true,
+}
+
+// auditFullMatrixCadence requires the complete verification to stay off
+// the merge path: a workflow that invokes a full-matrix target on
+// pull_request or push branches would run (or block) every merge with a
+// suite P45 owns.
+func auditFullMatrixCadence(workflows []workflow) []Finding {
+	var findings []Finding
+	for _, w := range workflows {
+		invokes := false
+		for _, e := range w.entries {
+			if e.Key != "run" {
+				continue
+			}
+			for _, target := range invokedTargets(e.Value) {
+				if containsString(fullMatrixTargets, target) {
+					invokes = true
+				}
+			}
+		}
+		if !invokes || releaseFiles[w.Path] {
+			continue
+		}
+		if w.has("on.pull_request") {
+			findings = append(findings, Finding{w.Path, 0, RuleFullMatrix,
+				"invokes a full-matrix gate on pull_request: complete verification runs in P45, never on the merge path"})
+		}
+		if w.has("on.push.branches") {
+			findings = append(findings, Finding{w.Path, 0, RuleFullMatrix,
+				"invokes a full-matrix gate on branch push: complete verification runs in P45, never on the merge path"})
+		}
+	}
+	return findings
 }
 
 // auditActionsPinned requires every third-party action to be a commit SHA with
@@ -479,6 +540,26 @@ func databaseGateOfJob(w workflow, job string) string {
 // request is marked ready. Only the pair is a deferral; either half alone is a
 // gate that never runs.
 func auditDraftSkips(workflows []workflow) []Finding {
+	// Once a bounded PR workflow exists, the complete workflows must be
+	// release-only. A missing quick workflow in that topology is a failure,
+	// not permission to fall back to the legacy PR model. Keep the legacy path
+	// only for historical fixture falsifications that still have PR full gates.
+	quickPresent := false
+	releaseOnly := false
+	for _, w := range workflows {
+		if strings.HasSuffix(w.Path, "/quick.yml") {
+			quickPresent = true
+		}
+		if (strings.HasSuffix(w.Path, "/verify.yml") || strings.HasSuffix(w.Path, "/supply-chain.yml")) && w.has("on.workflow_dispatch") && !w.has("on.pull_request") {
+			releaseOnly = true
+		}
+	}
+	if releaseOnly && !quickPresent {
+		return []Finding{{".github/workflows/quick.yml", 0, RuleCadence, "mandatory quick workflow is missing"}}
+	}
+	if quickPresent {
+		return auditReleaseCadence(workflows)
+	}
 	var findings []Finding
 	for _, w := range workflows {
 		if !w.has("on.pull_request") {
@@ -491,6 +572,48 @@ func auditDraftSkips(workflows []workflow) []Finding {
 				findings = append(findings, Finding{w.Path, jobLine(w, job), RuleDraftSkip,
 					fmt.Sprintf("job %q does not skip draft pull requests: the complete verification is deferred to `ready_for_review`, and a job that ignores that runs on every draft push", job)})
 			}
+		}
+	}
+	return findings
+}
+
+func auditReleaseCadence(workflows []workflow) []Finding {
+	var findings []Finding
+	for _, w := range workflows {
+		if strings.HasSuffix(w.Path, "/quick.yml") {
+			if !w.has("on.pull_request") || !containsString(w.flowList("on.pull_request.types"), "synchronize") || !containsString(w.flowList("on.push.branches"), "main") {
+				findings = append(findings, Finding{w.Path, 0, RuleCadence, "quick must run for every pull request update and main push"})
+			}
+			for _, filter := range []string{"paths", "paths-ignore"} {
+				if w.has("on.pull_request." + filter) {
+					findings = append(findings, Finding{w.Path, 0, RuleCadence, "quick may not filter pull request paths"})
+				}
+			}
+			found := false
+			for _, job := range w.jobIDs() {
+				if w.has("jobs." + job + ".if") {
+					findings = append(findings, Finding{w.Path, jobLine(w, job), RuleCadence, "quick job may not be conditional"})
+				}
+				for _, e := range w.under("jobs." + job) {
+					if e.Key == "run" && containsString(invokedTargets(e.Value), "quick-verify") {
+						found = true
+					}
+				}
+			}
+			if !found {
+				findings = append(findings, Finding{w.Path, 0, RuleCadence, "quick workflow does not invoke make quick-verify"})
+			}
+			continue
+		}
+		if !strings.HasSuffix(w.Path, "/verify.yml") && !strings.HasSuffix(w.Path, "/supply-chain.yml") {
+			continue
+		}
+		if w.has("on.pull_request") || w.has("on.push.branches") || !w.has("on.workflow_dispatch") {
+			findings = append(findings, Finding{w.Path, 0, RuleCadence, "complete workflow must be manual/release-only, never a normal PR or main push"})
+		}
+		tags, ok := w.at("on.push.tags")
+		if !ok || !strings.Contains(tags.Value, "v*") {
+			findings = append(findings, Finding{w.Path, 0, RuleCadence, "complete workflow must run for version tags"})
 		}
 	}
 	return findings

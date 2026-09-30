@@ -19,13 +19,13 @@ import (
 	"sort"
 	"strings"
 
-	auditpostgres "github.com/AlexandreZanata/Goyim-Arena/internal/audit/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/administrationtarget"
-	identitypostgres "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/postgres"
-	moderationauditbridge "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/adapters/auditbridge"
-	moderationpostgres "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/adapters/postgres"
-	moderationapp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	auditpostgres "github.com/AlexandreZanata/Regnovum/internal/audit/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/administrationtarget"
+	identitypostgres "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/postgres"
+	moderationauditbridge "github.com/AlexandreZanata/Regnovum/internal/moderation/adapters/auditbridge"
+	moderationpostgres "github.com/AlexandreZanata/Regnovum/internal/moderation/adapters/postgres"
+	moderationapp "github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // Administration is the composed local administration: the promotion of the

@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 // Random supplies entropy for retry jitter. It is a local port (the

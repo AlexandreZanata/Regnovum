@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 

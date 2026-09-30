@@ -11,7 +11,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 // Renderer turns a template, a locale and the runtime values into the

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
 // maxMFABodyBytes bounds the small JSON bodies of this surface: the largest

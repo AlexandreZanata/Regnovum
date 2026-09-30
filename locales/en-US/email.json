@@ -1,19 +1,19 @@
 {
   "email": {
     "greeting": "Hi,",
-    "signature": "The Goyim Arena team",
+    "signature": "The Regnovum team",
     "verification": {
-      "subject": "Confirm your email at Goyim Arena",
+      "subject": "Confirm your email at Regnovum",
       "lead": "Use the code below to confirm your email. If you did not request this, ignore this message.",
       "code_label": "Verification code"
     },
     "password_reset": {
-      "subject": "Reset your Goyim Arena password",
+      "subject": "Reset your Regnovum password",
       "lead": "Use the code below to reset your password. If you did not request this, ignore this message.",
       "code_label": "Reset code"
     },
     "password_changed": {
-      "subject": "Your Goyim Arena password was changed",
+      "subject": "Your Regnovum password was changed",
       "lead": "Your account password was changed and every older session was ended. If this was not you, reset your password now and review the active sessions."
     }
   }

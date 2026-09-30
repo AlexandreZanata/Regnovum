@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // The second factor of the administrative surface (P16-T05).

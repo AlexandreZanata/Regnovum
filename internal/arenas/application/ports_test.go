@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/application"
 )
 
 // transactionalStore is a deterministic model of the shared transaction:

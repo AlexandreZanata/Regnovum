@@ -11,10 +11,10 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	transparencypg "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	transparencypg "github.com/AlexandreZanata/Regnovum/internal/transparency/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/application"
 )
 
 const (

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	jobsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	jobsdomain "github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/application"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 // Handler delivers the queued email jobs of the worker (P15-T04).

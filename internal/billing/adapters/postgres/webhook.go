@@ -10,10 +10,10 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // Webhook surface of the billing adapter (P12-T05): event idempotency and

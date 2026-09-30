@@ -28,9 +28,9 @@ import (
 	"fmt"
 	"time"
 
-	auditapp "github.com/AlexandreZanata/Goyim-Arena/internal/audit/application"
-	auditdomain "github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
-	moderationapp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
+	auditapp "github.com/AlexandreZanata/Regnovum/internal/audit/application"
+	auditdomain "github.com/AlexandreZanata/Regnovum/internal/audit/domain"
+	moderationapp "github.com/AlexandreZanata/Regnovum/internal/moderation/application"
 )
 
 // The trail's vocabulary for the two facts. The action names are stable and

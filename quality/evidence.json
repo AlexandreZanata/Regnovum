@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "suites": [
+    {
+      "id": "SUITE-WALLET-POSTGRES",
+      "owner": "wallet",
+      "environment": "postgres",
+      "command": "make test-integration",
+      "modules": ["internal/wallet"]
+    },
+    {
+      "id": "SUITE-PLATFORM-POSTGRES",
+      "owner": "platform",
+      "environment": "postgres",
+      "command": "make test-integration",
+      "modules": ["internal/platform/postgres"]
+    },
+    {
+      "id": "SUITE-BILLING-UNIT",
+      "owner": "billing",
+      "environment": "unit",
+      "command": "make test-unit",
+      "modules": ["internal/billing"]
+    },
+    {
+      "id": "SUITE-BILLING-POSTGRES",
+      "owner": "billing",
+      "environment": "postgres",
+      "command": "make test-integration",
+      "modules": ["internal/billing"]
+    },
+    {
+      "id": "SUITE-MODERATION-POSTGRES",
+      "owner": "moderation",
+      "environment": "postgres",
+      "command": "make test-integration",
+      "modules": ["internal/moderation"]
+    },
+    {
+      "id": "SUITE-SECURITY-UNIT",
+      "owner": "platform",
+      "environment": "unit",
+      "command": "make test-security",
+      "modules": ["internal/platform/security"]
+    },
+    {
+      "id": "SUITE-IDENTITY-UNIT",
+      "owner": "identity",
+      "environment": "unit",
+      "command": "make test-unit",
+      "modules": ["internal/identity"]
+    },
+    {
+      "id": "SUITE-ARGUMENTS-UNIT",
+      "owner": "arguments",
+      "environment": "unit",
+      "command": "make test-unit",
+      "modules": ["internal/arguments"]
+    },
+    {
+      "id": "SUITE-CONTRACT-UNIT",
+      "owner": "contract",
+      "environment": "unit",
+      "command": "make test-contract",
+      "modules": ["internal/contract"]
+    },
+    {
+      "id": "SUITE-POSITIONS-UNIT",
+      "owner": "positions",
+      "environment": "unit",
+      "command": "make test-unit",
+      "modules": ["internal/positions"]
+    },
+    {
+      "id": "SUITE-JOURNEYS-BROWSER",
+      "owner": "quality",
+      "environment": "browser",
+      "command": "make test-e2e",
+      "modules": ["tools/e2e"]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "EVD-WALLET-INTEGRATION-01",
+      "kind": "integration",
+      "suite": "SUITE-WALLET-POSTGRES",
+      "risk": "Q0",
+      "rules": ["QUAL-REQ-WAL-01", "QUAL-REQ-INV-07", "QUAL-THR-WAL-01"],
+      "tests": [
+        "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitConcurrentNoDoubleSpend",
+        "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitIsIdempotent"
+      ],
+      "proves": "duas submissões concorrentes não gastam o mesmo saldo e o replay do mesmo envio não debita de novo"
+    },
+    {
+      "id": "EVD-PLATFORM-INTEGRATION-01",
+      "kind": "integration",
+      "suite": "SUITE-PLATFORM-POSTGRES",
+      "risk": "Q0",
+      "rules": ["QUAL-THR-WAL-02"],
+      "tests": [
+        "internal/platform/postgres/wallet_test.go::TestWalletAppendOnlyPrivileges",
+        "internal/platform/postgres/wallet_test.go::TestWalletBalancesNeverNegative",
+        "internal/platform/postgres/wallet_test.go::TestWalletIdempotencyKeyUnique"
+      ],
+      "proves": "o ledger é append-only por privilégio de banco, o saldo nunca fica negativo e a chave de idempotência é única"
+    },
+    {
+      "id": "EVD-BILLING-SECURITY-01",
+      "kind": "security",
+      "suite": "SUITE-BILLING-UNIT",
+      "risk": "Q0",
+      "rules": ["QUAL-REQ-BIL-03", "QUAL-THR-STRIPE-01"],
+      "tests": [
+        "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsAlteredBody",
+        "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierUsesConstantTimeComparison",
+        "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsFutureTimestamp"
+      ],
+      "proves": "a assinatura do webhook é conferida sobre o corpo bruto, com comparação em tempo constante e futuro recusado"
+    },
+    {
+      "id": "EVD-BILLING-INTEGRATION-01",
+      "kind": "integration",
+      "suite": "SUITE-BILLING-POSTGRES",
+      "risk": "Q0",
+      "rules": ["QUAL-REQ-BIL-04"],
+      "tests": [
+        "internal/billing/adapters/postgres/refund_test.go::TestRefundJournalIsIdempotentAndAuditable",
+        "internal/billing/adapters/postgres/refund_test.go::TestRefundLedgerDebitsPurchasedOnly"
+      ],
+      "proves": "o estorno debita só o saldo comprado, nunca o promocional, e o journal de reembolsos é idempotente e auditável"
+    },
+    {
+      "id": "EVD-MODERATION-INTEGRATION-01",
+      "kind": "integration",
+      "suite": "SUITE-MODERATION-POSTGRES",
+      "risk": "Q0",
+      "rules": ["QUAL-REQ-MOD-03", "QUAL-REQ-INV-09", "QUAL-THR-MOD-02"],
+      "tests": [
+        "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsMatrixPerTarget",
+        "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsInvalidateAttributions",
+        "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsRollbackOnStaleTarget"
+      ],
+      "proves": "a matriz de sanções por alvo é fixa, a sanção invalida atribuições e a aplicação sofre rollback quando o alvo mudou"
+    },
+    {
+      "id": "EVD-SECURITY-UNIT-01",
+      "kind": "security",
+      "suite": "SUITE-SECURITY-UNIT",
+      "risk": "Q0",
+      "rules": ["QUAL-THR-AUTH-03"],
+      "tests": [
+        "internal/platform/security/csrf_test.go::TestCSRFMiddleware_CrossOriginValidation",
+        "internal/platform/security/csrf_test.go::TestCSRFMiddleware_MutatingMethods_Enforcement"
+      ],
+      "proves": "o pedido mutante exige token de duplo envio e origem conferida, e a submissão cross-origin é recusada"
+    },
+    {
+      "id": "EVD-IDENTITY-FUZZ-01",
+      "kind": "fuzz",
+      "suite": "SUITE-IDENTITY-UNIT",
+      "risk": "Q0",
+      "rules": ["QUAL-REQ-AUTH-01"],
+      "tests": ["internal/identity/domain/email_test.go::FuzzParseEmail"],
+      "proves": "o parser de email do cadastro recusa entrada malformada sem entrar em pânico nem aceitar o que não é endereço"
+    },
+    {
+      "id": "EVD-ARGUMENTS-FUZZ-01",
+      "kind": "fuzz",
+      "suite": "SUITE-ARGUMENTS-UNIT",
+      "risk": "Q1",
+      "rules": ["QUAL-REQ-ARG-04"],
+      "tests": [
+        "internal/arguments/domain/fuzz_test.go::FuzzParseContent",
+        "internal/arguments/domain/fuzz_test.go::FuzzParseSource"
+      ],
+      "proves": "a medição do texto do argumento normaliza e conta grapheme clusters sem estourar o limite nem aceitar fonte inválida"
+    },
+    {
+      "id": "EVD-CONTRACT-CONTRACT-01",
+      "kind": "contract",
+      "suite": "SUITE-CONTRACT-UNIT",
+      "risk": "Q2",
+      "rules": ["QUAL-REQ-DISC-02"],
+      "tests": [
+        "internal/contract/contract_test.go::TestContractArenaDocumentRoute",
+        "internal/contract/contract_test.go::TestContractArenaSchemasExposeOnlyAllowedFields"
+      ],
+      "proves": "a página pública da arena tem rota no contrato e o schema público expõe apenas os campos permitidos"
+    },
+    {
+      "id": "EVD-POSITIONS-PROPERTY-01",
+      "kind": "property",
+      "suite": "SUITE-POSITIONS-UNIT",
+      "risk": "Q1",
+      "rules": ["QUAL-REQ-INV-04"],
+      "tests": ["internal/positions/domain/debate_position_test.go::TestChangeSequencesStayDerivableAndImmutable"],
+      "proves": "sequências de mudança de posição permanecem deriváveis e imutáveis em qualquer ordem gerada"
+    },
+    {
+      "id": "EVD-JOURNEYS-E2E-01",
+      "kind": "e2e",
+      "suite": "SUITE-JOURNEYS-BROWSER",
+      "risk": "Q1",
+      "rules": ["QUAL-REQ-I18N-02"],
+      "tests": [
+        "tools/e2e/specs/participation.spec.js",
+        "tools/e2e/specs/localization.spec.js"
+      ],
+      "proves": "as jornadas de conta e de participação percorrem os dois idiomas com a arena presa ao idioma que declarou"
+    }
+  ]
+}

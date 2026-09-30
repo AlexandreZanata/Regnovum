@@ -1,5 +1,5 @@
 // Package dbpool implements the bounded PostgreSQL connection pool adapter
-// of Goyim Arena using pgx/v5 (P03-T04).
+// of Regnovum using pgx/v5 (P03-T04).
 package dbpool
 
 import (
@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbbudget"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbbudget"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 	"github.com/jackc/pgx/v5"
 )
 

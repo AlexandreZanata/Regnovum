@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clientip"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/ratelimit"
-	adapterhttp "github.com/AlexandreZanata/Goyim-Arena/internal/positions/adapters/http"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clientip"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/ratelimit"
+	adapterhttp "github.com/AlexandreZanata/Regnovum/internal/positions/adapters/http"
 )
 
 // refusingEnforcer is the real enforcer over a guard that refuses everything,

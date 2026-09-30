@@ -6,7 +6,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // Clock exposes wall-clock time to identity application use cases.

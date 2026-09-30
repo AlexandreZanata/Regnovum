@@ -8,7 +8,7 @@
 
 - entrevistar participantes e criadores potenciais;
 - testar linguagem, nome e proposta de valor;
-- avaliar domínio e marca antes de investir na identidade Goyim Arena;
+- avaliar domínio e marca antes de investir na identidade Regnovum;
 - validar compreensão de “minds changed”;
 - definir público inicial e canais de recrutamento.
 

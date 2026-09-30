@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpcache"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpcache"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // timeLayout is the RFC 3339 rendering of every instant on this surface, so an

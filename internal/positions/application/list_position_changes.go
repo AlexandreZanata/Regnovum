@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 // ListPositionChangesQuery addresses the private change history of one

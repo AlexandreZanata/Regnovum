@@ -7,7 +7,7 @@ package exportjson
 import (
 	"encoding/json"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/application"
 )
 
 // Encoder renders personal export documents as canonical JSON bytes.

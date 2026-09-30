@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/application"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 var deletionBase = testNow
@@ -414,5 +415,22 @@ func TestDeletionStatusRequiresOwner(t *testing.T) {
 	}
 	if resolved.Status != domain.DeletionStatusRequested {
 		t.Fatalf("status = %+v", resolved)
+	}
+}
+
+func TestDeletionCancelReasonBoundaryLength(t *testing.T) {
+	t.Parallel()
+
+	accountID := domain.AccountID("018f6b2a-0000-7000-8000-0000000000d3")
+	_, _, request, cancel, _ := newDeletionHarness(t, deletionBase)
+
+	if _, err := request.Execute(context.Background(), application.RequestDeletionCommand{AccountID: accountID}); err != nil {
+		t.Fatalf("request: %v", err)
+	}
+	// Exactly 500 characters is the boundary and cancels; 501 refuses.
+	if _, err := cancel.Execute(context.Background(), application.CancelDeletionCommand{
+		AccountID: accountID, Reason: strings.Repeat("m", 500),
+	}); err != nil {
+		t.Fatalf("500-char reason refused: %v", err)
 	}
 }

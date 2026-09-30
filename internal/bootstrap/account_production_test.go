@@ -19,14 +19,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/adapters/outbox"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/adapters/outbox"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 )
 
 // queuedEmail is one row of the durable queue, reduced to the facts this test

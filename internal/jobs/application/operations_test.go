@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 // operationsClock is the stub clock of the operational tests.

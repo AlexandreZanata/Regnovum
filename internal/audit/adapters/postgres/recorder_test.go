@@ -9,16 +9,16 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	arenasapp "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	arenasdomain "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	auditpostgres "github.com/AlexandreZanata/Goyim-Arena/internal/audit/adapters/postgres"
-	auditdomain "github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
-	persuasionapp "github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/application"
-	persuasiondomain "github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	walletapp "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
-	walletdomain "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	arenasapp "github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	arenasdomain "github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	auditpostgres "github.com/AlexandreZanata/Regnovum/internal/audit/adapters/postgres"
+	auditdomain "github.com/AlexandreZanata/Regnovum/internal/audit/domain"
+	persuasionapp "github.com/AlexandreZanata/Regnovum/internal/persuasion/application"
+	persuasiondomain "github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	walletapp "github.com/AlexandreZanata/Regnovum/internal/wallet/application"
+	walletdomain "github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 func mustAuditAccount(t *testing.T, ctx context.Context, q *platformpg.Queries, email string) platformpg.AppAccount {

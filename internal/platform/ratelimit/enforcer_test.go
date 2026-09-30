@@ -18,9 +18,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clientip"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/ratelimit"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clientip"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/ratelimit"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
 // subjectRecorder is a guard that records what it was asked and answers with a

@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
-	profilesapp "github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
-	profilesdomain "github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/application"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
+	profilesapp "github.com/AlexandreZanata/Regnovum/internal/profiles/application"
+	profilesdomain "github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 // Directory answers the one question the notifications module asks about a

@@ -14,9 +14,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/application"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 const (

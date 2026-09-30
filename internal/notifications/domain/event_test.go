@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 func TestEventKeyIsStableAndEventScoped(t *testing.T) {

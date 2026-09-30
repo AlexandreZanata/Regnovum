@@ -1,4 +1,4 @@
-// Package domain holds the transactional email vocabulary of Goyim Arena
+// Package domain holds the transactional email vocabulary of Regnovum
 // (P15-T03): the closed sets of templates and locales, the message that may
 // be handed to a provider, and the structural rules that keep a request
 // safe before any adapter sees it.

@@ -6,7 +6,7 @@ package application
 import (
 	"context"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/audit/domain"
 )
 
 // RecordResult is the outcome of recording one fact: the stable row

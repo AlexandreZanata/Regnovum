@@ -20,6 +20,7 @@ package assets
 //     composition instead of being served half-way.
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -275,7 +276,7 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	file, err := os.Open(asset.file)
 	if err != nil {
-		server.report("assets: declared asset is missing from the build", asset.file, err)
+		server.report(r.Context(), "assets: declared asset is missing from the build", asset.file, err)
 		// The manifest promised this address, so a missing file is a fault of
 		// the deployment and not a not-found of the reader — and the answer
 		// says so without naming the path.
@@ -286,7 +287,7 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	info, err := file.Stat()
 	if err != nil || !info.Mode().IsRegular() {
-		server.report("assets: declared asset is not a regular file", asset.file, err)
+		server.report(r.Context(), "assets: declared asset is not a regular file", asset.file, err)
 		http.Error(w, "asset unavailable", http.StatusInternalServerError)
 		return
 	}
@@ -298,8 +299,9 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // report records an operational fault without leaking the build layout to the
-// reader.
-func (server *Server) report(message, file string, err error) {
+// reader, carrying the context of the request that hit it: a fault logged with
+// no context is a record whose cancellation nobody can follow.
+func (server *Server) report(ctx context.Context, message, file string, err error) {
 	if server.logger == nil {
 		return
 	}
@@ -307,5 +309,5 @@ func (server *Server) report(message, file string, err error) {
 	if err != nil {
 		attributes = append(attributes, slog.String("error", err.Error()))
 	}
-	server.logger.LogAttrs(nil, slog.LevelWarn, message, attributes...)
+	server.logger.LogAttrs(ctx, slog.LevelWarn, message, attributes...)
 }

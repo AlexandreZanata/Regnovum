@@ -17,12 +17,12 @@ import (
 	"sort"
 	"strings"
 
-	arenasapp "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	arenasdomain "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	argumentsapp "github.com/AlexandreZanata/Goyim-Arena/internal/arguments/application"
-	argumentsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	arenasapp "github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	arenasdomain "github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	argumentsapp "github.com/AlexandreZanata/Regnovum/internal/arguments/application"
+	argumentsdomain "github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // AccountReader is the narrow identity port this gate asks: the stored account

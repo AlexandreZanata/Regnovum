@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/application"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 var testClockInstant = time.Date(2026, 9, 17, 12, 0, 0, 0, time.UTC)

@@ -8,13 +8,13 @@ import (
 	"time"
 	"unicode"
 
-	arenasdomain "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	argumentsapp "github.com/AlexandreZanata/Goyim-Arena/internal/arguments/application"
-	argumentsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/websurface"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
-	positionsapp "github.com/AlexandreZanata/Goyim-Arena/internal/positions/application"
-	positionsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	arenasdomain "github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	argumentsapp "github.com/AlexandreZanata/Regnovum/internal/arguments/application"
+	argumentsdomain "github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/websurface"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
+	positionsapp "github.com/AlexandreZanata/Regnovum/internal/positions/application"
+	positionsdomain "github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 // argumentOptionLimit bounds how many arguments of one relation become

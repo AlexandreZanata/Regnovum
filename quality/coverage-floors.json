@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "thresholds": {
+    "Q0": 95,
+    "Q1": 90,
+    "Q2": 80,
+    "global": 85,
+    "diff": 95
+  },
+  "targets": [
+    {
+      "package": "internal/identity/domain",
+      "risk": [
+        "Q0"
+      ],
+      "floor": 85.6,
+      "status": "deferred",
+      "reason": "floor 85.6 below Q0 95: value-object and session branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/identity/application",
+      "risk": [
+        "Q0"
+      ],
+      "floor": 79.0,
+      "status": "deferred",
+      "reason": "floor 79.0 below Q0 95: verification, reset and rotation branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/wallet/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 93.8,
+      "status": "deferred",
+      "reason": "floor 93.8 below Q0 95 (meets Q1 90): allocation and period fences need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/wallet/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 95.8,
+      "status": "measured"
+    },
+    {
+      "package": "internal/billing/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 93.0,
+      "status": "deferred",
+      "reason": "floor 93.0 below Q0 95 (meets Q1 90): catalog and webhook branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/billing/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 79.5,
+      "status": "deferred",
+      "reason": "floor 79.5 below Q0 95: checkout, refund and reconciliation branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/arenas/domain",
+      "risk": [
+        "Q0",
+        "Q1",
+        "Q2"
+      ],
+      "floor": 88.3,
+      "status": "deferred",
+      "reason": "floor 88.3 below Q0 95: statement and slug branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/arenas/application",
+      "risk": [
+        "Q0",
+        "Q1",
+        "Q2"
+      ],
+      "floor": 88.6,
+      "status": "deferred",
+      "reason": "floor 88.6 below Q0 95: draft and publish branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/positions/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 84.4,
+      "status": "deferred",
+      "reason": "floor 84.4 below Q0 95: change-chain branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/positions/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 100.0,
+      "status": "measured"
+    },
+    {
+      "package": "internal/arguments/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 64.8,
+      "status": "deferred",
+      "reason": "floor 64.8 below Q0 95: identifier, key and source value-objects need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/arguments/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 92.7,
+      "status": "deferred",
+      "reason": "floor 92.7 below Q0 95 (meets Q1 90): cursor and pagination branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/persuasion/domain",
+      "risk": [
+        "Q1",
+        "Q2"
+      ],
+      "floor": 88.5,
+      "status": "deferred",
+      "reason": "floor 88.5 below Q1 90: eligibility branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/persuasion/application",
+      "risk": [
+        "Q1",
+        "Q2"
+      ],
+      "floor": 97.1,
+      "status": "measured"
+    },
+    {
+      "package": "internal/moderation/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 86.1,
+      "status": "deferred",
+      "reason": "floor 86.1 below Q0 95: report, appeal and policy branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/moderation/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "floor": 77.1,
+      "status": "deferred",
+      "reason": "floor 77.1 below Q0 95: queue and adjudication branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/transparency/domain",
+      "risk": [
+        "Q0",
+        "Q1",
+        "Q2"
+      ],
+      "floor": 66.7,
+      "status": "deferred",
+      "reason": "floor 66.7 below Q0 95: error and metric helpers need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/transparency/application",
+      "risk": [
+        "Q0",
+        "Q1",
+        "Q2"
+      ],
+      "floor": 89.8,
+      "status": "deferred",
+      "reason": "floor 89.8 below Q0 95 (meets Q2 80): export branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/profiles/domain",
+      "risk": [
+        "Q0",
+        "Q1",
+        "Q2"
+      ],
+      "floor": 90.6,
+      "status": "deferred",
+      "reason": "floor 90.6 below Q0 95 (meets Q1 90): username and locale branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/profiles/application",
+      "risk": [
+        "Q0",
+        "Q1",
+        "Q2"
+      ],
+      "floor": 89.2,
+      "status": "deferred",
+      "reason": "floor 89.2 below Q0 95 (meets Q2 80): deletion and export branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/jobs/domain",
+      "risk": [
+        "Q0"
+      ],
+      "floor": 84.8,
+      "status": "deferred",
+      "reason": "floor 84.8 below Q0 95: period and payload branches need a dedicated covering budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/jobs/application",
+      "risk": [
+        "Q0"
+      ],
+      "floor": 88.6,
+      "status": "deferred",
+      "reason": "floor 88.6 below Q0 95: worker branches need a dedicated covering budget",
+      "gate": "P45"
+    }
+  ],
+  "allowlist": [
+    {
+      "path": "internal/i18n/generated.go",
+      "kind": "generated",
+      "reason": "i18n family output from locales via cmd/i18ngen (quality/provenance.json): generated code is not business logic and never counts towards line coverage",
+      "owner": "P24-T11"
+    },
+    {
+      "path": "internal/platform/postgres",
+      "kind": "generated",
+      "reason": "sqlc family outputs (*.sql.go, db.go, models.go, querier.go) from db/queries via sqlc v1.29.0 (quality/provenance.json): generated adapters are outside the domain/application scope",
+      "owner": "P24-T11"
+    },
+    {
+      "path": "web/src/i18n/generated.ts",
+      "kind": "generated",
+      "reason": "i18n family output from locales via cmd/i18ngen (quality/provenance.json): frontend generated catalog, outside the Go scope",
+      "owner": "P24-T11"
+    },
+    {
+      "path": "web/src/contracts/generated.ts",
+      "kind": "generated",
+      "reason": "contracts family output from api/openapi.json via tools/contractgen (quality/provenance.json): generated client, outside the Go scope",
+      "owner": "P24-T11"
+    }
+  ]
+}

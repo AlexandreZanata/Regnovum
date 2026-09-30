@@ -1,4 +1,4 @@
-// Command arena is the single binary of Goyim Arena. Per the master plan,
+// Command arena is the single binary of Regnovum. Per the master plan,
 // subcommands include server, worker, migrate and explicitly approved
 // operations; server, worker, migrate, version and help exist.
 package main
@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -17,20 +18,20 @@ import (
 	// ship no system tzdata.
 	_ "time/tzdata"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/buildinfo"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/assets"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbpool"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	"github.com/AlexandreZanata/Regnovum/internal/buildinfo"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbpool"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 )
 
-const usage = `arena is the command-line entrypoint of Goyim Arena.
+const usage = `arena is the command-line entrypoint of Regnovum.
 
 Usage:
 
@@ -54,6 +55,11 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+// errUsage is the sentinel of a bad invocation. The usage text is printed where
+// usage belongs — on the output — and never travels inside the error string,
+// where it would be one message ending in punctuation read by nobody.
+var errUsage = errors.New("invalid invocation")
 
 func run(args []string, stdout *os.File) error {
 	if len(args) == 0 {
@@ -80,7 +86,8 @@ func run(args []string, stdout *os.File) error {
 		}
 		fmt.Fprintln(stdout, usage)
 	default:
-		return fmt.Errorf("unknown command %q\n\n%s\n\nRun \"arena help\" for usage.", args[0], usage)
+		fmt.Fprintln(stdout, usage)
+		return fmt.Errorf("%w: unknown command %q", errUsage, args[0])
 	}
 	return nil
 }

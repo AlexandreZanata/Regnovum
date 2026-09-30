@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // sessionFixture is the state the session use cases are tested against: one

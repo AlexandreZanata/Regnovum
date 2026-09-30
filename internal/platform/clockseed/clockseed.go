@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // System is the production Clock: it reads the real wall clock.
@@ -35,6 +35,17 @@ func NewClock() System { return System{} }
 func (System) Now() time.Time {
 	return time.Now().Round(time.Microsecond)
 }
+
+// SystemClockNow is the system clock as a plain function, for the packages that
+// own an injectable clock and need a default for the caller who did not inject
+// one. It lives here, and not where it is used, because this package is the one
+// the architecture gate allows to read the wall clock (P02-T02, ADR-012): a
+// default that reached for time.Now directly would be a wall-clock read in a
+// package nobody audits, which is exactly what the gate exists to prevent.
+//
+// A test that wants a reproducible instant injects its own source instead; the
+// sources of the test platform are internal/platform/testsource.
+func SystemClockNow() time.Time { return System{}.Now() }
 
 // CryptoRandom is the production Random: it reads the crypto/rand entropy
 // source. The zero value is ready to use.

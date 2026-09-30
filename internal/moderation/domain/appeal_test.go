@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 func TestOutcomeVocabulary(t *testing.T) {
@@ -52,5 +52,16 @@ func TestAppealWindowAndEligibility(t *testing.T) {
 		if !domain.Appealable(action) {
 			t.Errorf("%q must be appealable", action)
 		}
+	}
+}
+
+func TestAppealWindowBoundaryStaysAppealable(t *testing.T) {
+	t.Parallel()
+
+	// The window bound itself still appeals: only strictly older actions
+	// expire (mutation gate: appeal.go:77).
+	now := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
+	if domain.AppealExpired(now.Add(-domain.AppealWindow), now) {
+		t.Error("sanction exactly at the window must stay appealable")
 	}
 }

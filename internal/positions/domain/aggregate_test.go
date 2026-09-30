@@ -3,7 +3,7 @@ package domain_test
 import (
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 func TestAggregatePolicyThreshold(t *testing.T) {

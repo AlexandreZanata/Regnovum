@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
 )
 
 // captureLogger returns a logger writing to an in-memory buffer, so tests

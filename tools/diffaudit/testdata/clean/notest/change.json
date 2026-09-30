@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaaa4",
+      "message": "feat(wallet): add a renewal guard with its test",
+      "files": [
+        {
+          "status": "A",
+          "path": "internal/wallet/application/p23t08guard.go"
+        },
+        {
+          "status": "A",
+          "path": "internal/wallet/application/p23t08guard_test.go"
+        }
+      ]
+    }
+  ]
+}

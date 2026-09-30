@@ -1,5 +1,5 @@
 -- +goose Up
--- 00003 establishes the least-privilege role model of Goyim Arena
+-- 00003 establishes the least-privilege role model of Regnovum
 -- (P03-T03) inside a single forward migration, so the database ships its
 -- security policy atomically with the schema it protects. Full role
 -- documentation lives in docs/ROLE_MODEL.md.

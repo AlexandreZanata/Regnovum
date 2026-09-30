@@ -1,0 +1,41 @@
+# Informative toolchain compatibility report (P29-T08): verifies the
+# pinned production toolchain and lists the approved next patches without
+# touching a lockfile. Always green by design — it reports, it never
+# gates; promoting an approved next to mandatory takes a task, an ADR and
+# the full Q0 suites. Production stays pinned until then.
+name: toolchain
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+  push:
+    paths:
+      - quality/toolchain.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: toolchain-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  toolchain-next:
+    name: Toolchain compatibility report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Report toolchain compatibility
+        run: |
+          set -o pipefail
+          make toolchain-next | tee toolchain-report.txt
+          cat toolchain-report.txt >> "$GITHUB_STEP_SUMMARY"

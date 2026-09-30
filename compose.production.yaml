@@ -1,4 +1,4 @@
-# Production Compose for Goyim Arena (P19-T02).
+# Production Compose for Regnovum (P19-T02).
 #
 # This file describes a *topology*, not a build. Every image is referenced by
 # the digest of its manifest list and nothing is compiled where the stack runs,

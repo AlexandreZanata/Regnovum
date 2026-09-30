@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httplimits"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httplimits"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 )
 
 // newTestLogger returns a logger that only prints its captured records when

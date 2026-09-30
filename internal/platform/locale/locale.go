@@ -24,7 +24,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
 )
 
 // Tag is a canonical BCP 47 interface locale tag. Only tags in the catalog

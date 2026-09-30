@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // Queue pagination bounds fixed by the API conventions (limit defaults to

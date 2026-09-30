@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
 )
 
 // ReconciliationGateway is the minimal provider surface the job needs: read

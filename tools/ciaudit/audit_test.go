@@ -26,11 +26,41 @@ import (
 // file — and the aggregate lists the real foundation gates.
 const fixtureMakefile = `IMAGE ?= goyim-arena:local
 
-verify: fmt-check generate-check test-unit test-integration test-race test-migration test-contract test-security test-web typecheck audit-web audit-i18n
+verify: fmt-check lint audit-complexity audit-deadcode audit-errors audit-provenance audit-tests audit-diff audit-deps audit-mutations audit-coverage generate-check test-unit test-integration test-race test-migration test-contract test-security test-web typecheck audit-web audit-i18n
 	@echo "verify: ok"
 
 fmt-check:
 	@gofmt -l .
+
+lint:
+	@echo "lint: ok"
+
+audit-complexity:
+	@echo "audit-complexity: ok"
+
+audit-deadcode:
+	@echo "audit-deadcode: ok"
+
+audit-errors:
+	@echo "audit-errors: ok"
+
+audit-provenance:
+	@echo "audit-provenance: ok"
+
+audit-tests:
+	@echo "audit-tests: ok"
+
+audit-diff:
+	@echo "audit-diff: ok"
+
+audit-deps:
+	@echo "audit-deps: ok"
+
+audit-mutations:
+	@echo "audit-mutations: ok"
+
+audit-coverage:
+	@echo "audit-coverage: ok"
 
 generate-check:
 	@echo "generate-check: ok"
@@ -470,6 +500,85 @@ func TestDeliveredWorkflowsVerifyEveryGate(t *testing.T) {
 	}
 }
 
+func TestReleaseCadenceRejectsBypasses(t *testing.T) {
+	base := map[string]string{
+		".github/workflows/quick.yml": `name: quick
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+jobs:
+  quick:
+    name: Quick verification
+    timeout-minutes: 12
+    steps:
+      - run: make quick-verify
+`,
+		".github/workflows/verify.yml": `name: verify
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+`,
+		".github/workflows/supply-chain.yml": `name: supply-chain
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+`,
+		"Makefile": "quick-verify:\n\t@true\n",
+	}
+	tests := []struct {
+		name, file, old, replacement string
+	}{
+		{"quick missing synchronize", ".github/workflows/quick.yml", "opened, synchronize, reopened", "opened, reopened"},
+		{"quick path filtered", ".github/workflows/quick.yml", "    types: [opened, synchronize, reopened, ready_for_review]", "    types: [opened, synchronize, reopened, ready_for_review]\n    paths: [docs/**]"},
+		{"quick conditionally skipped", ".github/workflows/quick.yml", "    name: Quick verification", "    name: Quick verification\n    if: false"},
+		{"quick no target", ".github/workflows/quick.yml", "make quick-verify", "echo green"},
+		{"full on every PR", ".github/workflows/verify.yml", "  workflow_dispatch:", "  pull_request:\n  workflow_dispatch:"},
+		{"full missing version tag", ".github/workflows/verify.yml", "tags: ['v*']", "tags: ['ignored']"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			files := make(map[string]string, len(base))
+			for k, v := range base {
+				files[k] = v
+			}
+			files[tc.file] = strings.Replace(files[tc.file], tc.old, tc.replacement, 1)
+			report, err := Audit(writeFixture(t, files))
+			if err != nil {
+				t.Fatal(err)
+			}
+			found := false
+			for _, finding := range report.Findings {
+				found = found || finding.Rule == RuleCadence
+			}
+			if !found {
+				t.Fatal("cadence bypass was not rejected")
+			}
+		})
+	}
+	t.Run("quick workflow removed", func(t *testing.T) {
+		files := make(map[string]string, len(base)-1)
+		for k, v := range base {
+			if k != ".github/workflows/quick.yml" {
+				files[k] = v
+			}
+		}
+		report, err := Audit(writeFixture(t, files))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, finding := range report.Findings {
+			if finding.Rule == RuleCadence {
+				return
+			}
+		}
+		t.Fatal("missing quick workflow was not rejected")
+	})
+}
+
 // TestReaderRefusesAFixtureItCannotTrust requires the reader to fail instead of
 // guessing. A reader that misread a file would let every rule pass over it.
 func TestReaderRefusesAFixtureItCannotTrust(t *testing.T) {
@@ -505,4 +614,69 @@ func TestReaderRefusesAFixtureItCannotTrust(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestFullMatrixCadencePerLayer falsifies every layer: adding a merge-path
+// trigger to the nightly, weekly, release or aggregate invocation blocks
+// on full-matrix-cadence, while the manual definitions hold.
+func TestFullMatrixCadencePerLayer(t *testing.T) {
+	base := map[string]string{
+		".github/workflows/nightly.yml": "name: nightly\n" + layerBody("quality-nightly"),
+		".github/workflows/weekly.yml":  "name: weekly\n" + layerBody("quality-weekly"),
+		".github/workflows/release.yml": "name: release\n" + layerBody("quality-certify"),
+		"Makefile":                      "quality-nightly:\n\t@true\nquality-weekly:\n\t@true\nquality-certify:\n\t@true\nverify:\n\t@true\n",
+	}
+	t.Run("manual layers hold", func(t *testing.T) {
+		report, err := Audit(writeFixture(t, base))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, finding := range report.Findings {
+			if finding.Rule == RuleFullMatrix {
+				t.Fatalf("manual layer blocked: %s", finding)
+			}
+		}
+	})
+
+	triggers := []struct{ file, trigger string }{
+		{".github/workflows/nightly.yml", "  pull_request:\n"},
+		{".github/workflows/weekly.yml", "  push:\n    branches: [main]\n"},
+		{".github/workflows/release.yml", "  pull_request:\n"},
+	}
+	for _, tc := range triggers {
+		t.Run(tc.file+" blocks on the merge path", func(t *testing.T) {
+			files := make(map[string]string, len(base))
+			for k, v := range base {
+				files[k] = v
+			}
+			files[tc.file] = strings.Replace(files[tc.file], "  workflow_dispatch:\n", "  workflow_dispatch:\n"+tc.trigger, 1)
+			report, err := Audit(writeFixture(t, files))
+			if err != nil {
+				t.Fatal(err)
+			}
+			found := false
+			for _, finding := range report.Findings {
+				if finding.Rule == RuleFullMatrix && finding.Path == tc.file {
+					found = true
+				}
+			}
+			if !found {
+				t.Fatalf("merge-path trigger on %s was not blocked", tc.file)
+			}
+		})
+	}
+}
+
+func layerBody(target string) string {
+	return `on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  layer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - run: make ` + target + `
+`
 }

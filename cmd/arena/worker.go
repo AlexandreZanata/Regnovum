@@ -8,20 +8,20 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	identityjobs "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/jobs"
-	identityrepo "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/postgres"
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	jobsrepo "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/adapters/postgres"
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbpool"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	identityjobs "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/jobs"
+	identityrepo "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/postgres"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	jobsrepo "github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/postgres"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbpool"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
 )
 
-const workerUsage = `run the durable job worker of Goyim Arena.
+const workerUsage = `run the durable job worker of Regnovum.
 
 Usage:
 

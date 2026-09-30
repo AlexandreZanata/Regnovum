@@ -9,9 +9,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/application"
-	walletapp "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
-	walletdomain "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/application"
+	walletapp "github.com/AlexandreZanata/Regnovum/internal/wallet/application"
+	walletdomain "github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 // DebitExecutor is the wallet capability the bridge consumes: the INK debit

@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AlexandreZanata/Regnovum/quality/waivers.schema.json",
+  "title": "Quality waiver register",
+  "description": "The register of accepted exceptions. Every waiver names the finding it accepts, the catalog rules it suspends, the area it touches, the owner who answers for it, the reason it exists, the tests that compensate it and the day it stops being valid. The loader that judges it is tools/qualitywaivers, and a test holds this document and that loader together: the required fields, the risk classes and the categories are the same lists on both sides, because a waiver the schema admits and the loader refuses is a waiver nobody can write.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "waivers"],
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "The only register version the loader understands."
+    },
+    "waivers": {
+      "type": "array",
+      "description": "The exceptions in force. Unlike the catalog, an empty register is the state a healthy tree is in: nothing is waived, and the two documents refuse opposite things on purpose.",
+      "items": { "$ref": "#/$defs/waiver" }
+    }
+  },
+  "$defs": {
+    "waiver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "finding",
+        "risk",
+        "categories",
+        "rules",
+        "owner",
+        "justification",
+        "compensation",
+        "created",
+        "expires"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^WVR-[A-Z0-9]+(-[A-Z0-9]+)*$",
+          "description": "Stable identity of the waiver. Never reused: the id is what a report, a review and an expiry are keyed by."
+        },
+        "finding": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The finding this waiver accepts, as an audit recorded it. The loader refuses an id no audit document carries: a waiver that accepts a finding nobody wrote accepts nothing."
+        },
+        "risk": {
+          "type": "string",
+          "enum": ["Q0", "Q1", "Q2"],
+          "description": "The risk class of the waiver, in the same vocabulary as the catalog. A waiver may not be milder than the rules it covers — the loader reads the class from the catalog, so the declaration cannot soften it."
+        },
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "authorization",
+              "auditability",
+              "data-loss",
+              "documentation",
+              "i18n",
+              "ink",
+              "money",
+              "observability",
+              "performance",
+              "privacy",
+              "security",
+              "tooling",
+              "webhook"
+            ]
+          },
+          "description": "The areas this waiver touches, from the policy's own closed vocabulary. The prohibition is stated in these words, so a scope outside the list cannot be held to it and is refused."
+        },
+        "rules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "The catalog rules this waiver suspends. Every id must exist in quality/catalog.json. An empty list is admitted for a finding that maps to no rule — a gap, a document, a limit — and it is why the categories are declared as well."
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The role or team who answers for this exception and revisits it. Never a personal address: the register is read by everybody and deleted by nobody."
+        },
+        "justification": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Why the exception exists, in a sentence a reviewer can disagree with. The loader requires it to be present and substantial; the gate never prints it."
+        },
+        "compensation": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[\\w./-]+\\.go::[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "description": "The tests that make the exception survivable, as `path::Function`. Each reference must resolve to a function the file declares: a compensation nobody can run is a sentence, not a compensation."
+        },
+        "created": {
+          "type": "string",
+          "format": "date",
+          "description": "The day the exception was accepted."
+        },
+        "expires": {
+          "type": "string",
+          "format": "date",
+          "description": "The day the exception stops being valid. An expired waiver is a finding nobody accepted and is refused."
+        }
+      }
+    }
+  }
+}

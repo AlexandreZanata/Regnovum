@@ -8,7 +8,7 @@
 
 A inclusão descontrolada de dependências de terceiros é uma das principais fontes de falhas de segurança na cadeia de suprimentos (supply chain), obsolescência prematura, incompatibilidades em atualizações de versão e acoplamento a modelos conceituais de terceiros.
 
-Para garantir estabilidade a longo prazo, reprodutibilidade de builds e facilidade de auditoria, o Goyim Arena necessita de um critério estrito e auditável para governança de bibliotecas e ferramentas.
+Para garantir estabilidade a longo prazo, reprodutibilidade de builds e facilidade de auditoria, o Regnovum necessita de um critério estrito e auditável para governança de bibliotecas e ferramentas.
 
 ## Decisão
 

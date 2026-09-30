@@ -29,7 +29,9 @@
 # Environment:
 #   ARENA_IMAGE             the application image that applies the migrations
 #   ARENA_BACKUP_S3_IMAGE   the S3-compatible store to run. Default: the MinIO
-#                           digest this repository verified against.
+#                           digest this repository verified against, pulled from
+#                           quay.io (the registry MinIO publishes to; the Docker
+#                           Hub repository no longer exists).
 set -euo pipefail
 
 TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -41,7 +43,7 @@ PROJECT="arena-backupaudit-$$"
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/arena-backupaudit-XXXXXX")"
 NETWORK="${PROJECT}-net"
 APP_IMAGE="${ARENA_IMAGE:-goyim-arena:local}"
-S3_IMAGE="${ARENA_BACKUP_S3_IMAGE:-minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e}"
+S3_IMAGE="${ARENA_BACKUP_S3_IMAGE:-quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e}"
 BUCKET="arena-backups"
 PREFIX="arena"
 MARKER="GAEB-EXERCISE-MARKER-must-not-be-readable-at-rest"

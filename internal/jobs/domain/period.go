@@ -206,6 +206,9 @@ func ParsePeriodPayload(interval Interval, payload []byte) (Period, error) {
 	if !strings.HasPrefix(text, payloadPrefix) || !strings.HasSuffix(text, payloadSuffix) {
 		return Period{}, ErrInvalidPeriod
 	}
+	if len(text) < len(payloadPrefix)+len(payloadSuffix) {
+		return Period{}, ErrInvalidPeriod
+	}
 	label := text[len(payloadPrefix) : len(text)-len(payloadSuffix)]
 	if strings.ContainsAny(label, `"\`) {
 		return Period{}, ErrInvalidPeriod

@@ -201,10 +201,14 @@ func TestReadReportRefusesWhatItCannotJudge(t *testing.T) {
 
 func TestCheckReadsTheDeliveredReport(t *testing.T) {
 	// The document the drill publishes is judged by its own gate, as it is: a
-	// report that only passes when a test rewrites it is not evidence.
+	// report that only passes when a test rewrites it is not evidence. The path
+	// is the documented one, and the repository root is where it lives — the
+	// `t.Skip` that used to stand here was hiding that the read never resolved,
+	// so the regression had stopped running without saying so (P23-T07).
+	t.Chdir("../..")
 	raw, err := os.ReadFile(documentPath)
 	if err != nil {
-		t.Skipf("no delivered report to audit: %v", err)
+		t.Fatalf("the delivered report is part of the tree and this regression audits it as it is: %v", err)
 	}
 	document, err := readReport(documentPath)
 	if err != nil {

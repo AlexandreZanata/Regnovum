@@ -3,7 +3,7 @@ package observability
 import (
 	"fmt"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
 )
 
 // forbiddenPropertyNames are property names no event may carry, whatever an

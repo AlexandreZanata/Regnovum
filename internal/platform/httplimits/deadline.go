@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
 )
 
 // gateState is the single lifetime of one response.

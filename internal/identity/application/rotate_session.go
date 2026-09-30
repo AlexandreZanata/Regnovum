@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 )
 
 // RotateSessionCommand contains the current raw token and optional updated client context.

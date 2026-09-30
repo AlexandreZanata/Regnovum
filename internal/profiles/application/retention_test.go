@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/application"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 // retentionBase is the instant the retention scenarios run at. It is the

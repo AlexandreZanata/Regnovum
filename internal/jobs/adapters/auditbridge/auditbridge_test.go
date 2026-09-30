@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	auditapp "github.com/AlexandreZanata/Goyim-Arena/internal/audit/application"
-	auditdomain "github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/adapters/auditbridge"
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	auditapp "github.com/AlexandreZanata/Regnovum/internal/audit/application"
+	auditdomain "github.com/AlexandreZanata/Regnovum/internal/audit/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/auditbridge"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 // trailStub behaves like the trail's own recorder: it validates the event

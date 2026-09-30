@@ -1,13 +1,25 @@
 {
   "transparency": {
     "document": {
-      "page_title": "Transparência — Goyim Arena",
+      "page_title": "Transparência — Regnovum",
       "heading": "Transparência da plataforma",
       "period": "Período: {start} – {end} ({timezone})",
       "updated": "Atualizado em {at} · metodologia v{version}",
       "methodology": "Métricas agregadas por período; contagens abaixo de 5 são omitidas para reduzir reidentificação.",
       "metric": "Métrica",
       "value": "Valor"
+    },
+    "metrics": {
+      "title": "Migalhas e refluxo — agregado semanal",
+      "supply": "Oferta total (S): {total} milésimos de INK",
+      "treasury": "Tesouro: {total} milésimos de INK",
+      "circulation": "Em circulação: {total} milésimos de INK",
+      "r4": "Referência R4 da semana {epoch}: {total} milésimos de INK",
+      "crumbs": "Migalhas concedidas: {total} milésimos de INK para {heads} contas",
+      "irr": "Índice de refluxo real: {ratio}",
+      "irr_unavailable": "Índice de refluxo real: indisponível (sem saídas no período)",
+      "window": "Janela selada: {start} – {end} (UTC)",
+      "suppressed": "Contagem baixa omitida para reduzir reidentificação"
     }
   }
 }

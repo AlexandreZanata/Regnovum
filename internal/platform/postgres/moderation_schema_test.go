@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 func mustModerationArena(t *testing.T, ctx context.Context, pool *pgxpool.Pool, creator pgtype.UUID) pgtype.UUID {

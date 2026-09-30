@@ -6,9 +6,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	identityjobs "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/jobs"
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	jobsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	identityjobs "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/jobs"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	jobsdomain "github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 // countingPass records how many times the sweep ran and what it answered.

@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 )
 
 // TestPolicyIsWhatTheMiddlewareWrites is the premise of every gate that

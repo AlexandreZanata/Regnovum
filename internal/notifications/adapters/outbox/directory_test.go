@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/adapters/outbox"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
-	profilesapp "github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
-	profilesdomain "github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/adapters/outbox"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
+	profilesapp "github.com/AlexandreZanata/Regnovum/internal/profiles/application"
+	profilesdomain "github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 // fakeAccounts answers the identity read path the directory needs.

@@ -10,12 +10,12 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	positionspg "github.com/AlexandreZanata/Goyim-Arena/internal/positions/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	positionspg "github.com/AlexandreZanata/Regnovum/internal/positions/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/application"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 // TestPositionIntegrityUnderConcurrentLoad is the P09-T07 load proof: many

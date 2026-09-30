@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpcache"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpcache"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/application"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/domain"
 )
 
 // metricsCacheSeconds is the public cache lifetime of transparency

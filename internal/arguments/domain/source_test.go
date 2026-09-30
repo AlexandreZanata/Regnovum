@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
 )
 
 func TestParseSourceCanonicalizesAndValidates(t *testing.T) {

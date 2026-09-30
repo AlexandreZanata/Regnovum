@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/text"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/text"
 )
 
 // TestGraphemeCountExploratoryCorpus is the P10-T01 exploratory proof that

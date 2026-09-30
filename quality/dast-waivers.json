@@ -1,0 +1,16 @@
+[
+  {
+    "rule": "no-5xx",
+    "path": "/api/v1/moderation/attribution-signals/{authorID}",
+    "reason": "Endpoint without composition in any process: no ModerationAuthorizer adapter exists, so test servers mount a nil use case that panics per connection instead of answering. No production route serves it either. Re-triage when the authorizer lands or the route is removed; see T02 matrix exclusion.",
+    "owner": "security",
+    "expires": "2026-12-31"
+  },
+  {
+    "rule": "cookie-flags",
+    "path": "/api/v1/auth/logout",
+    "reason": "The arena_csrf cookie is readable by JavaScript by design (double-submit CSRF extraction, cookies.go): HttpOnly=false is the documented mechanism, not a leak. Applies wherever the CSRF cookie is set.",
+    "owner": "security",
+    "expires": "2026-12-31"
+  }
+]

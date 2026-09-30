@@ -6,16 +6,16 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	jobsrepo "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/adapters/postgres"
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	jobsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbpool"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/observability"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/profiling"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	jobsrepo "github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/postgres"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	jobsdomain "github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbpool"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/observability"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/profiling"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // startTelemetry composes the process telemetry from the typed configuration:

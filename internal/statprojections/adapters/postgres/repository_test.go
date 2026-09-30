@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	statpostgres "github.com/AlexandreZanata/Goyim-Arena/internal/statprojections/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	statpostgres "github.com/AlexandreZanata/Regnovum/internal/statprojections/adapters/postgres"
 )
 
 func TestRebuildArenaProjectionCanBeDeletedAndRebuilt(t *testing.T) {

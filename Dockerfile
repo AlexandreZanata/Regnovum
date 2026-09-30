@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 #
-# Goyim Arena — the production image (P19-T01).
+# Regnovum — the production image (P19-T01).
 #
 # The image is composed of three stages, and each one exists for a reason that
 # its absence would break:
@@ -88,9 +88,9 @@ RUN CGO_ENABLED=0 go build \
         -trimpath \
         -buildvcs=false \
         -ldflags "-s -w \
-            -X github.com/AlexandreZanata/Goyim-Arena/internal/buildinfo.version=${VERSION} \
-            -X github.com/AlexandreZanata/Goyim-Arena/internal/buildinfo.commit=${COMMIT} \
-            -X github.com/AlexandreZanata/Goyim-Arena/internal/buildinfo.date=${BUILD_DATE}" \
+            -X github.com/AlexandreZanata/Regnovum/internal/buildinfo.version=${VERSION} \
+            -X github.com/AlexandreZanata/Regnovum/internal/buildinfo.commit=${COMMIT} \
+            -X github.com/AlexandreZanata/Regnovum/internal/buildinfo.date=${BUILD_DATE}" \
         -o /out/arena ./cmd/arena
 
 # --------------------------------------------------------------------------

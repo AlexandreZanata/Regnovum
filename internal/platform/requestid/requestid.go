@@ -1,4 +1,4 @@
-// Package requestid provides request correlation for Goyim Arena (P02-T04):
+// Package requestid provides request correlation for Regnovum (P02-T04):
 // inbound X-Request-Id headers are validated and reused, absent ones are
 // generated through the injected IDGenerator port, the resolved value lives
 // in the request context and is echoed back on every response.
@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // Header is the correlation header of the platform.

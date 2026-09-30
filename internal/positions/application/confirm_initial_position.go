@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 // ConfirmInitialPositionCommand holds the authenticated confirmation of the

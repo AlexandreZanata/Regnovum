@@ -15,9 +15,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // Repository implements the arguments application ports using PostgreSQL.

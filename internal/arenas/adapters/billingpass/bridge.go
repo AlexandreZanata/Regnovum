@@ -10,9 +10,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	billingapp "github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	billingdomain "github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	billingapp "github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	billingdomain "github.com/AlexandreZanata/Regnovum/internal/billing/domain"
 )
 
 // Bridge implements the arenas ArenaPassConsumer port over the billing

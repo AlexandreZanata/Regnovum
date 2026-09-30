@@ -14,9 +14,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	walletapp "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
-	walletdomain "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	walletapp "github.com/AlexandreZanata/Regnovum/internal/wallet/application"
+	walletdomain "github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 // Inker adapts the wallet CreditInkUseCase to the billing Inker port.

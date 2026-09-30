@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // Clock exposes wall-clock time to moderation use cases, keeping them

@@ -25,10 +25,10 @@ import (
 	"fmt"
 	"strings"
 
-	auditapp "github.com/AlexandreZanata/Goyim-Arena/internal/audit/application"
-	auditdomain "github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	auditapp "github.com/AlexandreZanata/Regnovum/internal/audit/application"
+	auditdomain "github.com/AlexandreZanata/Regnovum/internal/audit/domain"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 // operationTargetType is the trail target type of an operational action.

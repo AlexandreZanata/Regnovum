@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	billingadapter "github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/wallet"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	walletapp "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
-	walletdomain "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	billingadapter "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/wallet"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	walletapp "github.com/AlexandreZanata/Regnovum/internal/wallet/application"
+	walletdomain "github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 type fakeWalletCredits struct {

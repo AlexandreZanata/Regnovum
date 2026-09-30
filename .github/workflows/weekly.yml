@@ -1,0 +1,59 @@
+# Weekly heavy suites (P30-T02): the quality-weekly tier — race,
+# migration, browser, mutation and coverage — as one definition. Triggers
+# stay manual until P45 wires the weekly schedule; the tier target remains
+# the operator command (`make quality-weekly`, tiers.json).
+name: weekly
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  heavy:
+    name: Weekly heavy suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18.4
+        env:
+          POSTGRES_USER: arena
+          POSTGRES_PASSWORD: arena-local-dev
+          POSTGRES_DB: arena
+          POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C
+          POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd "pg_isready -U arena -d arena"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      ARENA_DATABASE_URL: postgres://arena:arena-local-dev@127.0.0.1:54329/arena?sslmode=disable
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      # One step, one command: the aggregate gate is the same one an
+      # operator runs, so the CI cannot drift from the Makefile. No
+      # continue-on-error anywhere: a Q0 suite that fails fails the job.
+      - name: Run the weekly tier
+        run: make quality-weekly

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaa10",
+      "message": "chore(contracts): publish the new path and regenerate the client",
+      "files": [
+        {
+          "status": "M",
+          "path": "web/src/contracts/generated.ts"
+        },
+        {
+          "status": "M",
+          "path": "api/openapi.json"
+        }
+      ]
+    }
+  ]
+}

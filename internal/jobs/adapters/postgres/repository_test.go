@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	jobsrepo "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/adapters/postgres"
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	jobsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
+	jobsrepo "github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/postgres"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	jobsdomain "github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
 )
 
 // testClock is a mutable stub clock: lease windows and retry instants are

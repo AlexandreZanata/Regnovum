@@ -11,6 +11,10 @@
 // configuration package (and cmd/bootstrap when it appears). Since P02-T02
 // (ADR-012), time.Now and crypto/math randomness readers are gated to
 // internal/platform/clockseed and future adapters that document the need.
+// Since P22-T02 (ADR-015) the gate judges the expression rather than the call —
+// `Now: time.Now` is the same read as `time.Now()` — identifier libraries join
+// the vocabulary, and the deterministic sources of internal/platform/testsource
+// are the second allowlisted owner, proven unreachable from delivered code.
 package architecture_test
 
 import (
@@ -26,7 +30,7 @@ import (
 	"testing"
 )
 
-const modulePath = "github.com/AlexandreZanata/Goyim-Arena"
+const modulePath = "github.com/AlexandreZanata/Regnovum"
 
 const modulePrefix = modulePath + "/"
 
@@ -61,52 +65,112 @@ var forbiddenExternal = []string{
 	"golang.org/x/",
 }
 
-// providerSDKPrefixes are the package prefixes of the payment provider SDK
-// (docs/DEPENDENCIES.md §4: github.com/stripe/stripe-go), and
-// providerSDKAllowlist lists the directories allowed to import them.
-//
-// The dependency is homologated for one owner — the billing payment adapter —
-// and the composition root, which wires it. Everywhere else, including other
-// adapters, the port is the only way in (P12-T03: "busca confirma imports
-// Stripe somente no adapter/bootstrap").
-var providerSDKPrefixes = []string{"github.com/stripe/stripe-go"}
-
-var providerSDKAllowlist = []string{
-	"internal/billing/adapters/stripe/",
-	"internal/bootstrap/",
-	"cmd/",
-}
+// The P12-T03 rule for the payment provider SDK ("busca confirma imports Stripe
+// somente no adapter/bootstrap") is now one row of the ownership table in
+// architecture_boundaries_test.go, which judges the provider SDK, the SQL
+// driver, the migration tool, the cryptography package and the Unicode library
+// with the same code instead of five scans that drift apart.
 
 // businessModules are the module directories required by the plan and
 // docs/ARCHITECTURE.md §4.
 var businessModules = []string{
-	"arenas", "arguments", "audit", "billing", "identity", "jobs",
-	"moderation", "persuasion", "positions", "profiles", "transparency",
-	"wallet",
+	"arenas", "arguments", "audit", "billing", "commerce", "crumbs", "economy", "identity", "jobs",
+	"metering", "moderation", "persuasion", "positions", "pricing", "profiles",
+	"transparency", "wallet",
 }
 
 // envReadAllowlist lists the internal packages allowed to touch the process
 // environment directly, per the P02-T01 gate ("nenhum package lê os.Getenv
 // fora de config/bootstrap"). cmd/bootstrap joins this list when it appears.
+//
+// internal/platform/testsource reads exactly one variable (ARENA_TEST_SEED, the
+// seed of a test run, P22-T02) and nothing else, and no delivered file may
+// import it — the test below proves that — so the read cannot reach a process.
+// It is listed here rather than reading the environment in a test file because
+// a helper nobody can share is a helper every test package reimplements.
+//
+// internal/platform/testguard (P22-T06) is the third owner, and it owns the
+// other half of the same effect: it sets a variable for one test and restores
+// it, and it compares the whole environment at the end of the test so that a
+// mutation somebody left behind is a failure instead of a suite that depends on
+// the order its tests ran in. No delivered file may import it either, proven by
+// the same test, so the read cannot reach a process.
 var envReadAllowlist = map[string]bool{
-	"internal/platform/config": true,
+	"internal/platform/config":     true,
+	"internal/platform/testsource": true,
+	"internal/platform/testguard":  true,
 }
 
-// clockAndRandomAllowlist lists the internal packages allowed to call
-// time.Now and the randomness readers directly, per the P02-T02 gate and
-// ADR-012. Adapters join this list when their ADR documents the need.
+// clockAndRandomAllowlist lists the internal packages allowed to read the wall
+// clock and the randomness readers directly, per the P02-T02 gate and ADR-012.
+// Adapters join this list when their ADR documents the need.
+//
+// It has exactly two owners, and the second one exists because of the phase
+// that made the test platform honest (P22-T02): a deterministic source of time
+// and entropy for tests is itself an implementation of the effect, so it cannot
+// borrow the production one without making every "deterministic" scenario read
+// the real clock. Nothing else joins: `internal/platform/testsource` is test
+// support and no delivered process imports it.
 var clockAndRandomAllowlist = map[string]bool{
-	"internal/platform/clockseed": true,
+	"internal/platform/clockseed":  true,
+	"internal/platform/testsource": true,
 }
 
-// effectPackages maps standard library import paths to the kind of effect
-// they carry, used by the P02-T02 gate.
+// effectPackages maps import paths to the kind of effect they carry, used by
+// the P02-T02 gate and extended by P22-T02 with the identifier libraries.
+//
+// The identifier libraries are listed for the same reason the entropy readers
+// are: a value they generate is entropy wearing a name. The product's
+// identifiers are opaque strings made by ports.IDGenerator (production:
+// clockseed.RandomIDs), so a layer that needs one receives it as a parameter
+// and a scenario that needs a fixed one takes it from testsource.NewIDs. An
+// adapter with a need it can document joins the allowlist above — the escape
+// hatch this map already has for the clock.
 var effectPackages = map[string]string{
-	"time":         "time",
-	"math/rand":    "rand",
-	"math/rand/v2": "rand",
-	"crypto/rand":  "rand",
+	"time":                      "time",
+	"math/rand":                 "rand",
+	"math/rand/v2":              "rand",
+	"crypto/rand":               "rand",
+	"github.com/google/uuid":    "uuid",
+	"github.com/gofrs/uuid":     "uuid",
+	"github.com/gofrs/uuid/v5":  "uuid",
+	"github.com/satori/go.uuid": "uuid",
 }
+
+// effectRemedy names, per kind, what the caller should do instead. The remedy
+// depends on the kind because the ports do: a clock read is answered by
+// ports.Clock, a randomness read by ports.Random, and a generated identifier by
+// ports.IDGenerator.
+var effectRemedy = map[string]string{
+	"time": "inject the ports.Clock port instead (P02-T02, ADR-012)",
+	"rand": "inject the ports.Random port instead (P02-T02, ADR-012)",
+	"uuid": "create identifiers through ports.IDGenerator instead (P22-T02, ADR-015)",
+}
+
+// clockReads are the identifiers of the `time` package that read the current
+// instant, and the whole of what the gate forbids. It is a closed set on
+// purpose (P22-T02):
+//
+//   - `Now` counts as a read whether it is called or handed over as a value,
+//     because `Now: time.Now` on a struct field is the same wall-clock read as
+//     `time.Now()` — and it was the shape that slipped through the first
+//     version of this gate, in four packages at once.
+//   - `Since` and `Until` are `Now` in disguise: they subtract the wall clock
+//     from an injected instant, so a rule that decides with them cannot be
+//     replayed with a fixed clock.
+//
+// Everything else the package offers is either pure (`Unix`, `Parse`, `Add`,
+// `Sub`, `Before`, `After`, durations) or waiting (`Sleep`, `After`, `NewTimer`,
+// `NewTicker`, `Tick`, `AfterFunc`) — and waiting is not a reading: a timer
+// pauses a goroutine without letting any decision depend on what the clock
+// says. Forbidding those would be forbidding `time.Sleep`, which would trade a
+// real guarantee for a wrong one.
+var clockReads = map[string]bool{"Now": true, "Since": true, "Until": true}
+
+// waitingEffects are the `time` calls the gate deliberately allows, kept as a
+// list so that the test below can prove the allowance is exercised by the
+// delivered tree instead of being a comment about nothing.
+var waitingEffects = []string{"Sleep", "After", "NewTimer", "NewTicker", "Tick", "AfterFunc"}
 
 func repositoryRoot(t *testing.T) string {
 	t.Helper()
@@ -185,14 +249,14 @@ func importAliases(source *ast.File) map[string]string {
 	return aliases
 }
 
-// effectCallViolation reports direct clock or randomness access outside the
-// allowlisted packages (P02-T02, ADR-012).
-func effectCallViolation(expression ast.Expr, aliases map[string]string, pkgDir string) (string, bool) {
-	call, isCall := expression.(*ast.CallExpr)
-	if !isCall {
-		return "", false
-	}
-	selector, isSelector := call.Fun.(*ast.SelectorExpr)
+// effectViolation reports direct clock, randomness or identifier-generation
+// access outside the allowlisted packages (P02-T02, ADR-012; P22-T02, ADR-015).
+//
+// It inspects a selector expression rather than a call, which is the difference
+// between a gate and a gesture: `time.Now()` and `Now: time.Now` are one read
+// expressed two ways, and only the second one used to get through.
+func effectViolation(expression ast.Expr, aliases map[string]string, pkgDir string) (string, bool) {
+	selector, isSelector := expression.(*ast.SelectorExpr)
 	if !isSelector {
 		return "", false
 	}
@@ -204,17 +268,25 @@ func effectCallViolation(expression ast.Expr, aliases map[string]string, pkgDir 
 	if !isEffect {
 		return "", false
 	}
-	if kind == "time" && selector.Sel.Name != "Now" {
-		// Constructing values from injected instants (time.Unix, .Add, ...)
-		// is pure; only reading the wall clock is gated.
+	if kind == "time" && !clockReads[selector.Sel.Name] {
+		// Constructing values from injected instants (time.Unix, .Add, ...) is
+		// pure, and waiting (time.Sleep, time.NewTimer, ...) is not a reading.
 		return "", false
 	}
 	if clockAndRandomAllowlist[pkgDir] {
 		return "", false
 	}
+	// Unlike `time`, an identifier library has no pure half to carve out: its
+	// constructors are the effect, and its parsers exist so a caller can hold a
+	// library type where the product holds an opaque string. Every selector of
+	// one is therefore a violation outside the allowlist.
+	remedy := effectRemedy[kind]
+	if remedy == "" {
+		remedy = "inject the port instead"
+	}
 	return fmt.Sprintf(
-		"%s.%s() reads the %s effect directly — inject the ports.Clock/ports.Random port instead (P02-T02, ADR-012)",
-		ident.Name, selector.Sel.Name, kind,
+		"%s.%s reads the %s effect directly — %s",
+		ident.Name, selector.Sel.Name, kind, remedy,
 	), true
 }
 
@@ -234,7 +306,12 @@ func envReadViolation(expression ast.Expr, pkgDir string) (string, bool) {
 		return "", false
 	}
 	switch selector.Sel.Name {
-	case "Getenv", "LookupEnv", "Setenv", "Unsetenv", "Clearenv", "Expandenv":
+	// Environ is in the vocabulary for the same reason the others are, and it
+	// was missing until P22-T06: reading the whole environment is reading it,
+	// and the guard that compares two snapshots of it is what made the hole
+	// visible (the fixture that closes it lives in
+	// internal/platform/testguard).
+	case "Getenv", "LookupEnv", "Setenv", "Unsetenv", "Clearenv", "Expandenv", "Environ":
 	default:
 		return "", false
 	}
@@ -322,6 +399,11 @@ func TestDependencyDirectionAndEnvironmentGate(t *testing.T) {
 // only read the wall clock or the randomness readers inside documented
 // allowlisted packages. Test files are exempt — they define the
 // deterministic stubs.
+//
+// Since P22-T02 the search is a parse, not a grep: it covers `time.Now` handed
+// over as a value, `time.Since`/`time.Until` (which read the clock without
+// naming it) and every selector of a randomness reader, and it deliberately
+// leaves `time.Sleep` and the timers alone, because waiting is not reading.
 func TestNoDirectClockOrRandomOutsidePlatform(t *testing.T) {
 	root := repositoryRoot(t)
 	internalDir := filepath.Join(root, "internal")
@@ -351,7 +433,7 @@ func TestNoDirectClockOrRandomOutsidePlatform(t *testing.T) {
 
 		ast.Inspect(source, func(node ast.Node) bool {
 			if expression, isExpression := node.(ast.Expr); isExpression {
-				if rule, forbidden := effectCallViolation(expression, aliases, pkgDir); forbidden {
+				if rule, forbidden := effectViolation(expression, aliases, pkgDir); forbidden {
 					violations = append(violations, fmt.Sprintf("%s — %s", filepath.ToSlash(relPath), rule))
 				}
 			}
@@ -368,92 +450,278 @@ func TestNoDirectClockOrRandomOutsidePlatform(t *testing.T) {
 	}
 }
 
-// TestProviderSDKIsConfinedToItsAdapter is the mechanical form of the P12-T03
-// validation for the payment provider integration: the SDK may only be
-// imported by the adapter that owns it (or by the composition root that wires
-// it), so no business layer, other adapter or tooling can depend on provider
-// types.
-func TestProviderSDKIsConfinedToItsAdapter(t *testing.T) {
+// TestTheEffectGateLeavesWaitingAlone proves the allowance above is exercised:
+// the delivered tree uses timers to wait (the job worker between polls, the
+// circuit breaker between attempts, the telemetry sink between flushes), and a
+// gate that forbade them would be a gate somebody has to weaken. Without this
+// test the allowance could be a rule about code that no longer exists, and the
+// next person would delete it and then reintroduce the ban on `time.Sleep`.
+func TestTheEffectGateLeavesWaitingAlone(t *testing.T) {
 	root := repositoryRoot(t)
+	internalDir := filepath.Join(root, "internal")
 	fset := token.NewFileSet()
 
-	skipped := map[string]bool{".git": true, "node_modules": true, "vendor": true, ".local": true}
-	importingFiles := make(map[string]string)
-
-	walkErr := filepath.WalkDir(root, func(path string, dirEntry os.DirEntry, err error) error {
+	seen := map[string]string{}
+	walkErr := filepath.WalkDir(internalDir, func(path string, dirEntry os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if dirEntry.IsDir() {
-			if skipped[dirEntry.Name()] {
-				return filepath.SkipDir
-			}
+		if dirEntry.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
-		if !strings.HasSuffix(path, ".go") {
-			return nil
+		relPath, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
 		}
-
-		source, parseErr := parser.ParseFile(fset, path, nil, parser.ImportsOnly)
+		source, parseErr := parser.ParseFile(fset, path, nil, 0)
 		if parseErr != nil {
-			t.Errorf("parse %s: %v", path, parseErr)
+			t.Errorf("parse %s: %v", filepath.ToSlash(relPath), parseErr)
 			return nil
 		}
-		relPath, relErr := filepath.Rel(root, path)
-		if relErr != nil {
-			return relErr
+		aliases := importAliases(source)
+		allowed := map[string]bool{}
+		for _, name := range waitingEffects {
+			allowed[name] = true
 		}
-		relPath = filepath.ToSlash(relPath)
-
-		for _, importSpec := range source.Imports {
-			importPath, unquoteErr := strconv.Unquote(importSpec.Path.Value)
-			if unquoteErr != nil {
-				t.Errorf("%s: unparsable import %s", relPath, importSpec.Path.Value)
-				continue
+		ast.Inspect(source, func(node ast.Node) bool {
+			selector, isSelector := node.(*ast.SelectorExpr)
+			if !isSelector {
+				return true
 			}
-			for _, prefix := range providerSDKPrefixes {
-				if strings.HasPrefix(importPath, prefix) {
-					importingFiles[relPath] = importPath
-				}
+			ident, isIdent := selector.X.(*ast.Ident)
+			if !isIdent || aliases[ident.Name] != "time" || !allowed[selector.Sel.Name] {
+				return true
 			}
-		}
+			seen[selector.Sel.Name] = filepath.ToSlash(relPath)
+			return true
+		})
 		return nil
 	})
 	if walkErr != nil {
-		t.Fatalf("walk repository: %v", walkErr)
+		t.Fatalf("walk internal/: %v", walkErr)
+	}
+	if len(seen) == 0 {
+		t.Fatalf("no internal package waits with the time package: the allowance in this gate describes nothing, so remove it instead of keeping a rule about nothing")
+	}
+}
+
+// TestTheEffectGateItself drives the gate over synthetic sources: one table of
+// sources that must be refused and one of sources that must pass. The delivered
+// tree passing is an observation; this is the proof that the checker has teeth,
+// and it is what fails when somebody relaxes the rule to make a package build.
+func TestTheEffectGateItself(t *testing.T) {
+	refused := []struct {
+		source string
+		reason string
+	}{
+		{source: `package sample
+import "time"
+func read() time.Time { return time.Now() }`, reason: "calling the wall clock"},
+		{source: `package sample
+import "time"
+var now = time.Now
+func read() time.Time { return now() }`, reason: "handing the wall clock over as a value"},
+		{source: `package sample
+import "time"
+func waited(instant time.Time) bool { return time.Since(instant) > time.Minute }`, reason: "subtracting the wall clock from an injected instant"},
+		{source: `package sample
+import "time"
+func left(deadline time.Time) time.Duration { return time.Until(deadline) }`, reason: "measuring against the wall clock"},
+		{source: `package sample
+import "crypto/rand"
+func entropy() []byte { buffer := make([]byte, 8); rand.Read(buffer); return buffer }`, reason: "reading the entropy source"},
+		{source: `package sample
+import cryptorand "crypto/rand"
+var reader = cryptorand.Reader`, reason: "aliasing the entropy source and holding the reader"},
+		{source: `package sample
+import "math/rand"
+func roll() int { return rand.Intn(6) }`, reason: "the global pseudo-random source"},
+		{source: `package sample
+import "github.com/google/uuid"
+func newID() string { return uuid.NewString() }`, reason: "generating an identifier with a library instead of ports.IDGenerator"},
+		{source: `package sample
+import "github.com/google/uuid"
+var make = uuid.New
+func newID() uuid.UUID { return make() }`, reason: "handing an identifier generator over as a value"},
+		{source: `package sample
+import guuid "github.com/satori/go.uuid"
+func newID() guuid.UUID { return guuid.NewV4() }`, reason: "aliasing an identifier library and generating with it"},
+	}
+	for _, testCase := range refused {
+		violations := effectViolationsInSource(t, testCase.source, "internal/sample/application")
+		if len(violations) == 0 {
+			t.Errorf("the gate accepted a source that %s", testCase.reason)
+		}
 	}
 
-	// The adapter must actually be what imports the SDK: without this
-	// assertion a rename of the dependency would make the gate vacuous.
-	if len(importingFiles) == 0 {
-		t.Fatal("no package imports the payment provider SDK: the gate would be vacuous")
+	accepted := []struct {
+		source string
+		reason string
+	}{
+		{source: `package sample
+import "time"
+func add(instant time.Time) time.Time { return instant.Add(time.Minute) }`, reason: "arithmetic on an injected instant"},
+		{source: `package sample
+import "time"
+func from(seconds int64) time.Time { return time.Unix(seconds, 0) }`, reason: "building an instant from a value"},
+		{source: `package sample
+import "time"
+func compare(one, other time.Time) bool { return one.Before(other) }`, reason: "comparing two injected instants"},
+		{source: `package sample
+import "time"
+func pause(d time.Duration) { time.Sleep(d) }`, reason: "waiting, which decides nothing"},
+		{source: `package sample
+import "time"
+func wait(d time.Duration) <-chan time.Time { return time.After(d) }`, reason: "waiting on a channel"},
+		{source: `package sample
+import "time"
+func tick() *time.Ticker { return time.NewTicker(time.Second) }`, reason: "a ticker, which pauses instead of reading"},
+		{source: `package sample
+import "time"
+func deadline(seconds int64) time.Time { return time.Unix(seconds, 0).Add(time.Hour) }`, reason: "a deadline computed from a value"},
+	}
+	for _, testCase := range accepted {
+		if violations := effectViolationsInSource(t, testCase.source, "internal/sample/application"); len(violations) > 0 {
+			t.Errorf("the gate refused a source that only %s: %v", testCase.reason, violations)
+		}
 	}
 
-	for relPath, importPath := range importingFiles {
-		allowed := false
-		for _, prefix := range providerSDKAllowlist {
-			if strings.HasPrefix(relPath, prefix) {
-				allowed = true
-				break
+	// And the other half of the rule: the same source is refused in an ordinary
+	// package and admitted in an allowlisted one, so the allowlist is what the
+	// gate really turns on.
+	clockSource := `package sample
+import "time"
+func read() time.Time { return time.Now() }`
+	if violations := effectViolationsInSource(t, clockSource, "internal/platform/clockseed"); len(violations) > 0 {
+		t.Errorf("the gate refused the package that owns the effect: %v", violations)
+	}
+	if violations := effectViolationsInSource(t, clockSource, "internal/platform/testsource"); len(violations) > 0 {
+		t.Errorf("the gate refused the deterministic test source: %v", violations)
+	}
+}
+
+// effectViolationsInSource runs the delivered checker over one synthetic source,
+// so the rules are exercised by the same code that judges the tree.
+func effectViolationsInSource(t *testing.T, source, pkgDir string) []string {
+	t.Helper()
+	file, err := parser.ParseFile(token.NewFileSet(), "sample.go", source, 0)
+	if err != nil {
+		t.Fatalf("the fixture source does not parse: %v", err)
+	}
+	aliases := importAliases(file)
+	violations := []string{}
+	ast.Inspect(file, func(node ast.Node) bool {
+		if expression, isExpression := node.(ast.Expr); isExpression {
+			if rule, forbidden := effectViolation(expression, aliases, pkgDir); forbidden {
+				violations = append(violations, rule)
 			}
 		}
-		if !allowed {
-			t.Errorf("%s imports %q — the provider SDK belongs to its adapter only (allowed: %s)",
-				relPath, importPath, strings.Join(providerSDKAllowlist, ", "))
+		return true
+	})
+	return violations
+}
+
+// testOnlyPackages are the packages of the test platform that no delivered
+// process may import: the deterministic sources of P22-T02, which answer with a
+// seeded stream where production reads the system clock and crypto/rand, the
+// scenario builders of P22-T03, which exist to compose tests, the provider
+// simulators of P22-T05, which stand in for Stripe, Resend, Turnstile, Sentry
+// and PostHog and would answer a call the product believes it made to a
+// provider, and the lifecycle guard of P22-T06, which closes resources and
+// reports leaks — a guard in the delivered process would be a process that
+// reports about itself.
+//
+// They are listed here rather than trusted by convention because the failure
+// they guard against is silent: a builder imported by an adapter would compile,
+// pass every test, and answer deterministic values in production.
+var testOnlyPackages = []string{
+	"internal/platform/testsource",
+	"internal/platform/testsupport",
+	"internal/platform/providersim",
+	"internal/platform/testguard",
+}
+
+// TestTheTestOnlyPackagesStayInTests is what keeps the test platform from
+// becoming a way to ship a fake: no non-test file under internal/ (outside the
+// package itself) and nothing under cmd/ may import a package listed above. A
+// test may, which is the whole point — that is how a scenario stops depending
+// on the machine it runs on.
+func TestTheTestOnlyPackagesStayInTests(t *testing.T) {
+	root := repositoryRoot(t)
+	fset := token.NewFileSet()
+
+	forbidden := map[string]string{}
+	for _, packagePath := range testOnlyPackages {
+		forbidden[modulePrefix+packagePath] = packagePath
+	}
+	violations := []string{}
+
+	for _, directory := range []string{filepath.Join(root, "internal"), filepath.Join(root, "cmd")} {
+		walkErr := filepath.WalkDir(directory, func(path string, dirEntry os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if dirEntry.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+				// Test files are the only place the packages are allowed, so they
+				// are skipped instead of inspected.
+				return nil
+			}
+			relPath, relErr := filepath.Rel(root, path)
+			if relErr != nil {
+				return relErr
+			}
+			relPath = filepath.ToSlash(relPath)
+			owner := false
+			for _, packagePath := range testOnlyPackages {
+				if strings.HasPrefix(relPath, packagePath+"/") {
+					owner = true
+				}
+			}
+			if owner {
+				return nil
+			}
+			source, parseErr := parser.ParseFile(fset, path, nil, parser.ImportsOnly)
+			if parseErr != nil {
+				t.Errorf("parse %s: %v", relPath, parseErr)
+				return nil
+			}
+			for _, importSpec := range source.Imports {
+				importPath, unquoteErr := strconv.Unquote(importSpec.Path.Value)
+				if unquoteErr != nil {
+					t.Errorf("%s: unparsable import %s", relPath, importSpec.Path.Value)
+					continue
+				}
+				if packagePath, isTestOnly := forbidden[importPath]; isTestOnly {
+					violations = append(violations, fmt.Sprintf("%s imports %s — it answers test scenarios and belongs to tests only (P22-T02, P22-T03)", relPath, packagePath))
+				}
+			}
+			return nil
+		})
+		if walkErr != nil {
+			t.Fatalf("walk %s: %v", directory, walkErr)
 		}
 	}
 
-	// Domain and application layers are covered by the dependency direction
-	// test; this one proves the adapter is the only other importer.
-	for _, prefix := range providerSDKAllowlist[:1] {
+	if len(violations) > 0 {
+		t.Fatalf("the test platform escaped into delivered code:\n%s", strings.Join(violations, "\n"))
+	}
+
+	// And the other direction: every package has to exist and to declare a
+	// source, or this gate would pass over a tree that no longer has them.
+	for _, packagePath := range testOnlyPackages {
+		directory := filepath.Join(append([]string{root}, strings.Split(packagePath, "/")...)...)
+		entries, err := os.ReadDir(directory)
+		if err != nil {
+			t.Fatalf("the test-only package %s is missing: %v", packagePath, err)
+		}
 		found := false
-		for relPath := range importingFiles {
-			if strings.HasPrefix(relPath, prefix) {
+		for _, entry := range entries {
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".go") && !strings.HasSuffix(entry.Name(), "_test.go") {
 				found = true
 			}
 		}
 		if !found {
-			t.Errorf("no file under %s imports the provider SDK", prefix)
+			t.Fatalf("%s declares no source: the gate above would accept anything", packagePath)
 		}
 	}
 }

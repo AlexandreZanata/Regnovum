@@ -12,7 +12,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
 )
 
 func TestRunAdminExplainsItselfWithoutASubcommand(t *testing.T) {

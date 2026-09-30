@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	arenashtml "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/html"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/assets"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
+	arenashtml "github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/html"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
 )
 
 // cursorSecret is the key every participation composition needs. It is a

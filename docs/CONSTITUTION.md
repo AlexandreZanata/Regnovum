@@ -1,4 +1,4 @@
-# Constituição do Goyim Arena
+# Constituição do Regnovum
 
 **Status:** princípios fundadores
 
@@ -10,7 +10,7 @@ Esta constituição define compromissos que limitam as decisões de produto e ne
 
 ## 1. Propósito
 
-Goyim Arena existe para tornar visíveis posições, argumentos e mudanças de opinião. A plataforma não declara vencedores nem determina oficialmente o que é verdade.
+Regnovum existe para tornar visíveis posições, argumentos e mudanças de opinião. A plataforma não declara vencedores nem determina oficialmente o que é verdade.
 
 ## 2. Igualdade de participação
 

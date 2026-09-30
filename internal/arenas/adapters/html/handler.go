@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpcache"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpcache"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
 )
 
 // documentCacheSeconds is the public cache lifetime of the Arena document;
@@ -221,24 +221,4 @@ func writeCacheableHTML(w http.ResponseWriter, r *http.Request, body []byte) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(body)
-}
-
-// etagMatches implements the weak comparison of RFC 9110 for If-None-Match.
-// It mirrors the JSON public reads; the copy keeps the adapters independent.
-func etagMatches(header, etag string) bool {
-	header = strings.TrimSpace(header)
-	if header == "" {
-		return false
-	}
-	if header == "*" {
-		return true
-	}
-	for _, candidate := range strings.Split(header, ",") {
-		candidate = strings.TrimSpace(candidate)
-		candidate = strings.TrimPrefix(candidate, "W/")
-		if candidate == etag {
-			return true
-		}
-	}
-	return false
 }

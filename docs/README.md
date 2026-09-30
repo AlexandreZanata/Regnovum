@@ -1,6 +1,8 @@
-# Documentação do Goyim Arena
+# Documentação do Regnovum
 
 Esta pasta contém a definição atual do produto. Os documentos distinguem deliberadamente:
+
+**Regnovum** é o nome público decidido em 2026-09-23. O nome anterior ainda aparece em identificadores técnicos e evidências históricas, que não foram alterados pela renomeação documental. As [diretrizes do Reino](reino/README.md) e a [Carta Econômica](reino/CARTA_ECONOMICA.md) descrevem uma direção futura; as regras implantadas continuam identificadas abaixo.
 
 - **Princípio:** compromisso duradouro, alterado apenas com justificativa pública forte.
 - **Decisão:** regra adotada para a versão atual, passível de revisão documentada.
@@ -24,6 +26,7 @@ Quem chega agora começa pelo [README da raiz](../README.md): ele é o handoff d
 - [BUSINESS_RULES.md](BUSINESS_RULES.md) — regras, estados, invariantes e casos-limite.
 - [MVP.md](MVP.md) — escopo estrito e critérios de sucesso da primeira versão.
 - [ROADMAP.md](ROADMAP.md) — sequência de validação e evolução.
+- [reino/](reino/README.md) — Constituição funcional do Reino, Carta Econômica, decretos conceituais e questões abertas.
 
 ## Operação e confiança
 
@@ -40,6 +43,7 @@ Quem chega agora começa pelo [README da raiz](../README.md): ele é o handoff d
 - [FRONTEND.md](FRONTEND.md) — componentes TypeScript nativos e CSS.
 - [BACKEND.md](BACKEND.md) — domain, application, ports e adapters.
 - [SCALABILITY.md](SCALABILITY.md) — caminho mensurável para alta escala.
+- [SLO.md](SLO.md) — SLOs e budgets por jornada: baseline medido vs compromisso (P28-T01).
 - [SECURITY.md](SECURITY.md) — requisitos técnicos de segurança.
 - [DEPLOYMENT.md](DEPLOYMENT.md) — topologia, ambientes, backup e evolução.
 - [RUNBOOKS.md](RUNBOOKS.md) — alertas iniciais, thresholds e runbooks de incidente.

@@ -9,7 +9,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/domain"
 )
 
 // RawCounts is one atomic read of every source family inside the period.

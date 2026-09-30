@@ -26,10 +26,10 @@ import (
 	"errors"
 	"fmt"
 
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	moderationapp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	moderationdomain "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	moderationapp "github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	moderationdomain "github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // ErrIncompleteComposition marks the refusal to build the adapter over a

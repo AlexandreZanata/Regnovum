@@ -1,5 +1,5 @@
 // Package config loads and validates the typed runtime configuration of
-// Goyim Arena (P02-T01).
+// Regnovum (P02-T01).
 //
 // Design constraints from docs/ARCHITECTURE.md and the platform plan:
 //   - the resulting Config is immutable after Load;

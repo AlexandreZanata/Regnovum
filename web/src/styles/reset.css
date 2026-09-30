@@ -1,4 +1,4 @@
-/* Goyim Arena — native CSS reset. No preprocessor, no bundler.
+/* Regnovum — native CSS reset. No preprocessor, no bundler.
    The canonical cascade order is declared here because this sheet is loaded
    first; every other sheet only adds rules to the layer it owns. Without this,
    the reset would sit unlayered and outrank every component rule. */

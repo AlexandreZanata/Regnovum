@@ -70,7 +70,7 @@ Nunca copiar banco de produção integral para desenvolvimento. Fixtures e dados
 
 ## 5. Pipeline
 
-1. PR executa a verificação completa: formatação, drift dos artefatos gerados, testes unitários, integração PostgreSQL, race selecionado, migrations, contrato OpenAPI, segurança, TypeScript estrito, build e medição do frontend, auditoria de i18n, jornadas de browser, vulnerabilidades das dependências, a imagem de produção e seu scan, ingress, topologia, backup/PITR e deploy/rollback ([CI.md](CI.md)). Um PR em rascunho é **adiado**, não aprovado: a suíte começa quando ele é marcado como pronto, e o merge espera o CI verde.
+1. PR executa o check curto obrigatório; cada microtarefa prova localmente as regras e riscos alterados. Um merge em `main` **não** certifica release. No candidato de versão, executar a verificação completa: drift, testes unitários/integração/race, contratos, segurança, browser, vulnerabilidades, imagem/scan, ingress, topologia, backup/PITR e deploy/rollback ([CI.md](CI.md)). Falha impede tag estável, release e deploy.
 2. Merge em `main` produz imagem OCI no GitHub Container Registry.
 3. Release promove uma imagem por digest, não recompila na VPS.
 4. Backup e verificações pré-deploy são executados.

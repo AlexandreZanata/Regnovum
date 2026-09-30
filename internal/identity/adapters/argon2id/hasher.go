@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 	"golang.org/x/crypto/argon2"
 )
 

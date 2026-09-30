@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/application"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 // The fixture values. Recipient and code are distinctive strings so a test
@@ -27,7 +27,7 @@ const (
 	// Code is the fixture one-time code.
 	Code = "K7QP-2M4Z-9RTX"
 	// Subject, Text and HTML stand in for a rendered body.
-	Subject = "Confirme seu email no Goyim Arena"
+	Subject = "Confirme seu email no Regnovum"
 	Text    = "Olá, Ana\n\nUse o código abaixo.\n\nCódigo: " + Code
 	HTML    = "<p>Olá, Ana</p><p>" + Code + "</p>"
 	// IdempotencyKey is the fixture delivery key.

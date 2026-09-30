@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
 )
 
 // The bounds of a schedule.

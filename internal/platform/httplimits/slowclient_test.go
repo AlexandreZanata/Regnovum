@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httplimits"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httplimits"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
 )
 
 func TestSlowClientIsCutOffWithoutReachingTheHandler(t *testing.T) {

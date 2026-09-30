@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// AccountID uniquely identifies an account within the Goyim Arena platform.
+// AccountID uniquely identifies an account within the Regnovum platform.
 type AccountID string
 
 // String returns the string representation of the account identifier.

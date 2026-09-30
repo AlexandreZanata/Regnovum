@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
 )
 
 // SourceCommand is one requested source of a publication.

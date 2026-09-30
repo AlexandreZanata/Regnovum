@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/search/application"
+	"github.com/AlexandreZanata/Regnovum/internal/search/application"
 )
 
 type Repository struct{ pool *pgxpool.Pool }
@@ -40,6 +40,12 @@ func (r *Repository) SearchArenas(ctx context.Context, query, language string, a
 	} else if language == "en-US" {
 		vector = "'english'::regconfig"
 		languageClause = "AND a.language = $2"
+	} else {
+		// Unfiltered search stays language-aware through the CASE
+		// expression and matches every language explicitly: binding $2
+		// without referencing it breaks the query the same way an
+		// empty filter broke it before (500 on a documented read).
+		languageClause = "AND ($2 = '' OR a.language = $2)"
 	}
 	queryText := fmt.Sprintf(`
 		WITH ranked AS (

@@ -1,0 +1,2198 @@
+{
+  "schema_version": 1,
+  "generator": "tools/qualityinvariants",
+  "modules": [
+    "identity",
+    "profiles",
+    "wallet",
+    "entitlements",
+    "arenas",
+    "positions",
+    "arguments",
+    "persuasion",
+    "billing",
+    "moderation",
+    "transparency",
+    "jobs"
+  ],
+  "invariants": [
+    {
+      "id": "INV-REQ-ARG-01",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Publicação de argumento associado a uma arena com declaração explícita de relação com a afirmação (a favor, contra, contextual).",
+      "precondition": "Só a conta elegível publica na própria identidade.",
+      "postcondition": "A chave de idempotência impede a segunda publicação do mesmo envio.",
+      "global_invariant": "A publicação grava o argumento numa transação sob a chave de idempotência. Segurança: A relação é validada contra o vocabulário canônico antes de gravar.",
+      "prohibited_effect": "Proibido violar: A relação é validada contra o vocabulário canônico antes de gravar. Privacidade: O argumento é público por desenho e carrega apenas o texto e as fontes.",
+      "catalog": "QUAL-REQ-ARG-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRecordsAtomically",
+        "invalid": "internal/arguments/domain/relation_test.go::TestParseRelationAcceptsOnlyCanonicalVocabulary",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARG-02",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Publicação de respostas diretamente a outro argumento da mesma arena em estrutura lógica encadeada de 1 nível recursivo.",
+      "precondition": "A resposta é publicada pela conta titular, referenciando o argumento pai.",
+      "postcondition": "A resposta carrega o próprio identificador de idempotência.",
+      "global_invariant": "A profundidade é decidida na transação, lendo o pai da mesma arena. Segurança: A recursão é limitada a um nível pelo domínio e pelo schema.",
+      "prohibited_effect": "Proibido violar: A recursão é limitada a um nível pelo domínio e pelo schema. Privacidade: A resposta é pública e não acrescenta dado de terceiro.",
+      "catalog": "QUAL-REQ-ARG-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRepliesCarryTheirParent",
+        "invalid": "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRejectsDeepReplies",
+        "limit": "internal/arguments/domain/reply_policy_test.go::TestReplyPolicyAcceptsOneRecursionLevel",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARG-03",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Adição de fontes estruturadas por URL válida e descrição curta, associadas ao argumento sem custo de INK, com validação de esquema de protoc",
+      "precondition": "As fontes são do autor do argumento e não têm custo de INK.",
+      "postcondition": "A mesma URL é canonicalizada para a mesma fonte.",
+      "global_invariant": "As fontes entram na mesma transação da publicação do argumento. Segurança: O esquema de protocolo é validado e canonicalizado no domínio.",
+      "prohibited_effect": "Proibido violar: O esquema de protocolo é validado e canonicalizado no domínio. Privacidade: A fonte é pública por desenho e não carrega dado de terceiro.",
+      "catalog": "QUAL-REQ-ARG-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/domain/source_test.go::TestParseSourceCanonicalizesAndValidates",
+        "invalid": "internal/arguments/domain/source_test.go::TestReconstituteSourceValidatesStoredState",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARG-04",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Limite estrito de no máximo 3.000 grapheme clusters de texto por argumento, computados com biblioteca precisa de segmentação Unicode.",
+      "precondition": "O conteúdo é do autor e medido antes de qualquer débito.",
+      "postcondition": "O mesmo texto normalizado mede sempre o mesmo.",
+      "global_invariant": "A medição é pura sobre o texto, sem estado compartilhado. Segurança: A contagem é de grapheme clusters, com biblioteca precisa de segmentação Unicode.",
+      "prohibited_effect": "Proibido violar: A contagem é de grapheme clusters, com biblioteca precisa de segmentação Unicode. Privacidade: O conteúdo é público por desenho e não carrega dado de terceiro.",
+      "catalog": "QUAL-REQ-ARG-04",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/domain/content_test.go::TestParseContentNormalizesAndMeasures",
+        "invalid": "internal/arguments/domain/content_test.go::TestParseContentRejections",
+        "limit": "internal/arguments/domain/content_test.go::TestParseContentRejections",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARG-05",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments",
+        "internal/wallet"
+      ],
+      "risk": "Q1",
+      "transition": "previewed -> published: Interface de prévia obrigatória e exibição do cálculo exato de custo em INK antes da confirmação de publicação pelo participante.",
+      "precondition": "A prévia é do próprio titular, que vê o saldo e o custo antes de confirmar.",
+      "postcondition": "Repetir a prévia mostra o mesmo custo para o mesmo conteúdo.",
+      "global_invariant": "O saldo lido para a prévia é uma leitura, sem reservar INK. Segurança: O custo é calculado no servidor a partir do texto medido, nunca informado pelo cliente.",
+      "prohibited_effect": "Proibido violar: O custo é calculado no servidor a partir do texto medido, nunca informado pelo cliente. Privacidade: A prévia mostra apenas o saldo e o custo do próprio titular.",
+      "catalog": "QUAL-REQ-ARG-05",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/application/queries_test.go::TestGetWalletBalanceUseCase",
+        "invalid": "internal/wallet/domain/allocation_test.go::TestAllocateDebitPriority",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARG-06",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments"
+      ],
+      "risk": "Q1",
+      "transition": "published -> withdrawn: Retirada voluntária de argumento da exibição pública pelo autor, mantendo o registro histórico e auditável sem estorno automático de INK.",
+      "precondition": "Só o autor retira o próprio argumento, e a retirada é owner-scoped.",
+      "postcondition": "Retirar de novo o mesmo argumento não muda o estado nem o histórico.",
+      "global_invariant": "A retirada é decidida contra o estado gravado e não estorna INK. Segurança: A retirada muda a exibição e mantém o registro histórico auditável.",
+      "prohibited_effect": "Proibido violar: A retirada muda a exibição e mantém o registro histórico auditável. Privacidade: A retirada não apaga o texto nem as atribuições já registradas.",
+      "catalog": "QUAL-REQ-ARG-06",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/application/withdraw_argument_test.go::TestWithdrawArgumentRetractsForTheAuthor",
+        "invalid": "internal/arguments/application/withdraw_argument_test.go::TestWithdrawArgumentIsOwnerScoped",
+        "limit": "internal/arguments/application/withdraw_argument_test.go::TestWithdrawArgumentValidatesInputsWithoutWriting",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARG-07",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments"
+      ],
+      "risk": "Q1",
+      "transition": "published -> moderated: Imutabilidade do conteúdo publicado: argumentos e respostas não sofrem edição silenciosa no MVP.",
+      "precondition": "Ninguém edita o conteúdo: nem o autor, nem a moderação, que muda a exibição e não o texto.",
+      "postcondition": "O hash do conteúdo é estável entre execuções, o que prova a imutabilidade.",
+      "global_invariant": "A escrita do conteúdo acontece uma vez, na publicação. Segurança: Não existe rota de edição, e o contrato é comparado com as rotas registradas.",
+      "prohibited_effect": "Proibido violar: Não existe rota de edição, e o contrato é comparado com as rotas registradas. Privacidade: O conteúdo é do autor e a moderação preserva o registro histórico.",
+      "catalog": "QUAL-REQ-ARG-07",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/platform/postgres/argument_schema_test.go::TestArgumentImmutabilityAndRetention",
+        "invalid": "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentRejectsInvalidParents",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARG-08",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Ordenação padrão de listas de argumentos por data (recente/antiga); exibição de contagem de persuasão sem tornar-se o ranking padrão obrigat",
+      "precondition": "A leitura é pública e não exige conta.",
+      "postcondition": "O mesmo cursor devolve a mesma página, com empates resolvidos pelo desempate estável.",
+      "global_invariant": "A página é montada numa consulta única, sem escrita. Segurança: A ordenação cronológica é o padrão, e o contador de persuasão não é ranking obrigatório.",
+      "prohibited_effect": "Proibido violar: A ordenação cronológica é o padrão, e o contador de persuasão não é ranking obrigatório. Privacidade: A lista publica texto, fontes e contagens, sem posição individual.",
+      "catalog": "QUAL-REQ-ARG-08",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/application/public_arguments_test.go::TestListArenaArgumentsPaginatesWithLookahead",
+        "invalid": "internal/arguments/application/public_arguments_test.go::TestListArenaArgumentsClampsLimitsAndValidatesInputs",
+        "limit": "internal/arguments/application/public_arguments_test.go::TestListArenaArgumentsClampsLimitsAndValidatesInputs",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARN-01",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas"
+      ],
+      "risk": "Q1",
+      "transition": "holds in draft: Criação e edição de rascunhos (draft) de arena visíveis exclusivamente ao criador, sem consumir Arena Pass.",
+      "precondition": "Só o criador lê e edita os próprios rascunhos.",
+      "postcondition": "Editar o rascunho duas vezes aplica a última versão, sem consumir passe.",
+      "global_invariant": "A edição do rascunho é uma escrita por identificador, sem disputa de passe. Segurança: O rascunho é privado e não aparece em nenhuma leitura pública.",
+      "prohibited_effect": "Proibido violar: O rascunho é privado e não aparece em nenhuma leitura pública. Privacidade: Um rascunho guarda a afirmação ainda não publicada e nenhum dado de terceiro.",
+      "catalog": "QUAL-REQ-ARN-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/application/drafts_test.go::TestCreateArenaDraftUseCase",
+        "invalid": "internal/arenas/adapters/http/arenas_http_test.go::TestArenaDraftOwnerScoped",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARN-02",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas",
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "draft -> published: Publicação de arena com consumo atômico de exatamente 1 Arena Pass; transição atômica de draft para published.",
+      "precondition": "Só o dono do rascunho publica, e a publicação consome um passe da própria conta.",
+      "postcondition": "O replay da publicação é recusado e não consome um segundo passe.",
+      "global_invariant": "Duas publicações concorrentes da mesma arena disputam o passe sob a chave da arena. Segurança: O consumo do passe e a transição de estado acontecem na mesma transação, com rollback integral.",
+      "prohibited_effect": "Proibido violar: O consumo do passe e a transição de estado acontecem na mesma transação, com rollback integral. Privacidade: A publicação torna público o conteúdo do rascunho e nada mais da conta.",
+      "catalog": "QUAL-REQ-ARN-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaEndToEndAtomic",
+        "invalid": "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseWithoutPassRollsBack",
+        "limit": "",
+        "replay": "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseReplay"
+      }
+    },
+    {
+      "id": "INV-REQ-ARN-03",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas"
+      ],
+      "risk": "Q1",
+      "transition": "draft -> published: Definição de afirmação proposicional clara, contexto opcional, categoria, idioma e encerramento programado opcional.",
+      "precondition": "A afirmação é do autor, que responde por ela, e o idioma é declarado por ele.",
+      "postcondition": "A mesma afirmação é parseada para o mesmo resultado.",
+      "global_invariant": "A validação é de domínio sobre a entrada, sem estado compartilhado. Segurança: O idioma e o limite do enunciado são validados no servidor antes da gravação.",
+      "prohibited_effect": "Proibido violar: O idioma e o limite do enunciado são validados no servidor antes da gravação. Privacidade: A afirmação é pública por desenho e não carrega dado de terceiro.",
+      "catalog": "QUAL-REQ-ARN-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/domain/statement_test.go::TestParseStatementValidCases",
+        "invalid": "internal/arenas/domain/statement_test.go::TestParseStatementRejectsInvalidPolicy",
+        "limit": "internal/arenas/domain/statement_test.go::TestParseStatementBoundaries",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARN-04",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas"
+      ],
+      "risk": "Q1",
+      "transition": "draft -> removed: Máquina de estados formal de arena com transições controladas: draft → published → closed / restricted / removed.",
+      "precondition": "Fechar exige a conta autora, e restringir ou remover exige a capacidade de moderação.",
+      "postcondition": "Repetir a transição já aplicada é recusado pelo estado, não reaplicado.",
+      "global_invariant": "Duas transições concorrentes da mesma arena são serializadas pelo estado lido na transação. Segurança: As transições são decididas no servidor, e o cliente apenas pede a mudança.",
+      "prohibited_effect": "Proibido violar: As transições são decididas no servidor, e o cliente apenas pede a mudança. Privacidade: O estado da arena é público e não carrega dado de titular.",
+      "catalog": "QUAL-REQ-ARN-04",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/domain/arena_test.go::TestArenaStatusTransitionsMatrix",
+        "invalid": "internal/arenas/application/status_test.go::TestCloseArenaUseCaseRejectsOtherStates",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARN-05",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas"
+      ],
+      "risk": "Q1",
+      "transition": "draft -> published: Imutabilidade absoluta da afirmação principal e de seu idioma após a publicação; proibição de edição pós-publicação no MVP.",
+      "precondition": "Depois de publicada, a afirmação não é editável por ninguém, nem pelo autor.",
+      "postcondition": "A edição de rascunho é idempotente no estado resultante.",
+      "global_invariant": "A leitura do estado na transação é o que separa rascunho editável de arena publicada. Segurança: A recusa de edição é do domínio e do schema, não da interface.",
+      "prohibited_effect": "Proibido violar: A recusa de edição é do domínio e do schema, não da interface. Privacidade: A regra protege a integridade do texto público, sem tocar dado pessoal.",
+      "catalog": "QUAL-REQ-ARN-05",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/domain/arena_test.go::TestArenaPublishTransition",
+        "invalid": "internal/arenas/application/drafts_test.go::TestUpdateArenaDraftUseCaseRejectsNonDraft",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-ARN-06",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Identificação perene da arena por identificador estável imutável (UUID) complementado por slug amigável para URLs.",
+      "precondition": "O identificador é do servidor e o slug é derivado dele, nunca do pedido do cliente.",
+      "postcondition": "Derivar o slug do mesmo identificador devolve sempre o mesmo slug.",
+      "global_invariant": "O identificador é gravado na publicação e o slug é derivado uma vez. Segurança: O slug pedido nunca é refletido na página, e o identificador é um UUID ordenável.",
+      "prohibited_effect": "Proibido violar: O slug pedido nunca é refletido na página, e o identificador é um UUID ordenável. Privacidade: O slug é público e não carrega dado de conta.",
+      "catalog": "QUAL-REQ-ARN-06",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/domain/slug_test.go::TestSlugifyCompositionIsParseable",
+        "invalid": "internal/arenas/adapters/html/arenas_html_test.go::TestArenaDocumentNeverReflectsRequestedSlug",
+        "limit": "internal/arenas/application/publish_test.go::TestDeriveSlugIsStableAndBounded",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-AUD-01",
+      "module": "transparency",
+      "packages": [
+        "internal/audit"
+      ],
+      "risk": "Q0",
+      "transition": "recorded -> retained: Trilha de auditoria administrativa append-only registrando compulsoriamente autor, ação, justificativa, IP confiável e timestamp de toda int",
+      "precondition": "A trilha registra autor, ação e justificativa de toda intervenção operacional.",
+      "postcondition": "O replay do mesmo evento não duplica o registro da trilha.",
+      "global_invariant": "O registro entra na mesma transação da mutação que o exige. Segurança: A trilha é append-only por privilégio, e metadados sensíveis são recusados.",
+      "prohibited_effect": "Proibido violar: A trilha é append-only por privilégio, e metadados sensíveis são recusados. Privacidade: A trilha guarda metadados tipados, e a recusa de dado sensível é testada.",
+      "catalog": "QUAL-REQ-AUD-01",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/audit/adapters/postgres/recorder_test.go::TestRecorderJoinsSharedTransaction",
+        "invalid": "internal/platform/postgres/audit_schema_test.go::TestAuditEventsRejectUpdatesAndDeletes",
+        "limit": "internal/audit/adapters/postgres/recorder_test.go::TestBillingAndAdminEventsFitTheTrail",
+        "replay": "internal/audit/adapters/postgres/recorder_test.go::TestRecorderRoundTripAndReplay"
+      }
+    },
+    {
+      "id": "INV-REQ-AUTH-01",
+      "module": "identity",
+      "packages": [
+        "internal/identity"
+      ],
+      "risk": "Q0",
+      "transition": "registered -> session: Cadastro de conta com email e senha forte (Argon2id) e login com emissão de token opaco em cookie seguro (HttpOnly, Secure, SameSite=Lax).",
+      "precondition": "O cadastro é aberto e a conta suspensa é recusada antes de qualquer sessão ser emitida.",
+      "postcondition": "Cada login emite uma sessão nova por desenho, então repetir não é uma repetição sem efeito.",
+      "global_invariant": "O cadastro é uma inserção única sob a chave do email e o login não escreve a conta. Segurança: Argon2id com sal único para a senha e token opaco de 256 bits em cookie HttpOnly, Secure e SameSite.",
+      "prohibited_effect": "Proibido violar: Argon2id com sal único para a senha e token opaco de 256 bits em cookie HttpOnly, Secure e SameSite. Privacidade: Somente o email é tocado, e a resposta não revela se ele já existe.",
+      "catalog": "QUAL-REQ-AUTH-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/identity/application/usecases_test.go::TestRegisterAccount_SuccessAndVerification",
+        "invalid": "internal/identity/application/usecases_test.go::TestRegisterAccount_WeakPasswordAndInvalidEmail",
+        "limit": "internal/identity/adapters/http/auth_http_test.go::TestThrottledLoginIsRefusedBeforeTheUseCase",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-AUTH-02",
+      "module": "identity",
+      "packages": [
+        "internal/identity"
+      ],
+      "risk": "Q0",
+      "transition": "pending -> verified: Verificação de email via token criptográfico de uso único com validade limitada; apenas contas verificadas participam ativamente.",
+      "precondition": "A posse do token de uso único é a autorização da jornada, que não tem papel a conferir.",
+      "postcondition": "Reemitir invalida o token anterior e reusar o consumido é recusado.",
+      "global_invariant": "A reemissão substitui o token anterior numa escrita sob a chave da conta, sem leitura disputada. Segurança: Token criptográfico de uso único, guardado por hash e com validade curta.",
+      "prohibited_effect": "Proibido violar: Token criptográfico de uso único, guardado por hash e com validade curta. Privacidade: A confirmação não expõe a terceiros se o email já estava confirmado.",
+      "catalog": "QUAL-REQ-AUTH-02",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/identity/application/usecases_test.go::TestRegisterAccount_SuccessAndVerification",
+        "invalid": "internal/identity/application/usecases_test.go::TestVerifyEmail_ReplayProtection",
+        "limit": "internal/identity/application/usecases_test.go::TestVerifyEmail_ExpiredToken",
+        "replay": "internal/identity/application/usecases_test.go::TestIssueEmailVerification_ReissuanceInvalidatesPreviousToken"
+      }
+    },
+    {
+      "id": "INV-REQ-AUTH-03",
+      "module": "identity",
+      "packages": [
+        "internal/identity"
+      ],
+      "risk": "Q0",
+      "transition": "session -> revoked: Gerenciamento de sessões ativas com rotação compulsória de token após login/elevação e encerramento voluntário (logout) de sessão atual e de",
+      "precondition": "Só a conta titular lê, rotaciona e revoga as próprias sessões, e a revogação exige a senha.",
+      "postcondition": "O token consumido não autentica de novo, então repetir exige uma sessão nova.",
+      "global_invariant": "A revogação é atômica sob concorrência e a rotação consome o token anterior na mesma transação. Segurança: Token opaco com hash no banco, rotação no login e revogação de todas as sessões no logout.",
+      "prohibited_effect": "Proibido violar: Token opaco com hash no banco, rotação no login e revogação de todas as sessões no logout. Privacidade: A listagem marca a sessão chamadora e nunca devolve o token.",
+      "catalog": "QUAL-REQ-AUTH-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/identity/application/session_test.go::TestRotateSession",
+        "invalid": "internal/identity/adapters/http/sessions_http_test.go::TestSessionRotationEndsTheOldTokenAndIssuesANewOne",
+        "limit": "internal/identity/application/session_test.go::TestAuthenticateSessionLifecycleAndThrottling",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-AUTH-04",
+      "module": "identity",
+      "packages": [
+        "internal/identity"
+      ],
+      "risk": "Q0",
+      "transition": "requested -> expired: Recuperação de conta via link seguro com token de uso único, com respostas que não revelam se o email existe na base (prevenção de enumeraçã",
+      "precondition": "O pedido é anônimo e a confirmação exige o token do titular, com conta suspensa recusada.",
+      "postcondition": "Reemitir invalida o token anterior, e o consumo é único.",
+      "global_invariant": "Duas confirmações com o mesmo token são resolvidas pela corrida do repositório: uma consome, a outra recusa. Segurança: Token CSPRNG guardado por hash, de uso único, com validade curta e resposta anti-enumeração.",
+      "prohibited_effect": "Proibido violar: Token CSPRNG guardado por hash, de uso único, com validade curta e resposta anti-enumeração. Privacidade: A resposta não revela se o email existe, e a nova senha não passa por log.",
+      "catalog": "QUAL-REQ-AUTH-04",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection",
+        "invalid": "internal/identity/application/password_reset_test.go::TestRequestPasswordReset_AntiEnumeration",
+        "limit": "internal/identity/application/password_reset_test.go::TestPasswordReset_ExpiredTokenRejection",
+        "replay": "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection"
+      }
+    },
+    {
+      "id": "INV-REQ-BIL-01",
+      "module": "billing",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "holds in checkout: Catálogo de compra avulsa de pacotes de INK e Arena Passes com redirecionamento para sessão segura de Stripe Checkout.",
+      "precondition": "O checkout é da própria conta, e conta inelegível ou desconhecida é recusada.",
+      "postcondition": "O replay da criação de checkout é seguro e não cria cobrança dupla.",
+      "global_invariant": "A criação da sessão é decidida por requisição, sem reservar saldo. Segurança: Todo fato comercial é resolvido no servidor, a partir do catálogo versionado.",
+      "prohibited_effect": "Proibido violar: Todo fato comercial é resolvido no servidor, a partir do catálogo versionado. Privacidade: O checkout não recebe dado pessoal além do necessário para a sessão do provedor.",
+      "catalog": "QUAL-REQ-BIL-01",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/adapters/stripe/gateway_test.go::TestCreateCheckoutSessionSendsTheServerDecidedPrice",
+        "invalid": "internal/billing/application/create_checkout_test.go::TestCreateCheckoutRefusesProductsOutsideTheCatalog",
+        "limit": "internal/billing/application/create_checkout_test.go::TestCreateCheckoutRefusesAProviderModeSwitch",
+        "replay": "internal/billing/application/create_checkout_test.go::TestCreateCheckoutIsReplaySafe"
+      }
+    },
+    {
+      "id": "INV-REQ-BIL-02",
+      "module": "billing",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "subscribed -> active: Assinatura recorrente mensal Member com concessão de franquia de INK e passes no ciclo, gerenciada via Stripe Billing / Customer Portal.",
+      "precondition": "A assinatura é do titular que a contratou, e o estado vem do provedor.",
+      "postcondition": "Reaplicar o mesmo evento não concede um segundo lote.",
+      "global_invariant": "Eventos fora de ordem não revivem estado terminal, provado pelo teste de replay. Segurança: A concessão acontece só no processamento autenticado do evento.",
+      "prohibited_effect": "Proibido violar: A concessão acontece só no processamento autenticado do evento. Privacidade: A concessão credita franquia e passes sem expor dado de pagamento.",
+      "catalog": "QUAL-REQ-BIL-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/application/apply_member_entitlements_test.go::TestApplyMemberEntitlements_ActiveGrantsPassAnd30kInk",
+        "invalid": "internal/billing/application/apply_member_entitlements_test.go::TestApplyMemberEntitlements_OutOfOrder_TerminalStatusCannotRevive",
+        "limit": "",
+        "replay": "internal/billing/application/apply_member_entitlements_test.go::TestApplyMemberEntitlements_ReactivationWithoutDuplication"
+      }
+    },
+    {
+      "id": "INV-REQ-BIL-03",
+      "module": "billing",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "received -> processed: Processamento idempotente de webhooks Stripe com verificação de assinatura HMAC-SHA256 no payload bruto e gravação de stripe_event_id único.",
+      "precondition": "A assinatura do provedor autoriza o evento, sobre o corpo bruto.",
+      "postcondition": "O replay do mesmo evento não reaplica mutação no ledger.",
+      "global_invariant": "Cada requisição verifica a própria assinatura, sem estado compartilhado. Segurança: HMAC-SHA256 sobre o corpo bruto, janela curta, comparação em tempo constante e identificador único.",
+      "prohibited_effect": "Proibido violar: HMAC-SHA256 sobre o corpo bruto, janela curta, comparação em tempo constante e identificador único. Privacidade: O evento carrega apenas o necessário para a concessão e não é logado em claro.",
+      "catalog": "QUAL-REQ-BIL-03",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierAcceptsValidSignature",
+        "invalid": "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsAlteredBody",
+        "limit": "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsExpiredTimestamp",
+        "replay": "internal/billing/application/process_webhook_test.go::TestProcessWebhookIsIdempotentOnReplay"
+      }
+    },
+    {
+      "id": "INV-REQ-BIL-04",
+      "module": "billing",
+      "packages": [
+        "internal/billing",
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "refunded -> chargeback: Tratamento explícito de reembolsos (refunds) e contestações (chargebacks) da Stripe via eventos de estorno auditados sem mutação silenciosa ",
+      "precondition": "O reembolso é da compra do titular, decidido pelo evento do provedor.",
+      "postcondition": "O journal de reembolsos é idempotente e auditável.",
+      "global_invariant": "A aplicação é por evento, com o journal como registro da decisão. Segurança: O estorno nunca deixa o saldo negativo e não muta o histórico em silêncio.",
+      "prohibited_effect": "Proibido violar: O estorno nunca deixa o saldo negativo e não muta o histórico em silêncio. Privacidade: O reembolso não expõe dado além da compra afetada.",
+      "catalog": "QUAL-REQ-BIL-04",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/application/apply_refund_test.go::TestApplyRefundCapsWhenConsumedWithoutNegative",
+        "invalid": "internal/billing/application/apply_refund_test.go::TestApplyRefundChargebackAlwaysNeedsReview",
+        "limit": "internal/billing/application/apply_refund_test.go::TestApplyRefundCapsWhenConsumedWithoutNegative",
+        "replay": "internal/billing/adapters/postgres/refund_test.go::TestRefundJournalIsIdempotentAndAuditable"
+      }
+    },
+    {
+      "id": "INV-REQ-BIL-05",
+      "module": "billing",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "holds in reconciled: Reconciliação das compras com o provedor: divergência de valor, moeda, estado ou evento remoto ausente é registrada e nunca corrigida em sil",
+      "precondition": "A reconciliação é operação de manutenção, sem superfície de cliente.",
+      "postcondition": "Reexecutar a reconciliação não corrige nem duplica nada.",
+      "global_invariant": "O trabalho roda em varredura própria, sem disputar escrita com o checkout. Segurança: Divergência de valor, moeda ou estado é registrada e nunca corrigida em silêncio.",
+      "prohibited_effect": "Proibido violar: Divergência de valor, moeda ou estado é registrada e nunca corrigida em silêncio. Privacidade: O relatório de reconciliação não carrega dado pessoal.",
+      "catalog": "QUAL-REQ-BIL-05",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/application/reconcile_billing_test.go::TestReconcileRecordsUnprocessedEventsWithoutCorrecting",
+        "invalid": "internal/billing/application/reconcile_billing_test.go::TestReconcileDetectsMissingRemote",
+        "limit": "internal/billing/application/reconcile_billing_test.go::TestReconcileDetectsAmountAndCurrencyMismatch",
+        "replay": "internal/billing/application/reconcile_billing_test.go::TestReconcileRecordsUnprocessedEventsWithoutCorrecting"
+      }
+    },
+    {
+      "id": "INV-REQ-ENT-01",
+      "module": "entitlements",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "holds in published: Controle de saldo de Arena Passes: publicação bem-sucedida de uma nova arena consome exatamente 1 passe; rascunhos não consomem passe.",
+      "precondition": "O passe consumido é da conta que publica, e passe de outra conta é recusado.",
+      "postcondition": "O consumo é idempotente por arena, e repetir não gasta um segundo passe.",
+      "global_invariant": "Duas publicações concorrentes da mesma arena disputam o passe sob a chave da arena. Segurança: O consumo é append-only, com o lote escolhido pela validade mais próxima.",
+      "prohibited_effect": "Proibido violar: O consumo é append-only, com o lote escolhido pela validade mais próxima. Privacidade: O passe é da conta titular, e nenhum dado pessoal entra no lote.",
+      "catalog": "QUAL-REQ-ENT-01",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/application/consume_passes_test.go::TestConsumeArenaPassUseCaseBuildsRequestAndPropagatesOutcome",
+        "invalid": "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassCrossAccountRefused",
+        "limit": "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassExpiredLotNeverUsed",
+        "replay": "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassIsIdempotentPerArena"
+      }
+    },
+    {
+      "id": "INV-REQ-ENT-02",
+      "module": "entitlements",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "granted -> expired: Distinção formal e rastreável no ledger de passes entre passes avulsos comprados e passes periódicos incluídos na assinatura Member.",
+      "precondition": "O resumo de passes é do próprio titular.",
+      "postcondition": "A concessão de lote é idempotente, e a validade é imutável.",
+      "global_invariant": "A concessão concorrente de lotes é resolvida pelo repositório. Segurança: A origem do passe é um vocabulário fechado, e a expiração é gravada.",
+      "prohibited_effect": "Proibido violar: A origem do passe é um vocabulário fechado, e a expiração é gravada. Privacidade: O histórico de passes não expõe dado de pagamento além do necessário.",
+      "catalog": "QUAL-REQ-ENT-02",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/application/queries_test.go::TestGetArenaPassSummaryUseCase",
+        "invalid": "internal/billing/adapters/postgres/repository_test.go::TestRepository_PassSummaryExcludesExpiredLotsAtBoundaries",
+        "limit": "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassSelectsNearestExpiration",
+        "replay": "internal/billing/adapters/postgres/repository_test.go::TestRepository_GrantPassLotIsIdempotentAndImmutableExpiry"
+      }
+    },
+    {
+      "id": "INV-REQ-I18N-01",
+      "module": "i18n",
+      "packages": [
+        "internal/i18n"
+      ],
+      "risk": "Q1",
+      "transition": "holds in resolved: Suporte completo na interface da plataforma aos idiomas Português do Brasil (pt-BR) e Inglês (en-US).",
+      "precondition": "O idioma é do visitante e resolvido no servidor, com padrão declarado.",
+      "postcondition": "A mesma chave e o mesmo idioma devolvem a mesma mensagem.",
+      "global_invariant": "A mensagem é resolvida por requisição a partir de catálogo embutido. Segurança: Nenhuma mensagem é montada por concatenação de HTML, e chave desconhecida é recusada.",
+      "prohibited_effect": "Proibido violar: Nenhuma mensagem é montada por concatenação de HTML, e chave desconhecida é recusada. Privacidade: Os catálogos não carregam dado pessoal.",
+      "catalog": "QUAL-REQ-I18N-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/i18n/i18n_test.go::TestMessageReturnsBothLocales",
+        "invalid": "internal/i18n/i18n_test.go::TestMessageRejectsUnknownLocaleAndKey",
+        "limit": "internal/i18n/i18n_test.go::TestPlaceholdersAndDefaultLocale",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-I18N-02",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Associação obrigatória e imutável de um idioma específico a cada arena criada.",
+      "precondition": "O idioma é escolhido na criação pelo autor e não muda depois.",
+      "postcondition": "Publicar ou reabrir a mesma arena mantém o idioma gravado.",
+      "global_invariant": "O idioma é gravado uma vez com a arena. Segurança: O idioma é validado contra o vocabulário fechado no domínio e no schema.",
+      "prohibited_effect": "Proibido violar: O idioma é validado contra o vocabulário fechado no domínio e no schema. Privacidade: O idioma da arena é público e não é preferência de conta.",
+      "catalog": "QUAL-REQ-I18N-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/domain/slug_test.go::TestParseLanguage",
+        "invalid": "internal/platform/postgres/arena_schema_test.go::TestArenaSchemaConstraints",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-I18N-03",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Segregação estrita de feeds públicos de arenas por idioma selecionado pelo participante ou visitante.",
+      "precondition": "O idioma do feed vem do visitante ou da preferência do titular, nunca do conteúdo.",
+      "postcondition": "O mesmo idioma e o mesmo cursor devolvem a mesma página.",
+      "global_invariant": "A consulta é única por página, sem escrita. Segurança: O idioma é validado contra o vocabulário antes da consulta parametrizada.",
+      "prohibited_effect": "Proibido violar: O idioma é validado contra o vocabulário antes da consulta parametrizada. Privacidade: O feed por idioma não acrescenta dado pessoal.",
+      "catalog": "QUAL-REQ-I18N-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/adapters/postgres/feed_integration_test.go::TestRepository_PublicFeedFiltersAndVisibility",
+        "invalid": "internal/arenas/application/feed_test.go::TestGetArenaFeedUseCaseClampsLimitsAndValidatesFilters",
+        "limit": "internal/arenas/application/feed_test.go::TestGetArenaFeedUseCaseClampsLimitsAndValidatesFilters",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-I18N-04",
+      "module": "i18n",
+      "packages": [
+        "internal/i18n"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Ausência explícita de mecanismos de tradução automática pelo backend no MVP para preservar precisão textual de argumentos.",
+      "precondition": "Nenhum serviço traduz conteúdo de usuário: a ausência é a garantia.",
+      "postcondition": "O conteúdo é servido como foi publicado, sem reescrita.",
+      "global_invariant": "Não há caminho de escrita de tradução, então não há corrida. Segurança: A arquitetura recusa dependências que trariam tradução automática.",
+      "prohibited_effect": "Proibido violar: A arquitetura recusa dependências que trariam tradução automática. Privacidade: O texto do usuário não é enviado a terceiros para tradução.",
+      "catalog": "QUAL-REQ-I18N-04",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/architecture_test.go::TestDependencyDirectionAndEnvironmentGate",
+        "invalid": "internal/i18n/i18n_test.go::TestMessageRejectsUnknownLocaleAndKey",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-INV-01",
+      "module": "billing",
+      "packages": [
+        "internal/billing",
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in aggregated: Dinheiro e planos pagos não alteram o peso ou o impacto de qualquer posição no agregado oficial.",
+      "precondition": "Nenhum papel ou plano altera o peso: autoridade e dinheiro não são entradas do agregado.",
+      "postcondition": "A mesma posição contribui uma vez, sempre.",
+      "global_invariant": "O agregado lê uma linha por titular, sem ponderar por plano. Segurança: O domínio de posição não conhece plano nem pagamento, provado pelo teste de pureza.",
+      "prohibited_effect": "Proibido violar: O domínio de posição não conhece plano nem pagamento, provado pelo teste de pureza. Privacidade: O agregado conta contas elegíveis e não expõe quem votou.",
+      "catalog": "QUAL-REQ-INV-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly",
+        "invalid": "internal/positions/domain/purity_test.go::TestPositionsDomainCarriesNoPlanOrPaymentWeight",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-INV-02",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in local: Escolhas de visitantes não entram no agregado oficial sob nenhuma circunstância.",
+      "precondition": "A escolha do visitante não entra no agregado oficial sob nenhuma circunstância.",
+      "postcondition": "A escolha local não é gravada, então repetir não muda o oficial.",
+      "global_invariant": "A escolha vive no cliente, e o agregado lê posições confirmadas por conta elegível. Segurança: O agregado filtra por conta elegível no servidor.",
+      "prohibited_effect": "Proibido violar: O agregado filtra por conta elegível no servidor. Privacidade: Nenhuma escolha anônima é associada a uma pessoa.",
+      "catalog": "QUAL-REQ-INV-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly",
+        "invalid": "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForVisitorKeepsTheChoiceLocal",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-INV-03",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in confirmed: A primeira posição confirmada por um participante em uma arena nunca é reescrita ou apagada.",
+      "precondition": "A primeira posição é do titular e nunca é reescrita.",
+      "postcondition": "Confirmar de novo a mesma posição não reescreve o registro.",
+      "global_invariant": "Inserções concorrentes com valores diferentes são resolvidas pela chave única. Segurança: A chave única por arena e titular é imposta pelo schema.",
+      "prohibited_effect": "Proibido violar: A chave única por arena e titular é imposta pelo schema. Privacidade: O registro é privado por padrão e só aparece no agregado.",
+      "catalog": "QUAL-REQ-INV-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionResolvesLostInsertRaces",
+        "invalid": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRefusesDifferentInitialValue",
+        "limit": "",
+        "replay": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionConcurrentDifferentValues"
+      }
+    },
+    {
+      "id": "INV-REQ-INV-04",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in chained: Toda posição atual de um participante em uma arena deriva estritamente do seu histórico imutável de mudanças.",
+      "precondition": "A posição atual é derivada do histórico do próprio titular.",
+      "postcondition": "A cadeia é append-only, e o replay contíguo é a única forma de reconstruir o estado.",
+      "global_invariant": "Corridas de mudança mantêm a integridade da cadeia, provado pelo teste concorrente. Segurança: A versão do registro é verificada contra corrida antes da escrita.",
+      "prohibited_effect": "Proibido violar: A versão do registro é verificada contra corrida antes da escrita. Privacidade: O histórico individual é privado e só o agregado é público.",
+      "catalog": "QUAL-REQ-INV-04",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/domain/change_test.go::TestDeriveCurrentPositionReplaysContiguousChains",
+        "invalid": "internal/positions/domain/change_test.go::TestNewPositionChangeValidatesTheHistoryEntry",
+        "limit": "",
+        "replay": "internal/positions/adapters/postgres/repository_test.go::TestChangePositionRollbackLeavesNoDivergence"
+      }
+    },
+    {
+      "id": "INV-REQ-INV-05",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in changed: Nenhum participante pode atribuir influência a argumentos de sua própria autoria.",
+      "precondition": "A política compara o titular da mudança com o autor do argumento.",
+      "postcondition": "Repetir a tentativa de autoatribuição é recusado de novo.",
+      "global_invariant": "A recusa é do repositório, avaliada na transação da gravação. Segurança: O bloqueio vale para qualquer rota, porque mora no domínio e no repositório.",
+      "prohibited_effect": "Proibido violar: O bloqueio vale para qualquer rota, porque mora no domínio e no repositório. Privacidade: A recusa não revela a autoria de argumentos de terceiros.",
+      "catalog": "QUAL-REQ-INV-05",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections",
+        "invalid": "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyRejectsViolations",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-INV-06",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in changed: No máximo três argumentos podem receber atribuição de influência por evento de mudança de posição.",
+      "precondition": "A seleção é da conta titular da mudança.",
+      "postcondition": "A gravação é idempotente e cresce até três, nunca além.",
+      "global_invariant": "A cardinalidade é resolvida sob a chave da mudança, com o teste concorrente no limite. Segurança: O limite é validado no domínio e imposto pelo schema.",
+      "prohibited_effect": "Proibido violar: O limite é validado no domínio e imposto pelo schema. Privacidade: As atribuições contam em totais e não expõem quem atribuiu.",
+      "catalog": "QUAL-REQ-INV-06",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit",
+        "invalid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections",
+        "limit": "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyValidatesChangeAndPolicy",
+        "replay": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit"
+      }
+    },
+    {
+      "id": "INV-REQ-INV-07",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments",
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "debited -> published: A publicação de um argumento e o débito do saldo correspondente de INK formam uma unidade atômica indivisível.",
+      "precondition": "O débito é da conta que publica, decidido no servidor.",
+      "postcondition": "A chave de idempotência cobre a unidade inteira, e o replay não debita duas vezes.",
+      "global_invariant": "Débito e publicação são uma unidade sob a mesma transação e a mesma linha de saldo. Segurança: O rollback é integral, e o saldo nunca fica negativo.",
+      "prohibited_effect": "Proibido violar: O rollback é integral, e o saldo nunca fica negativo. Privacidade: O débito é da própria conta, e a publicação não expõe dado de terceiro.",
+      "catalog": "QUAL-REQ-INV-07",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentEndToEndAtomic",
+        "invalid": "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentDoubleSpendIsImpossible",
+        "limit": "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRejectsInsufficientInkWithoutPartialState",
+        "replay": "internal/arguments/application/publish_argument_test.go::TestPublishArgumentReplaysRecordedAttempts"
+      }
+    },
+    {
+      "id": "INV-REQ-INV-08",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas",
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "draft -> published: Um Arena Pass só é consumido quando a transição da arena de draft para published é bem-sucedida.",
+      "precondition": "A publicação abre a transação e consome o passe da própria conta dentro dela.",
+      "postcondition": "O replay da publicação não consome um segundo passe.",
+      "global_invariant": "A transição de estado e o consumo são confirmados juntos ou desfeitos juntos. Segurança: O passe só é gasto com a transição aplicada, e o conflito de slug desfaz o consumo.",
+      "prohibited_effect": "Proibido violar: O passe só é gasto com a transição aplicada, e o conflito de slug desfaz o consumo. Privacidade: O passe consumido é da conta que publica, e nenhum dado pessoal entra no lote.",
+      "catalog": "QUAL-REQ-INV-08",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaEndToEndAtomic",
+        "invalid": "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseWithoutPassRollsBack",
+        "limit": "",
+        "replay": "internal/arenas/application/publish_test.go::TestPublishArenaUseCaseReplay"
+      }
+    },
+    {
+      "id": "INV-REQ-INV-09",
+      "module": "transparency",
+      "packages": [
+        "internal/audit",
+        "internal/moderation"
+      ],
+      "risk": "Q0",
+      "transition": "removed -> appealed: A remoção de conteúdo da exibição pública não apaga registros de auditoria ou dados necessários à integridade.",
+      "precondition": "A remoção exige decisão de moderação registrada, e a trilha fica.",
+      "postcondition": "A decisão é registrada uma vez, e o recurso restaura sem apagar a ação original.",
+      "global_invariant": "O registro de auditoria entra na transação da decisão que o exige. Segurança: A trilha é append-only por privilégio de banco, e a remoção muda só a exibição.",
+      "prohibited_effect": "Proibido violar: A trilha é append-only por privilégio de banco, e a remoção muda só a exibição. Privacidade: A remoção preserva dados necessários à integridade e não apaga a evidência do caso.",
+      "catalog": "QUAL-REQ-INV-09",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/moderation/adapters/postgres/appeals_test.go::TestAppealsReverseRestoresWithoutDeletingAction",
+        "invalid": "internal/platform/postgres/audit_schema_test.go::TestAuditEventsRejectUpdatesAndDeletes",
+        "limit": "",
+        "replay": "internal/audit/adapters/postgres/recorder_test.go::TestRecorderRoundTripAndReplay"
+      }
+    },
+    {
+      "id": "INV-REQ-MOD-01",
+      "module": "moderation",
+      "packages": [
+        "internal/moderation"
+      ],
+      "risk": "Q1",
+      "transition": "filed -> deduplicated: Submissão de denúncias por usuários autenticados com seleção de categorias tipadas de infração e justificativa textual restrita.",
+      "precondition": "A denúncia é da conta autenticada, que responde por ela.",
+      "postcondition": "Repetir a denúncia não cria segunda linha nem esconde conteúdo.",
+      "global_invariant": "A denúncia é gravada uma vez por alvo, com a deduplicação do repositório. Segurança: Categorias tipadas e justificativa restrita, sem remoção automática.",
+      "prohibited_effect": "Proibido violar: Categorias tipadas e justificativa restrita, sem remoção automática. Privacidade: A identidade do denunciante é privada, e o conteúdo permanece acessível até julgamento.",
+      "catalog": "QUAL-REQ-MOD-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/moderation/adapters/postgres/reports_test.go::TestReportsRoundTripDedupAndRate",
+        "invalid": "internal/moderation/application/file_report_test.go::TestFileReportRejectsUnknownAndRemovedTargets",
+        "limit": "internal/moderation/application/file_report_test.go::TestFileReportDeduplicatesAndSignalsRate",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-MOD-02",
+      "module": "moderation",
+      "packages": [
+        "internal/moderation"
+      ],
+      "risk": "Q0",
+      "transition": "queued -> decided: Fila interna de triagem e análise de denúncias para deliberação de moderadores humanos autorizados.",
+      "precondition": "A fila e a análise exigem moderador autenticado com a capacidade.",
+      "postcondition": "Decidir duas vezes é conflito declarado, não segunda decisão.",
+      "global_invariant": "Dois moderadores disputando o mesmo caso são resolvidos pela lease. Segurança: A fila é paginada por cursor assinado, e o cursor forjado é recusado.",
+      "prohibited_effect": "Proibido violar: A fila é paginada por cursor assinado, e o cursor forjado é recusado. Privacidade: A fila esconde a evidência do denunciante e não expõe a identidade dele.",
+      "catalog": "QUAL-REQ-MOD-02",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/moderation/application/queue_test.go::TestQueueListsFilteredPagesWithSignedCursors",
+        "invalid": "internal/moderation/application/queue_test.go::TestQueueDeniesUnknownViewerAndForgedCursor",
+        "limit": "internal/moderation/adapters/postgres/review_test.go::TestReviewClaimConcurrentAndExpiredLease",
+        "replay": "internal/moderation/application/review_test.go::TestDecideConflictDeclared"
+      }
+    },
+    {
+      "id": "INV-REQ-MOD-03",
+      "module": "moderation",
+      "packages": [
+        "internal/moderation"
+      ],
+      "risk": "Q0",
+      "transition": "decided -> applied: Ações formais de moderação: advertência, restrição de interação, suspensão temporária de conta e remoção de conteúdo ilícito da exibição púb",
+      "precondition": "A sanção exige decisão de moderador com a capacidade correspondente.",
+      "postcondition": "A sanção é aplicada uma vez por decisão, e repetir é conflito declarado.",
+      "global_invariant": "A sanção é aplicada na transação que detém a lease do caso. Segurança: A matriz de sanções por alvo é fixa, e a decisão é registrada com justificativa.",
+      "prohibited_effect": "Proibido violar: A matriz de sanções por alvo é fixa, e a decisão é registrada com justificativa. Privacidade: A sanção muda a exibição e a interação, sem apagar dados de terceiros.",
+      "catalog": "QUAL-REQ-MOD-03",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsMatrixPerTarget",
+        "invalid": "internal/moderation/adapters/postgres/sanctions_test.go::TestSanctionsRollbackOnStaleTarget",
+        "limit": "internal/moderation/domain/sanction_test.go::TestSanctionMatrixPerTarget",
+        "replay": "internal/moderation/application/review_test.go::TestDecideConflictDeclared"
+      }
+    },
+    {
+      "id": "INV-REQ-MOD-04",
+      "module": "moderation",
+      "packages": [
+        "internal/moderation"
+      ],
+      "risk": "Q0",
+      "transition": "appealed -> reviewed: Fluxo formal de recurso (appeal) pelo participante penalizado contra decisão de moderação, revisável por operador distinto.",
+      "precondition": "O recurso é do participante penalizado e revisado por operador distinto.",
+      "postcondition": "A decisão é registrada uma vez por caso, e a ação original nunca é apagada.",
+      "global_invariant": "A decisão do recurso é atômica com a restauração do estado. Segurança: A revisão exige operador distinto do que decidiu, provado pelo teste.",
+      "prohibited_effect": "Proibido violar: A revisão exige operador distinto do que decidiu, provado pelo teste. Privacidade: A decisão de recurso preserva a trilha e não expõe dados além do caso.",
+      "catalog": "QUAL-REQ-MOD-04",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/moderation/application/appeals_test.go::TestDecideAppealRestoresWithoutDeletingAction",
+        "invalid": "internal/moderation/application/appeals_test.go::TestClaimAppealRequiresDifferentReviewer",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PERS-01",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in changed: Apresentação de convite contextual e opcional para atribuição de influência imediatamente após uma mudança de posição confirmada.",
+      "precondition": "O convite é opcional e a atribuição é do próprio titular da mudança.",
+      "postcondition": "Repetir a seleção da mesma mudança não cria segunda atribuição.",
+      "global_invariant": "A seleção é gravada contra a mudança, sob a chave dela. Segurança: A seleção só é aceita contra uma mudança confirmada.",
+      "prohibited_effect": "Proibido violar: A seleção só é aceita contra uma mudança confirmada. Privacidade: Quem atribuiu permanece privado, e só totais válidos são exibidos.",
+      "catalog": "QUAL-REQ-PERS-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/adapters/html/participation_test.go::TestAttributionRecordsTheSelectionForTheChange",
+        "invalid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsValidatesInputsAndPropagatesFailures",
+        "limit": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsAcceptsEmptyAndSmallSelections",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PERS-02",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in changed: Seleção de no mínimo zero e no máximo três argumentos que contribuíram para a mudança de posição do participante.",
+      "precondition": "A seleção é da conta titular da mudança e limitada a três argumentos.",
+      "postcondition": "Repetir a mesma seleção não duplica atribuições.",
+      "global_invariant": "A gravação cresce até o limite sob a chave da mudança. Segurança: O limite de três é validado no domínio e no schema.",
+      "prohibited_effect": "Proibido violar: O limite de três é validado no domínio e no schema. Privacidade: As atribuições são contadas em totais, sem expor quem atribuiu.",
+      "catalog": "QUAL-REQ-PERS-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit",
+        "invalid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections",
+        "limit": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PERS-03",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in changed: Critérios estritos de elegibilidade de argumentos: pertencer à mesma arena, ter sido publicado antes da mudança e ser de autoria de outro pa",
+      "precondition": "A elegibilidade exige argumento da mesma arena, de outro autor e anterior à mudança.",
+      "postcondition": "A mesma seleção elegível é aceita de novo sem duplicar.",
+      "global_invariant": "A elegibilidade é avaliada no servidor contra o estado gravado. Segurança: Os critérios são de domínio, e o repositório recusa em transação.",
+      "prohibited_effect": "Proibido violar: Os critérios são de domínio, e o repositório recusa em transação. Privacidade: A identidade de quem atribuiu não é exposta pela elegibilidade.",
+      "catalog": "QUAL-REQ-PERS-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections",
+        "invalid": "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyValidatesChangeAndPolicy",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PERS-04",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in changed: Bloqueio server-side absoluto de autoatribuição: o participante é estritamente impedido de atribuir influência a argumentos de sua própria a",
+      "precondition": "O autor não atribui influência a argumento próprio: a política recusa a autoria.",
+      "postcondition": "Repetir a tentativa de autoatribuição é recusado de novo, sem gravar.",
+      "global_invariant": "A recusa é do domínio e do repositório, avaliada na mesma transação. Segurança: O bloqueio é server-side absoluto e não depende da interface.",
+      "prohibited_effect": "Proibido violar: O bloqueio é server-side absoluto e não depende da interface. Privacidade: A recusa não revela a autoria de outros argumentos.",
+      "catalog": "QUAL-REQ-PERS-04",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyAcceptsEligibleSelections",
+        "invalid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PERS-05",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "changed -> moderated: Preservação da privacidade do eleitor: a identidade de quem atribuiu influência permanece estritamente privada por padrão; exibição de totai",
+      "precondition": "Só a moderação autorizada vê os sinais de atribuição do autor.",
+      "postcondition": "A mesma consulta devolve a mesma avaliação determinística.",
+      "global_invariant": "As leituras públicas e as de moderação são consultas separadas. Segurança: O sinal é moderador-only, e a resposta pública nunca o carrega.",
+      "prohibited_effect": "Proibido violar: O sinal é moderador-only, e a resposta pública nunca o carrega. Privacidade: A identidade de quem atribuiu permanece privada, e só totais válidos são exibidos.",
+      "catalog": "QUAL-REQ-PERS-05",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/adapters/http/persuasion_http_test.go::TestPublicResponsesNeverExposeSignals",
+        "invalid": "internal/persuasion/adapters/http/persuasion_http_test.go::TestAttributionSignalsAreModeratorOnly",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PERS-06",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Cálculo e consolidação de métricas factuais de persuasão por argumento, por autor, por arena e por categoria.",
+      "precondition": "As métricas são públicas apenas como totais factuais.",
+      "postcondition": "A mesma projeção é recomposta dos mesmos fatos.",
+      "global_invariant": "A projeção é reconstruída das atribuições válidas na leitura. Segurança: A projeção é determinística e não é editada à mão.",
+      "prohibited_effect": "Proibido violar: A projeção é determinística e não é editada à mão. Privacidade: Nenhuma métrica expõe quem atribuiu ou como votou.",
+      "catalog": "QUAL-REQ-PERS-06",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/application/metrics_test.go::TestGetArgumentMetricsDerivesCounts",
+        "invalid": "internal/persuasion/application/metrics_test.go::TestArgumentMetricsValidateRejectsIncoherentProjections",
+        "limit": "internal/persuasion/adapters/postgres/metrics_test.go::TestArgumentMetricsCountPeopleOnceAndFollowValidity",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PERS-07",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in published: Métrica de manchete \"pessoas influenciadas\" computada contabilizando cada participante no máximo uma vez por autor em cada arena.",
+      "precondition": "O perfil público é aberto e mostra a manchete factual do autor.",
+      "postcondition": "A mesma fonte reconstrói a mesma manchete.",
+      "global_invariant": "A projeção é reconstruída das atribuições válidas. Segurança: A contagem por pessoa única é imposta pela projeção.",
+      "prohibited_effect": "Proibido violar: A contagem por pessoa única é imposta pela projeção. Privacidade: A manchete conta pessoas, não identidades, e não expõe eleitores.",
+      "catalog": "QUAL-REQ-PERS-07",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/application/reputation_test.go::TestAuthorReputationHeadlineCountsPeopleOncePerArena",
+        "invalid": "internal/persuasion/application/reputation_test.go::TestAuthorReputationValidateRejectsIncoherentProjections",
+        "limit": "internal/persuasion/application/reputation_test.go::TestAuthorReputationHeadlineCountsPeopleOncePerArena",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PERS-08",
+      "module": "moderation",
+      "packages": [
+        "internal/moderation",
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "valid -> invalidated: Invalidação administrativa de atribuições fraudulentas ou conspiratórias via moderação, preservando registro da decisão sem alterar dados do",
+      "precondition": "A invalidação exige a capacidade de moderação autorizada.",
+      "postcondition": "O replay da decisão registrada não aplica duas vezes.",
+      "global_invariant": "A decisão e a trilha de auditoria são gravadas na mesma transação. Segurança: A decisão é registrada com autor e justificativa, sem alterar o voto.",
+      "prohibited_effect": "Proibido violar: A decisão é registrada com autor e justificativa, sem alterar o voto. Privacidade: Os dados do eleitor não são alterados pela invalidação.",
+      "catalog": "QUAL-REQ-PERS-08",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/application/moderate_attribution_test.go::TestInvalidateAttributionRecordsDecisionAndAudit",
+        "invalid": "internal/persuasion/application/moderate_attribution_test.go::TestModerationDeniedByAuthorizer",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-01",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "local -> revealed: Escolha local e volátil de visitante para liberar visualização de agregados na sessão corrente, sem contabilização oficial no banco.",
+      "precondition": "A escolha local é do visitante e não exige conta, nem cria registro oficial.",
+      "postcondition": "Repetir a escolha local apenas a substitui na sessão.",
+      "global_invariant": "A escolha vive na sessão do browser, e não há escrita concorrente no servidor. Segurança: A página decide o que revelar a partir da própria escolha, sem confiar em parâmetro de terceiro.",
+      "prohibited_effect": "Proibido violar: A página decide o que revelar a partir da própria escolha, sem confiar em parâmetro de terceiro. Privacidade: A escolha do visitante não é gravada, e nenhum identificador de sessão é contado.",
+      "catalog": "QUAL-REQ-POS-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForVisitorKeepsTheChoiceLocal",
+        "invalid": "internal/positions/domain/purity_test.go::TestPositionsDomainCarriesNoPlanOrPaymentWeight",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-02",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in confirmed: Registro e confirmação autenticada de posição inicial oficial entre os valores fixos: agree, disagree e undecided.",
+      "precondition": "Só a conta elegível confirma a própria posição inicial.",
+      "postcondition": "Confirmar a mesma posição de novo não reescreve o registro.",
+      "global_invariant": "A primeira escrita é decidida sob a chave da arena e do titular, e as corridas são resolvidas pelo repositório. Segurança: O valor é validado contra o vocabulário de três posições antes de qualquer escrita.",
+      "prohibited_effect": "Proibido violar: O valor é validado contra o vocabulário de três posições antes de qualquer escrita. Privacidade: A posição é privada por padrão e só entra no agregado de forma anônima.",
+      "catalog": "QUAL-REQ-POS-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRecordsTheFirstChoice",
+        "invalid": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionValidatesInputsWithoutTouchingPorts",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-03",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in confirmed: Unicidade e imutabilidade da posição inicial confirmada: cada participante possui no máximo uma posição inicial por arena, que nunca é reesc",
+      "precondition": "Ninguém reescreve a posição inicial de outro titular: a chave é arena e titular.",
+      "postcondition": "A posição inicial é gravada uma vez e nunca reescrita, nem por repetição.",
+      "global_invariant": "Inserções simultâneas com valores diferentes são resolvidas pela chave única, com o teste de corridas. Segurança: A unicidade é imposta pelo schema, não apenas pelo caso de uso.",
+      "prohibited_effect": "Proibido violar: A unicidade é imposta pelo schema, não apenas pelo caso de uso. Privacidade: O registro é da conta titular e só aparece agregado.",
+      "catalog": "QUAL-REQ-POS-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionResolvesLostInsertRaces",
+        "invalid": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionRefusesDifferentInitialValue",
+        "limit": "",
+        "replay": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionIsIdempotentOnRetry"
+      }
+    },
+    {
+      "id": "INV-REQ-POS-04",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q0",
+      "transition": "private -> aggregated: Posição individual e histórico de mudanças de posição são estritamente privados por padrão; o público visualiza apenas agregados.",
+      "precondition": "Só a conta titular lê a própria posição e o próprio histórico, e o público vê apenas o agregado.",
+      "postcondition": "A leitura é pura e devolve o mesmo resultado enquanto o estado não muda.",
+      "global_invariant": "As duas leituras não escrevem nada, então não disputam linha. Segurança: A resposta do titular é owner-scoped, e o agregado conta uma linha por titular elegível.",
+      "prohibited_effect": "Proibido violar: A resposta do titular é owner-scoped, e o agregado conta uma linha por titular elegível. Privacidade: Nenhum identificador de conta sai no agregado, e a posição individual nunca é pública.",
+      "catalog": "QUAL-REQ-POS-04",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateCountsEligibleAccountsOnly",
+        "invalid": "internal/positions/adapters/http/positions_http_test.go::TestPositionsAPIIsOwnerScoped",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-05",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "changed -> chained: Registro imutável de mudança de posição registrando posição anterior, nova posição e timestamp em trilha histórica append-only.",
+      "precondition": "A mudança é da própria conta e exige posição vigente.",
+      "postcondition": "A cadeia é append-only e reconstruível por replay, então repetir não apaga elo.",
+      "global_invariant": "A mudança e o lançamento do histórico são gravados na mesma transação. Segurança: A transição é decidida no servidor, com versão verificada contra corrida.",
+      "prohibited_effect": "Proibido violar: A transição é decidida no servidor, com versão verificada contra corrida. Privacidade: O histórico individual é privado e só o agregado é público.",
+      "catalog": "QUAL-REQ-POS-05",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/application/change_position_test.go::TestChangePositionRecordsTheTransitionAtomically",
+        "invalid": "internal/positions/domain/change_test.go::TestNewPositionChangeValidatesTheHistoryEntry",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-06",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in changed: Bloqueio de mudança de posição para o mesmo valor atualmente mantido pelo participante.",
+      "precondition": "Só a conta titular muda a própria posição.",
+      "postcondition": "Repetir a mesma posição é recusado sem escrever nada.",
+      "global_invariant": "A recusa acontece antes de qualquer transação, então não há corrida a resolver. Segurança: A regra é de domínio e roda antes do acesso ao banco.",
+      "prohibited_effect": "Proibido violar: A regra é de domínio e roda antes do acesso ao banco. Privacidade: Nenhum dado novo é gravado nesta recusa.",
+      "catalog": "QUAL-REQ-POS-06",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/domain/debate_position_test.go::TestChangeToAppliesAcceptedTransitionsOnly",
+        "invalid": "internal/positions/application/change_position_test.go::TestChangePositionRefusesTheSamePositionWithoutTransaction",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-07",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in closed: Arenas com status closed não aceitam registro de novas posições nem mudanças de posições existentes.",
+      "precondition": "A elegibilidade é conferida contra o estado da arena no servidor.",
+      "postcondition": "A recusa por arena fechada não escreve nada, nem em repetição.",
+      "global_invariant": "A pré-condição é lida do estado da arena, e a transição segue serializada. Segurança: A decisão não confia em parâmetro do cliente, e sim no estado gravado.",
+      "prohibited_effect": "Proibido violar: A decisão não confia em parâmetro do cliente, e sim no estado gravado. Privacidade: A recusa não toca dado pessoal.",
+      "catalog": "QUAL-REQ-POS-07",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/adapters/eligibility/eligibility_test.go::TestEnsureAcceptsPositionsAsksTheArenaDomain",
+        "invalid": "internal/positions/application/change_position_test.go::TestChangePositionRefusesClosedArenaWithoutWriting",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-08",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in aggregated: Exibição de agregados oficiais calculados exclusivamente a partir de contas elegíveis, contendo total de participantes e aviso metodológico ",
+      "precondition": "O agregado é público e não revela quem votou o quê.",
+      "postcondition": "A mesma leitura do agregado devolve a mesma projeção.",
+      "global_invariant": "O agregado é projetado na leitura a partir das posições válidas. Segurança: O limiar metodológico é aplicado no servidor antes de responder.",
+      "prohibited_effect": "Proibido violar: O limiar metodológico é aplicado no servidor antes de responder. Privacidade: Conta apenas titulares elegíveis e suprime amostras pequenas antes de publicar.",
+      "catalog": "QUAL-REQ-POS-08",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/adapters/postgres/aggregate_test.go::TestPositionAggregateInvalidationExcludesAccounts",
+        "invalid": "internal/positions/application/get_position_aggregate_test.go::TestGetPositionAggregateValidatesPolicyAndQuery",
+        "limit": "internal/positions/application/get_position_aggregate_test.go::TestGetPositionAggregateSuppressesSmallSamples",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-09",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in aggregated: Bloqueio server-side de visualização da distribuição agregada de posições antes que o usuário registre sua própria escolha ou posição inicia",
+      "precondition": "A distribuição só é servida a quem já registrou a própria escolha.",
+      "postcondition": "A mesma consulta, no mesmo estado, decide o mesmo.",
+      "global_invariant": "A decisão é de leitura, sem escrita concorrente. Segurança: O gate é server-side, e o cliente não escolhe se vê o agregado.",
+      "prohibited_effect": "Proibido violar: O gate é server-side, e o cliente não escolhe se vê o agregado. Privacidade: A recusa não revela a distribuição nem quem já votou.",
+      "catalog": "QUAL-REQ-POS-09",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arenas/adapters/html/participation_test.go::TestParticipationPageForOwnerWithoutPositionOffersTheConfirmation",
+        "invalid": "internal/positions/application/get_position_aggregate_test.go::TestGetPositionAggregateValidatesPolicyAndQuery",
+        "limit": "internal/positions/domain/aggregate_test.go::TestAggregatePolicyThreshold",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-POS-10",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "holds in history: Histórico pessoal de posição e de mudanças visível ao próprio participante, ao lado do agregado público.",
+      "precondition": "Só a conta titular lê o próprio histórico e a própria posição.",
+      "postcondition": "A mesma leitura devolve a mesma cadeia, ordenada do mais novo.",
+      "global_invariant": "A leitura não escreve e devolve a cadeia como está gravada. Segurança: A consulta é owner-scoped e paginada por cursor.",
+      "prohibited_effect": "Proibido violar: A consulta é owner-scoped e paginada por cursor. Privacidade: O histórico individual é privado e nunca entra em resposta pública.",
+      "catalog": "QUAL-REQ-POS-10",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/positions/application/read_position_test.go::TestGetMyPositionReturnsTheOwnerProjection",
+        "invalid": "internal/positions/application/read_position_test.go::TestGetMyPositionValidatesInputs",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PRIV-01",
+      "module": "profiles",
+      "packages": [
+        "internal/profiles",
+        "internal/transparency"
+      ],
+      "risk": "Q0",
+      "transition": "requested -> anonymized: Exportação de dados pessoais do titular em formato legível por máquina (JSON) e solicitação de exclusão/anonimização de conta preservando in",
+      "precondition": "Só a conta titular pede, baixa e cancela, e o download exige step-up.",
+      "postcondition": "O download consome o token uma vez e repetir é recusado.",
+      "global_invariant": "A jornada de exclusão é uma máquina de estados do próprio titular, com transições serializadas. Segurança: O documento sai por link de uso único e expirável, com step-up exigido.",
+      "prohibited_effect": "Proibido violar: O documento sai por link de uso único e expirável, com step-up exigido. Privacidade: O pacote reúne apenas os dados do próprio titular, e a exclusão anonimiza preservando obrigações.",
+      "catalog": "QUAL-REQ-PRIV-01",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/profiles/application/deletion_test.go::TestDeletionJourneyRequestCoolDownExecute",
+        "invalid": "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPOwnerIsolationAndUnknownRequest",
+        "limit": "internal/profiles/adapters/postgres/export_test.go::TestPersonalExportDownloadIsSingleUseOwnerScopedAndExpiring",
+        "replay": "internal/profiles/adapters/postgres/export_test.go::TestPersonalExportDownloadIsSingleUseOwnerScopedAndExpiring"
+      }
+    },
+    {
+      "id": "INV-REQ-PROF-01",
+      "module": "profiles",
+      "packages": [
+        "internal/profiles"
+      ],
+      "risk": "Q1",
+      "transition": "created -> changed: Definição e alteração de username público único, validado sintaticamente, sem caracteres de controle ou termos reservados.",
+      "precondition": "Só a conta titular cria e troca o próprio username, e a troca é atômica com a verificação.",
+      "postcondition": "A troca aplica uma vez, sob a chave da conta, e repetir não aplica duas vezes.",
+      "global_invariant": "A unicidade do username é decidida sob concorrência pelo repositório, que recusa a corrida. Segurança: O username é validado sintaticamente, sem caracteres de controle nem termos reservados.",
+      "prohibited_effect": "Proibido violar: O username é validado sintaticamente, sem caracteres de controle nem termos reservados. Privacidade: O username é público por desenho e não carrega nenhum outro dado da conta.",
+      "catalog": "QUAL-REQ-PROF-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/profiles/application/usecases_test.go::TestCreateProfileUseCase",
+        "invalid": "internal/profiles/adapters/postgres/repository_test.go::TestRepository_CreateProfileRejectsDuplicates",
+        "limit": "internal/profiles/domain/username_test.go::TestParseUsernameBoundaryLimits",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-PROF-02",
+      "module": "profiles",
+      "packages": [
+        "internal/profiles"
+      ],
+      "risk": "Q1",
+      "transition": "holds in preferred: Configuração de locale e idioma de preferência do usuário (suporte inicial a pt-BR e en-US).",
+      "precondition": "Só a conta titular altera a própria preferência, que o resolvedor lê a cada requisição.",
+      "postcondition": "Aplicar a mesma preferência de novo deixa o estado idêntico.",
+      "global_invariant": "A troca é uma escrita sob a chave do perfil, e a leitura do locale não escreve. Segurança: O locale é validado contra um vocabulário fechado, e entrada desconhecida é recusada.",
+      "prohibited_effect": "Proibido violar: O locale é validado contra um vocabulário fechado, e entrada desconhecida é recusada. Privacidade: A preferência é dado privado do perfil e não vaza para resposta pública.",
+      "catalog": "QUAL-REQ-PROF-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/profiles/application/usecases_test.go::TestChangeLocaleUseCase",
+        "invalid": "internal/profiles/domain/locale_test.go::TestParseLocaleInvalidAndUnsupported",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-REQ-WAL-01",
+      "module": "wallet",
+      "packages": [
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "credited -> debited: Ledger append-only de INK implementado em PostgreSQL como sistema de registro imutável; saldos são projeções derivadas dos lançamentos.",
+      "precondition": "O saldo é da própria conta, e o ledger não é alterável pela aplicação.",
+      "postcondition": "A chave de idempotência é única, e lançamentos repetidos não duplicam.",
+      "global_invariant": "O ledger aceita lançamentos concorrentes sem reescrever os anteriores. Segurança: O ledger é append-only por privilégio de banco, com quantidades em inteiros.",
+      "prohibited_effect": "Proibido violar: O ledger é append-only por privilégio de banco, com quantidades em inteiros. Privacidade: O extrato é do titular, e nenhum dado pessoal entra no ledger.",
+      "catalog": "QUAL-REQ-WAL-01",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence",
+        "invalid": "internal/platform/postgres/wallet_test.go::TestWalletAppendOnlyPrivileges",
+        "limit": "internal/platform/postgres/wallet_test.go::TestWalletBalancesNeverNegative",
+        "replay": "internal/platform/postgres/wallet_test.go::TestWalletIdempotencyKeyUnique"
+      }
+    },
+    {
+      "id": "INV-REQ-WAL-02",
+      "module": "wallet",
+      "packages": [
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "holds in measured: Custo de publicação fixado em exatamente 1 INK por grapheme cluster de texto do argumento, incluindo pontuações, espaços e quebras de linha.",
+      "precondition": "O custo é cobrado da conta que publica, calculado no servidor.",
+      "postcondition": "O mesmo texto normalizado mede o mesmo, e o custo não varia.",
+      "global_invariant": "O custo é aritmética pura sobre o texto medido, sem estado compartilhado. Segurança: INK é inteiro, com gramática própria, e nunca ponto flutuante.",
+      "prohibited_effect": "Proibido violar: INK é inteiro, com gramática própria, e nunca ponto flutuante. Privacidade: O custo não depende de dado pessoal, apenas do texto público.",
+      "catalog": "QUAL-REQ-WAL-02",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/domain/ink_test.go::TestNewInkBoundaries",
+        "invalid": "internal/wallet/domain/ink_test.go::TestParseInkRejectsFloatAndMalformed",
+        "limit": "internal/wallet/domain/ink_test.go::TestNewInkBoundaries",
+        "replay": "internal/arguments/domain/content_test.go::TestParseContentNormalizesAndMeasures"
+      }
+    },
+    {
+      "id": "INV-REQ-WAL-03",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments",
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "debited -> published: Atomicidade estrita entre débito de INK e publicação de argumento: execução na mesma transação de banco com controle de concorrência contra ",
+      "precondition": "O débito é da conta que publica, decidido no servidor.",
+      "postcondition": "A chave de idempotência impede o segundo débito do mesmo envio.",
+      "global_invariant": "Débito e publicação disputam a mesma linha de saldo, sob lock. Segurança: A transação é única e o rollback é integral, com saldo nunca negativo.",
+      "prohibited_effect": "Proibido violar: A transação é única e o rollback é integral, com saldo nunca negativo. Privacidade: O débito é da própria conta, e o resultado não expõe dado de terceiro.",
+      "catalog": "QUAL-REQ-WAL-03",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentEndToEndAtomic",
+        "invalid": "internal/arguments/adapters/postgres/integrity_test.go::TestPublishArgumentDoubleSpendIsImpossible",
+        "limit": "internal/arguments/application/publish_argument_test.go::TestPublishArgumentRejectsInsufficientInkWithoutPartialState",
+        "replay": "internal/arguments/application/publish_argument_test.go::TestPublishArgumentReplaysRecordedAttempts"
+      }
+    },
+    {
+      "id": "INV-REQ-WAL-04",
+      "module": "wallet",
+      "packages": [
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "holds in debited: Consumo prioritário de saldo: créditos promocionais/incluídos no plano são debitados compulsoriamente antes do saldo comprado.",
+      "precondition": "A precedência é decidida no servidor sobre os buckets da própria conta.",
+      "postcondition": "A alocação repetida do mesmo débito não consome duas vezes.",
+      "global_invariant": "A alocação é aritmética pura sobre os buckets disponíveis. Segurança: Os créditos promocionais são consumidos antes do saldo comprado, por desenho.",
+      "prohibited_effect": "Proibido violar: Os créditos promocionais são consumidos antes do saldo comprado, por desenho. Privacidade: A precedência não depende de dado pessoal, apenas dos buckets.",
+      "catalog": "QUAL-REQ-WAL-04",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/domain/allocation_test.go::TestAllocateDebitPriority",
+        "invalid": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitInsufficientLeavesNoPartialState",
+        "limit": "internal/wallet/domain/allocation_test.go::TestAllocationLinePriorityOrder",
+        "replay": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitIsIdempotent"
+      }
+    },
+    {
+      "id": "INV-REQ-WAL-05",
+      "module": "wallet",
+      "packages": [
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "holds in statement: Extrato histórico completo e compreensível disponível ao usuário detalhando data, motivo, identificador do argumento/evento e montante de ca",
+      "precondition": "O extrato é do próprio titular, paginado por cursor.",
+      "postcondition": "O mesmo cursor devolve a mesma página do extrato.",
+      "global_invariant": "A leitura do extrato não escreve e não disputa linha. Segurança: A resposta do extrato é owner-scoped e nunca devolve campo restrito.",
+      "prohibited_effect": "Proibido violar: A resposta do extrato é owner-scoped e nunca devolve campo restrito. Privacidade: O extrato mostra data, motivo, referência e montante do próprio titular.",
+      "catalog": "QUAL-REQ-WAL-05",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/application/queries_test.go::TestWalletStatementPaginatesWithoutDuplicatesOrGaps",
+        "invalid": "internal/wallet/adapters/http/wallet_http_test.go::TestWalletStatementHTTPNeverLeaksRestrictedFields",
+        "limit": "internal/wallet/application/queries_test.go::TestWalletStatementLimitClamping",
+        "replay": "internal/wallet/application/queries_test.go::TestWalletStatementCursorRoundTrip"
+      }
+    },
+    {
+      "id": "INV-REQ-WAL-06",
+      "module": "wallet",
+      "packages": [
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "holds in credited: Franquia mensal de INK do plano Free creditada por ciclo, de forma idempotente e ancorada no dia do ciclo do titular.",
+      "precondition": "A franquia é creditada na conta do titular, decidida pelo ciclo gravado.",
+      "postcondition": "O replay do ciclo não credita duas vezes.",
+      "global_invariant": "Dois workers concorrentes creditam um único ciclo, provado pelo teste de workers. Segurança: O crédito é lançamento append-only com chave de idempotência.",
+      "prohibited_effect": "Proibido violar: O crédito é lançamento append-only com chave de idempotência. Privacidade: A franquia é do titular e não expõe dado pessoal.",
+      "catalog": "QUAL-REQ-WAL-06",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/application/renew_free_cycle_test.go::TestRenewFreeCycleUseCaseNormalTurnAndKeys",
+        "invalid": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_RenewFreeCycleMissingWallet",
+        "limit": "internal/wallet/domain/period_test.go::TestPeriodForAnchorDayClamping",
+        "replay": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_RenewFreeCycleIsIdempotentOnRetry"
+      }
+    },
+    {
+      "id": "INV-THR-ADM-01",
+      "module": "jobs",
+      "packages": [
+        "internal/jobs",
+        "internal/moderation"
+      ],
+      "risk": "Q0",
+      "transition": "holds in admin: Acesso indevido a painel administrativo por escalada de privilégios",
+      "precondition": "A superfície administrativa exige capacidade conferida no banco, com segundo fator recente.",
+      "postcondition": "A autorização é uma decisão por requisição, sem operação a repetir.",
+      "global_invariant": "A autorização é conferida a cada requisição, e o gate segue a mudança de papel imediatamente. Segurança: Papel revogado perde acesso na hora, e a sessão antiga não sobrevive à mudança.",
+      "prohibited_effect": "Proibido violar: Papel revogado perde acesso na hora, e a sessão antiga não sobrevive à mudança. Privacidade: A superfície administrativa não expõe dado de terceiro fora do caso.",
+      "catalog": "QUAL-THR-ADM-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/moderation/adapters/http/handler_test.go::TestModerationQueueClaimDecideFlow",
+        "invalid": "internal/moderation/adapters/http/handler_test.go::TestModerationAdminRoutesDenyStrangers",
+        "limit": "internal/moderation/adapters/http/handler_test.go::TestModerationStepUpDeniesStaleHighImpact",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-THR-ADM-02",
+      "module": "transparency",
+      "packages": [
+        "internal/audit",
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "adjusted -> audited: Operações administrativas financeiras ou de sistema sem rastreabilidade",
+      "precondition": "O ajuste exige operador autorizado, com justificativa tipada.",
+      "postcondition": "Reapresentar o ajuste não duplica a operação, mas o replay ainda registra auditoria.",
+      "global_invariant": "O ajuste roda numa transação com a trilha, e a reapresentação é resolvida pela chave da operação. Segurança: Se a trilha não gravar, o ajuste sofre rollback total.",
+      "prohibited_effect": "Proibido violar: Se a trilha não gravar, o ajuste sofre rollback total. Privacidade: A trilha registra metadados tipados e recusa dado sensível.",
+      "catalog": "QUAL-THR-ADM-02",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseCreditPositive",
+        "invalid": "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseValidatesInput",
+        "limit": "internal/audit/adapters/postgres/recorder_test.go::TestBillingAndAdminEventsFitTheTrail",
+        "replay": "internal/wallet/application/adjust_ink_test.go::TestAdjustInkUseCaseReplayStillRecordsAudit"
+      }
+    },
+    {
+      "id": "INV-THR-AUTH-01",
+      "module": "identity",
+      "packages": [
+        "internal/identity",
+        "internal/platform"
+      ],
+      "risk": "Q0",
+      "transition": "holds in session: Sequestro de sessão via roubo de token em trânsito ou browser",
+      "precondition": "A sessão é do titular: rota autenticada recusa token ausente, expirado ou revogado.",
+      "postcondition": "O token consumido não autentica de novo, nem depois do logout.",
+      "global_invariant": "A revogação é atômica sob concorrência, e a rotação consome o token anterior. Segurança: Token opaco com hash no banco, cookie HttpOnly/Secure/SameSite, rotação e expiração inativa e absoluta.",
+      "prohibited_effect": "Proibido violar: Token opaco com hash no banco, cookie HttpOnly/Secure/SameSite, rotação e expiração inativa e absoluta. Privacidade: O cookie não carrega identidade legível, e a sessão nunca é adotada do cliente.",
+      "catalog": "QUAL-THR-AUTH-01",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/platform/security/cookies_test.go::TestCookieAttributesByEnvironment",
+        "invalid": "internal/platform/security/lifecycle_test.go::TestPostLogoutLifecycle",
+        "limit": "internal/identity/application/session_test.go::TestAuthenticateSessionLifecycleAndThrottling",
+        "replay": "internal/platform/security/lifecycle_test.go::TestManagerChaining_FullPipeline"
+      }
+    },
+    {
+      "id": "INV-THR-AUTH-03",
+      "module": "platform",
+      "packages": [
+        "internal/platform"
+      ],
+      "risk": "Q0",
+      "transition": "holds in csrf: Falsificação de requisição cross-site em mutações de conta (CSRF)",
+      "precondition": "O pedido mutante só passa com token de duplo envio assinado e origem conferida.",
+      "postcondition": "A verificação é pura: repetir o pedido reusa a mesma decisão.",
+      "global_invariant": "A verificação é por requisição e não guarda estado entre pedidos. Segurança: HMAC-SHA256 sobre o token, comparação em tempo constante, SameSite=Lax e métodos seguros isentos.",
+      "prohibited_effect": "Proibido violar: HMAC-SHA256 sobre o token, comparação em tempo constante, SameSite=Lax e métodos seguros isentos. Privacidade: O token CSRF não identifica a pessoa e não entra em log.",
+      "catalog": "QUAL-THR-AUTH-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/platform/security/csrf_test.go::TestCSRFMiddleware_SameOriginSubmissionCarriesItsOrigin",
+        "invalid": "internal/platform/security/csrf_test.go::TestCSRFMiddleware_MutatingMethods_Enforcement",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-THR-AUTH-04",
+      "module": "identity",
+      "packages": [
+        "internal/identity"
+      ],
+      "risk": "Q0",
+      "transition": "holds in password-reset: Replay ou força bruta de token de recuperação de senha",
+      "precondition": "A posse do token é a autorização, e o token é de uso único com validade curta.",
+      "postcondition": "Reemitir invalida o token anterior, e o consumo é único.",
+      "global_invariant": "Duas confirmações com o mesmo token são resolvidas pela corrida do repositório. Segurança: Token CSPRNG guardado por hash, com expiração curta e invalidação no primeiro uso.",
+      "prohibited_effect": "Proibido violar: Token CSPRNG guardado por hash, com expiração curta e invalidação no primeiro uso. Privacidade: O pedido não revela se o email existe na base.",
+      "catalog": "QUAL-THR-AUTH-04",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection",
+        "invalid": "internal/identity/application/password_reset_test.go::TestPasswordReset_ExpiredTokenRejection",
+        "limit": "internal/identity/application/password_reset_test.go::TestPasswordReset_ExpiredTokenRejection",
+        "replay": "internal/identity/application/password_reset_test.go::TestPasswordReset_SuccessAndReplayRejection"
+      }
+    },
+    {
+      "id": "INV-THR-CACHE-01",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments",
+        "internal/platform",
+        "internal/positions",
+        "internal/transparency",
+        "internal/wallet"
+      ],
+      "risk": "Q1",
+      "transition": "holds in cached: Vazamento de dados privados via Web Cache Deception ou cache em CDN",
+      "precondition": "A política é decidida por superfície: privada é no-store, pública é explícita e limitada.",
+      "postcondition": "A resposta privada não é cacheável, então repetir não reusa corpo de outro.",
+      "global_invariant": "A política é aplicada por resposta, no adapter, sem estado compartilhado. Segurança: Resposta com Set-Cookie nunca é pública, e URL pública é isolada de rota privada.",
+      "prohibited_effect": "Proibido violar: Resposta com Set-Cookie nunca é pública, e URL pública é isolada de rota privada. Privacidade: Nenhuma resposta autenticada é armazenável em cache compartilhado.",
+      "catalog": "QUAL-THR-CACHE-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/platform/httpcache/policy_test.go::TestPrivateAndNoStorePolicies",
+        "invalid": "internal/wallet/adapters/http/wallet_http_test.go::TestWalletStatementHTTPNeverLeaksRestrictedFields",
+        "limit": "internal/platform/httpcache/policy_test.go::TestValidatorsUseStableFactsAndWeakMatching",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-THR-CACHE-02",
+      "module": "platform",
+      "packages": [
+        "internal/platform"
+      ],
+      "risk": "Q1",
+      "transition": "holds in cached: Envenenamento de cache (Cache Poisoning) via cabeçalhos HTTP forjados",
+      "precondition": "O host e o esquema canônicos vêm da configuração, não do cabeçalho recebido.",
+      "postcondition": "A mesma requisição devolve a mesma página, sem depender de cabeçalho não confiável.",
+      "global_invariant": "A resposta é montada por requisição, e o cabeçalho forjado não altera URL nem orçamento. Segurança: O backend ignora cabeçalhos não confiáveis na construção de URLs canônicas.",
+      "prohibited_effect": "Proibido violar: O backend ignora cabeçalhos não confiáveis na construção de URLs canônicas. Privacidade: O cabeçalho forjado não acrescenta nem vaza conteúdo de terceiro.",
+      "catalog": "QUAL-THR-CACHE-02",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/platform/httpcache/policy_test.go::TestPublicPolicyIsExplicitAndBounded",
+        "invalid": "internal/identity/adapters/http/auth_http_test.go::TestSpoofedForwardedHeaderDoesNotMultiplyTheLoginBudget",
+        "limit": "",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-THR-MOD-01",
+      "module": "moderation",
+      "packages": [
+        "internal/moderation"
+      ],
+      "risk": "Q1",
+      "transition": "holds in reports: Censura de conteúdo via denúncias massivas coordenadas (Brigading)",
+      "precondition": "A denúncia é da conta autenticada, que responde por ela.",
+      "postcondition": "Repetir a denúncia não cria segunda linha nem esconde o alvo.",
+      "global_invariant": "O volume de denúncias é contado por janela no adapter, sem remover conteúdo. Segurança: Nenhuma remoção é automática: a fila vai para triagem humana.",
+      "prohibited_effect": "Proibido violar: Nenhuma remoção é automática: a fila vai para triagem humana. Privacidade: A identidade do denunciante é privada, e o conteúdo permanece acessível até julgamento.",
+      "catalog": "QUAL-THR-MOD-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/moderation/application/file_report_test.go::TestFileReportAcceptsSpamAndSelfReport",
+        "invalid": "internal/moderation/application/file_report_test.go::TestFileReportVolumeNeverRemovesAndHidesPII",
+        "limit": "internal/moderation/adapters/http/ratelimit_test.go::TestReportFilingCarriesThePolicy",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-THR-MOD-02",
+      "module": "transparency",
+      "packages": [
+        "internal/audit",
+        "internal/moderation"
+      ],
+      "risk": "Q0",
+      "transition": "decided -> audited: Ações de moderação arbitrárias, abusivas ou não auditadas",
+      "precondition": "Toda mutação de moderação exige capacidade conferida no banco a cada requisição.",
+      "postcondition": "O replay da decisão registrada não aplica duas vezes.",
+      "global_invariant": "A decisão é atômica com a gravação do evento de auditoria. Segurança: A trilha é append-only, e a mutação falha inteira se a trilha não gravar.",
+      "prohibited_effect": "Proibido violar: A trilha é append-only, e a mutação falha inteira se a trilha não gravar. Privacidade: A trilha registra metadados tipados e recusa dado sensível.",
+      "catalog": "QUAL-THR-MOD-02",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/moderation/adapters/postgres/review_test.go::TestReviewDecideAtomicAndInvalid",
+        "invalid": "internal/moderation/application/review_test.go::TestDecideTargetActionMismatchDenies",
+        "limit": "internal/moderation/application/review_test.go::TestDecideLeaseExpiredAndInvalidTransitions",
+        "replay": "internal/persuasion/application/moderate_attribution_test.go::TestInvalidateAttributionReplaysRecordedDecision"
+      }
+    },
+    {
+      "id": "INV-THR-PERS-01",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "holds in attributions: Manipulação de persuasão por anel de contas cúmplices (Collusion / Self-voting)",
+      "precondition": "A política recusa a autoria própria e exige mudança real de posição.",
+      "postcondition": "Repetir a seleção não duplica atribuições.",
+      "global_invariant": "A gravação é sob a chave da mudança, com o teste concorrente no limite. Segurança: O bloqueio é server-side absoluto, e a elegibilidade é de domínio.",
+      "prohibited_effect": "Proibido violar: O bloqueio é server-side absoluto, e a elegibilidade é de domínio. Privacidade: A identidade de quem atribuiu permanece privada e só totais são exibidos.",
+      "catalog": "QUAL-THR-PERS-01",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit",
+        "invalid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections",
+        "limit": "internal/persuasion/domain/eligibility_test.go::TestEligibilityPolicyValidatesChangeAndPolicy",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-THR-STRIPE-01",
+      "module": "billing",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "holds in webhook: Falsificação de webhook da Stripe forjando evento de pagamento aprovado",
+      "precondition": "O segredo compartilhado autoriza o evento, verificado sobre o corpo bruto.",
+      "postcondition": "O identificador do evento é único, e o reenvio não reexecuta mutações.",
+      "global_invariant": "A verificação lê a própria requisição, sem estado compartilhado. Segurança: HMAC-SHA256 sobre o corpo bruto, tolerância estrita, futuro recusado e comparação em tempo constante.",
+      "prohibited_effect": "Proibido violar: HMAC-SHA256 sobre o corpo bruto, tolerância estrita, futuro recusado e comparação em tempo constante. Privacidade: O payload do provedor não é logado em claro e não carrega dado de terceiro.",
+      "catalog": "QUAL-THR-STRIPE-01",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierAcceptsValidSignature",
+        "invalid": "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsAlteredBody",
+        "limit": "internal/billing/adapters/stripe/webhook_test.go::TestWebhookVerifierRejectsExpiredTimestamp",
+        "replay": "internal/billing/application/process_webhook_test.go::TestProcessWebhookIsIdempotentOnReplay"
+      }
+    },
+    {
+      "id": "INV-THR-STRIPE-02",
+      "module": "billing",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "holds in entitlement: Concessão de benefício baseada em visita à URL de sucesso no browser",
+      "precondition": "A concessão só acontece no evento autenticado, nunca na navegação do browser.",
+      "postcondition": "Reaplicar o evento não concede duas vezes.",
+      "global_invariant": "A concessão é aplicada pelo processamento do evento, serializada pelo identificador. Segurança: A página de sucesso é informativa, e o estado de autorização mora no banco.",
+      "prohibited_effect": "Proibido violar: A página de sucesso é informativa, e o estado de autorização mora no banco. Privacidade: A concessão credita a própria conta e não expõe dado de pagamento.",
+      "catalog": "QUAL-THR-STRIPE-02",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/application/process_webhook_test.go::TestProcessWebhookHandlesCheckoutSessionCompleted",
+        "invalid": "internal/billing/application/process_webhook_test.go::TestProcessWebhookSuccessPageNeverGrantsBenefit",
+        "limit": "internal/billing/application/process_webhook_test.go::TestProcessWebhookRejectsUnpaidCheckoutSession",
+        "replay": "internal/billing/application/process_webhook_test.go::TestProcessWebhookIsIdempotentOnReplay"
+      }
+    },
+    {
+      "id": "INV-THR-STRIPE-03",
+      "module": "billing",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "holds in webhook: Reenvio de webhook Stripe duplicando créditos ou passes concedidos",
+      "precondition": "O evento autenticado é a autorização, e o estado é conferido no banco.",
+      "postcondition": "O reenvio do mesmo evento não duplica créditos nem passes.",
+      "global_invariant": "Reentregas concorrentes do mesmo evento são serializadas pela unicidade do identificador. Segurança: O processamento é idempotente por identificador de evento, com registro transacional.",
+      "prohibited_effect": "Proibido violar: O processamento é idempotente por identificador de evento, com registro transacional. Privacidade: O evento não expõe dado pessoal além do necessário à concessão.",
+      "catalog": "QUAL-THR-STRIPE-03",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutGrantsINKOnSettledPayment",
+        "invalid": "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutRejectsAlreadySettledIntent",
+        "limit": "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutRejectsExpiredIntent",
+        "replay": "internal/billing/application/settle_checkout_test.go::TestSettleCheckoutIsIdempotentOnReplay"
+      }
+    },
+    {
+      "id": "INV-THR-WAL-01",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments",
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "holds in balance: Gasto duplo de saldo INK em submissões concorrentes",
+      "precondition": "O débito é da própria conta autenticada, decidido no servidor.",
+      "postcondition": "A chave de idempotência cobre a submissão, e o replay não debita duas vezes.",
+      "global_invariant": "Submissões concorrentes disputam a mesma linha de saldo, com exatamente um sucesso. Segurança: Débito e publicação na mesma transação, com saldo nunca negativo.",
+      "prohibited_effect": "Proibido violar: Débito e publicação na mesma transação, com saldo nunca negativo. Privacidade: O débito é da própria conta e não expõe dado de terceiro.",
+      "catalog": "QUAL-THR-WAL-01",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitSplitsAcrossBuckets",
+        "invalid": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitInsufficientLeavesNoPartialState",
+        "limit": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitWithoutWalletIsInsufficient",
+        "replay": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitIsIdempotent"
+      }
+    },
+    {
+      "id": "INV-THR-WAL-02",
+      "module": "platform",
+      "packages": [
+        "internal/platform",
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "holds in ledger: Alteração arbitrária de saldo ou manipulação direta do ledger",
+      "precondition": "O runtime não tem permissão de alterar o ledger: o privilégio de banco é o controle.",
+      "postcondition": "A chave de idempotência é única, e o lançamento repetido não duplica.",
+      "global_invariant": "Lançamentos concorrentes acumulam sem reescrever os anteriores. Segurança: Ledger append-only por privilégio, quantidades em inteiros e saldo nunca negativo.",
+      "prohibited_effect": "Proibido violar: Ledger append-only por privilégio, quantidades em inteiros e saldo nunca negativo. Privacidade: O ledger guarda montante e referência, sem dado pessoal.",
+      "catalog": "QUAL-THR-WAL-02",
+      "persisted": true,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence",
+        "invalid": "internal/platform/postgres/wallet_test.go::TestWalletAppendOnlyPrivileges",
+        "limit": "internal/platform/postgres/wallet_test.go::TestWalletBalancesNeverNegative",
+        "replay": "internal/platform/postgres/wallet_test.go::TestWalletIdempotencyKeyUnique"
+      }
+    },
+    {
+      "id": "INV-THR-WAL-03",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas",
+        "internal/arguments",
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "holds in grants: Exploração de saldo promocional através de criação massiva de contas (Sybil Farming)",
+      "precondition": "Os grants de INK ficam atrelados à conta validada, e o desafio antecede a publicação.",
+      "postcondition": "A taxa é contada por requisição, não por operação repetida.",
+      "global_invariant": "O limite é contado por janela no adapter, sem estado de domínio compartilhado. Segurança: Rate limit por IP e conta, desafio na borda e INK promocional não transferível.",
+      "prohibited_effect": "Proibido violar: Rate limit por IP e conta, desafio na borda e INK promocional não transferível. Privacidade: A heurística de automação usa apenas fatos de sessão e taxa.",
+      "catalog": "QUAL-THR-WAL-03",
+      "persisted": false,
+      "unreachable": false,
+      "tests": {
+        "valid": "internal/arguments/adapters/http/ratelimit_test.go::TestArgumentWritesCarryThePolicy",
+        "invalid": "internal/arenas/adapters/http/challenge_http_test.go::TestPublicationChallengedPlacement",
+        "limit": "internal/billing/adapters/http/ratelimit_test.go::TestBillingWritesCarryThePolicy",
+        "replay": ""
+      }
+    },
+    {
+      "id": "INV-UNREACH-IDENTITY-01",
+      "module": "identity",
+      "packages": [
+        "internal/identity"
+      ],
+      "risk": "Q0",
+      "transition": "revoked -> authenticated is refused: sessão revogada nunca autentica",
+      "precondition": "Somente sessão utilizável da conta titular autentica; revogada é terminal.",
+      "postcondition": "Repetir com token revogado continua recusado.",
+      "global_invariant": "Revogação é atômica sob concorrência. Segurança: token opaco com hash no banco.",
+      "prohibited_effect": "Proibido autenticar sessão revogada ou listar token em claro.",
+      "catalog": "QUAL-REQ-AUTH-03",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/identity/domain/account_test.go::TestNewAccountCreation",
+        "invalid": "internal/identity/domain/account_test.go::TestAccountStateTransitionMatrix",
+        "limit": "internal/identity/domain/email_test.go::TestParseEmailBoundaryLimits",
+        "replay": "internal/identity/application/usecases_test.go::TestVerifyEmail_ReplayProtection"
+      }
+    },
+    {
+      "id": "INV-UNREACH-PROFILES-01",
+      "module": "profiles",
+      "packages": [
+        "internal/profiles"
+      ],
+      "risk": "Q1",
+      "transition": "deleted -> exportable is refused: perfil excluído não exporta",
+      "precondition": "Somente titular com retenção vigente pode pedir exportação.",
+      "postcondition": "Repetir pedido após exclusão continua recusado sem vazar dados.",
+      "global_invariant": "Exclusão não quebra ledger/audit e remove o permitido. Segurança: token de exportação de uso único.",
+      "prohibited_effect": "Proibido cruzar dados entre contas ou expor exportação sem titularidade.",
+      "catalog": "QUAL-REQ-PRIV-01",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/profiles/domain/username_test.go::TestParseUsernameValidCases",
+        "invalid": "internal/profiles/domain/username_test.go::TestParseUsernameInvalidCases",
+        "limit": "internal/profiles/domain/username_test.go::TestParseUsernameBoundaryLimits",
+        "replay": "internal/profiles/adapters/postgres/export_test.go::TestPersonalExportReplayRotatesTokenAndGenerationIsIdempotent"
+      }
+    },
+    {
+      "id": "INV-UNREACH-WALLET-01",
+      "module": "wallet",
+      "packages": [
+        "internal/wallet"
+      ],
+      "risk": "Q0",
+      "transition": "any -> negative-balance is refused: saldo nunca fica negativo",
+      "precondition": "Débito exige saldo suficiente no bucket de prioridade.",
+      "postcondition": "Tentativa sem saldo não escreve lançamento parcial.",
+      "global_invariant": "Ledger é append-only; saldos são projeções. Segurança: quantidades em inteiros.",
+      "prohibited_effect": "Proibido débito parcial, duplicado ou sem referência.",
+      "catalog": "QUAL-REQ-WAL-02",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/wallet/domain/ink_test.go::TestParseInkValidAndSerialization",
+        "invalid": "internal/wallet/domain/ink_test.go::TestParseInkRejectsFloatAndMalformed",
+        "limit": "internal/wallet/domain/ink_test.go::TestNewInkBoundaries",
+        "replay": "internal/wallet/domain/operation_test.go::TestIdempotencyKeyValueSemantics"
+      }
+    },
+    {
+      "id": "INV-UNREACH-ENTITLEMENTS-01",
+      "module": "entitlements",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "expired-lot -> consumable is refused: lote expirado nunca é consumido",
+      "precondition": "Consumo exige lote válido, não expirado e com saldo.",
+      "postcondition": "Lote expirado permanece intocado; consumo é idempotente por arena.",
+      "global_invariant": "Um Arena Pass só é consumido na transição draft->published bem-sucedida. Segurança: catálogo versionado.",
+      "prohibited_effect": "Proibido consumir sem pagamento autenticado ou duplicar concessão por referência.",
+      "catalog": "QUAL-REQ-ENT-01",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/billing/domain/catalog_test.go::TestCatalogIsVersionedOrderedAndValidated",
+        "invalid": "internal/billing/domain/catalog_test.go::TestCatalogRefusesIncoherentLists",
+        "limit": "internal/billing/adapters/postgres/repository_test.go::TestRepository_PassSummaryExcludesExpiredLotsAtBoundaries",
+        "replay": "internal/billing/adapters/postgres/repository_test.go::TestRepository_ConsumeArenaPassIsIdempotentPerArena"
+      }
+    },
+    {
+      "id": "INV-UNREACH-ARENAS-01",
+      "module": "arenas",
+      "packages": [
+        "internal/arenas"
+      ],
+      "risk": "Q1",
+      "transition": "removed -> published is refused: removida é terminal no MVP",
+      "precondition": "Somente draft do criador pode ser publicada com 1 passe.",
+      "postcondition": "Removida permanece indisponível ao público por decisão registrada.",
+      "global_invariant": "Afirmação e idioma são imutáveis após publicação. Segurança: slug não é identidade.",
+      "prohibited_effect": "Proibido republicar removida sem nova arena nem consumir passe sem transição bem-sucedida.",
+      "catalog": "QUAL-REQ-ARN-02",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/arenas/domain/arena_test.go::TestArenaPublishTransition",
+        "invalid": "internal/arenas/adapters/postgres/repository_test.go::TestRepository_CloseRestrictRemoveTransitions",
+        "limit": "internal/arenas/adapters/http/arenas_http_test.go::TestArenaDraftBodyLimit",
+        "replay": "internal/arenas/adapters/postgres/publish_integration_test.go::TestPublishArenaConcurrent"
+      }
+    },
+    {
+      "id": "INV-UNREACH-POSITIONS-01",
+      "module": "positions",
+      "packages": [
+        "internal/positions"
+      ],
+      "risk": "Q1",
+      "transition": "current -> same-value is refused: mudança para o mesmo valor nunca escreve",
+      "precondition": "Mudança exige valor distinto do atual e arena aberta.",
+      "postcondition": "Recusa não escreve nem consome transação.",
+      "global_invariant": "Posição atual deriva da cadeia append-only. Segurança: leitura é owner-scoped.",
+      "prohibited_effect": "Proibido registrar mudança sem anterior/nova/momento nem aceitar em arena fechada.",
+      "catalog": "QUAL-REQ-POS-06",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/positions/domain/debate_position_test.go::TestChangeToAppliesAcceptedTransitionsOnly",
+        "invalid": "internal/positions/application/change_position_test.go::TestChangePositionRefusesTheSamePositionWithoutTransaction",
+        "limit": "internal/positions/domain/aggregate_test.go::TestAggregatePolicyThreshold",
+        "replay": "internal/positions/application/confirm_initial_position_test.go::TestConfirmInitialPositionIsIdempotentOnRetry"
+      }
+    },
+    {
+      "id": "INV-UNREACH-ARGUMENTS-01",
+      "module": "arguments",
+      "packages": [
+        "internal/arguments"
+      ],
+      "risk": "Q1",
+      "transition": "depth-2 reply is refused: resposta só aceita um nível de recursão",
+      "precondition": "Resposta deve mirar argumento da mesma arena com parent válido.",
+      "postcondition": "Profundidade além de um nível é recusada sem débito.",
+      "global_invariant": "Publicação é atômica com débito de INK. Segurança: conteúdo imutável após publicar.",
+      "prohibited_effect": "Proibido débito sem argumento quando a operação deve ser atômica, ou XSS/URL perigosa.",
+      "catalog": "QUAL-REQ-ARG-04",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/arguments/domain/reply_policy_test.go::TestReplyPolicyAcceptsOneRecursionLevel",
+        "invalid": "internal/arguments/adapters/postgres/repository_test.go::TestPublishArgumentRejectsInvalidParents",
+        "limit": "internal/arguments/domain/content_test.go::TestParseContentNormalizesAndMeasures",
+        "replay": "internal/arguments/application/publish_argument_test.go::TestPublishArgumentReplaysRecordedAttempts"
+      }
+    },
+    {
+      "id": "INV-UNREACH-PERSUASION-01",
+      "module": "persuasion",
+      "packages": [
+        "internal/persuasion"
+      ],
+      "risk": "Q1",
+      "transition": "self-attribution is refused: autor nunca atribui o próprio argumento",
+      "precondition": "Atribuição exige mudança registrada e argumento de outro autor publicado antes.",
+      "postcondition": "Auto-atribuição é recusada sem alterar reputação.",
+      "global_invariant": "Atribuição é única por mudança e reputação é derivada. Segurança: antiabuso por elegibilidade.",
+      "prohibited_effect": "Proibido atribuir além de três, fora da arena ou após remoção sem trilha.",
+      "catalog": "QUAL-REQ-PERS-04",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsIsIdempotentAndGrowsUpToTheLimit",
+        "invalid": "internal/persuasion/application/record_attributions_test.go::TestRecordAttributionsRejectsInvalidSelections",
+        "limit": "internal/persuasion/adapters/postgres/repository_test.go::TestRecordAttributionsConcurrentLimit",
+        "replay": "internal/persuasion/adapters/postgres/repository_test.go::TestRecordAttributionsRejectsInvalidSelectionsEndToEnd"
+      }
+    },
+    {
+      "id": "INV-UNREACH-BILLING-01",
+      "module": "billing",
+      "packages": [
+        "internal/billing"
+      ],
+      "risk": "Q0",
+      "transition": "unsigned-webhook -> granted is refused: webhook sem HMAC nunca concede",
+      "precondition": "Somente webhook Stripe autenticado concede benefício.",
+      "postcondition": "Evento forjado não escreve concessão nem passe.",
+      "global_invariant": "Processamento é idempotente por evento. Segurança: HMAC-SHA256 no cabeçalho.",
+      "prohibited_effect": "Proibido conceder por visita à URL de sucesso ou duplicar por reenvio.",
+      "catalog": "QUAL-THR-STRIPE-01",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/billing/domain/webhook_test.go::TestWebhookEventTypeValidation",
+        "invalid": "internal/billing/domain/catalog_test.go::TestProductRefusesUnchargeableEntries",
+        "limit": "internal/billing/application/get_pass_history_test.go::TestGetArenaPassHistoryUseCaseClampsLimitsAndValidates",
+        "replay": "internal/billing/adapters/postgres/repository_test.go::TestRepository_GrantPassLotIsIdempotentAndImmutableExpiry"
+      }
+    },
+    {
+      "id": "INV-UNREACH-MODERATION-01",
+      "module": "moderation",
+      "packages": [
+        "internal/moderation"
+      ],
+      "risk": "Q0",
+      "transition": "self-review is refused: nenhum self-review ou bypass administrativo",
+      "precondition": "Decisão exige revisor distinto do denunciante e lease válido.",
+      "postcondition": "Self-review é recusado e audit trail registra a tentativa.",
+      "global_invariant": "Ação sensível sem audit é falha; reversão não apaga história. Segurança: segregação de função.",
+      "prohibited_effect": "Proibido decidir sem claim, com lease expirado ou alvo incompatível.",
+      "catalog": "QUAL-REQ-MOD-02",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/moderation/application/review_test.go::TestClaimConcurrentModerators",
+        "invalid": "internal/moderation/application/review_test.go::TestDecideLeaseExpiredAndInvalidTransitions",
+        "limit": "internal/moderation/domain/decision_test.go::TestRuleAndJustificationBounds",
+        "replay": "internal/moderation/application/roles_test.go::TestGrantFirstAdministratorReplayIsRefused"
+      }
+    },
+    {
+      "id": "INV-UNREACH-TRANSPARENCY-01",
+      "module": "transparency",
+      "packages": [
+        "internal/transparency"
+      ],
+      "risk": "Q0",
+      "transition": "draft/removed -> public-export is refused: rascunho e removida nunca exportam",
+      "precondition": "Exportação pública só inclui arena publicada/restrita com supressão de baixa contagem.",
+      "postcondition": "Rascunho/removida retornam não-encontrado sem vazar privado.",
+      "global_invariant": "Métricas são reconstruídas das fontes sem dado privado. Segurança: allowlist de exportação.",
+      "prohibited_effect": "Proibido cruzar dados entre contas ou quebrar ledger/audit na exclusão.",
+      "catalog": "QUAL-REQ-PRIV-01",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/transparency/adapters/postgres/export_test.go::TestExportReconstructsPublicArena",
+        "invalid": "internal/transparency/adapters/postgres/export_test.go::TestExportUnknownDraftAndRemovedArenasAreNotFound",
+        "limit": "internal/transparency/adapters/http/export_test.go::TestExportValidatesInputAndClampsLimit",
+        "replay": "internal/transparency/adapters/postgres/metrics_test.go::TestMetricsReconstructFromSources"
+      }
+    },
+    {
+      "id": "INV-UNREACH-JOBS-01",
+      "module": "jobs",
+      "packages": [
+        "internal/jobs"
+      ],
+      "risk": "Q0",
+      "transition": "live -> retried is refused: somente job morto pode ser reenfileirado",
+      "precondition": "Retry exige job morto, papel administrativo e autenticação recente.",
+      "postcondition": "Retry de vivo é recusado sem reenfileirar nem auditar concessão.",
+      "global_invariant": "Retry e audit comitam juntos; fila é ordenada por idade. Segurança: superfície operacional nega anônimo.",
+      "prohibited_effect": "Proibido reenfileirar fora de transação ou sem trilha de auditoria.",
+      "catalog": "QUAL-THR-ADM-01",
+      "persisted": false,
+      "unreachable": true,
+      "tests": {
+        "valid": "internal/jobs/domain/jobs_test.go::TestValidatePayloadAcceptsBoundedObjects",
+        "invalid": "internal/jobs/adapters/postgres/operations_test.go::TestRetryRefusesAJobThatIsNotDeadAtTheDatabase",
+        "limit": "internal/jobs/application/worker_test.go::TestBackoffPolicyIsBoundedAndJittered",
+        "replay": "internal/jobs/adapters/postgres/repository_test.go::TestQueueEnqueueIsIdempotent"
+      }
+    }
+  ]
+}

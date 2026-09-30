@@ -1,4 +1,4 @@
-/* Goyim Arena — UI primitives (P18-T04). Component layer, tokens only.
+/* Regnovum — UI primitives (P18-T04). Component layer, tokens only.
    No colour, spacing, radius or duration is written by hand here: everything
    comes from tokens.css, so a theme change never touches this sheet. Sizing is
    rem-based and every offset uses logical properties, which is what keeps the

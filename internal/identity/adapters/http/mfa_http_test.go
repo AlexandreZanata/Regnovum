@@ -13,19 +13,19 @@ import (
 	"testing"
 	"time"
 
-	identityhttp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/http"
+	identityhttp "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/http"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/argon2id"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/mfamechanism"
-	identitypg "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/mfa"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/argon2id"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/mfamechanism"
+	identitypg "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/mfa"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
 // The second factor of the administrative surface (P16-T05), over the real

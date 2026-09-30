@@ -17,17 +17,17 @@ import (
 	"strings"
 	"testing"
 
-	identityhtml "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/html"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpserver"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	identityhtml "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/html"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/bootstrap"
+	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
 )
 
 // accountJourney is the composed surface serving over a real listener, with the

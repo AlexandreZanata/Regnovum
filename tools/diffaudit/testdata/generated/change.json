@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaaa9",
+      "message": "chore(contracts): refresh the generated client",
+      "files": [
+        {
+          "status": "M",
+          "path": "web/src/contracts/generated.ts"
+        }
+      ]
+    }
+  ]
+}

@@ -14,13 +14,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpcache"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/turnstile"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpcache"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/turnstile"
 )
 
 const (
@@ -201,25 +201,6 @@ func writePublicJSON(w http.ResponseWriter, r *http.Request, status int, documen
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_, _ = w.Write(body)
-}
-
-// etagMatches implements the weak comparison of RFC 9110 for If-None-Match.
-func etagMatches(header, etag string) bool {
-	header = strings.TrimSpace(header)
-	if header == "" {
-		return false
-	}
-	if header == "*" {
-		return true
-	}
-	for _, candidate := range strings.Split(header, ",") {
-		candidate = strings.TrimSpace(candidate)
-		candidate = strings.TrimPrefix(candidate, "W/")
-		if candidate == etag {
-			return true
-		}
-	}
-	return false
 }
 
 // writerProblem maps arena errors to RFC 9457 Problem Details with stable

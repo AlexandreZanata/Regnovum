@@ -1,6 +1,6 @@
 # Como contribuir
 
-Obrigado por contribuir com o Goyim Arena. O projeto está em descoberta e definição arquitetural; mudanças devem preservar a distinção entre princípio, decisão e hipótese.
+Obrigado por contribuir com o Regnovum. O projeto está em descoberta e definição arquitetural; mudanças devem preservar a distinção entre princípio, decisão e hipótese.
 
 ## Antes de começar
 

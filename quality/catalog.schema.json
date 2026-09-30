@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AlexandreZanata/Regnovum/quality/catalog.schema.json",
+  "title": "Executable quality rule catalog",
+  "description": "The catalog that gives every approved rule of the product an identity, a risk class and the evidence it demands. The loader that judges it is tools/qualitycatalog, and a test holds this document and that loader together: a rule this schema calls invalid must be refused by the loader, and the two must not drift into two different contracts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "rules"],
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "The only catalog version the loader understands. A judge and a document that disagree about the version must not silently agree about the rules."
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The rules of the product. An empty catalog verifies nothing, so it is refused rather than accepted as vacuously true.",
+      "items": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source",
+        "description",
+        "risk",
+        "modules",
+        "actors",
+        "states",
+        "tests",
+        "authorization",
+        "concurrency",
+        "idempotency",
+        "security",
+        "privacy",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^QUAL-[A-Z0-9]+(-[A-Z0-9]+)*$",
+          "description": "Stable identity of the rule. Never reused and never renumbered: the id is what a waiver, an inventory row and a review are keyed by, so a gap in the sequence is harmless and a duplicate is not."
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The versioned document the rule comes from, relative to the repository root, optionally followed by an #anchor."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The rule in one sentence, in the product's vocabulary."
+        },
+        "risk": {
+          "enum": ["Q0", "Q1", "Q2"],
+          "description": "The risk class of the quality program: Q0 critical, Q1 high, Q2 normal. The class decides which evidence the loader demands."
+        },
+        "modules": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "The packages that own the rule. Each one must be a directory of the checkout."
+        },
+        "actors": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "The actors the rule speaks about (visitor, account, moderator, provider)."
+        },
+        "states": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "The states of the entity the rule speaks about."
+        },
+        "tests": { "$ref": "#/$defs/tests" },
+        "authorization": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Who is allowed to do this, and what the refusal looks like. Required as a non-empty statement for every rule and as a test for Q0."
+        },
+        "concurrency": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What two simultaneous requests do. Required as a non-empty statement for every rule and as a test for Q0."
+        },
+        "idempotency": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What a replay does. Required as a non-empty statement for every rule and as a test for Q0."
+        },
+        "security": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The security property the rule protects. Never optional: a rule whose security meaning is unstated is a rule nobody can review."
+        },
+        "privacy": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The personal data the rule touches and how it is minimized. Never optional, for the same reason as security."
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Documents that state the rule; each path must exist in the checkout."
+        },
+        "not_applicable": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "minLength": 1 },
+          "description": "A written reason for each evidence category that has no test. Declaring a reason for a category that already has tests is a contradiction, and an empty reason is not a decision."
+        }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["positive", "negative"],
+      "description": "The evidence slots of a rule. Positive and negative are demanded of every rule; the remaining slots are demanded by risk class, and a slot a rule cannot fill needs a written reason in not_applicable.",
+      "properties": {
+        "positive": { "$ref": "#/$defs/refs" },
+        "negative": { "$ref": "#/$defs/refs" },
+        "limit": { "$ref": "#/$defs/refs" },
+        "authorization": { "$ref": "#/$defs/refs" },
+        "concurrency": { "$ref": "#/$defs/refs" },
+        "idempotency": { "$ref": "#/$defs/refs" },
+        "failure": { "$ref": "#/$defs/refs" }
+      }
+    },
+    "refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "`path::Function`, relative to the repository root. The checkout must hold that file and the file must declare that name; a reference nobody can open is a claim about nothing."
+      }
+    }
+  }
+}

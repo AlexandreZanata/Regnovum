@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/domain"
 )
 
 func TestMethodologyVersionIsPinned(t *testing.T) {

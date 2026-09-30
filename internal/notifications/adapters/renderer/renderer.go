@@ -20,9 +20,9 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/websurface"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/websurface"
 )
 
 // Catalog keys, one block per message type, shared by the plain-text and

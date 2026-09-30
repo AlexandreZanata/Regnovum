@@ -3,8 +3,8 @@ package argon2id_test
 import (
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/argon2id"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/argon2id"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
 )
 
 func BenchmarkHashPassword_Default(b *testing.B) {

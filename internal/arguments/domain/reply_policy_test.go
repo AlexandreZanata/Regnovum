@@ -3,7 +3,7 @@ package domain_test
 import (
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
 )
 
 func TestReplyPolicyAcceptsOneRecursionLevel(t *testing.T) {

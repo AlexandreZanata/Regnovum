@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/application"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 func seedProjection(t *testing.T, repo *fakePositionRepo, initial string) *domain.DebatePosition {

@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/administrationtarget"
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	moderationapp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/administrationtarget"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	moderationapp "github.com/AlexandreZanata/Regnovum/internal/moderation/application"
 )
 
 const targetAccount identitydomain.AccountID = "0192f3a0-0000-7000-8000-00000000tgt1"

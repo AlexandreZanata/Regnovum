@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/transparency/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/transparency/domain"
 )
 
 // Public export pagination bounds fixed by the API conventions: the page

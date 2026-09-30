@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
 )
 
 func TestParseBCP47Canonicalizes(t *testing.T) {

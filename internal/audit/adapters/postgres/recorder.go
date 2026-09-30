@@ -16,9 +16,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	auditapp "github.com/AlexandreZanata/Goyim-Arena/internal/audit/application"
-	auditdomain "github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	auditapp "github.com/AlexandreZanata/Regnovum/internal/audit/application"
+	auditdomain "github.com/AlexandreZanata/Regnovum/internal/audit/domain"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 // Repository implements the audit application port using PostgreSQL.

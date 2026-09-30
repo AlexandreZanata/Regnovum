@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/wallet/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/application"
+	"github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
 )
 
 const testOperatorID = "018f6b2a-0000-7000-8000-000000000099"

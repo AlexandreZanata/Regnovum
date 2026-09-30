@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 const validArgumentHash = "v1:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"

@@ -26,9 +26,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/observability"
-	profilesdomain "github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
-	transparencydomain "github.com/AlexandreZanata/Goyim-Arena/internal/transparency/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/observability"
+	profilesdomain "github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
+	transparencydomain "github.com/AlexandreZanata/Regnovum/internal/transparency/domain"
 )
 
 // emailShape matches anything that looks like an address, in the prose and in

@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	arenasapp "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	arenasdomain "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/positions/adapters/eligibility"
-	positionsapp "github.com/AlexandreZanata/Goyim-Arena/internal/positions/application"
-	positionsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/positions/domain"
+	arenasapp "github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	arenasdomain "github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/positions/adapters/eligibility"
+	positionsapp "github.com/AlexandreZanata/Regnovum/internal/positions/application"
+	positionsdomain "github.com/AlexandreZanata/Regnovum/internal/positions/domain"
 )
 
 const (

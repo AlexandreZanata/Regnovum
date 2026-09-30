@@ -15,7 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
 )
 
 // Verifier is the port the guard depends on: it decides whether one challenge
@@ -259,7 +260,9 @@ type redeemedToken struct {
 }
 
 // NewReplayMemory builds the memory. Non-positive values take the package
-// defaults, and a nil clock means time.Now.
+// defaults, and a nil clock means the system clock, read through the package
+// that owns that effect — a replay window is a rule, and a rule that cannot be
+// told what "now" is cannot be replayed in a test.
 func NewReplayMemory(capacity int, lifetime time.Duration, now func() time.Time) *ReplayMemory {
 	if capacity <= 0 {
 		capacity = DefaultRedeemedCapacity
@@ -268,7 +271,7 @@ func NewReplayMemory(capacity int, lifetime time.Duration, now func() time.Time)
 		lifetime = DefaultTokenLifetime
 	}
 	if now == nil {
-		now = time.Now
+		now = clockseed.SystemClockNow
 	}
 
 	return &ReplayMemory{

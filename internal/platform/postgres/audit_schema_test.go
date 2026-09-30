@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 func TestAuditEventsRejectUpdatesAndDeletes(t *testing.T) {

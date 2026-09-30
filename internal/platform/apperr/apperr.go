@@ -1,5 +1,5 @@
 // Package apperr defines the application and domain error vocabulary of
-// Goyim Arena (P02-T03).
+// Regnovum (P02-T03).
 //
 // Errors are HTTP-free by design: this package does not import net/http, so
 // use cases can be expressed, tested and reused without transport concerns.

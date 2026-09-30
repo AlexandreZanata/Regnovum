@@ -1,4 +1,4 @@
-module github.com/AlexandreZanata/Goyim-Arena
+module github.com/AlexandreZanata/Regnovum
 
 go 1.27.1
 

@@ -13,9 +13,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/mfa"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/mfa"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // Mechanism adapts a configuration, a sealer and the entropy source to the
@@ -29,7 +29,7 @@ type Mechanism struct {
 var _ application.MFAMechanism = (*Mechanism)(nil)
 
 // DefaultIssuer is the label an authenticator application shows.
-const DefaultIssuer = "Goyim Arena"
+const DefaultIssuer = "Regnovum"
 
 // New builds the mechanism. A nil sealer or a missing entropy source fails at
 // construction, because a second factor that cannot be stored sealed, or whose

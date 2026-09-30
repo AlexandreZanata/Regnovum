@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
 )
 
 func TestNegotiatedTagsQualityWeights(t *testing.T) {

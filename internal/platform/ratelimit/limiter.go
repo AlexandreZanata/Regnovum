@@ -5,6 +5,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
 )
 
 // SubjectKind names one dimension a policy can be keyed on.
@@ -83,7 +85,9 @@ type Options struct {
 	// a negative value disables the idle sweep and leaves the capacity bound
 	// as the only one.
 	IdleTTL time.Duration
-	// Now is the clock, for tests. Nil means time.Now.
+	// Now is the clock. Nil means the system clock, read through the package
+	// that owns that effect; a test that wants a reproducible window injects
+	// its own source instead (internal/platform/testsource).
 	Now func() time.Time
 }
 
@@ -134,7 +138,7 @@ func NewLimiter(options Options) *Limiter {
 	}
 	now := options.Now
 	if now == nil {
-		now = time.Now
+		now = clockseed.SystemClockNow
 	}
 
 	return &Limiter{

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	arenasapp "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/application"
-	auditdomain "github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
-	persuasionapp "github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/application"
-	profilesapp "github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
-	walletapp "github.com/AlexandreZanata/Goyim-Arena/internal/wallet/application"
+	arenasapp "github.com/AlexandreZanata/Regnovum/internal/arenas/application"
+	auditdomain "github.com/AlexandreZanata/Regnovum/internal/audit/domain"
+	persuasionapp "github.com/AlexandreZanata/Regnovum/internal/persuasion/application"
+	profilesapp "github.com/AlexandreZanata/Regnovum/internal/profiles/application"
+	walletapp "github.com/AlexandreZanata/Regnovum/internal/wallet/application"
 )
 
 var (

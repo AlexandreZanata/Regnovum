@@ -23,12 +23,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	adapterhttp "github.com/AlexandreZanata/Goyim-Arena/internal/arenas/adapters/http"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clientip"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/turnstile"
+	adapterhttp "github.com/AlexandreZanata/Regnovum/internal/arenas/adapters/http"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clientip"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/turnstile"
 )
 
 // acceptingVerifier accepts every non-empty token. The token's validity is not

@@ -7,9 +7,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/search/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/search/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/search/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/search/application"
 )
 
 func TestPublicSearchIndexedLanguageAndModerationExclusion(t *testing.T) {

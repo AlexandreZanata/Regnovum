@@ -8,6 +8,8 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
 )
 
 var (
@@ -45,8 +47,13 @@ type Config struct {
 	Random           Random
 }
 
+// DefaultConfig is the package's starting point. The clock is the system clock
+// through the package that owns the effect, and the randomness source is left
+// for the caller because it is required: a caller who wants a reproducible run
+// replaces the clock too, and the sources for that are in
+// internal/platform/testsource.
 func DefaultConfig() Config {
-	return Config{MaxInFlight: 16, AcquireTimeout: 250 * time.Millisecond, OperationTimeout: 3 * time.Second, MaxAttempts: 3, BaseBackoff: 50 * time.Millisecond, MaxBackoff: 500 * time.Millisecond, FailureThreshold: 5, OpenDuration: 5 * time.Second, Now: time.Now}
+	return Config{MaxInFlight: 16, AcquireTimeout: 250 * time.Millisecond, OperationTimeout: 3 * time.Second, MaxAttempts: 3, BaseBackoff: 50 * time.Millisecond, MaxBackoff: 500 * time.Millisecond, FailureThreshold: 5, OpenDuration: 5 * time.Second, Now: clockseed.SystemClockNow}
 }
 
 func (c Config) Validate() error {
@@ -72,7 +79,7 @@ func NewCircuit(threshold int, openDuration time.Duration, now Clock) (*Circuit,
 		return nil, ErrInvalidConfig
 	}
 	if now == nil {
-		now = time.Now
+		now = clockseed.SystemClockNow
 	}
 	return &Circuit{threshold: threshold, openDuration: openDuration, now: now}, nil
 }
@@ -122,7 +129,7 @@ type Runner struct {
 
 func New(cfg Config) (*Runner, error) {
 	if cfg.Now == nil {
-		cfg.Now = time.Now
+		cfg.Now = clockseed.SystemClockNow
 	}
 	if cfg.Random == nil {
 		return nil, ErrInvalidConfig

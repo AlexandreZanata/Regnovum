@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/mfa"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/mfa"
 )
 
 // TestHOTPMatchesRFC4226AppendixD runs the published HOTP vectors. They are the
@@ -323,14 +323,14 @@ func TestSecretRoundTripAndURI(t *testing.T) {
 		}
 	}
 
-	uri, err := config.URI("Goyim Arena", "admin@arena.example", secret)
+	uri, err := config.URI("Regnovum", "admin@arena.example", secret)
 	if err != nil {
 		t.Fatalf("uri: %v", err)
 	}
 	for _, fragment := range []string{
-		"otpauth://totp/Goyim%20Arena:admin%40arena.example",
+		"otpauth://totp/Regnovum:admin%40arena.example",
 		"secret=" + encoded,
-		"issuer=Goyim%20Arena",
+		"issuer=Regnovum",
 		"algorithm=SHA1",
 		"digits=6",
 		"period=30",

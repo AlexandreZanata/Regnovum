@@ -14,10 +14,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/adapters/resend"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/contract"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/adapters/resend"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/application"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/contract"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 // The fixture credential. It is distinctive so a test can assert it never
@@ -84,7 +84,7 @@ func newHarness(t *testing.T) *harness {
 	t.Cleanup(built.server.Close)
 	sender, err := resend.NewSender(resend.Config{
 		APIToken: apiToken,
-		From:     "Goyim Arena <no-reply@arena.example>",
+		From:     "Regnovum <no-reply@arena.example>",
 		BaseURL:  built.server.URL,
 		Timeout:  built.timeout,
 		Logger:   slog.New(slog.NewJSONHandler(built.logs, nil)),
@@ -207,7 +207,7 @@ func TestSendCarriesTheContractHeadersAndPayload(t *testing.T) {
 	if got := record.header.Get("Content-Type"); got != "application/json" {
 		t.Errorf("Content-Type = %q", got)
 	}
-	if record.payload.From != "Goyim Arena <no-reply@arena.example>" {
+	if record.payload.From != "Regnovum <no-reply@arena.example>" {
 		t.Errorf("From = %q", record.payload.From)
 	}
 	if len(record.payload.To) != 1 || record.payload.To[0] != contract.Recipient {
@@ -358,7 +358,7 @@ func TestNilSenderAndNilContextAreRefused(t *testing.T) {
 		t.Errorf("nil sender error = %v, want ErrMissingDependency", err)
 	}
 	built := newHarness(t)
-	//nolint:staticcheck // the explicit nil context is the failure under test
+	//lint:ignore SA1012 the explicit nil context is the failure under test
 	if _, err := built.sender.Send(nil, contract.Message(t)); err == nil {
 		t.Error("Send(nil) error = nil, want a refusal")
 	}

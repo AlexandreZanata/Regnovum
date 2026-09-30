@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/ratelimit"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/ratelimit"
 )
 
 // clock is a manually advanced clock.

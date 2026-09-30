@@ -1,0 +1,383 @@
+{
+  "schema": 1,
+  "note": "Lista de materiais do que a árvore entregue declara, derivada pelo censo do `tools/dependencyaudit` e aprovada pelo registro `quality/dependencies.json`. Documento derivado: a linha que a árvore não produz mais é recusa, e a que ela passou a produzir sem registro é recusa. Gerado por `$(GO) run ./tools/dependencyaudit -print-sbom`; nunca editado à mão.",
+  "components": [
+    {
+      "kind": "action",
+      "name": "actions/checkout",
+      "version": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "class": "ci-action",
+      "license": "MIT",
+      "owner": ".github/workflows",
+      "scope": "os três workflows",
+      "files": [
+        ".github/workflows/nightly.yml",
+        ".github/workflows/quick.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/supply-chain.yml",
+        ".github/workflows/toolchain.yml",
+        ".github/workflows/verify.yml",
+        ".github/workflows/weekly.yml"
+      ]
+    },
+    {
+      "kind": "action",
+      "name": "actions/setup-go",
+      "version": "924ae3a1cded613372ab5595356fb5720e22ba16",
+      "class": "ci-action",
+      "license": "MIT",
+      "owner": ".github/workflows",
+      "scope": "os três workflows",
+      "files": [
+        ".github/workflows/nightly.yml",
+        ".github/workflows/quick.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/supply-chain.yml",
+        ".github/workflows/toolchain.yml",
+        ".github/workflows/verify.yml",
+        ".github/workflows/weekly.yml"
+      ]
+    },
+    {
+      "kind": "action",
+      "name": "actions/setup-node",
+      "version": "820762786026740c76f36085b0efc47a31fe5020",
+      "class": "ci-action",
+      "license": "MIT",
+      "owner": ".github/workflows",
+      "scope": "quick.yml e verify.yml",
+      "files": [
+        ".github/workflows/quick.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/supply-chain.yml",
+        ".github/workflows/verify.yml",
+        ".github/workflows/weekly.yml"
+      ]
+    },
+    {
+      "kind": "action",
+      "name": "aquasecurity/trivy-action",
+      "version": "57a97c7e7821a5776cebc9bb87c984fa69cba8f1",
+      "class": "ci-action",
+      "license": "Apache-2.0",
+      "owner": ".github/workflows",
+      "scope": "supply-chain.yml e verify.yml (job `image`)",
+      "files": [
+        ".github/workflows/supply-chain.yml",
+        ".github/workflows/verify.yml"
+      ]
+    },
+    {
+      "kind": "action",
+      "name": "gitleaks/gitleaks-action",
+      "version": "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e",
+      "class": "ci-action",
+      "license": "MIT",
+      "owner": ".github/workflows",
+      "scope": "supply-chain.yml",
+      "files": [
+        ".github/workflows/supply-chain.yml"
+      ]
+    },
+    {
+      "kind": "image",
+      "name": "caddy",
+      "version": "2.10.0-alpine",
+      "class": "container-image",
+      "license": "Apache-2.0",
+      "owner": "compose.production.yaml e infra/caddy",
+      "scope": "compose.production.yaml (por digest) e a configuração em infra/caddy",
+      "digest": "sha256:ae4458638da8e1a91aafffb231c5f8778e964bca650c8a8cb23a7e8ac557aa3c",
+      "files": [
+        "compose.production.yaml"
+      ]
+    },
+    {
+      "kind": "image",
+      "name": "gcr.io/distroless/static-debian12",
+      "version": "nonroot",
+      "class": "container-image",
+      "license": "Apache-2.0",
+      "owner": "Dockerfile, estágio `runtime`",
+      "scope": "Dockerfile (estágio runtime)",
+      "digest": "sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab",
+      "files": [
+        "Dockerfile"
+      ]
+    },
+    {
+      "kind": "image",
+      "name": "golang",
+      "version": "1.27.1-bookworm",
+      "class": "container-image",
+      "license": "BSD-3-Clause",
+      "owner": "Dockerfile, estágio `build`",
+      "scope": "Dockerfile (estágio build) — não entra na imagem final",
+      "digest": "sha256:69a7b9788769bec032d238959b61854e9ae87f57be9029ec04e9885fabf99195",
+      "files": [
+        "Dockerfile"
+      ]
+    },
+    {
+      "kind": "image",
+      "name": "node",
+      "version": "24-bookworm-slim",
+      "class": "container-image",
+      "license": "MIT",
+      "owner": "Dockerfile, estágio `web`",
+      "scope": "Dockerfile (estágio web) — não entra na imagem final",
+      "digest": "sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6",
+      "files": [
+        "Dockerfile"
+      ]
+    },
+    {
+      "kind": "image",
+      "name": "postgres",
+      "version": "18.4",
+      "class": "container-image",
+      "license": "PostgreSQL License",
+      "owner": "compose.yaml, compose.production.yaml e o serviço do job de verificação",
+      "scope": "compose.yaml (desenvolvimento), compose.production.yaml (produção, por digest) e .github/workflows/verify.yml (serviço)",
+      "digest": "sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636",
+      "files": [
+        ".github/workflows/nightly.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/verify.yml",
+        ".github/workflows/weekly.yml",
+        "compose.production.yaml",
+        "compose.yaml"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/jackc/pgpassfile",
+      "version": "v1.0.0",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/jackc/pgservicefile",
+      "version": "v0.0.0-20240606120523-5a60cdf6a761",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/jackc/pgx/v5",
+      "version": "v5.11.0",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "internal/platform/postgres e os adapters postgres dos módulos",
+      "scope": "internal/**/adapters/postgres, internal/platform/dbmigrate e os cmd que abrem o pool",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/jackc/puddle/v2",
+      "version": "v2.2.2",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/mfridman/interpolate",
+      "version": "v0.0.2",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "trago por github.com/pressly/goose/v3",
+      "scope": "transitiva de github.com/pressly/goose/v3",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/pressly/goose/v3",
+      "version": "v3.28.0",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "internal/platform/dbmigrate",
+      "scope": "internal/platform/dbmigrate",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/rivo/uniseg",
+      "version": "v0.4.7",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "internal/platform/text",
+      "scope": "internal/platform/text e os domínios que contam clusters pela porta dele",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/sethvargo/go-retry",
+      "version": "v0.4.0",
+      "class": "runtime-library",
+      "license": "Apache-2.0",
+      "owner": "trago por github.com/pressly/goose/v3",
+      "scope": "transitiva de github.com/pressly/goose/v3",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "github.com/stripe/stripe-go/v78",
+      "version": "v78.12.0",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "internal/billing/adapters/stripe",
+      "scope": "internal/billing/adapters/stripe — nenhum tipo do SDK cruza a fronteira do adapter",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "go.uber.org/multierr",
+      "version": "v1.11.0",
+      "class": "runtime-library",
+      "license": "MIT",
+      "owner": "trago por github.com/pressly/goose/v3",
+      "scope": "transitiva de github.com/pressly/goose/v3",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "golang.org/x/crypto",
+      "version": "v0.57.0",
+      "class": "runtime-library",
+      "license": "BSD-3-Clause",
+      "owner": "internal/identity/adapters/argon2id",
+      "scope": "internal/identity/adapters/argon2id",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "golang.org/x/sync",
+      "version": "v0.23.0",
+      "class": "runtime-library",
+      "license": "BSD-3-Clause",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "golang.org/x/sys",
+      "version": "v0.48.0",
+      "class": "runtime-library",
+      "license": "BSD-3-Clause",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "module",
+      "name": "golang.org/x/text",
+      "version": "v0.42.0",
+      "class": "runtime-library",
+      "license": "BSD-3-Clause",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "files": [
+        "go.mod"
+      ]
+    },
+    {
+      "kind": "npm",
+      "name": "@playwright/test",
+      "version": "1.61.0",
+      "class": "tooling-isolated",
+      "license": "Apache-2.0",
+      "owner": "tools/e2e",
+      "scope": "tools/e2e — o `make test-e2e` prova por gate que nada do runner entra no build do frontend",
+      "files": [
+        "tools/e2e/package.json"
+      ]
+    },
+    {
+      "kind": "npm",
+      "name": "typescript",
+      "version": "7.0.2",
+      "class": "build-tooling",
+      "license": "Apache-2.0",
+      "owner": "web/",
+      "scope": "web/ — nenhuma dependência de runtime no browser",
+      "files": [
+        "web/package.json"
+      ]
+    },
+    {
+      "kind": "tool",
+      "name": "govulncheck",
+      "version": "v1.8.0",
+      "class": "tooling-isolated",
+      "license": "BSD-3-Clause",
+      "owner": "Makefile e .github/workflows/supply-chain.yml",
+      "scope": "make vuln, no caminho rápido de release",
+      "files": [
+        ".github/workflows/supply-chain.yml",
+        "Makefile"
+      ]
+    },
+    {
+      "kind": "tool",
+      "name": "sqlc",
+      "version": "v1.29.0",
+      "class": "tooling-isolated",
+      "license": "MIT",
+      "owner": "db/queries e internal/platform/postgres",
+      "scope": "make generate e tools/releaseverify/verify.sh",
+      "files": [
+        ".github/workflows/verify.yml",
+        "tools/releaseverify/verify.sh"
+      ]
+    },
+    {
+      "kind": "tool",
+      "name": "staticcheck",
+      "version": "v0.8.1",
+      "class": "tooling-isolated",
+      "license": "MIT",
+      "owner": "tools/staticaudit e o Makefile",
+      "scope": "make lint, no `make quick-verify` de cada pull request",
+      "files": [
+        "Makefile"
+      ]
+    }
+  ]
+}

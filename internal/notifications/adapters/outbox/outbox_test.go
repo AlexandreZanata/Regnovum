@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/i18n"
-	identitydomain "github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	jobsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/adapters/outbox"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/adapters/renderer"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/i18n"
+	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	jobsdomain "github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/adapters/outbox"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/adapters/renderer"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/application"
+	"github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 const knownCode = "K7QP-2M4Z-9RTX"
@@ -103,11 +103,10 @@ func (c fakeClock) Now() time.Time { return c.now }
 
 // fakeDirectory answers the account question from a table.
 type fakeDirectory struct {
-	ref    application.AccountRef
-	err    error
-	asked  []string
-	mu     sync.Mutex
-	frozen bool
+	ref   application.AccountRef
+	err   error
+	asked []string
+	mu    sync.Mutex
 }
 
 func (d *fakeDirectory) AccountForAddress(_ context.Context, address string) (application.AccountRef, error) {
@@ -677,7 +676,7 @@ func TestEnqueuerRequiresTheQueueAndAContext(t *testing.T) {
 		Locale:    domain.LocaleDefault,
 		EventKey:  domain.EventKey(domain.TemplateVerification, "ana@example.com", knownCode),
 	}
-	//nolint:staticcheck // the explicit nil context is the failure under test
+	//lint:ignore SA1012 the explicit nil context is the failure under test
 	if _, err := built.enqueuer.Enqueue(nil, resolved); err == nil {
 		t.Error("Enqueue(nil) error = nil, want a refusal")
 	}

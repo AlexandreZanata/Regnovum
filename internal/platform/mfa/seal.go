@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // Sealer protects the shared secret at rest.
@@ -77,8 +77,10 @@ func DecodeKey(encoded string) ([]byte, error) {
 //
 // A random nonce per sealing is required by AES-GCM's security argument: reusing
 // a nonce under the same key would break the authentication. The nonce is
-// therefore drawn from the system's entropy source, never derived from the
-// plaintext or the account.
+// therefore drawn from the entropy source the sealer was built with — production
+// wires clockseed.CryptoRandom, a test wires a deterministic reader — and never
+// derived from the plaintext or the account, nor read from a source this package
+// reaches for on its own.
 func (sealer *Sealer) Seal(plaintext []byte, context []byte) ([]byte, error) {
 	if sealer == nil || sealer.aead == nil {
 		return nil, fmt.Errorf("%w: sealer is not configured", ErrInvalidConfig)

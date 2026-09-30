@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Negative role tests for Goyim Arena (P03-T03).
+# Negative role tests for Regnovum (P03-T03).
 #
 # Proves, against the real development database, that each role is denied
 # exactly the actions the role model forbids (docs/ROLE_MODEL.md). A probe

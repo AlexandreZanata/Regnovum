@@ -17,9 +17,9 @@ import (
 	"context"
 	"errors"
 
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	moderationapp "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	moderationdomain "github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	moderationapp "github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	moderationdomain "github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // Directory implements the jobs operator port over the role assignments.

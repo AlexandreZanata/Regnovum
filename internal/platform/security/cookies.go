@@ -1,5 +1,5 @@
 // Package security provides HTTP authentication context, session cookie
-// lifecycle management and robust CSRF protection for Goyim Arena (P04-T07).
+// lifecycle management and robust CSRF protection for Regnovum (P04-T07).
 //
 // Invariants enforced by this package:
 //   - Cookie attributes adapt strictly to the deployment environment:
@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
 )
 
 const (

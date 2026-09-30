@@ -1,0 +1,47 @@
+# Bounded integration check for every pull request and main push.
+# Release verification lives in verify.yml and supply-chain.yml.
+name: quick
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quick-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quick:
+    name: Quick verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # `make audit-diff` (P23-T08) judges the range the branch brings over
+          # the branch it targets, so the job needs the other branch: with the
+          # default shallow clone `origin/main` is not there and the gate would
+          # have to refuse the base it cannot resolve.
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install frontend compiler from lockfile
+        run: npm ci --prefix web --ignore-scripts --no-audit --no-fund
+      - name: Run bounded integration gate
+        run: make quick-verify

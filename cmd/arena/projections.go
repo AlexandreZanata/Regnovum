@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbpool"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
-	statpostgres "github.com/AlexandreZanata/Goyim-Arena/internal/statprojections/adapters/postgres"
-	statapp "github.com/AlexandreZanata/Goyim-Arena/internal/statprojections/application"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbpool"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
+	statpostgres "github.com/AlexandreZanata/Regnovum/internal/statprojections/adapters/postgres"
+	statapp "github.com/AlexandreZanata/Regnovum/internal/statprojections/application"
 )
 
 const projectionsUsage = `rebuild derived public statistics projections.

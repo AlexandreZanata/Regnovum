@@ -14,14 +14,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpcache"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/ratelimit"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/application"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpcache"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/ratelimit"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // maxModerationBodyBytes bounds every moderation request body. Bodies
@@ -201,7 +201,8 @@ func writeModerationProblem(w http.ResponseWriter, r *http.Request, err error) {
 		_ = httperror.WriteProblem(w, r, apperr.New(apperr.KindUnauthorized, "unauthorized", "authentication required"))
 	case errors.Is(err, application.ErrNotAuthorized),
 		errors.Is(err, application.ErrRoleRevoked),
-		errors.Is(err, application.ErrNotAppealOwner):
+		errors.Is(err, application.ErrNotAppealOwner),
+		errors.Is(err, domain.ErrRoleNotAuthorized):
 		_ = httperror.WriteProblem(w, r, apperr.New(apperr.KindForbidden, "forbidden", "account lacks moderation capability"))
 	case errors.Is(err, application.ErrStepUpRequired),
 		errors.Is(err, application.ErrUnknownSession):
@@ -223,6 +224,7 @@ func writeModerationProblem(w http.ResponseWriter, r *http.Request, err error) {
 	case errors.Is(err, application.ErrAppealExpired),
 		errors.Is(err, application.ErrActionNotAppealable),
 		errors.Is(err, application.ErrSameReviewer),
+		errors.Is(err, domain.ErrTargetActionMismatch),
 		errors.Is(err, domain.ErrInvalidTargetType),
 		errors.Is(err, domain.ErrInvalidReason),
 		errors.Is(err, domain.ErrInvalidContext),

@@ -57,8 +57,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httperror"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httperror"
 )
 
 // Route classes. Each class is one row of budget, and every registered route
@@ -267,19 +267,6 @@ const (
 	// server failed to answer inside its own budget.
 	CodeRequestTimeout = "request_timeout"
 )
-
-// maxDeclaredBodyBytes bounds how much of the request is buffered for the
-// handlers: the largest budget in the table. It exists only to size the read
-// bound, never to raise a route's budget.
-var maxDeclaredBodyBytes = func() int64 {
-	largest := int64(0)
-	for _, candidate := range rules {
-		if candidate.class.BodyBytes > largest {
-			largest = candidate.class.BodyBytes
-		}
-	}
-	return largest
-}()
 
 // Middleware bounds every request before the handler sees it.
 //

@@ -26,7 +26,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/securityheaders"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/securityheaders"
 )
 
 // Violation is one broken rule, named as the rule that broke.

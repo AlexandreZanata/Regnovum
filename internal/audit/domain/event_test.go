@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/audit/domain"
 )
 
 func validAuditEvent() domain.AuditEvent {

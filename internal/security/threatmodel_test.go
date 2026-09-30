@@ -3,10 +3,12 @@ package security_test
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
 	"testing"
+	"time"
 )
 
 var threatIDPattern = regexp.MustCompile(`\*\*(THR-[A-Z0-9-]+)\*\*`)
@@ -23,6 +25,30 @@ func TestThreatModelHasExecutableEvidenceForEveryThreat(t *testing.T) {
 	for id, entry := range evidence {
 		if entry.severity == "Crítica" && entry.kind != "test" {
 			t.Errorf("critical threat %s must have automated test evidence, got %s", id, entry.kind)
+		}
+		if entry.kind == "test" {
+			if len(entry.targets) == 0 {
+				t.Errorf("threat %s declares test evidence with no target", id)
+			}
+			for _, target := range entry.targets {
+				assertEvidenceTarget(t, id, target)
+			}
+			continue
+		}
+		// A procedure is evidence only with a review date in the future:
+		// an unautomatable risk blocks certification once its triage
+		// expires, and a procedure nobody re-checks is a rumor.
+		if entry.reviewBy == "" {
+			t.Errorf("threat %s has procedure evidence without review-by YYYY-MM-DD", id)
+			continue
+		}
+		review, err := time.Parse("2006-01-02", entry.reviewBy)
+		if err != nil {
+			t.Errorf("threat %s has unparseable review-by %q", id, entry.reviewBy)
+			continue
+		}
+		if !review.After(time.Now()) {
+			t.Errorf("threat %s procedure review expired on %s", id, entry.reviewBy)
 		}
 	}
 }
@@ -46,7 +72,12 @@ func readThreatIDs(t *testing.T, path string) []string {
 type matrixEvidence struct {
 	severity string
 	kind     string
+	targets  []string
+	reviewBy string
 }
+
+var evidenceTargetPattern = regexp.MustCompile("`([^`]+)`")
+var reviewByPattern = regexp.MustCompile(`review-by (\d{4}-\d{2}-\d{2})`)
 
 func readMatrix(t *testing.T, path string) ([]string, map[string]matrixEvidence) {
 	t.Helper()
@@ -69,7 +100,18 @@ func readMatrix(t *testing.T, path string) ([]string, map[string]matrixEvidence)
 			t.Fatalf("threat %s appears more than once in the matrix", id)
 		}
 		seen[id] = true
-		evidence[id] = matrixEvidence{severity: matches[2], kind: matches[3]}
+		entry := matrixEvidence{severity: matches[2], kind: matches[3]}
+		for _, target := range evidenceTargetPattern.FindAllStringSubmatch(scanner.Text(), -1) {
+			// Only path-shaped spans resolve: prose code spans are not
+			// evidence references.
+			if strings.Contains(target[1], "/") {
+				entry.targets = append(entry.targets, target[1])
+			}
+		}
+		if review := reviewByPattern.FindStringSubmatch(scanner.Text()); review != nil {
+			entry.reviewBy = review[1]
+		}
+		evidence[id] = entry
 	}
 	if err := scanner.Err(); err != nil {
 		t.Fatalf("read threat matrix: %v", err)
@@ -90,4 +132,15 @@ func readFile(t *testing.T, path string) string {
 		t.Fatalf("read %s: %v", path, err)
 	}
 	return string(contents)
+}
+
+// assertEvidenceTarget proves the evidence resolves: test targets name a
+// file or package directory that exists, so adding a THR with a dangling
+// reference fails the gate instead of passing in silence. Paths resolve
+// from the repository root, like the matrix documents them.
+func assertEvidenceTarget(t *testing.T, id, target string) {
+	t.Helper()
+	if _, err := os.Stat(filepath.Join("..", "..", target)); err != nil {
+		t.Errorf("threat %s names missing evidence %q", id, target)
+	}
 }

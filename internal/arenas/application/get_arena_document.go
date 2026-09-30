@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arenas/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arenas/domain"
 )
 
 // ArenaDocumentRepository is the consumer-oriented port of the public Arena

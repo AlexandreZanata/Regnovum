@@ -1,0 +1,3 @@
+# the products of the fixture build
+/build/
+*.tmp

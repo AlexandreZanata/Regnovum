@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // defaultWebhookTolerance is the maximum age of a webhook event that the
@@ -45,6 +45,14 @@ func NewWebhookVerifier(secret string, tolerance time.Duration, clock ports.Cloc
 	if secret == "" {
 		return nil, ErrMissingWebhookSecret
 	}
+	// The clock is required, and it is required by the rule rather than by
+	// tidiness: the tolerance window is what makes a replayed webhook fail, and
+	// a verifier that could not say what "now" is could not apply it. It also
+	// means the window is exercisable with a fixed instant instead of only in
+	// real time (P22-T02).
+	if clock == nil {
+		return nil, ErrMissingClock
+	}
 	if tolerance <= 0 {
 		tolerance = defaultWebhookTolerance
 	}
@@ -72,9 +80,12 @@ func (v *WebhookVerifier) Verify(payload []byte, signatureHeader string, timesta
 		return fmt.Errorf("%w: the timestamp header is not a valid integer", application.ErrWebhookSignatureInvalid)
 	}
 
-	// Reject if the timestamp is outside the tolerance window.
+	// Reject if the timestamp is outside the tolerance window. The age is
+	// measured against the injected clock and not against the wall clock: a
+	// `time.Since` here would make the window a rule that agrees with its own
+	// tests only while the tests run, which is how it was until P22-T02.
 	eventTime := time.Unix(timestamp, 0)
-	if time.Since(eventTime) > v.tolerance {
+	if v.clock.Now().Sub(eventTime) > v.tolerance {
 		return fmt.Errorf("%w: the webhook event is older than the tolerance window", application.ErrWebhookSignatureInvalid)
 	}
 	if eventTime.After(v.clock.Now().Add(time.Minute)) {
@@ -120,6 +131,11 @@ func parseSignatureHeader(header string) (string, error) {
 
 // Construction errors of the webhook verifier.
 var (
+	// ErrMissingClock indicates no clock was injected. The verifier cannot
+	// judge the tolerance window without one, and a verifier that silently
+	// read the wall clock would be a security rule that no test can replay.
+	ErrMissingClock = errors.New("stripe: a clock is required to judge the webhook tolerance")
+
 	// ErrMissingWebhookSecret indicates no webhook signing secret was
 	// configured. Without it there is nothing to verify signatures with.
 	ErrMissingWebhookSecret = errors.New("stripe: a webhook signing secret is required")

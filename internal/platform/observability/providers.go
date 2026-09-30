@@ -16,7 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/ports"
+	"github.com/AlexandreZanata/Regnovum/internal/ports"
 )
 
 // The transport defaults of both provider adapters. They mirror the Resend
@@ -106,7 +106,7 @@ func newSentryReporter(config sentryConfig) (*sentryReporter, error) {
 
 	reporter := &sentryReporter{
 		endpoint:    endpoint,
-		authHeader:  "Sentry sentry_key=" + key + ", sentry_version=7, sentry_client=goyim-arena/1.0",
+		authHeader:  "Sentry sentry_key=" + key + ", sentry_version=7, sentry_client=regnovum/1.0",
 		environment: config.Environment,
 		client:      &http.Client{Timeout: timeout},
 		clock:       config.Clock,
@@ -199,7 +199,7 @@ func (reporter *sentryReporter) envelope(report ErrorReport) ([]byte, error) {
 		"timestamp": reporter.clock.Now().UTC().Format(time.RFC3339Nano),
 		"platform":  "go",
 		"level":     "error",
-		"logger":    "goyim-arena",
+		"logger":    "regnovum",
 		"message":   bounded(report.Message, maxMessageLength),
 		"tags":      SanitizedTags(report),
 	}

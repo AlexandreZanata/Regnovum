@@ -7,11 +7,11 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbmigrate"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbmigrate"
 )
 
-const migrateUsage = `manage the database schema of Goyim Arena.
+const migrateUsage = `manage the database schema of Regnovum.
 
 Usage:
 

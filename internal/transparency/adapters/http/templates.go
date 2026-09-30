@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"io"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/websurface"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/websurface"
 )
 
 // transparencyTemplate renders the public transparency document. Metric

@@ -6,7 +6,7 @@
 
 ## 1. Modelo
 
-Goyim Arena combina três produtos simples:
+Regnovum combina três produtos simples:
 
 1. **INK:** capacidade de publicar texto argumentativo.
 2. **Arena Pass:** capacidade de publicar uma Arena.

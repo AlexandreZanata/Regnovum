@@ -70,5 +70,5 @@ test("the declarations the type is built from are literals", () => {
   const translator = createTranslator("en-US");
 
   assert.equal(translator.translate("auth.errors.weak_password", { min: 12 }), "The password must be at least 12 characters long.");
-  assert.equal(translator.translate("arenas.document.page_title", { subject: "Prova" }), "Prova — Goyim Arena");
+  assert.equal(translator.translate("arenas.document.page_title", { subject: "Prova" }), "Prova — Regnovum");
 });

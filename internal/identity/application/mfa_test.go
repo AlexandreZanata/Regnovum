@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/argon2id"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/mfamechanism"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/mfa"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/argon2id"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/mfamechanism"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/mfa"
 )
 
 // The second factor of the administrative surface (P16-T05) is tested here at

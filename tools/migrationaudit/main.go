@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/logging"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/logging"
 )
 
 // Exit statuses, as a vocabulary the tests and the gate can name.

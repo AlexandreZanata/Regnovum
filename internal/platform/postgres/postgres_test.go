@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 func baseDSN() string {
@@ -115,7 +115,7 @@ func TestSqlcDiffDetectsNoDriftInRepository(t *testing.T) {
 		if _, statErr := os.Stat(candidate); statErr == nil {
 			sqlcBin = candidate
 		} else {
-			t.Skip("sqlc binary not found in PATH or GOPATH/bin, skipping drift execution test")
+			t.Fatalf("sqlc is required to prove that the generated SQL has no drift: install it at the version the Makefile pins, or run `make generate-check` instead")
 		}
 	}
 

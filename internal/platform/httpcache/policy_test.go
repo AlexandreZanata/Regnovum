@@ -4,7 +4,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/httpcache"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/httpcache"
 )
 
 func TestPrivateAndNoStorePolicies(t *testing.T) {

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goyimarena.invalid/quality/evidence.schema.json",
+  "title": "Registro de evidências de teste",
+  "description": "Contrato do registro que dá identidade, tipo e ambiente às evidências que provam as regras de quality/catalog.json. O classificador em tools/qualitytaxonomy é quem o executa, e a concordância entre os dois é conferida por ele: um documento que promete menos que a ferramenta é um segundo contrato, e um que promete mais é uma promessa que ninguém cumpre.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "suites", "evidence"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "A única versão que o classificador entende. Um registro escrito contra outra é recusado em vez de interpretado."
+    },
+    "suites": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Onde as evidências rodam: o comando que as executa, o que a máquina precisa ter e quem responde pela suíte.",
+      "items": { "$ref": "#/$defs/suite" }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Uma linha por identidade de evidência: que tipo de teste é, em que suíte roda, quais regras do catálogo prova e em que classe de risco.",
+      "items": { "$ref": "#/$defs/evidence" }
+    }
+  },
+  "$defs": {
+    "suite": {
+      "title": "Suíte",
+      "description": "Uma suíte é um lugar onde um teste roda, com um ambiente e um comando. O dono é opcional: a fase o exige da suíte que prova regra crítica, e essa condição é do classificador, não de um `required`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "environment", "command", "modules"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^SUITE-[A-Z0-9]+(-[A-Z0-9]+)*$",
+          "description": "Convenção SUITE-<MÓDULO>-<AMBIENTE>."
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "O papel que responde pela suíte. Obrigatório quando ela prova regra Q0; nunca uma pessoa."
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["unit", "postgres", "browser", "docker", "network"],
+          "description": "O que a máquina precisa ter para o teste significar alguma coisa."
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "O comando que executa a suíte, como o Makefile o oferece."
+        },
+        "modules": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-zA-Z0-9._/-]+$" },
+          "description": "Os caminhos dos módulos que a suíte cobre."
+        }
+      }
+    },
+    "evidence": {
+      "title": "Evidência",
+      "description": "A identidade de um conjunto de testes: o tipo, o ambiente herdado da suíte, as regras que prova e os testes que a carregam.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "suite", "risk", "rules", "tests", "proves"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^EVD-[A-Z0-9]+(-[A-Z0-9]+)*$",
+          "description": "Convenção EVD-<MÓDULO>-<TIPO>-<NN>."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "unit",
+            "property",
+            "fuzz",
+            "integration",
+            "contract",
+            "e2e",
+            "security",
+            "mutation",
+            "performance",
+            "chaos",
+            "recovery"
+          ],
+          "description": "O vocabulário fechado dos onze tipos. É dado declarado, nunca lido do nome da função Go."
+        },
+        "suite": {
+          "type": "string",
+          "pattern": "^SUITE-[A-Z0-9]+(-[A-Z0-9]+)*$",
+          "description": "A suíte declarada em que a evidência roda; dela vem o ambiente."
+        },
+        "risk": {
+          "type": "string",
+          "enum": ["Q0", "Q1", "Q2"],
+          "description": "A classe da evidência. É lida do catálogo a partir das regras citadas, de modo que a declaração não possa amaciá-la."
+        },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^QUAL-[A-Z0-9]+(-[A-Z0-9]+)*$" },
+          "description": "Os identificadores das regras do catálogo que esta evidência prova."
+        },
+        "tests": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "As referências que precisam resolver na árvore: `caminho::Função` para Go, ou o caminho de um arquivo de outra linguagem."
+        },
+        "proves": {
+          "type": "string",
+          "minLength": 20,
+          "description": "O que a evidência prova, em uma frase: uma evidência que não consegue dizer o que prova é uma etiqueta."
+        }
+      }
+    }
+  }
+}

@@ -4,7 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/apperr"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
 )
 
 // LocalFakeTokenPrefix is the beginning of every token Cloudflare's
@@ -31,9 +32,13 @@ type LocalFake struct {
 	redeemed *ReplayMemory
 }
 
-// NewLocalFake builds the temporary local verifier.
+// NewLocalFake builds the temporary local verifier. Its clock is the system
+// clock through the package that owns that effect, which is the honest source
+// for a fake that stands in for a real provider: it is exercised by the
+// requests a developer makes now, and single use is what it has to reproduce.
+// A test that wants to cross the window injects a clock instead.
 func NewLocalFake() *LocalFake {
-	return &LocalFake{redeemed: NewReplayMemory(0, 0, nil)}
+	return &LocalFake{redeemed: NewReplayMemory(0, 0, clockseed.SystemClockNow)}
 }
 
 // Verify implements Verifier.

@@ -1,4 +1,4 @@
-/* Goyim Arena — base styles. The cascade order is declared in reset.css
+/* Regnovum — base styles. The cascade order is declared in reset.css
    (loaded first) and restated here so the intended layers are greppable. */
 
 @layer reset, tokens, base, layout, components, utilities, overrides;

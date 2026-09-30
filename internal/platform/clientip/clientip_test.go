@@ -12,7 +12,7 @@ import (
 	"net/netip"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clientip"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clientip"
 )
 
 // request builds a request with a peer address and forwarding headers.

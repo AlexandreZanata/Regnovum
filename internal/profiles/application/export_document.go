@@ -3,7 +3,7 @@ package application
 import (
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 // ExportExcludedCategories documents, in machine-readable form, the

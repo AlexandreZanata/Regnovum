@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "note": "Exceções aceitas pelo portão de qualidade dos próprios testes (P23-T07). Cada entrada nomeia o lugar (`arquivo::Teste`) e a regra que ela suspende, a classe de risco — que a fase exige **não crítica** —, o dono, a razão, o teste compensatório que prova a propriedade por outro caminho, e a data em que a exceção expira. O portão recusa a classe crítica, a entrada expirada, o dono em branco ou pessoal, a razão curta, a compensação que não resolve para um teste declarado e a entrada cuja regra a árvore não produz mais: a lista só encolhe, e o que sai dela sai por correção.",
+  "waivers": [
+    {
+      "id": "TST-001",
+      "rule": "skipped-test",
+      "site": "tools/offlineaudit/audit_test.go::TestTheChildProcessOfTheRun",
+      "risk": "Q2",
+      "owner": "quality",
+      "justification": "O teste é o ponto de entrada do processo filho que o próprio run sobe para provar que a execução offline não alcança a rede: fora desse contexto ele não tem o que afirmar, e o desenho que o dispensa é substituir o par por um binário de teste dedicado, que é trabalho da tarefa que mexer no `testenv`.",
+      "compensation": "tools/offlineaudit/audit_test.go::TestARunTouchesItsDatabaseAndFilesItsDeclaration",
+      "created": "2026-09-24",
+      "expires": "2026-12-31"
+    },
+    {
+      "id": "TST-002",
+      "rule": "skipped-test",
+      "site": "tools/testenv/testenv_test.go::TestRunTakesTheEnvironmentDownWhateverTheCommandDoes",
+      "risk": "Q2",
+      "owner": "quality",
+      "justification": "O fixture dirige um shell POSIX e o repositório entrega Linux distroless; a correção é o arquivo de teste carregar a restrição de plataforma, o que a tarefa que mexer no `tools/testenv` faz junto das outras jornadas de contêiner.",
+      "compensation": "tools/testenv/testenv_test.go::TestTheEnvironmentIsBuildableTwiceAndInParallel",
+      "created": "2026-09-24",
+      "expires": "2026-12-31"
+    },
+    {
+      "id": "TST-003",
+      "rule": "skipped-test",
+      "site": "tools/webaudit/audit_test.go::TestAuditMeasuresTheRealBuild",
+      "risk": "Q2",
+      "owner": "quality",
+      "justification": "A suíte audita o frontend construído e `make verify` roda `test-unit` antes de `build-web`: exigir a build aqui inverteria a ordem dos gates de release, e o alvo `make audit-web` é quem a exige.",
+      "compensation": "tools/webaudit/audit_test.go::TestAuditMeasuresTheFixtureBuild",
+      "created": "2026-09-24",
+      "expires": "2026-12-31"
+    },
+    {
+      "id": "TST-004",
+      "rule": "sleep-synchronization",
+      "site": "internal/bootstrap/participation_surface_test.go::TestTheParticipationJourneyIsServedAndChargesInk",
+      "risk": "Q2",
+      "owner": "quality",
+      "justification": "A jornada espera 2ms para que o argumento anteceda a mudança que o credita, e a ordem é uma propriedade real do produto; a correção é a jornada receber o relógio do teste (`testsource.NewClock`) em vez do relógio do sistema e avançá-lo, o que a tarefa que mexer na composição faz, porque hoje o relógio da jornada é o de `clockseed` e avançar exige mudar o tipo do campo usado por três testes desta suíte.",
+      "compensation": "internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyCreditAccumulatesByBucket",
+      "created": "2026-09-24",
+      "expires": "2026-12-31"
+    },
+    {
+      "id": "TST-005",
+      "rule": "ignored-error",
+      "site": "tools/offlineaudit/audit_test.go::TestTheChildProcessOfTheRun",
+      "risk": "Q2",
+      "owner": "quality",
+      "justification": "Esta função é o processo filho do exercício da P22-T08, não um teste: ela relata o próprio resultado na saída padrão e quem assere é o processo pai, que exige a recusa da execução. O `if` que ela guarda imprime o erro e encerra o caso — cobrá-lo com `t.Fatal` seria pedir que o filho falhasse justamente quando o sensor de egresso funcionou.",
+      "compensation": "tools/offlineaudit/audit_test.go::TestTheSensorRefusesAndRecords",
+      "created": "2026-09-24",
+      "expires": "2026-12-31"
+    }
+  ]
+}

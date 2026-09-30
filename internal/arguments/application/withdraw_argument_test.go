@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
 )
 
 func seedPublishedArgument(t *testing.T, repo *fakeArgumentRepo, status string) *application.PublishedArgument {

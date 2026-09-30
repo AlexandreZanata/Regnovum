@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 // TargetInfo describes what the contested identifier resolved to. Owner is

@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
 )
 
 // RecordAttributionsCommand holds one attribution selection: zero to three

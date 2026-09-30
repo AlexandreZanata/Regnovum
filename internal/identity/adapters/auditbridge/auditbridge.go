@@ -19,9 +19,9 @@ import (
 	"errors"
 	"time"
 
-	auditapp "github.com/AlexandreZanata/Goyim-Arena/internal/audit/application"
-	auditdomain "github.com/AlexandreZanata/Goyim-Arena/internal/audit/domain"
-	identityapp "github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
+	auditapp "github.com/AlexandreZanata/Regnovum/internal/audit/application"
+	auditdomain "github.com/AlexandreZanata/Regnovum/internal/audit/domain"
+	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
 )
 
 // The trail's vocabulary for the two facts. The action names are stable and

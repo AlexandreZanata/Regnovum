@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	notificationsdomain "github.com/AlexandreZanata/Goyim-Arena/internal/notifications/domain"
+	notificationsdomain "github.com/AlexandreZanata/Regnovum/internal/notifications/domain"
 )
 
 // Facts is one measurement of the tree.

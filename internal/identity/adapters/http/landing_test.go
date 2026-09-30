@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/locale"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/locale"
 )
 
 // landingDocument renders one landing page in one locale.

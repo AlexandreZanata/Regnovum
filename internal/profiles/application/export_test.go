@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/application"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/domain"
 )
 
 const (
@@ -483,6 +483,23 @@ func TestBuildPersonalExportDocumentSerializesEmptyArrays(t *testing.T) {
 		t.Fatalf("marshal: %v", err)
 	}
 	for _, marker := range []string{`"positions":[]`, `"position_changes":[]`, `"arena_drafts":[]`, `"arguments":[]`, `"username_history":[]`, `"sessions":[]`, `"transactions":[]`, `"lots":[]`, `"consumptions":[]`, `"checkout_intents":[]`, `"subscriptions":[]`, `"profile":null`, `"preferences":null`} {
+		if !strings.Contains(string(encoded), marker) {
+			t.Fatalf("document must serialize %s: %s", marker, encoded)
+		}
+	}
+}
+
+func TestBuildPersonalExportDocumentRendersNilSlicesAsEmptyArrays(t *testing.T) {
+	t.Parallel()
+
+	// Explicit nil slices (as opposed to an absent sections struct) must
+	// still serialize as []: a null where a list belongs breaks typed
+	// clients (mutation gate: export_document.go:266).
+	encoded, err := json.Marshal(application.BuildPersonalExportDocument(testNow, &application.PersonalExportSections{}))
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	for _, marker := range []string{`"positions":[]`, `"arguments":[]`, `"username_history":[]`, `"sessions":[]`, `"transactions":[]`, `"lots":[]`} {
 		if !strings.Contains(string(encoded), marker) {
 			t.Fatalf("document must serialize %s: %s", marker, encoded)
 		}

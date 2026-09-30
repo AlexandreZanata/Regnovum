@@ -5,10 +5,12 @@
 package hardcoded
 
 // hardcodedDocument is the shape the prose and language rules must reject.
+//
+//lint:ignore U1000 o analisador não vê o leitor: o i18naudit lê este literal como documento e é dele que saem os achados da fixture
 const hardcodedDocument = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<title>Redefinir senha — Goyim Arena</title>
+<title>Redefinir senha — Regnovum</title>
 <style>
 body { margin-left: 2rem; }
 </style>

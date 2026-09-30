@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaa15",
+      "message": "fix(ci): [skip-evidence] correct the quick workflow note",
+      "files": [
+        {
+          "status": "M",
+          "path": "docs/CI.md"
+        }
+      ]
+    }
+  ]
+}

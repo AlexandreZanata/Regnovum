@@ -3,7 +3,7 @@ package domain_test
 import (
 	"testing"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/moderation/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/moderation/domain"
 )
 
 func TestSanctionMatrixPerTarget(t *testing.T) {

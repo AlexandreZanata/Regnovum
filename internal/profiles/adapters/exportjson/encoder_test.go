@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/adapters/exportjson"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/profiles/application"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/adapters/exportjson"
+	"github.com/AlexandreZanata/Regnovum/internal/profiles/application"
 )
 
 func TestEncoderRendersDeterministicVersionedDocument(t *testing.T) {

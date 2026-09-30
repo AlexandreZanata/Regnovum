@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "pinned": {
+    "go": "1.27.1",
+    "postgres": "18.4",
+    "typescript": "7.0.2",
+    "staticcheck": "v0.8.1"
+  },
+  "next": {},
+  "policy": "The pinned versions build production. The next map holds only patch versions approved by a task and an ADR; approving one never edits a lockfile. Promotion of an approved next to mandatory runs the full Q0 suites first. The informative toolchain job only reports."
+}

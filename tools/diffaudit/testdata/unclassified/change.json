@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaaa1",
+      "message": "chore(scripts): add a release helper",
+      "files": [{ "status": "A", "path": "scripts/p23t08probe.sh" }]
+    }
+  ]
+}

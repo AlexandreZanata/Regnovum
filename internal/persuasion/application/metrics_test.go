@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/persuasion/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/application"
+	"github.com/AlexandreZanata/Regnovum/internal/persuasion/domain"
 )
 
 const metricsArgumentRaw = "018f6b2a-0000-7000-8000-0000000000c1"

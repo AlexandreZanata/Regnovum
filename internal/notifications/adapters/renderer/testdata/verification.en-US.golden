@@ -1,4 +1,4 @@
-subject: Confirm your email at Goyim Arena
+subject: Confirm your email at Regnovum
 --- text
 Hi, Ana
 
@@ -6,19 +6,19 @@ Use the code below to confirm your email. If you did not request this, ignore th
 
 Verification code: K7QP-2M4Z-9RTX
 
-The Goyim Arena team
+The Regnovum team
 --- html
 <!doctype html>
 <html lang="en-US" dir="ltr">
 <head>
 <meta charset="utf-8">
-<title>Confirm your email at Goyim Arena</title>
+<title>Confirm your email at Regnovum</title>
 </head>
 <body>
 <p>Hi, Ana</p>
 <p>Use the code below to confirm your email. If you did not request this, ignore this message.</p>
 <p><strong>Verification code</strong></p>
 <p>K7QP-2M4Z-9RTX</p>
-<p>The Goyim Arena team</p>
+<p>The Regnovum team</p>
 </body>
 </html>

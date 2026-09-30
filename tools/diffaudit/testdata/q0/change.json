@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaa13",
+      "message": "docs(quality): declare the refusal of the debit rule",
+      "files": [
+        {
+          "status": "M",
+          "path": "quality/catalog.json"
+        }
+      ]
+    }
+  ],
+  "catalog_before": "{\"rules\": [{\"id\": \"QUAL-REQ-WAL-04\", \"risk\": \"Q0\", \"tests\": {\"positive\": [\"internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitSplitsAcrossBuckets\"]}}]}",
+  "catalog_after": "{\"rules\": [{\"id\": \"QUAL-REQ-WAL-04\", \"risk\": \"Q0\", \"tests\": {\"positive\": [\"internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitSplitsAcrossBuckets\"], \"negative\": [\"internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitInsufficientLeavesNoPartialState\"]}}]}"
+}

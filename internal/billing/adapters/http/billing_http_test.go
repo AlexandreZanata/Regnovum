@@ -10,15 +10,15 @@ import (
 	"testing"
 	"time"
 
-	adapterhttp "github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/http"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/billing/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/clockseed"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/security"
+	adapterhttp "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/http"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/application"
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
 func setupBillingHarness(t *testing.T) (http.Handler, string, string) {

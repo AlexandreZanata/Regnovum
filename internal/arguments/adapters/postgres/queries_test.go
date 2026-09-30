@@ -11,11 +11,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/arguments/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/application"
+	"github.com/AlexandreZanata/Regnovum/internal/arguments/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 )
 
 func mustQueryCodec(t *testing.T) *application.ArgumentCursorCodec {

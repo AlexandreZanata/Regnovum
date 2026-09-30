@@ -64,20 +64,26 @@ const (
 	// the authority, the ledger entry is the compensating operation and a
 	// shortfall never becomes a negative balance — it becomes a review flag.
 	OperationDebitRefund OperationType = "debit_refund"
-	OperationExpireFree  OperationType = "expire_free"
+	// OperationDebitConversion extinguishes opted-in legacy credit inside a
+	// Genesis conversion (P33-T04): the legacy debit and the Treasury credit
+	// commit in one transaction, so the right converts exactly once and the
+	// Genesis supply never grows.
+	OperationDebitConversion OperationType = "debit_conversion"
+	OperationExpireFree      OperationType = "expire_free"
 )
 
 // operationTypeDirection is the single source of truth for the vocabulary
 // and the sign policy of every operation type.
 var operationTypeDirection = map[OperationType]Direction{
-	OperationCreditFree:     DirectionCredit,
-	OperationCreditMember:   DirectionCredit,
-	OperationCreditPurchase: DirectionCredit,
-	OperationCreditRefund:   DirectionCredit,
-	OperationCreditAdmin:    DirectionCredit,
-	OperationDebitArgument:  DirectionDebit,
-	OperationDebitAdmin:     DirectionDebit,
-	OperationDebitRefund:    DirectionDebit,
+	OperationCreditFree:      DirectionCredit,
+	OperationCreditMember:    DirectionCredit,
+	OperationCreditPurchase:  DirectionCredit,
+	OperationCreditRefund:    DirectionCredit,
+	OperationCreditAdmin:     DirectionCredit,
+	OperationDebitArgument:   DirectionDebit,
+	OperationDebitAdmin:      DirectionDebit,
+	OperationDebitRefund:     DirectionDebit,
+	OperationDebitConversion: DirectionDebit,
 	// Expiring the unused franchise removes FREE_INK: a debit.
 	OperationExpireFree: DirectionDebit,
 }
@@ -93,6 +99,7 @@ func AllOperationTypes() []OperationType {
 		OperationDebitArgument,
 		OperationDebitAdmin,
 		OperationDebitRefund,
+		OperationDebitConversion,
 		OperationExpireFree,
 	}
 }

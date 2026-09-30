@@ -1,4 +1,4 @@
-// Package logging configures the structured JSON logger of Goyim Arena and
+// Package logging configures the structured JSON logger of Regnovum and
 // hosts the central redaction applied to log values (P02-T04).
 //
 // Sentry is deliberately not integrated at this stage, per the plan.
@@ -14,7 +14,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/config"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
 )
 
 // redactedPlaceholder replaces any recognized sensitive value.

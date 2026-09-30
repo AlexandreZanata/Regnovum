@@ -4,6 +4,8 @@ import (
 	"container/list"
 	"sync"
 	"time"
+
+	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
 )
 
 // The risk signal turns "challenge after consecutive failures" (THR-AUTH-02)
@@ -64,7 +66,10 @@ type FailureTrackerOptions struct {
 	Window time.Duration
 	// Capacity is how many callers are tracked at most.
 	Capacity int
-	// Now is the clock, for tests. Nil means time.Now.
+	// Now is the clock. Nil means the system clock, read through the package
+	// that owns that effect; a test injects its own source instead, because a
+	// failure window counted against the wall clock is a test that agrees with
+	// itself only while it runs.
 	Now func() time.Time
 }
 
@@ -84,7 +89,7 @@ func NewFailureTracker(options FailureTrackerOptions) *FailureTracker {
 	}
 	now := options.Now
 	if now == nil {
-		now = time.Now
+		now = clockseed.SystemClockNow
 	}
 
 	return &FailureTracker{

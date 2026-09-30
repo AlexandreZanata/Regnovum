@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	identitypg "github.com/AlexandreZanata/Goyim-Arena/internal/identity/adapters/postgres"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/application"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/identity/domain"
-	"github.com/AlexandreZanata/Goyim-Arena/internal/platform/dbtest"
+	identitypg "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/application"
+	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
 )
 
 // harness is the storage fixture of these tests: two accounts and the ability

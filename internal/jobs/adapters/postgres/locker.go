@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	jobsapp "github.com/AlexandreZanata/Goyim-Arena/internal/jobs/application"
-	platformpg "github.com/AlexandreZanata/Goyim-Arena/internal/platform/postgres"
+	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
+	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
 	"github.com/jackc/pgx/v5"
 )
 
