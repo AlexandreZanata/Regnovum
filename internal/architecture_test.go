@@ -74,7 +74,7 @@ var forbiddenExternal = []string{
 // businessModules are the module directories required by the plan and
 // docs/ARCHITECTURE.md §4.
 var businessModules = []string{
-	"arenas", "arguments", "audit", "billing", "commerce", "charter", "crumbs", "economy", "identity", "jobs",
+	"arenas", "arguments", "audit", "billing", "commerce", "charter", "crumbs", "disputes", "economy", "identity", "jobs",
 	"metering", "moderation", "persuasion", "positions", "pricing", "profiles",
 	"transparency", "wallet",
 }
