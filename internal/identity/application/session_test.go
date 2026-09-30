@@ -722,3 +722,120 @@ func TestLogoutCurrentAndAllSessions(t *testing.T) {
 		t.Errorf("expected ErrSessionRevoked for sess3 after logout all, got %v", err)
 	}
 }
+
+func TestAuthenticateSession_NonPositiveThresholdFallsBackToDefault(t *testing.T) {
+	for _, threshold := range []time.Duration{0, -time.Minute} {
+		t.Run(threshold.String(), func(t *testing.T) {
+			hasher, _ := argon2id.New(argon2id.FastParams(), rand.Reader)
+			accRepo := newInMemoryAccountRepo()
+			credRepo := newInMemoryCredentialRepo()
+			sessRepo := newInMemorySessionRepo()
+			clock := &fakeClock{now: time.Date(2026, 9, 17, 12, 0, 0, 0, time.UTC)}
+			rnd := &seqRandom{}
+			policy := domain.DefaultSessionPolicy()
+			ctx := context.Background()
+
+			email, _ := domain.ParseEmail("threshold@arena.local")
+			pass := "Password123!"
+			h, _ := hasher.HashPassword(pass)
+			acc, _ := accRepo.CreateAccountWithPassword(ctx, email, h)
+			_ = acc.VerifyEmail(clock.Now())
+			credRepo.credentials[string(acc.ID())] = &application.PasswordCredentialRecord{
+				AccountID: acc.ID(), PasswordHash: h, Algorithm: "argon2id", Version: 1,
+			}
+			loginUC := application.NewLoginUseCase(accRepo, credRepo, sessRepo, hasher, clock, rnd, policy)
+			loginRes, err := loginUC.Execute(ctx, application.LoginCommand{
+				Email: "threshold@arena.local", Password: pass,
+			})
+			if err != nil {
+				t.Fatalf("login failed: %v", err)
+			}
+			authUC := application.NewAuthenticateSessionUseCase(accRepo, sessRepo, clock, policy, threshold)
+
+			if _, err := authUC.Execute(ctx, application.AuthenticateSessionCommand{RawToken: loginRes.RawToken}); err != nil {
+				t.Fatalf("authenticate failed: %v", err)
+			}
+			// A non-positive threshold selects the default: no touch
+			// immediately and none at two minutes, exactly as the
+			// five-minute default behaves.
+			if got := sessRepo.TouchCount(); got != 0 {
+				t.Fatalf("touches immediately = %d, want 0", got)
+			}
+			clock.Advance(2 * time.Minute)
+			if _, err := authUC.Execute(ctx, application.AuthenticateSessionCommand{RawToken: loginRes.RawToken}); err != nil {
+				t.Fatalf("authenticate failed: %v", err)
+			}
+			if got := sessRepo.TouchCount(); got != 0 {
+				t.Fatalf("touches at 2m = %d, want 0", got)
+			}
+			clock.Advance(4 * time.Minute)
+			if _, err := authUC.Execute(ctx, application.AuthenticateSessionCommand{RawToken: loginRes.RawToken}); err != nil {
+				t.Fatalf("authenticate failed: %v", err)
+			}
+			if got := sessRepo.TouchCount(); got != 1 {
+				t.Fatalf("touches at 6m = %d, want 1", got)
+			}
+		})
+	}
+}
+
+func TestRotateSession_InheritsClientContextWhenEmpty(t *testing.T) {
+	hasher, _ := argon2id.New(argon2id.FastParams(), rand.Reader)
+	accRepo := newInMemoryAccountRepo()
+	credRepo := newInMemoryCredentialRepo()
+	sessRepo := newInMemorySessionRepo()
+	clock := &fakeClock{now: time.Date(2026, 9, 17, 12, 0, 0, 0, time.UTC)}
+	rnd := &seqRandom{}
+	policy := domain.DefaultSessionPolicy()
+	ctx := context.Background()
+
+	email, _ := domain.ParseEmail("inherit@arena.local")
+	pass := "Password123!"
+	h, _ := hasher.HashPassword(pass)
+	acc, _ := accRepo.CreateAccountWithPassword(ctx, email, h)
+	_ = acc.VerifyEmail(clock.Now())
+	credRepo.credentials[string(acc.ID())] = &application.PasswordCredentialRecord{
+		AccountID: acc.ID(), PasswordHash: h, Algorithm: "argon2id", Version: 1,
+	}
+	loginUC := application.NewLoginUseCase(accRepo, credRepo, sessRepo, hasher, clock, rnd, policy)
+	loginRes, err := loginUC.Execute(ctx, application.LoginCommand{
+		Email: "inherit@arena.local", Password: pass,
+		IPAddress: "192.0.2.1", UserAgent: "OldUA/1.0",
+	})
+	if err != nil {
+		t.Fatalf("login failed: %v", err)
+	}
+	rotateUC := application.NewRotateSessionUseCase(accRepo, sessRepo, clock, rnd, policy)
+	rotateRes, err := rotateUC.Execute(ctx, application.RotateSessionCommand{
+		CurrentRawToken: loginRes.RawToken,
+	})
+	if err != nil {
+		t.Fatalf("rotate failed: %v", err)
+	}
+	authUC := application.NewAuthenticateSessionUseCase(accRepo, sessRepo, clock, policy, 5*time.Minute)
+	newAuth, err := authUC.Execute(ctx, application.AuthenticateSessionCommand{RawToken: rotateRes.RawToken})
+	if err != nil {
+		t.Fatalf("new token failed to authenticate: %v", err)
+	}
+	if newAuth.Session.IPAddress() != "192.0.2.1" {
+		t.Errorf("rotated IP = %q, want the inherited 192.0.2.1", newAuth.Session.IPAddress())
+	}
+	if newAuth.Session.UserAgent() != "OldUA/1.0" {
+		t.Errorf("rotated UA = %q, want the inherited OldUA/1.0", newAuth.Session.UserAgent())
+	}
+}
+
+func TestSessionWindowFor_NonPositiveRowsSelectDefault(t *testing.T) {
+	policy := domain.DefaultSessionPolicy()
+	now := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
+	for _, rows := range []int{0, -10} {
+		window := application.SessionWindowFor(now, policy, rows)
+		if window.MaxRows != application.DefaultSessionListingRows {
+			t.Errorf("maxRows=%d selects %d, want default %d", rows, window.MaxRows, application.DefaultSessionListingRows)
+		}
+	}
+	window := application.SessionWindowFor(now, policy, 7)
+	if window.MaxRows != 7 {
+		t.Errorf("maxRows=7 selects %d, want 7", window.MaxRows)
+	}
+}

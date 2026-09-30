@@ -1,0 +1,520 @@
+{
+  "schema_version": 1,
+  "tool": {
+    "module": "github.com/go-gremlins/gremlins/cmd/gremlins",
+    "version": "v0.6.0",
+    "timeout_coefficient": 100,
+    "workers": 8
+  },
+  "operators": {
+    "enabled": [
+      "ARITHMETIC_BASE",
+      "CONDITIONALS_BOUNDARY",
+      "CONDITIONALS_NEGATION",
+      "INCREMENT_DECREMENT",
+      "INVERT_NEGATIVES"
+    ],
+    "deferred": {
+      "INVERT_ASSIGNMENTS": "unevaluated on this tree; P45 decides",
+      "INVERT_BITWISE": "unevaluated on this tree; P45 decides",
+      "INVERT_BWASSIGN": "unevaluated on this tree; P45 decides",
+      "INVERT_LOGICAL": "unevaluated on this tree; P45 decides",
+      "INVERT_LOOPCTRL": "unevaluated on this tree; P45 decides",
+      "REMOVE_SELF_ASSIGNMENTS": "unevaluated on this tree; P45 decides"
+    }
+  },
+  "thresholds": {
+    "Q0": 90,
+    "Q1": 80
+  },
+  "targets": [
+    {
+      "package": "internal/identity/application",
+      "risk": [
+        "Q0"
+      ],
+      "areas": [
+        "authorization"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/identity/domain",
+      "risk": [
+        "Q0"
+      ],
+      "areas": [
+        "authorization"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/profiles/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [
+        "privacy"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/wallet/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [
+        "wallet"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/wallet/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [
+        "wallet",
+        "idempotency"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/billing/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [
+        "billing",
+        "webhook",
+        "idempotency"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/billing/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [
+        "billing",
+        "webhook"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/arenas/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [],
+      "status": "measured"
+    },
+    {
+      "package": "internal/positions/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [],
+      "status": "measured"
+    },
+    {
+      "package": "internal/arguments/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [],
+      "status": "measured"
+    },
+    {
+      "package": "internal/persuasion/application",
+      "risk": [
+        "Q1"
+      ],
+      "areas": [],
+      "status": "measured"
+    },
+    {
+      "package": "internal/moderation/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [
+        "authorization",
+        "moderation"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/moderation/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [
+        "moderation"
+      ],
+      "status": "measured"
+    },
+    {
+      "package": "internal/transparency/application",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [],
+      "status": "measured"
+    },
+    {
+      "package": "internal/transparency/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "areas": [],
+      "status": "measured"
+    },
+    {
+      "package": "internal/profiles/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "status": "deferred",
+      "reason": "largest remaining value-object surface; needs a dedicated killing budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/arenas/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "status": "deferred",
+      "reason": "needs a dedicated killing budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/arguments/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "status": "deferred",
+      "reason": "needs a dedicated killing budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/persuasion/domain",
+      "risk": [
+        "Q1"
+      ],
+      "status": "deferred",
+      "reason": "needs a dedicated killing budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/positions/domain",
+      "risk": [
+        "Q0",
+        "Q1"
+      ],
+      "status": "deferred",
+      "reason": "needs a dedicated killing budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/jobs/domain",
+      "risk": [
+        "Q0"
+      ],
+      "status": "deferred",
+      "reason": "needs a dedicated killing budget",
+      "gate": "P45"
+    },
+    {
+      "package": "internal/jobs/application",
+      "risk": [
+        "Q0"
+      ],
+      "status": "deferred",
+      "reason": "worker paths need a dedicated budget",
+      "gate": "P45"
+    }
+  ],
+  "zero_areas": [
+    {
+      "area": "authorization",
+      "paths": [
+        "internal/identity/application/verify_email.go",
+        "internal/moderation/application/authorizer.go"
+      ]
+    },
+    {
+      "area": "wallet",
+      "paths": [
+        "internal/wallet/domain/allocation.go",
+        "internal/wallet/domain/idempotency_key.go",
+        "internal/wallet/domain/reference.go",
+        "internal/wallet/domain/period.go"
+      ]
+    },
+    {
+      "area": "billing",
+      "paths": [
+        "internal/billing/domain/webhook.go",
+        "internal/billing/domain/idempotency_key.go",
+        "internal/billing/domain/reference.go",
+        "internal/billing/domain/arena_id.go",
+        "internal/billing/domain/catalog.go",
+        "internal/billing/domain/grant.go",
+        "internal/billing/domain/refund.go",
+        "internal/billing/application/process_webhook.go",
+        "internal/billing/application/apply_refund.go"
+      ]
+    },
+    {
+      "area": "webhook",
+      "paths": [
+        "internal/billing/domain/webhook.go",
+        "internal/billing/application/process_webhook.go"
+      ]
+    },
+    {
+      "area": "idempotency",
+      "paths": [
+        "internal/wallet/domain/idempotency_key.go",
+        "internal/billing/domain/idempotency_key.go"
+      ]
+    },
+    {
+      "area": "moderation",
+      "paths": [
+        "internal/moderation/domain/report.go",
+        "internal/moderation/domain/appeal.go",
+        "internal/moderation/domain/decision.go",
+        "internal/moderation/domain/policy.go",
+        "internal/moderation/application/authorizer.go",
+        "internal/moderation/application/file_report.go",
+        "internal/moderation/application/queue.go"
+      ]
+    },
+    {
+      "area": "privacy",
+      "paths": [
+        "internal/profiles/application/deletion.go",
+        "internal/profiles/application/export_document.go"
+      ]
+    }
+  ],
+  "equivalents": [
+    {
+      "package": "internal/identity/application",
+      "file": "list_sessions.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "clamping the bound to itself is the identity: s[:256]==s when len(s)==256",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/identity/domain",
+      "file": "email.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "a 255-char domain is unreachable: ParseEmail refuses totals over 254 first",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/wallet/application",
+      "file": "get_wallet_statement.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "clamping the maximum to itself is the identity",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/wallet/application",
+      "file": "renew_free_cycle.go",
+      "mutant": "CONDITIONALS_NEGATION",
+      "class": "hangs",
+      "reason": "inverting the renewal loop condition diverges for fresh anchors: index only grows past a satisfied bound",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/wallet/application",
+      "file": "renew_free_cycle.go",
+      "mutant": "INCREMENT_DECREMENT",
+      "class": "hangs",
+      "reason": "decrementing the renewal counter diverges: the bound only grows",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/wallet/domain",
+      "file": "allocation.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "the slow path builds the same value: {free, 0} equals {amount} when amount==free",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/wallet/domain",
+      "file": "period.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "clamping a day to the last day is the identity when they are equal; short-circuited fences are never evaluated at the equal input; the divisor is always 12 at the single call site so b<=0 is unreachable (b==0 panics first)",
+      "owner": "P24-T10",
+      "count": 5
+    },
+    {
+      "package": "internal/wallet/domain",
+      "file": "period.go",
+      "mutant": "INVERT_NEGATIVES",
+      "class": "equivalent",
+      "reason": "overestimates are healed by the downward correction loop, which converges for every non-negative year",
+      "owner": "P24-T10",
+      "count": 2
+    },
+    {
+      "package": "internal/wallet/domain",
+      "file": "period.go",
+      "mutant": "ARITHMETIC_BASE",
+      "class": "equivalent",
+      "reason": "overestimates are healed by the downward correction loop, which converges for every non-negative year",
+      "owner": "P24-T10",
+      "count": 2
+    },
+    {
+      "package": "internal/wallet/domain",
+      "file": "period.go",
+      "mutant": "INCREMENT_DECREMENT",
+      "class": "hangs",
+      "reason": "decrementing the correction counter diverges once the loop is entered",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/billing/domain",
+      "file": "refund.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "both branches compute the granted quantity when the amounts coincide",
+      "owner": "P24-T10",
+      "count": 2
+    },
+    {
+      "package": "internal/billing/domain",
+      "file": "webhook.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "unreachable through the validated constructor: empty segments never survive ParseWebhookEventType, and the bare 22-char prefix is refused as a trailing dot",
+      "owner": "P24-T10",
+      "count": 3
+    },
+    {
+      "package": "internal/billing/domain",
+      "file": "catalog.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "the comparator differs only on equal keys, which the duplicate scan that follows still meets; far-apart duplicates are refused by test",
+      "owner": "P24-T10",
+      "count": 2
+    },
+    {
+      "package": "internal/billing/application",
+      "file": "process_webhook.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "slice and clamp identities (truncate at the bound), unreachable zero offsets (nested bodies always start at the object key; a data-first layout shadows the event identifier into malformed first), and escape resolutions that never shape-decode to a processable value",
+      "owner": "P24-T10",
+      "count": 8
+    },
+    {
+      "package": "internal/billing/application",
+      "file": "process_webhook.go",
+      "mutant": "INCREMENT_DECREMENT",
+      "class": "hangs",
+      "reason": "decrementing the escape skip counter reprocesses the same backslash forever once an escape occurs",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/billing/application",
+      "file": "apply_refund.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "same-value branches and clamp identities given amounts at or above one, which the entry checks enforce",
+      "owner": "P24-T10",
+      "count": 2
+    },
+    {
+      "package": "internal/billing/application",
+      "file": "apply_refund.go",
+      "mutant": "CONDITIONALS_NEGATION",
+      "class": "equivalent",
+      "reason": "same-value branches given amounts at or above one, which the entry checks enforce",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/billing/application",
+      "file": "apply_refund.go",
+      "mutant": "ARITHMETIC_BASE",
+      "class": "equivalent",
+      "reason": "the review fallback equalizes every attribution the mirror arithmetic could move, given amounts at or above one",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/moderation/application",
+      "file": "queue.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "clamping the maximum to itself is the identity",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/persuasion/application",
+      "file": "record_attributions.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "the comparator differs only on equal identifiers, which are indistinguishable in the output order",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/persuasion/application",
+      "file": "reputation.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "the comparator differs only on equal labels, and buckets are keyed by label so equals never meet",
+      "owner": "P24-T10",
+      "count": 1
+    },
+    {
+      "package": "internal/arenas/application",
+      "file": "publish_arena.go",
+      "mutant": "CONDITIONALS_BOUNDARY",
+      "class": "equivalent",
+      "reason": "dead guard (the base bound never drops to the minimum), trim identity (Slugify never yields a trailing separator), and slice identity at eight",
+      "owner": "P24-T10",
+      "count": 3
+    }
+  ],
+  "exclusions": []
+}

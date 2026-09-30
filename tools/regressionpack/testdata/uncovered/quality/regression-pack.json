@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "generator": "tools/regressionpack",
+  "scope": "fast-PR",
+  "budget_seconds": 60,
+  "does_not_replace": [
+    "nightly",
+    "release"
+  ],
+  "full_suite": [
+    "test-unit"
+  ],
+  "rules": [
+    {
+      "rule": "QUAL-FIX-01",
+      "risk": "Q0",
+      "tests": [
+        "probe.go::TestProbeClean"
+      ]
+    }
+  ],
+  "historical_defects": [
+    {
+      "id": "HIST-FIX-01",
+      "description": "Fixture defect pinned to a test.",
+      "fixed_in": "probe.go",
+      "test": "probe.go::TestProbeClean"
+    }
+  ]
+}

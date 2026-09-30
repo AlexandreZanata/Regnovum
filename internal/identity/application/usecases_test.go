@@ -14,8 +14,10 @@ import (
 // In-memory stubs for unit testing
 
 type inMemoryAccountRepo struct {
-	mu       sync.Mutex
-	accounts map[string]*domain.Account
+	mu            sync.Mutex
+	accounts      map[string]*domain.Account
+	verifiedCalls []string
+	getByEmailErr error
 }
 
 func newInMemoryAccountRepo() *inMemoryAccountRepo {
@@ -48,6 +50,9 @@ func (r *inMemoryAccountRepo) GetAccountByEmail(ctx context.Context, email domai
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	if r.getByEmailErr != nil {
+		return nil, r.getByEmailErr
+	}
 	for _, acc := range r.accounts {
 		if acc.Email().Equals(email) {
 			return acc, nil
@@ -75,6 +80,7 @@ func (r *inMemoryAccountRepo) SetEmailVerified(ctx context.Context, id domain.Ac
 	if !ok {
 		return application.ErrAccountNotFound
 	}
+	r.verifiedCalls = append(r.verifiedCalls, string(id))
 	if acc.Status() == domain.AccountStatusPending {
 		return acc.VerifyEmail(verifiedAt)
 	}
@@ -162,6 +168,17 @@ func (f fakePasswordHasher) VerifyPassword(p, h string) (bool, error) {
 func (f fakePasswordHasher) NeedsRehash(h string) bool { return false }
 func (f fakePasswordHasher) DummyHash() string         { return "dummy_hash" }
 
+// failingPasswordHasher proves the anti-enumeration path never touches the
+// hasher: a pending address re-registering gets the uniform response and a
+// fresh challenge even when hashing is unavailable (mutation gate:
+// register_account.go:69 — either negation must keep failing closed on the
+// lookup result instead of hashing first).
+type failingPasswordHasher struct{ fakePasswordHasher }
+
+func (f failingPasswordHasher) HashPassword(p string) (string, error) {
+	return "", errors.New("hashing unavailable")
+}
+
 type fakeClock struct {
 	now time.Time
 }
@@ -229,6 +246,12 @@ func (m *memoryEmailSender) LastToken() string {
 		return ""
 	}
 	return m.emails[len(m.emails)-1].Token
+}
+
+func (m *memoryEmailSender) sentCount() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return len(m.emails)
 }
 
 func TestRegisterAccount_SuccessAndVerification(t *testing.T) {
@@ -337,6 +360,13 @@ func TestVerifyEmail_ReplayProtection(t *testing.T) {
 	// First verification: success
 	if err := verifyUC.Execute(ctx, application.VerifyEmailCommand{Token: token}); err != nil {
 		t.Fatalf("first verification failed: %v", err)
+	}
+
+	// The verification must persist through the store: the domain mutation
+	// alone is invisible to a real store, so skipping the call would leave
+	// the account pending there (mutation gate: verify_email.go:70).
+	if len(accRepo.verifiedCalls) != 1 {
+		t.Fatalf("SetEmailVerified calls = %d, want exactly 1", len(accRepo.verifiedCalls))
 	}
 
 	// Second verification (replay attack): must fail
@@ -462,5 +492,129 @@ func TestRegisterAccount_AntiEnumeration(t *testing.T) {
 	}
 	if res.Email != "active@example.com" {
 		t.Errorf("res.Email = %q, want active@example.com", res.Email)
+	}
+}
+
+func TestRegisterAccount_BoundaryPasswordLength(t *testing.T) {
+	ctx := context.Background()
+	accRepo := newInMemoryAccountRepo()
+	tokenRepo := newInMemoryTokenRepo()
+	emailSender := &memoryEmailSender{}
+	clock := &fakeClock{now: time.Unix(1700000000, 0).UTC()}
+
+	registerUC := application.NewRegisterAccountUseCase(
+		accRepo, tokenRepo, fakePasswordHasher{}, emailSender, clock, stubRandom{val: 0x01}, domain.DefaultVerificationPolicy(),
+	)
+
+	// Seven characters refuse; exactly eight is the boundary and accepts.
+	if _, err := registerUC.Execute(ctx, application.RegisterAccountCommand{
+		Email:    "seven@example.com",
+		Password: "1234567",
+	}); !errors.Is(err, application.ErrWeakPassword) {
+		t.Errorf("7-char password error = %v, want ErrWeakPassword", err)
+	}
+	res, err := registerUC.Execute(ctx, application.RegisterAccountCommand{
+		Email:    "eight@example.com",
+		Password: "12345678",
+	})
+	if err != nil {
+		t.Fatalf("8-char password rejected: %v", err)
+	}
+	if res.Email != "eight@example.com" {
+		t.Errorf("res.Email = %q, want eight@example.com", res.Email)
+	}
+}
+
+func TestRegisterAccount_PendingEmailReissuesVerification(t *testing.T) {
+	ctx := context.Background()
+	accRepo := newInMemoryAccountRepo()
+	tokenRepo := newInMemoryTokenRepo()
+	emailSender := &memoryEmailSender{}
+	clock := &fakeClock{now: time.Unix(1700000000, 0).UTC()}
+	policy := domain.DefaultVerificationPolicy()
+
+	registerUC := application.NewRegisterAccountUseCase(
+		accRepo, tokenRepo, fakePasswordHasher{}, emailSender, clock, stubRandom{val: 0x01}, policy,
+	)
+
+	if _, err := registerUC.Execute(ctx, application.RegisterAccountCommand{
+		Email:    "pending@example.com",
+		Password: "ValidPassword123!",
+	}); err != nil {
+		t.Fatalf("first register failed: %v", err)
+	}
+	if got := emailSender.sentCount(); got != 1 {
+		t.Fatalf("sent emails = %d, want 1", got)
+	}
+
+	// A pending address re-registering gets the uniform response and a
+	// fresh verification challenge, without leaking the pending state.
+	res, err := registerUC.Execute(ctx, application.RegisterAccountCommand{
+		Email:    "pending@example.com",
+		Password: "AnotherPassword123!",
+	})
+	if err != nil {
+		t.Fatalf("pending re-register should not error (anti-enumeration): %v", err)
+	}
+	if res.Email != "pending@example.com" {
+		t.Errorf("res.Email = %q, want pending@example.com", res.Email)
+	}
+	if got := emailSender.sentCount(); got != 2 {
+		t.Errorf("sent emails = %d, want 2 (reissued verification)", got)
+	}
+}
+
+func TestRegisterAccount_RepositoryErrorPropagates(t *testing.T) {
+
+	ctx := context.Background()
+	accRepo := newInMemoryAccountRepo()
+	tokenRepo := newInMemoryTokenRepo()
+	emailSender := &memoryEmailSender{}
+	clock := &fakeClock{now: time.Unix(1700000000, 0).UTC()}
+
+	accRepo.getByEmailErr = errors.New("store unavailable")
+	registerUC := application.NewRegisterAccountUseCase(
+		accRepo, tokenRepo, fakePasswordHasher{}, emailSender, clock, stubRandom{val: 0x01}, domain.DefaultVerificationPolicy(),
+	)
+	if _, err := registerUC.Execute(ctx, application.RegisterAccountCommand{
+		Email:    "user@example.com",
+		Password: "ValidPassword123!",
+	}); err == nil || errors.Is(err, application.ErrAccountNotFound) {
+		t.Errorf("store error = %v, want the store failure to propagate", err)
+	}
+}
+
+func TestRegisterAccount_PendingPathNeverHashes(t *testing.T) {
+	ctx := context.Background()
+	accRepo := newInMemoryAccountRepo()
+	tokenRepo := newInMemoryTokenRepo()
+	emailSender := &memoryEmailSender{}
+	clock := &fakeClock{now: time.Unix(1700000000, 0).UTC()}
+	policy := domain.DefaultVerificationPolicy()
+
+	working := application.NewRegisterAccountUseCase(
+		accRepo, tokenRepo, fakePasswordHasher{}, emailSender, clock, stubRandom{val: 0x01}, policy,
+	)
+	if _, err := working.Execute(ctx, application.RegisterAccountCommand{
+		Email:    "nohash@example.com",
+		Password: "ValidPassword123!",
+	}); err != nil {
+		t.Fatalf("first register failed: %v", err)
+	}
+	broken := application.NewRegisterAccountUseCase(
+		accRepo, tokenRepo, failingPasswordHasher{}, emailSender, clock, stubRandom{val: 0x01}, policy,
+	)
+	res, err := broken.Execute(ctx, application.RegisterAccountCommand{
+		Email:    "nohash@example.com",
+		Password: "AnotherPassword123!",
+	})
+	if err != nil {
+		t.Fatalf("pending re-register with failing hasher should not error: %v", err)
+	}
+	if res.Email != "nohash@example.com" {
+		t.Errorf("res.Email = %q, want nohash@example.com", res.Email)
+	}
+	if got := emailSender.sentCount(); got != 2 {
+		t.Errorf("sent emails = %d, want 2 (reissued verification)", got)
 	}
 }

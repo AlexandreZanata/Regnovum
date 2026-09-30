@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -130,10 +131,21 @@ func TestRunHelpRejectsArguments(t *testing.T) {
 	assertError(t, err, `help takes no arguments`)
 }
 
+// TestRunUnknownCommandFailsWithSuggestion holds the shape the usage error has:
+// the failure is the sentinel of the bad invocation wrapped with the command it
+// could not place, and the help text is printed where usage belongs — on the
+// output of the process — instead of travelling inside the error string.
 func TestRunUnknownCommandFailsWithSuggestion(t *testing.T) {
-	_, _, err := runForTest(t, "serve")
+	stdout, _, err := runForTest(t, "serve")
 	assertError(t, err, `unknown command "serve"`)
-	assertError(t, err, `Run "arena help" for usage.`)
+	if !errors.Is(err, errUsage) {
+		t.Fatalf("an unknown command must wrap errUsage, got %v", err)
+	}
+	for _, want := range []string{"Usage:", "help       show this help"} {
+		if !strings.Contains(stdout, want) {
+			t.Errorf("the usage text did not reach the output (%q missing): %q", want, stdout)
+		}
+	}
 }
 
 func TestModulePathMatchesMasterPlan(t *testing.T) {
@@ -177,10 +189,6 @@ func TestRunServerRejectsArguments(t *testing.T) {
 // single JSON object, and terminates within the deadline after SIGTERM,
 // logging the graceful shutdown record.
 func TestServerBootsServesAndStopsOnSIGTERM(t *testing.T) {
-	if testing.Short() {
-		t.Skip("subprocess lifecycle test skipped in -short mode")
-	}
-
 	repoRoot, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
 		t.Fatalf("resolve repo root: %v", err)
@@ -374,10 +382,6 @@ func containsRecord(records []map[string]any, key, want string) bool {
 // TestServerReadinessWithDatabaseURL verifies that the server initializes the database
 // pool and reports ready when the database is up, and unavailable (503) when down.
 func TestServerReadinessWithDatabaseURL(t *testing.T) {
-	if testing.Short() {
-		t.Skip("subprocess readiness test skipped in -short mode")
-	}
-
 	repoRoot, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
 		t.Fatalf("resolve repo root: %v", err)
@@ -680,13 +684,22 @@ func TestMigrateUsageAndArgumentValidation(t *testing.T) {
 // TestMigrateCommandsFailWithoutDatabaseURL pins the fail-fast behavior:
 // without ARENA_DATABASE_URL the commands stop before opening anything.
 func TestMigrateCommandsFailWithoutDatabaseURL(t *testing.T) {
-	t.Parallel()
+	// config.MustLoad reads the process environment, so the test owns the
+	// precondition it asserts instead of depending on the environment it happens
+	// to be run in: the ARENA_* variables of this process are emptied for the
+	// duration of the test, and the assertion below then holds everywhere. The
+	// precondition and `t.Parallel` are incompatible, and the precondition wins
+	// (the decision the P19-T04A records for the same conflict).
+	for _, entry := range os.Environ() {
+		name, _, _ := strings.Cut(entry, "=")
+		if strings.HasPrefix(name, "ARENA_") {
+			t.Setenv(name, "")
+		}
+	}
 
-	// config.MustLoad reads the process environment; in a clean test
-	// environment no ARENA_* variables are set and loading fails.
 	_, _, err := runForTest(t, "migrate", "status")
 	if err == nil {
-		t.Skip("ARENA_* environment is configured; skipping the no-config assertion")
+		t.Fatal("without ARENA_* configuration the command must stop before opening anything, and it returned no error")
 	}
 	if !strings.Contains(err.Error(), "ARENA_") {
 		t.Errorf("error should name the missing ARENA_* configuration, got: %v", err)
@@ -704,10 +717,6 @@ func TestMigrateCommandsFailWithoutDatabaseURL(t *testing.T) {
 // because the claim is about the binary an operator runs, not about a
 // composition assembled by the test.
 func TestServerBootsInProductionAndServesTheJourney(t *testing.T) {
-	if testing.Short() {
-		t.Skip("subprocess lifecycle test skipped in -short mode")
-	}
-
 	const credential = "re_live_never_print_me"
 	db := dbtest.New(t)
 

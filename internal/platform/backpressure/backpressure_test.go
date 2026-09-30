@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/AlexandreZanata/Regnovum/internal/platform/backpressure"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/testsource"
 )
 
 type zeroRandom struct{}
@@ -96,6 +97,11 @@ func TestRunnerRetriesTransientOperationAndSucceeds(t *testing.T) {
 func TestRunnerOpensCircuitAfterFailuresAndRecovers(t *testing.T) {
 	c := config()
 	c.MaxAttempts = 1
+	// The clock is the test's and not the system's: the open window is crossed by
+	// advancing it, because a pause would be the test hoping that the instant it
+	// asserts about has passed instead of making it pass.
+	clock := testsource.NewClock(time.Date(2026, 9, 24, 12, 0, 0, 0, time.UTC))
+	c.Now = clock.Now
 	runner, err := backpressure.New(c)
 	if err != nil {
 		t.Fatal(err)
@@ -112,7 +118,7 @@ func TestRunnerOpensCircuitAfterFailuresAndRecovers(t *testing.T) {
 	if err := runner.Run(context.Background(), func(context.Context) error { return nil }); !errors.Is(err, backpressure.ErrCircuitOpen) {
 		t.Fatalf("open call = %v", err)
 	}
-	time.Sleep(25 * time.Millisecond)
+	clock.Advance(c.OpenDuration + time.Millisecond)
 	if err := runner.Run(context.Background(), func(context.Context) error { return nil }); err != nil {
 		t.Fatalf("half-open probe = %v", err)
 	}

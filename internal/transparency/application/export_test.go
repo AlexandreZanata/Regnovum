@@ -287,4 +287,44 @@ func TestExportCursorRoundTrip(t *testing.T) {
 	if position, err := codec.Decode("   "); err != nil || position != nil {
 		t.Fatalf("empty cursor = (%+v, %v), want (nil, nil)", position, err)
 	}
+
+	// The printable range edges are valid identifier bytes, while the
+	// space and DEL beside them refuse (mutation gate:
+	// export_cursor.go:104-105).
+	edged := exportArguments(1)[0]
+	edged.ID = "edge!~id"
+	if position, err := codec.Decode(codec.Encode(edged)); err != nil || position.ArgumentID != edged.ID {
+		t.Fatalf("edge cursor = (%+v, %v), want %s decoded", position, err, edged.ID)
+	}
+	for _, id := range []string{"edge id", "edge\x7fid"} {
+		edged.ID = id
+		if _, err := codec.Decode(codec.Encode(edged)); !errors.Is(err, application.ErrInvalidCursor) {
+			t.Fatalf("identifier %q error = %v, want ErrInvalidCursor", id, err)
+		}
+	}
+}
+
+func TestExportExactPageCarriesNoCursor(t *testing.T) {
+	t.Parallel()
+
+	// A page with exactly the requested rows is complete: trimming to the
+	// same length must not mint a cursor to a page that does not exist
+	// (mutation gate: export.go:186).
+	repository := &fakeExportRepository{header: exportHeader(10), arguments: exportArguments(4)}
+	uc := mustExportUseCase(t, repository)
+
+	first, err := uc.Execute(context.Background(), application.GetArenaExportQuery{ArenaID: "arena", Limit: 2})
+	if err != nil {
+		t.Fatalf("first page: %v", err)
+	}
+	if len(first.Arguments) != 2 || first.NextCursor == "" {
+		t.Fatalf("first page = %d arguments/cursor %q, want two with a cursor", len(first.Arguments), first.NextCursor)
+	}
+	last, err := uc.Execute(context.Background(), application.GetArenaExportQuery{ArenaID: "arena", Cursor: first.NextCursor, Limit: 2})
+	if err != nil {
+		t.Fatalf("last page: %v", err)
+	}
+	if len(last.Arguments) != 2 || last.NextCursor != "" {
+		t.Fatalf("last page = %d arguments/cursor %q, want two with no cursor", len(last.Arguments), last.NextCursor)
+	}
 }

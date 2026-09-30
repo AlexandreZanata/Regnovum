@@ -502,7 +502,7 @@ func expectSuccess(response *http.Response, what string) error {
 func describeFailure(response *http.Response, what string) error {
 	body, err := io.ReadAll(io.LimitReader(response.Body, 4096))
 	if err != nil {
-		return fmt.Errorf("%s: %s (and its error body could not be read: %v)", what, response.Status, err)
+		return fmt.Errorf("%s: %s (and its error body could not be read: %w)", what, response.Status, err)
 	}
 	return describeFailureBody(response, body, what)
 }

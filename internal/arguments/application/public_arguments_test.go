@@ -109,6 +109,14 @@ func TestArgumentCursorRoundTripAndRejections(t *testing.T) {
 	if _, err := application.NewArgumentCursorCodec([]byte("short")); !errors.Is(err, application.ErrWeakCursorSecret) {
 		t.Fatalf("weak secret error = %v, want ErrWeakCursorSecret", err)
 	}
+
+	// Thirty-two bytes are exactly 256 bits and must be accepted; thirty-one refuse.
+	if _, err := application.NewArgumentCursorCodec(make([]byte, 32)); err != nil {
+		t.Fatalf("32-byte secret error = %v, want accepted", err)
+	}
+	if _, err := application.NewArgumentCursorCodec(make([]byte, 31)); !errors.Is(err, application.ErrWeakCursorSecret) {
+		t.Fatalf("31-byte secret error = %v, want ErrWeakCursorSecret", err)
+	}
 }
 
 func TestListArenaArgumentsPaginatesWithLookahead(t *testing.T) {
@@ -157,6 +165,22 @@ func TestListArenaArgumentsPaginatesWithLookahead(t *testing.T) {
 	}
 	if page.NextCursor != "" {
 		t.Fatalf("last page cursor = %q, want none", page.NextCursor)
+	}
+
+	// A page with exactly the requested rows is complete: trimming to the
+	// same length must not mint a cursor to a page that does not exist
+	// (mutation gate: public_arguments.go:108).
+	repo.arenaArguments = repo.arenaArguments[:2]
+	page, err = useCase.Execute(context.Background(), application.ListArenaArgumentsQuery{
+		ArenaID:  testArenaRaw,
+		Relation: domain.RelationSupport,
+		Limit:    2,
+	})
+	if err != nil {
+		t.Fatalf("exact page Execute() error = %v", err)
+	}
+	if len(page.Arguments) != 2 || page.NextCursor != "" {
+		t.Fatalf("exact page = %d arguments/cursor %q, want two with no cursor", len(page.Arguments), page.NextCursor)
 	}
 }
 
@@ -222,6 +246,20 @@ func TestListRepliesPaginatesAndValidates(t *testing.T) {
 	}
 	if !repo.lastParent.Equals(mustArgumentID(t, testParentRaw)) || repo.lastLimit != 2 {
 		t.Fatal("the repository must receive the parsed parent and the lookahead limit")
+	}
+
+	// Exactly the requested reply completes the page: no cursor may point
+	// past it (mutation gate: public_arguments.go:156).
+	solo := &fakeArgumentQueryRepo{replies: []application.PublicArgument{
+		publicArgumentAt(t, "018f6b2a-0000-7000-8000-000000000001", testInstant),
+	}}
+	soloUseCase := application.NewListRepliesUseCase(solo, codec)
+	soloPage, err := soloUseCase.Execute(context.Background(), application.ListRepliesQuery{ParentID: testParentRaw, Limit: 1})
+	if err != nil {
+		t.Fatalf("exact page Execute() error = %v", err)
+	}
+	if len(soloPage.Arguments) != 1 || soloPage.NextCursor != "" {
+		t.Fatalf("exact page = %d arguments/cursor %q, want one with no cursor", len(soloPage.Arguments), soloPage.NextCursor)
 	}
 
 	if _, err := useCase.Execute(context.Background(), application.ListRepliesQuery{ParentID: ""}); !errors.Is(err, domain.ErrEmptyArgumentID) {

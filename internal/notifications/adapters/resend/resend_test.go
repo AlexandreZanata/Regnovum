@@ -358,7 +358,7 @@ func TestNilSenderAndNilContextAreRefused(t *testing.T) {
 		t.Errorf("nil sender error = %v, want ErrMissingDependency", err)
 	}
 	built := newHarness(t)
-	//nolint:staticcheck // the explicit nil context is the failure under test
+	//lint:ignore SA1012 the explicit nil context is the failure under test
 	if _, err := built.sender.Send(nil, contract.Message(t)); err == nil {
 		t.Error("Send(nil) error = nil, want a refusal")
 	}

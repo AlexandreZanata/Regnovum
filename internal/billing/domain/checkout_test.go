@@ -62,6 +62,12 @@ func TestIdempotencyKeyValueObject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseIdempotencyKey error = %v", err)
 	}
+	// The printable range edges are valid key bytes (mutation gate:
+	// idempotency_key.go:34).
+	edged, err := domain.ParseIdempotencyKey("edge!~key")
+	if err != nil || edged.String() != "edge!~key" {
+		t.Fatalf("edge key = %q, %v; want edge!~key", edged.String(), err)
+	}
 	if key.String() != "operation-42" || key.IsZero() {
 		t.Fatalf("key = %q", key.String())
 	}
@@ -86,6 +92,7 @@ func TestIdempotencyKeyValueObject(t *testing.T) {
 		{name: "blank", input: "   ", want: domain.ErrEmptyIdempotencyKey},
 		{name: "too long", input: strings.Repeat("a", 201), want: domain.ErrIdempotencyKeyTooLong},
 		{name: "inner space", input: "operation 42", want: domain.ErrInvalidIdempotencyKey},
+		{name: "inner DEL", input: "operation\x7f42", want: domain.ErrInvalidIdempotencyKey},
 		{name: "newline", input: "operation\n42", want: domain.ErrInvalidIdempotencyKey},
 		{name: "non ascii", input: "operação-42", want: domain.ErrInvalidIdempotencyKey},
 	}

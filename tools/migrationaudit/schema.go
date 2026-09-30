@@ -551,20 +551,6 @@ func (s *snapshot) rowCounts() map[string]int64 {
 	return counts
 }
 
-// relationsOf lists the relation names, which is what the seed and the
-// expansion checks walk.
-func (s *snapshot) relationNames() []string {
-	names := make([]string, 0, len(s.Relations))
-	for _, relation := range s.Relations {
-		if relation.Kind == "S" {
-			continue
-		}
-		names = append(names, relation.Name)
-	}
-	sort.Strings(names)
-	return names
-}
-
 func quoteLiteral(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
 }

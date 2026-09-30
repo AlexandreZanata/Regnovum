@@ -4,7 +4,7 @@
 
 **Referência arquitetural:** [ADR-011](adr/ADR-011-dependency-admission-policy.md) · [STACK.md](STACK.md) · [ARCHITECTURE.md](ARCHITECTURE.md)
 
-**Última revisão:** 2026-09-17
+**Última revisão:** 2026-09-24
 
 ---
 
@@ -55,14 +55,13 @@ Cada dependência admitida no projeto possui uma classe clara, um owner respons�
 | `typescript` (oficial) | Dev / Build Tooling | `web/` | Compilação estrita de TypeScript para módulos ESM nativos | Apache-2.0 |
 | `github.com/jackc/pgx/v5` | Runtime Backend (Adapter) | `internal/platform/adapters/out/postgres` | Driver PostgreSQL de alta performance e conexão com banco | MIT |
 | `sqlc` | Dev / Codegen Tooling | `db/queries` e `adapters/out/postgres` | Compilação de consultas SQL tipadas para Go sem reflexão | MIT |
-| `goose` (`github.com/pressly/goose/v3`) | Dev / Migration Tooling | `db/migrations` | Gerenciamento e execução de migrations versionadas em SQL | Apache-2.0 |
+| `goose` (`github.com/pressly/goose/v3`) | Dev / Migration Tooling | `db/migrations` | Gerenciamento e execução de migrations versionadas em SQL | MIT |
 | `golang.org/x/crypto` | Runtime Backend (Adapter / Platform) | `internal/platform/crypto` | Hashing seguro de senhas com algoritmo Argon2id | BSD-3-Clause |
 | `github.com/stripe/stripe-go` | Runtime Backend (Adapter) | `internal/billing/adapters/out/stripe` | Integração de Checkout, Billing e validação de webhooks | MIT |
-| `github.com/resend/resend-go` | Runtime Backend (Adapter) | `internal/notifications/adapters/out/email` | Envio de emails transacionais e operacionais via API Resend | MIT |
+| `Resend (API HTTP)` | Runtime Backend (Adapter) | `internal/notifications/adapters/email` | Envio de emails transacionais pela API HTTP do fornecedor, sem SDK | Proprietária (SaaS) |
 | `github.com/rivo/uniseg` v0.4.7 | Runtime Backend (Platform) | `internal/platform/text` | Segmentação e contagem de grapheme clusters (UAX #29) para o limite de 3.000 clusters e a tarifação de 1 INK por cluster (ADR-013) | MIT |
-| `golangci-lint` | Dev / Quality Tooling | Pipeline de CI e `Makefile` | Análise estática e checagem de regras de código Go | GPL-3.0 (CLI externa) |
+| `staticcheck` | Dev / Quality Tooling | `tools/staticaudit` e o `Makefile` | Analisador fixado de `make lint`: correctness, nilness, contexto e tratamento de erro (ADR-016, que substituiu a CLI agregada) | MIT |
 | `govulncheck` | Dev / Security Tooling | Pipeline de CI e `Makefile` | Verificação oficial de vulnerabilidades conhecidas em Go | BSD-3-Clause |
-| `testcontainers-go` | Test Tooling | `tests/integration` | Subida de contêineres efêmeros de PostgreSQL para testes | MIT |
 | `k6` | Test Tooling | `tests/load` | Testes de carga, estresse e validação de SLO de performance | AGPL-3.0 (CLI externa) |
 | `playwright` | Test Tooling | `tools/e2e` | Testes end-to-end em navegadores reais (isolado da web; `make test-e2e` prova por gate que nada do runner é entregue) | Apache-2.0 |
 | `gitleaks` | Dev / Security Tooling | Pipeline de CI e pre-commit | Varredura de credenciais e segredos no histórico Git | MIT |
@@ -73,6 +72,46 @@ Cada dependência admitida no projeto possui uma classe clara, um owner respons�
 | `Cloudflare R2` (futuro) | Infraestrutura / Storage | `internal/platform/adapters/out/storage` | Armazenamento de arquivos estáticos quando necessário | Proprietária (SaaS) |
 | `Docker Compose` | Infraestrutura / Deploy | `infra/compose` | Orquestração local e de deploy do monólito na VPS | Apache-2.0 |
 | `GitHub Actions` | Infraestrutura / CI | `.github/workflows` | Execução automatizada de testes e checagens no CI | Proprietária (SaaS) |
+
+### 4.1 Dependências transitivas do build
+
+Estas não foram escolhidas: chegam com as diretas acima e o `go.mod` as fixa. Elas entram no catálogo pelo mesmo motivo que as diretas — alguém tem de responder por elas — e o `make audit-deps` recusa a transitiva que ninguém aprovou, além de exigir a versão que a árvore declara e não a versão que alguém lembra.
+
+| Dependência / Tecnologia | Classe | Owner / Escopo | Finalidade | Licença |
+|---|---|---|---|---|
+| `github.com/jackc/pgpassfile` | Runtime Backend (Transitiva) | trazida por `github.com/jackc/pgx/v5` | Leitura do arquivo de senha do PostgreSQL usada pelo driver | MIT |
+| `github.com/jackc/pgservicefile` | Runtime Backend (Transitiva) | trazida por `github.com/jackc/pgx/v5` | Leitura do `pg_service.conf` pelo driver | MIT |
+| `github.com/jackc/puddle/v2` | Runtime Backend (Transitiva) | trazida por `github.com/jackc/pgx/v5` | Pool genérico de recursos sobre o qual o pool do driver é construído | MIT |
+| `github.com/mfridman/interpolate` | Runtime Backend (Transitiva) | trazida por `github.com/pressly/goose/v3` | Interpolação das variáveis de ambiente usadas nas migrations | MIT |
+| `github.com/sethvargo/go-retry` | Runtime Backend (Transitiva) | trazida por `github.com/pressly/goose/v3` | Retentativa com backoff usada pelo goose ao falar com o banco | Apache-2.0 |
+| `go.uber.org/multierr` | Runtime Backend (Transitiva) | trazida por `github.com/pressly/goose/v3` | Agregação de erros do goose | MIT |
+| `golang.org/x/sync` | Runtime Backend (Transitiva) | trazida por `github.com/jackc/pgx/v5` | Primitivas de sincronização usadas pelo driver e pelo goose | BSD-3-Clause |
+| `golang.org/x/sys` | Runtime Backend (Transitiva) | trazida por `github.com/jackc/pgx/v5` | Chamadas de sistema usadas pelo driver | BSD-3-Clause |
+| `golang.org/x/text` | Runtime Backend (Transitiva) | trazida por `github.com/jackc/pgx/v5` | Normalização e codificação de texto usadas pelo driver | BSD-3-Clause |
+
+### 4.2 Imagens de contêiner e actions da esteira
+
+As imagens abaixo são as que entram no build e no deploy; as de produção são referenciadas por `@sha256:`, e o `make audit-deps` recusa a tag no arquivo que roda. As actions são presas a um commit revisado, com a tag no comentário como documentação, e o portão recusa a action que volta a apontar para uma tag.
+
+| Dependência / Tecnologia | Classe | Owner / Escopo | Finalidade | Licença |
+|---|---|---|---|---|
+| `node:24-bookworm-slim` | Imagem de Build | `Dockerfile` (estágio `web`) | Compila o frontend com o `tsc`; não entra na imagem final | MIT |
+| `golang:1.27.1-bookworm` | Imagem de Build | `Dockerfile` (estágio `build`) | Compila os binários Go do repositório; não entra na imagem final | BSD-3-Clause |
+| `gcr.io/distroless/static-debian12:nonroot` | Imagem de Runtime | `Dockerfile` (estágio `runtime`) | Base da imagem final: sem shell, sem gerenciador de pacotes e sem root | Apache-2.0 |
+| `trivy` | Dev / Security Tooling | `Makefile` e o job de supply chain | Varredura de vulnerabilidades da imagem construída | Apache-2.0 |
+| `actions/checkout` | Dev / CI Tooling | `.github/workflows` | Clonagem do repositório no runner | MIT |
+| `actions/setup-go` | Dev / CI Tooling | `.github/workflows` | Toolchain Go fixada pela versão do `go.mod`, com cache do `go.sum` | MIT |
+| `actions/setup-node` | Dev / CI Tooling | `.github/workflows` | Node 24 com cache do `web/package-lock.json` | MIT |
+| `aquasecurity/trivy-action` | Dev / CI Tooling | `.github/workflows` | O scanner da esteira, na versão presa por commit | Apache-2.0 |
+
+### 4.3 Serviços alcançados por HTTP, sem SDK
+
+Dois provedores de telemetria e o de email são alcançados pelas próprias APIs HTTP, em `internal/platform/observability` e `internal/notifications/adapters/email`: nenhum pacote `getsentry/sentry-go`, `posthog-go` ou `resend-go` entra no `go.mod`. Sob `Standard Library First`, um SDK é uma dependência nova que exige justificativa e ADR, e as APIs HTTP de envelope (Sentry), de lote (PostHog) e de envio (Resend) são suficientes.
+
+| Dependência / Tecnologia | Classe | Owner / Escopo | Finalidade | Licença |
+|---|---|---|---|---|
+| `Sentry (API HTTP)` | Telemetria / Erro | `internal/platform/observability` | Recebimento dos relatórios de erro pelo envelope HTTP | Proprietária (SaaS) |
+| `PostHog (API HTTP)` | Telemetria / Produto | `internal/platform/observability` | Recebimento dos eventos de produto pelo endpoint de lote | Proprietária (SaaS) |
 
 > **Sentry e PostHog, sem SDK (P19-T05).** Os dois provedores de telemetria
 > são alcançados pelas **próprias APIs HTTP**, em `internal/platform/observability`,
@@ -106,7 +145,7 @@ O código do projeto não é uma dependência dele. A licença do **código dest
 
 - **Licenças homologadas para runtime e bibliotecas:** MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC e PostgreSQL License.
 - **Licenças restritas/proibidas no runtime:** Licenças copyleft com cláusulas fortes de reciprocidade (como AGPL, GPL, SSPL, EUPL) são expressamente proibidas no código fonte compilado da aplicação. A reciprocidade da licença do projeto é uma obrigação de quem opera o serviço pela rede, **não** uma permissão para incorporar dependência copyleft: as duas listas não se contaminam.
-- **Ferramentas de desenvolvimento e teste isoladas:** Softwares e executáveis de suporte executados externamente ao binário (ex.: `golangci-lint`, `k6`) podem utilizar licenças como GPL ou AGPL, visto que não são linkados nem distribuídos junto à aplicação.
+- **Ferramentas de desenvolvimento e teste isoladas:** Softwares e executáveis de suporte executados externamente ao binário (ex.: `k6`, o `trivy` do operador) podem utilizar licenças como GPL ou AGPL, visto que não são linkados nem distribuídos junto à aplicação. É a classe do componente, em `quality/dependencies.json`, que diz onde fica essa fronteira e o que cada classe homologa — e o `make audit-deps` recusa a licença copyleft forte na classe de runtime, que é a que entra no binário.
 
 ---
 

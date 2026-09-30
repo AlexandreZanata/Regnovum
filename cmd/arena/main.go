@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -55,6 +56,11 @@ func main() {
 	}
 }
 
+// errUsage is the sentinel of a bad invocation. The usage text is printed where
+// usage belongs — on the output — and never travels inside the error string,
+// where it would be one message ending in punctuation read by nobody.
+var errUsage = errors.New("invalid invocation")
+
 func run(args []string, stdout *os.File) error {
 	if len(args) == 0 {
 		fmt.Fprintln(stdout, usage)
@@ -80,7 +86,8 @@ func run(args []string, stdout *os.File) error {
 		}
 		fmt.Fprintln(stdout, usage)
 	default:
-		return fmt.Errorf("unknown command %q\n\n%s\n\nRun \"arena help\" for usage.", args[0], usage)
+		fmt.Fprintln(stdout, usage)
+		return fmt.Errorf("%w: unknown command %q", errUsage, args[0])
 	}
 	return nil
 }

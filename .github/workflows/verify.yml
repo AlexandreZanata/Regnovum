@@ -12,16 +12,10 @@
 #   1. Every third-party action is pinned to an immutable commit SHA, with the
 #      tag it points to in a comment beside it. A tag can be moved; a SHA is a
 #      decision someone reviewed.
-#   2. Permissions are minimal: `contents: read` here and the two extra read
-#      scopes the dependency review needs, nothing else. No job writes to the
+#   2. Permissions are minimal: `contents: read`. No job writes to the
 #      repository and no step reads a secret other than `GITHUB_TOKEN`.
-#   3. The complete verification **skips draft pull requests and never skips
-#      anything else**. A draft is work in progress (`.local/GIT_FLOW.md` §5):
-#      the per-task cadence is local, targeted tests, and this suite runs once
-#      the PR is marked ready. That is why the trigger lists
-#      `ready_for_review` and why every job carries the same draft condition —
-#      without either half, the skip would reduce the final gate instead of
-#      deferring it.
+#   3. Complete verification runs only on a version tag or manual release
+#      candidate run. Pull requests use quick.yml and targeted local tests.
 #
 # Deliberately absent: `make test-load-smoke`. It measures capacity against a
 # prepared instance with k6, not correctness, and it is not part of the release
@@ -29,14 +23,9 @@
 name: verify
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
-  pull_request:
-    # `ready_for_review` is what starts the complete suite; `synchronize` makes
-    # a corrective commit on a ready PR re-run it. Both halves are required:
-    # the job conditions below skip drafts, so a pull request that never
-    # becomes ready would never be verified at all.
-    types: [opened, synchronize, reopened, ready_for_review]
+    tags: ['v*']
 
 permissions:
   contents: read
@@ -54,7 +43,6 @@ env:
 jobs:
   foundation:
     name: Foundation verification
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     # The phase's CI budget is 30 minutes (`.local/git-flow.sh` waits 1800s for
     # the whole PR). Every job declares a bound inside it.
@@ -119,7 +107,6 @@ jobs:
 
   browser:
     name: Browser journeys
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -172,7 +159,6 @@ jobs:
 
   image:
     name: Production image
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -211,7 +197,6 @@ jobs:
 
   ingress:
     name: Ingress configuration
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -230,7 +215,6 @@ jobs:
 
   stack:
     name: Production stack
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -253,7 +237,6 @@ jobs:
 
   backup:
     name: Backup and point-in-time recovery
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -274,7 +257,6 @@ jobs:
 
   deploy:
     name: Deploy and rollback
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

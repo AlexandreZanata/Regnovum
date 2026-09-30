@@ -1,0 +1,26 @@
+{
+  "metering": {
+    "quote": {
+      "title": "Preço de medição de INK",
+      "total": "{total} milésimos de INK por {units} grafemas",
+      "expires": "Aceite válido até {date}",
+      "confirm": "Confirmar publicação",
+      "retry": "Pedir nova cotação"
+    },
+    "receipt": {
+      "title": "Recibo de INK",
+      "total": "{total} milésimos de INK por {units} grafemas",
+      "posted": "Publicado em {date}",
+      "refunded": "Reembolsado em {date}"
+    },
+    "statement": {
+      "title": "Extrato de INK",
+      "balance": "Saldo: {total} milésimos de INK",
+      "empty": "Nenhuma publicação ainda"
+    },
+    "failure": {
+      "title": "Cobrança indisponível",
+      "detail": "Confira os dados e peça uma nova cotação."
+    }
+  }
+}

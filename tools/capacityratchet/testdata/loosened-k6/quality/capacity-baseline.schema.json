@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": [
+    "schema",
+    "generator",
+    "commit",
+    "environment",
+    "datasets",
+    "k6_thresholds",
+    "go_budgets",
+    "byte_budgets",
+    "product_bounds",
+    "tolerance"
+  ],
+  "properties": {
+    "schema": {},
+    "generator": {},
+    "commit": {},
+    "environment": {},
+    "datasets": {},
+    "k6_thresholds": {},
+    "go_budgets": {},
+    "byte_budgets": {},
+    "product_bounds": {},
+    "tolerance": {}
+  }
+}

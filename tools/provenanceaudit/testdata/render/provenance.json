@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "note": "Fixture: a família que declara o renderizador de i18n e cujos artefatos não são o que ele produz — a árvore ficou para trás de locales/.",
+  "families": [
+    {
+      "name": "i18n",
+      "generator": "i18ngen",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "render": {
+        "kind": "i18ngen",
+        "root": "locales",
+        "goPackage": "i18n"
+      },
+      "inputs": [
+        {
+          "path": "locales",
+          "include": [
+            "*.json"
+          ],
+          "digest": "sha256:e088e945181eebb7d447fe9132bb4586b43b9faccea9bc2b37da99b1bbdb6e2f"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/generated.ts",
+          "digest": "sha256:075e2760c8c8a1f1a9796b5e84b9c3feb7cfa058550041d7188b18cef263304c"
+        },
+        {
+          "path": "tree/generated.go",
+          "digest": "sha256:bebaee208b1e32da71b875976e9cceaadd38817cb03e8e3b021d4022b9052147"
+        }
+      ]
+    },
+    {
+      "name": "contracts",
+      "generator": "contractgen",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/other.txt",
+          "digest": "sha256:edc65c3aeb9cbbfc7ce41d2e7a8493d90db4b132df0a10b77a89b1a6dccf07eb"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/other.txt",
+          "digest": "sha256:edc65c3aeb9cbbfc7ce41d2e7a8493d90db4b132df0a10b77a89b1a6dccf07eb"
+        }
+      ]
+    },
+    {
+      "name": "sqlc",
+      "generator": "sqlc",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/other.txt",
+          "digest": "sha256:edc65c3aeb9cbbfc7ce41d2e7a8493d90db4b132df0a10b77a89b1a6dccf07eb"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/other.txt",
+          "digest": "sha256:edc65c3aeb9cbbfc7ce41d2e7a8493d90db4b132df0a10b77a89b1a6dccf07eb"
+        }
+      ]
+    },
+    {
+      "name": "assets",
+      "generator": "assetgen",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/other.txt",
+          "digest": "sha256:edc65c3aeb9cbbfc7ce41d2e7a8493d90db4b132df0a10b77a89b1a6dccf07eb"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/other.txt",
+          "digest": "sha256:edc65c3aeb9cbbfc7ce41d2e7a8493d90db4b132df0a10b77a89b1a6dccf07eb"
+        }
+      ]
+    }
+  ]
+}

@@ -410,3 +410,41 @@ func TestSettleCheckoutRequiresCoherentConfiguration(t *testing.T) {
 		})
 	}
 }
+
+func TestSettleCheckoutAcceptsSingleUnitGrant(t *testing.T) {
+	t.Parallel()
+
+	// A grant of exactly one unit is valid: the fence refuses only below
+	// one (mutation gate: settle_checkout.go:151).
+	catalog, err := domain.NewCatalog(1, []domain.Product{
+		mustNewProduct(t, domain.MarketBrazil, "ink_1", 990, domain.CurrencyBRL, 1, "price_1QbrInk"),
+	})
+	if err != nil {
+		t.Fatalf("NewCatalog: %v", err)
+	}
+	intents := newFakeSettleCheckoutIntents()
+	intent := mustNewCheckoutIntent(t, "cs_test_session1", domain.CheckoutIntentOpen)
+	intent.ProductID = "ink_1"
+	intents.intents[intent.ID] = intent
+	inker := &fakeInker{
+		results: []application.InkerCreditResult{{Replayed: false}},
+	}
+	useCase, err := application.NewSettleCheckoutUseCase(application.SettleCheckoutDependencies{
+		Catalog: catalog,
+		Intents: intents,
+		Inker:   inker,
+		Clock:   &fakeClock{now: time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)},
+	})
+	if err != nil {
+		t.Fatalf("NewSettleCheckoutUseCase: %v", err)
+	}
+	result, err := useCase.Execute(context.Background(), application.SettleCheckoutCommand{
+		SessionID: intent.SessionID,
+	})
+	if err != nil {
+		t.Fatalf("single-unit settlement rejected: %v", err)
+	}
+	if result.AmountCredited != 1 {
+		t.Errorf("amountCredited = %d, want 1", result.AmountCredited)
+	}
+}

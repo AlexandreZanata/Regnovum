@@ -255,7 +255,6 @@ func Slug(name string) string {
 type recorder struct {
 	mutex sync.Mutex
 	lines []string
-	kept  int
 	out   io.Writer
 	err   io.Writer
 	// partial holds the last line printed without its newline yet.

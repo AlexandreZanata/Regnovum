@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaa12",
+      "message": "docs(quality): register the rule",
+      "files": [
+        {
+          "status": "M",
+          "path": "docs/STACK.md"
+        }
+      ]
+    }
+  ],
+  "catalog_after": "{\"rules\": [{\"id\": \"QUAL-REQ-P23-01\", \"risk\": \"Q0\", \"tests\": {\"positive\": [\"internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitIsIdempotent\"], \"negative\": [\"internal/wallet/adapters/postgres/repository_test.go::TestRepository_ApplyDebitInsufficientLeavesNoPartialState\"]}}]}"
+}

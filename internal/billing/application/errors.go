@@ -167,4 +167,62 @@ var (
 	// ErrPortalCustomerNotFound indicates the account has no stored provider
 	// customer, so there is no portal to open.
 	ErrPortalCustomerNotFound = errors.New("application: billing customer was not found")
+
+	// INK purchase intent error vocabulary (P35-T05).
+
+	// ErrInvalidPurchaseIntentConfig indicates the purchase intent use case
+	// could not be built from the given configuration.
+	ErrInvalidPurchaseIntentConfig = errors.New("application: purchase intent configuration is invalid")
+
+	// ErrPurchaseQuoteNotFound indicates no quotation carries the
+	// identifier: an unknown quote never opens an intent.
+	ErrPurchaseQuoteNotFound = errors.New("application: purchase quotation was not found")
+
+	// ErrPurchaseQuoteExpired indicates the quotation lapsed before
+	// acceptance: the lifetime counts from acceptance terms sealed
+	// earlier, never from a later arrival.
+	ErrPurchaseQuoteExpired = errors.New("application: purchase quotation expired before acceptance")
+
+	// ErrPurchaseIntentConflict indicates the intent key already settled
+	// different terms for the account: a retry must repeat the purchase,
+	// never rewrite it.
+	ErrPurchaseIntentConflict = errors.New("application: purchase intent key already settled different terms")
+
+	// ErrInsufficientCommercialStock indicates the commercial vault cannot
+	// cover the derived INK: the intent, the hold and every leg refuse
+	// together, so no charge exists without stock.
+	ErrInsufficientCommercialStock = errors.New("application: commercial stock cannot cover the purchase")
+
+	// INK purchase settlement error vocabulary (P35-T06).
+
+	// ErrPurchaseIntentNotFound indicates no acceptance carries the key
+	// the event names: an event without an intent settles nothing.
+	ErrPurchaseIntentNotFound = errors.New("application: purchase intent was not found")
+
+	// ErrPurchaseEventNotSettling indicates the event does not order a
+	// payment: success pages, failures and unknown statuses never move
+	// committed INK, only a paid event settles.
+	ErrPurchaseEventNotSettling = errors.New("application: purchase event does not settle")
+
+	// ErrPurchaseSettlementMismatch indicates the event disagrees with
+	// the sealed intent on amount or currency: the buyer is never shown
+	// one ticket and settled on another.
+	ErrPurchaseSettlementMismatch = errors.New("application: purchase event does not match the sealed intent")
+
+	// INK purchase chargeback error vocabulary (P35-T08).
+
+	// ErrSettlementNotFound indicates no liquidation carries the intent:
+	// without a settlement there is nothing to reverse.
+	ErrSettlementNotFound = errors.New("application: purchase settlement was not found")
+
+	// ErrChargebackConflict indicates the liquidation already carries a
+	// different dispute: a second dispute replays instead of revoking
+	// twice.
+	ErrChargebackConflict = errors.New("application: purchase liquidation already carries a dispute")
+
+	// ErrInsufficientTreasuryFunds indicates the operator cannot cover
+	// the difference without minting: the dispute refuses with
+	// everything untouched instead of inventing INK or implying a
+	// negative balance.
+	ErrInsufficientTreasuryFunds = errors.New("application: treasury cannot cover the dispute without minting")
 )

@@ -69,7 +69,6 @@ type fakeTx struct {
 	stored  map[string]*domain.DebatePosition
 	changes []domain.PositionChange
 	updates []updateCall
-	inserts int
 }
 
 type fakeTxKey struct{}

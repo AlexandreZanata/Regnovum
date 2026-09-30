@@ -24,6 +24,7 @@ import (
 	// pgx/v5 is the approved PostgreSQL dependency (master plan); its
 	// stdlib package registers the database/sql driver used here. The
 	// dedicated pgx adapter (pool, timeouts) arrives with P03-T04.
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/pressly/goose/v3/database"
@@ -102,6 +103,15 @@ const schemaName = "app"
 
 func ensureSchema(ctx context.Context, db *sql.DB) error {
 	if _, err := db.ExecContext(ctx, "CREATE SCHEMA IF NOT EXISTS "+schemaName); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			// Lost the race with a concurrent migrator creating the same
+			// schema: CREATE SCHEMA IF NOT EXISTS is check-then-act, so two
+			// runners starting together can collide on the namespace index.
+			// The schema exists, which is all the runner needs (the same
+			// tolerance 00003 documents for concurrent CREATE ROLE).
+			return nil
+		}
 		return fmt.Errorf("dbmigrate: ensure %s schema: %w", schemaName, err)
 	}
 	return nil

@@ -1,0 +1,60 @@
+{
+  "note": "O anti-padrão: a lista de materiais é derivada e ficou para trás — ela perdeu a linha do compilador que a árvore ainda declara e manteve a de uma imagem que ninguém usa mais. As duas direções na mesma fixture.",
+  "register": {
+    "schema": 1,
+    "note": "fixture",
+    "statement": "CATALOG.md",
+    "banned": [],
+    "browser_specifiers": [],
+    "paths": {
+      "go_mod": "go.mod",
+      "manifests": ["*/package.json"],
+      "browser_manifests": ["web/package.json"],
+      "images": ["Dockerfile"],
+      "production_images": ["Dockerfile"],
+      "workflows": [".github/workflows/*.yml"],
+      "sources": ["web/src"],
+      "sbom": "sbom.json"
+    },
+    "classes": [
+      {"name": "runtime-library", "role": "runtime", "pin": "exact", "licenses": ["MIT"], "reason": "fixture"},
+      {"name": "build-tooling", "role": "build", "pin": "exact", "licenses": ["MIT"], "reason": "fixture"}
+    ],
+    "entries": [
+      {
+        "kind": "module",
+        "name": "example.com/approved",
+        "version": "v1.0.0",
+        "class": "runtime-library",
+        "owner": "app",
+        "purpose": "prova",
+        "scope": "internal/app",
+        "license": "MIT",
+        "label": "example.com/approved",
+        "direct": true
+      },
+      {
+        "kind": "npm",
+        "name": "typescript",
+        "version": "7.0.2",
+        "class": "build-tooling",
+        "owner": "web",
+        "purpose": "prova",
+        "scope": "web",
+        "license": "MIT",
+        "label": "typescript"
+      }
+    ]
+  },
+  "files": {
+    "go.mod": "module example.com/probe\n\ngo 1.27.1\n\nrequire example.com/approved v1.0.0\n",
+    "internal/app/app.go": "package app\n\nimport _ \"example.com/approved\"\n",
+    "CATALOG.md": "| Dependência | Classe | Dono | Finalidade | Licença |\n| --- | --- | --- | --- | --- |\n| `example.com/approved` | runtime | app | prova | MIT |\n| `typescript` | build | web | prova | MIT |\n",
+    "web/package.json": "{\n  \"name\": \"probe\",\n  \"private\": true,\n  \"devDependencies\": {\n    \"typescript\": \"7.0.2\"\n  }\n}\n",
+    "web/src/app.ts": "import { start } from \"./start\";\n\nexport const boot = () => start();\n",
+    "web/src/start.ts": "export const start = () => 1;\n",
+    "Dockerfile": "FROM example.com/base@sha256:0000000000000000000000000000000000000000000000000000000000000001\n",
+    ".github/workflows/ci.yml": "jobs:\n  build:\n    steps:\n      - uses: example/action@1111111111111111111111111111111111111111 # v1.0.0\n",
+    "sbom.json": "{\n  \"schema\": 1,\n  \"note\": \"fixture\",\n  \"components\": [\n    {\n      \"kind\": \"module\",\n      \"name\": \"example.com/approved\",\n      \"version\": \"v1.0.0\",\n      \"class\": \"runtime-library\",\n      \"license\": \"MIT\",\n      \"owner\": \"app\",\n      \"scope\": \"internal/app\",\n      \"files\": [\"go.mod\"]\n    },\n    {\n      \"kind\": \"image\",\n      \"name\": \"example.com/retired\",\n      \"version\": \"1.0.0\",\n      \"class\": \"container-image\",\n      \"license\": \"MIT\",\n      \"owner\": \"ninguém\",\n      \"scope\": \"fora da árvore\",\n      \"digest\": \"sha256:0000000000000000000000000000000000000000000000000000000000000009\",\n      \"files\": [\"Dockerfile.retired\"]\n    }\n  ]\n}\n"
+  }
+}

@@ -36,6 +36,7 @@ func TestIdempotencyKeyValueObject(t *testing.T) {
 		{input: "stripe:evt_1Pabcdefghijklmnop", want: "stripe:evt_1Pabcdefghijklmnop"},
 		{input: "  argument-publish:42  ", want: "argument-publish:42"},
 		{input: strings.Repeat("k", 200), want: strings.Repeat("k", 200)},
+		{input: "edge!~key", want: "edge!~key"},
 	}
 	for _, tc := range valid {
 		key, err := domain.ParseIdempotencyKey(tc.input)
@@ -59,6 +60,7 @@ func TestIdempotencyKeyValueObject(t *testing.T) {
 		{name: "blank", input: " \t ", want: domain.ErrEmptyIdempotencyKey},
 		{name: "too long", input: strings.Repeat("k", 201), want: domain.ErrIdempotencyKeyTooLong},
 		{name: "inner space", input: "free 2026-09", want: domain.ErrInvalidIdempotencyKey},
+		{name: "inner DEL", input: "free:\x7f2026", want: domain.ErrInvalidIdempotencyKey},
 		{name: "inner newline", input: "free:\n2026", want: domain.ErrInvalidIdempotencyKey},
 		{name: "nul byte", input: "free:\x002026", want: domain.ErrInvalidIdempotencyKey},
 		{name: "non-ascii", input: "chave:ação", want: domain.ErrInvalidIdempotencyKey},

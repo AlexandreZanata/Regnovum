@@ -29,3 +29,4 @@ Cada decisão arquitetural relevante recebe um arquivo numerado contendo:
 - [ADR-013 — Segmentação de grapheme clusters com `rivo/uniseg`](ADR-013-unicode-grapheme-segmentation.md)
 - [ADR-014 — MFA por TOTP com implementação nativa do RFC 6238](ADR-014-totp-native-rfc6238.md)
 - [ADR-015 — Fontes determinísticas de teste e o portão de efeitos](ADR-015-deterministic-test-sources.md)
+- [ADR-016 — Toolchain de análise estática fixada](ADR-016-static-analysis-toolchain.md)

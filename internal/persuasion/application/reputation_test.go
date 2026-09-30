@@ -168,6 +168,20 @@ func TestAuthorReputationValidateRejectsIncoherentProjections(t *testing.T) {
 	}).Validate(); err != nil {
 		t.Fatalf("valid projection rejected: %v", err)
 	}
+
+	// Zero is a fact and equality is coherent: the fences refuse only
+	// below zero and strictly above the events (mutation gate:
+	// reputation.go:145,148).
+	if err := mustAuthorReputation(t, application.ArenaReputation{
+		ArenaID: zeroArena, Category: "technology", Language: "pt-BR", DistinctPeople: 0, ValidAttributions: 0,
+	}).Validate(); err != nil {
+		t.Fatalf("zeroed arena rejected: %v", err)
+	}
+	if err := mustAuthorReputation(t, application.ArenaReputation{
+		ArenaID: zeroArena, Category: "technology", Language: "pt-BR", DistinctPeople: 2, ValidAttributions: 2,
+	}).Validate(); err != nil {
+		t.Fatalf("equal counts rejected: %v", err)
+	}
 }
 
 type fakeReputationRepo struct {

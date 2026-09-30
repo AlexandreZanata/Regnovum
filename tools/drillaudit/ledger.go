@@ -20,14 +20,6 @@ import (
 	"strings"
 )
 
-// The buckets, spelled the way the migration spells them. A bucket name is not
-// a label this tool invents: it is a value the CHECK constraint accepts, and a
-// typo here would read zero rows and call it a balanced ledger.
-const (
-	bucketFree      = "FREE_INK"
-	bucketPurchased = "PURCHASED_INK"
-)
-
 // Wallet is one account's INK position: what the projection says and what the
 // append-only ledger derives to, which have to be the same number.
 type Wallet struct {

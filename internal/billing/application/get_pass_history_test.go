@@ -88,11 +88,20 @@ func TestHistoryCursorCodec(t *testing.T) {
 		signedHistoryCursor("v1|2026-09-17T12:00:00Z|"),
 		signedHistoryCursor("v1|2026-09-17T12:00:00Z|entry\nbroken"),
 		signedHistoryCursor("v1|2026-09-17T12:00:00Z|entry-a|extra"),
+		signedHistoryCursor("v1|2026-09-17T12:00:00Z|entry broken"),
+		signedHistoryCursor("v1|2026-09-17T12:00:00Z|entry\x7fbroken"),
 	}
 	for _, raw := range invalid {
 		if _, err := codec.Decode(raw); !errors.Is(err, application.ErrInvalidCursor) {
 			t.Errorf("Decode(%q) error = %v, want ErrInvalidCursor", raw, err)
 		}
+	}
+
+	// The printable range edges are valid identifier bytes (mutation
+	// gate: history_cursor.go:97).
+	edged, err := codec.Decode(signedHistoryCursor("v1|2026-09-17T12:00:00Z|edge!~id"))
+	if err != nil || edged.ConsumptionID != "edge!~id" {
+		t.Fatalf("edge cursor = (%+v, %v), want edge!~id decoded", edged, err)
 	}
 }
 
@@ -172,5 +181,20 @@ func TestGetArenaPassHistoryUseCaseClampsLimitsAndValidates(t *testing.T) {
 	repo.historyErr = errors.New("storage unavailable")
 	if _, err := useCase.Execute(context.Background(), domain.AccountID(testAccountID), "", 5); !errors.Is(err, repo.historyErr) {
 		t.Fatalf("repository error not propagated: %v", err)
+	}
+}
+
+func TestGetArenaPassHistoryExactPageCarriesNoCursor(t *testing.T) {
+	repo := &fakePassLotQueryRepo{consumptions: historyRecords(t, 2)}
+	useCase := newTestHistoryUseCase(t, repo)
+
+	// Exactly the requested rows complete the page: no cursor may point
+	// past it (mutation gate: get_pass_history.go:50).
+	history, err := useCase.Execute(context.Background(), domain.AccountID(testAccountID), "", 2)
+	if err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+	if len(history.Entries) != 2 || history.NextCursor != "" {
+		t.Fatalf("exact page = %d entries/cursor %q, want two with no cursor", len(history.Entries), history.NextCursor)
 	}
 }

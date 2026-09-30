@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AlexandreZanata/Regnovum/quality/coverage-floors.schema.json",
+  "title": "Line coverage floors and diff ratchet",
+  "description": "The versioned line-coverage policy (P24-T11): risk/global/diff thresholds, per-package floors (ratchet, only up), explicit debt below the risk floors with gate P45, and the versioned allowlist for generated and unreachable-justified lines. The loader that judges it is tools/coverageaudit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "thresholds", "targets", "allowlist"],
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "The only register version the loader understands."
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Q0", "Q1", "Q2", "global", "diff"],
+      "properties": {
+        "Q0": {"type": "number", "minimum": 0, "maximum": 100},
+        "Q1": {"type": "number", "minimum": 0, "maximum": 100},
+        "Q2": {"type": "number", "minimum": 0, "maximum": 100},
+        "global": {"type": "number", "minimum": 0, "maximum": 100},
+        "diff": {"type": "number", "minimum": 0, "maximum": 100}
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/target" }
+    },
+    "allowlist": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/allowance" }
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package", "risk", "floor", "status"],
+      "properties": {
+        "package": {"type": "string", "pattern": "^internal/[a-z0-9]+/(domain|application)$"},
+        "risk": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"enum": ["Q0", "Q1", "Q2"]}
+        },
+        "floor": {"type": "number", "minimum": 0, "maximum": 100},
+        "status": {"enum": ["measured", "deferred"]},
+        "reason": {"type": "string", "minLength": 1},
+        "gate": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "deferred"}}},
+          "then": {"required": ["reason", "gate"]}
+        }
+      ]
+    },
+    "allowance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "kind", "reason", "owner"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["generated", "unreachable"]},
+        "reason": {"type": "string", "minLength": 1},
+        "owner": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

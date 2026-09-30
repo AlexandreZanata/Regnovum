@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AlexandreZanata/Regnovum/quality/capacity-baseline.schema.json",
+  "title": "Capacity baseline",
+  "description": "The versioned capacity baseline: the commit, hardware, datasets and toolchains every number was measured with, plus the pinned k6 thresholds, Go budgets and product bounds the ratchet judges. The loader that judges it is tools/capacityratchet, and a test holds this document and that loader together.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generator", "commit", "environment", "datasets", "k6_thresholds", "go_budgets", "byte_budgets", "product_bounds", "tolerance"],
+  "properties": {
+    "schema": {
+      "const": 1,
+      "description": "The only baseline version the loader understands."
+    },
+    "generator": {
+      "type": "string",
+      "description": "The tool that owns the shape of this document."
+    },
+    "commit": {
+      "type": "string",
+      "description": "The commit the numbers were measured at; the report must cite it."
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "arch", "hardware_class", "hardware_note", "go_version", "k6_version", "postgres"],
+      "properties": {
+        "os": {"type": "string"},
+        "arch": {"type": "string"},
+        "hardware_class": {"type": "string"},
+        "hardware_note": {"type": "string"},
+        "go_version": {"type": "string"},
+        "k6_version": {"type": "string"},
+        "postgres": {"type": "string"}
+      }
+    },
+    "datasets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["go", "k6"],
+      "properties": {
+        "go": {"type": "string"},
+        "k6": {"type": "string"}
+      }
+    },
+    "k6_thresholds": {
+      "type": "object",
+      "description": "Per scenario file: global counters plus p95 bounds in milliseconds keyed by workload (and stage where the file tags one).",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["globals", "p95_ms"],
+        "properties": {
+          "globals": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "p95_ms": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "integer", "minimum": 1}}
+        }
+      }
+    },
+    "go_budgets": {
+      "type": "object",
+      "description": "Per Go test file: named time budgets the loader re-reads from the tree.",
+      "additionalProperties": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["median_ns", "allocs"],
+          "properties": {
+            "median_ns": {"type": "integer", "minimum": 0},
+            "allocs": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "byte_budgets": {
+      "type": "object",
+      "description": "Per Go test file: named byte ceilings the loader re-reads from the tree.",
+      "additionalProperties": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": {"type": "integer", "minimum": 1}
+      }
+    },
+    "product_bounds": {
+      "type": "object",
+      "description": "Product constants (file:name) the loader re-reads from the tree.",
+      "minProperties": 1,
+      "additionalProperties": {"type": "integer", "minimum": 1}
+    },
+    "tolerance": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Allowed loosening per metric; zero means any change fails until a human updates the baseline."
+    }
+  }
+}

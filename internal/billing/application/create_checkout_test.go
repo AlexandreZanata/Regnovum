@@ -892,3 +892,28 @@ func TestNewCreateCheckoutUseCaseRequiresCoherentConfiguration(t *testing.T) {
 		t.Fatalf("a coherent configuration must build: %v", err)
 	}
 }
+
+func TestCreateCheckoutProviderKeyBoundaryLength(t *testing.T) {
+	t.Parallel()
+
+	// The derived provider key ("checkout:" + account + ":" + token) is
+	// accepted at exactly the provider bound and refused past it
+	// (mutation gate: create_checkout.go:326).
+	fixture := newCheckoutFixture(t, nil)
+	key200 := strings.Repeat("k", 200)
+	account45 := domain.AccountID(strings.Repeat("a", 45))
+	if len("checkout:"+account45.String()+":"+key200) != 255 {
+		t.Fatalf("fixture key length = %d, want exactly 255", len("checkout:"+account45.String()+":"+key200))
+	}
+	boundary := fixture.command("ink_10000")
+	boundary.AccountID = account45.String()
+	boundary.IdempotencyKey = key200
+	if _, err := fixture.useCase.Execute(context.Background(), boundary); err != nil {
+		t.Fatalf("255-byte provider key rejected: %v", err)
+	}
+	past := boundary
+	past.AccountID = strings.Repeat("a", 46)
+	if _, err := fixture.useCase.Execute(context.Background(), past); !errors.Is(err, domain.ErrIdempotencyKeyTooLong) {
+		t.Fatalf("256-byte provider key error = %v, want ErrIdempotencyKeyTooLong", err)
+	}
+}

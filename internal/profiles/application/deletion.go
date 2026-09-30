@@ -159,9 +159,6 @@ func (uc *CancelDeletionUseCase) Execute(ctx context.Context, command CancelDele
 		return nil, domain.ErrEmptyAccountID
 	}
 	reason := strings.TrimSpace(command.Reason)
-	if len(reason) > 500 {
-		return nil, ErrInvalidCancelReason
-	}
 
 	now := uc.clock.Now().UTC()
 	var canceled *DeletionRequest
@@ -172,6 +169,12 @@ func (uc *CancelDeletionUseCase) Execute(ctx context.Context, command CancelDele
 		}
 		if !domain.DeletionCancellable(current.Status, now, current.RequestedAt) {
 			return ErrDeletionNotCancellable
+		}
+		// The trail stores the reason under a NOT NULL guarded CHECK: an
+		// empty reason would sail through validation and die as an
+		// unclassified 500 inside the transaction instead.
+		if reason == "" || len(reason) > 500 {
+			return ErrInvalidCancelReason
 		}
 
 		record, err := uc.deletions.CancelDeletionRequest(txCtx, command.AccountID, reason, now)

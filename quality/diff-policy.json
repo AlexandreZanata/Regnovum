@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "note": "Política do portão de diff (P23-T08, `make audit-diff`). Ela é lida por `tools/diffaudit` e responde três perguntas sobre cada arquivo que uma mudança toca: em que classe ele cai, qual papel essa classe tem (produção, evidência, gerado, isento) e qual evidência a mudança deve trazer junto. A ordem da lista `classes` decide: o primeiro casamento vence, e um arquivo que nenhuma classe casa é **recusa**, não silêncio — um diff que a política não classifica é um diff cuja evidência ninguém consegue exigir. As demandas são um vocabulário fechado implementado pelo portão (`same-area-test`, `migration-evidence`, `contract`, `provenance-input`); a política diz **quando** cada uma é exigida, e nunca a lista de arquivos que a satisfaz, que é derivada da árvore (`quality/provenance.json` manda no gerado e no contrato, `quality/catalog.json` manda nas regras Q0).",
+  "bypass": {
+    "note": "Vocabulário que, no texto de um commit, anuncia que a evidência deste portão foi dispensada. O programa não admite bypass por mensagem de commit: a recusa nomeia o commit e a palavra, e a saída declarada é registrar a exceção onde ela é julgada ou mudar o desenho.",
+    "tokens": [
+      "[skip-evidence]",
+      "[no-evidence]",
+      "skip-evidence",
+      "no-evidence",
+      "evidence-none",
+      "evidence:none",
+      "[skip-audit]",
+      "hotfix-without-test",
+      "force-green"
+    ]
+  },
+  "areas": {
+    "note": "Como a política deriva a área de um arquivo. A área é o que a demanda `same-area-test` compara: um arquivo novo de produção e um arquivo de teste estão na mesma área quando os dois apontam para o mesmo dono. O primeiro prefixo que casa decide a profundidade; o que não casa nenhum prefixo pertence à área do próprio diretório.",
+    "prefixes": [
+      { "prefix": "internal/", "depth": 2 },
+      { "prefix": "tools/", "depth": 2 },
+      { "prefix": "cmd/", "depth": 2 },
+      { "prefix": "web/src/", "depth": 3 },
+      { "prefix": "web/tests/", "depth": 3 }
+    ]
+  },
+  "kinds": {
+    "note": "As categorias de evidência do catálogo (`quality/catalog.json`, campo `tests`) divididas em nominal e adversarial. A demanda Q0 exige as duas: o caminho que funciona e o caminho que recusa.",
+    "nominal": ["positive"],
+    "adversarial": ["negative", "limit", "authorization", "concurrency", "idempotency", "failure"]
+  },
+  "route": {
+    "note": "A superfície de rota é reconhecida pelo conteúdo e não por uma lista de caminhos: o arquivo que registra rotas no processo nomeia o registrador, e o registrador em si é a fonte da verdade que o teste de contrato compara com `api/openapi.json`. O portão exige o contrato quando o **conjunto** de rotas declaradas muda entre os dois lados da mudança — mexer no corpo de um handler não muda rota nenhuma e não é recusado.",
+    "marker": "RegisterRouteProvider",
+    "registry": "internal/platform/httpserver/routes.go"
+  },
+  "contract": {
+    "note": "Os artefatos de contrato não são redigitados aqui: eles são a família do registro de procedência que o próprio gerador declara, de modo que o portão e o `make generate-check` julguem o mesmo par (insumo e artefato).",
+    "family": "contracts"
+  },
+  "classes": [
+    {
+      "name": "generated",
+      "role": "generated",
+      "reason": "O arquivo é um artefato de um gerador registrado em `quality/provenance.json`: ele não se edita à mão, e a mudança que o toca tem de trazer o insumo que o produz.",
+      "origin": "provenance",
+      "demands": [{ "kind": "provenance-pair" }]
+    },
+    {
+      "name": "documentation",
+      "role": "exempt",
+      "reason": "Documento não é comportamento: exigir teste de um `docs/**` ou de um `*.md` seria exigir prova de prosa, e o portão não existe para isso.",
+      "suffixes": [".md"],
+      "prefixes": ["docs/"]
+    },
+    {
+      "name": "governance",
+      "role": "governance",
+      "reason": "Os registros de `quality/` são as regras do próprio programa de qualidade: eles têm demanda própria (a regra Q0 exige regressão nominal e adversarial na mesma mudança), e não a demanda de um arquivo de produção.",
+      "prefixes": ["quality/"]
+    },
+    {
+      "name": "configuration",
+      "role": "exempt",
+      "reason": "Configuração de build, de pipeline e de dependência não é comportamento do produto: quem julga `.github/**` é o `tools/ciaudit` e quem julga dependência é a P23-T09.",
+      "prefixes": [".github/"],
+      "suffixes": [".yml", ".yaml"],
+      "names": [
+        "Makefile",
+        "go.mod",
+        "go.sum",
+        ".gitignore",
+        ".env.example",
+        "sqlc.yaml",
+        "package.json",
+        "web/package.json",
+        "web/package-lock.json",
+        "web/tsconfig.json"
+      ]
+    },
+    {
+      "name": "locale-data",
+      "role": "exempt",
+      "reason": "Locale JSON é dado de entrada, não comportamento: a consistência do catálogo é julgada por i18ngen -check e audit-i18n, e os artefatos gerados seguem devendo seu par de proveniência a estes insumos. Isentar o insumo enquanto a saída mantém o par prende as duas direções sem exigir testes unitários de prosa.",
+      "prefixes": ["locales/"]
+    },
+    {
+      "name": "evidence",
+      "role": "evidence",
+      "reason": "O arquivo de teste, a fixture sob `testdata/` e o cenário k6 sob `tests/load/` são a evidência que a mudança de produção exige: eles são o que satisfaz a demanda, não o que a dispara.",
+      "suffixes": ["_test.go", ".spec.js", ".test.ts"],
+      "segments": ["testdata"],
+      "prefixes": ["tests/load/"]
+    },
+    {
+      "name": "migration",
+      "role": "production",
+      "reason": "Uma migration é a única mudança que não tem `git revert` limpo: ela exige a prova de atualização na mesma mudança, e não no release seguinte. A prova vive onde os testes de schema vivem (`internal/platform/postgres/`: testes que sobem banco descartável migrado e o manifesto versionado do schema, cuja atualização é obrigatória pela auditoria de schema) ou junto do runner (`internal/platform/dbmigrate/`).",
+      "prefixes": ["internal/platform/dbmigrate/migrations/"],
+      "suffixes": [".sql"],
+      "demands": [{ "kind": "migration-evidence", "areas": ["internal/platform/dbmigrate", "internal/platform/postgres"] }]
+    },
+    {
+      "name": "contract",
+      "role": "production",
+      "reason": "O documento publicado do contrato é o insumo do cliente gerado: ele é a fonte da verdade da API e as duas pontas andam juntas, na mesma mudança.",
+      "prefixes": ["api/"],
+      "demands": [{ "kind": "provenance-pair" }]
+    },
+    {
+      "name": "route",
+      "role": "route",
+      "reason": "O arquivo declara rotas do processo: o contrato publicado e o cliente TypeScript são a outra vista da mesma lista, e uma rota nova sem eles é um contrato que mente.",
+      "marker": true,
+      "paths": true,
+      "demands": [{ "kind": "contract" }]
+    },
+    {
+      "name": "tooling",
+      "role": "production",
+      "reason": "As ferramentas do repositório são código entregue tanto quanto o produto: um arquivo novo de ferramenta chega com o teste da mesma área.",
+      "prefixes": ["tools/"],
+      "demands": [{ "kind": "same-area-test", "when": "added" }]
+    },
+    {
+      "name": "web-component",
+      "role": "production",
+      "reason": "Componentes web entregam comportamento provado por web/tests (convenção do repositório desde P18): testes na mesma área sob web/src são estruturalmente impossíveis, porque o gate de arquitetura do frontend proíbe imports Node em fontes do browser e o executor Node só executa test-build/tests/**. Componentes não importam o catálogo e renderizam via textContent, como aquela suíte prova a cada execução; exigir testes na área src forçaria uma violação de gate para satisfazer outra.",
+      "prefixes": ["web/src/components/"]
+    },
+    {
+      "name": "production",
+      "role": "production",
+      "reason": "O código do produto: um arquivo novo é comportamento novo e chega com o teste da mesma área.",
+      "prefixes": ["internal/", "cmd/", "web/src/"],
+      "demands": [{ "kind": "same-area-test", "when": "added" }]
+    }
+  ]
+}

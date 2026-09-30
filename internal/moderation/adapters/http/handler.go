@@ -201,7 +201,8 @@ func writeModerationProblem(w http.ResponseWriter, r *http.Request, err error) {
 		_ = httperror.WriteProblem(w, r, apperr.New(apperr.KindUnauthorized, "unauthorized", "authentication required"))
 	case errors.Is(err, application.ErrNotAuthorized),
 		errors.Is(err, application.ErrRoleRevoked),
-		errors.Is(err, application.ErrNotAppealOwner):
+		errors.Is(err, application.ErrNotAppealOwner),
+		errors.Is(err, domain.ErrRoleNotAuthorized):
 		_ = httperror.WriteProblem(w, r, apperr.New(apperr.KindForbidden, "forbidden", "account lacks moderation capability"))
 	case errors.Is(err, application.ErrStepUpRequired),
 		errors.Is(err, application.ErrUnknownSession):
@@ -223,6 +224,7 @@ func writeModerationProblem(w http.ResponseWriter, r *http.Request, err error) {
 	case errors.Is(err, application.ErrAppealExpired),
 		errors.Is(err, application.ErrActionNotAppealable),
 		errors.Is(err, application.ErrSameReviewer),
+		errors.Is(err, domain.ErrTargetActionMismatch),
 		errors.Is(err, domain.ErrInvalidTargetType),
 		errors.Is(err, domain.ErrInvalidReason),
 		errors.Is(err, domain.ErrInvalidContext),

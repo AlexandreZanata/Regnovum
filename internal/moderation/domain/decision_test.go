@@ -55,3 +55,17 @@ func TestDecisionExpiryCoherence(t *testing.T) {
 		t.Fatalf("warning without expiry = %v, %v; want nil, nil", expiry, err)
 	}
 }
+
+func TestRuleAndJustificationExactBoundsAccept(t *testing.T) {
+	t.Parallel()
+
+	// The bound itself belongs to the valid side: a rule of exactly
+	// MaxRuleLength and a justification of exactly MaxJustificationLength
+	// parse (mutation gate: decision.go:24,34).
+	if _, err := domain.ParseRule(strings.Repeat("r", domain.MaxRuleLength)); err != nil {
+		t.Fatalf("200-char rule: %v", err)
+	}
+	if _, err := domain.ParseJustification(strings.Repeat("j", domain.MaxJustificationLength)); err != nil {
+		t.Fatalf("2000-char justification: %v", err)
+	}
+}

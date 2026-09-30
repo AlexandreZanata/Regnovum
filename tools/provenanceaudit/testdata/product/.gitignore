@@ -1,0 +1,2 @@
+# a fixture that ignores nothing of the build
+*.log

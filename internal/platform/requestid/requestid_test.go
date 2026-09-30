@@ -117,6 +117,7 @@ func TestMiddlewareGeneratesWhenMissingOrInvalid(t *testing.T) {
 }
 
 func TestFromContextOutsideMiddleware(t *testing.T) {
+	//lint:ignore SA1012 o contexto nulo é o caso sob teste: a função tem de responder sem entrar em pânico
 	if got := FromContext(nil); got != "" {
 		t.Errorf("FromContext(nil) = %q, want empty", got)
 	}

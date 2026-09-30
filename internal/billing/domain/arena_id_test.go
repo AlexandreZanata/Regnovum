@@ -16,6 +16,7 @@ func TestArenaIDValueObject(t *testing.T) {
 		{input: "018f6b2a-0000-7000-8000-000000000001", want: "018f6b2a-0000-7000-8000-000000000001"},
 		{input: "  arena-uuid  ", want: "arena-uuid"},
 		{input: strings.Repeat("a", 64), want: strings.Repeat("a", 64)},
+		{input: "edge!~id", want: "edge!~id"},
 	}
 	for _, tc := range valid {
 		arenaID, err := domain.ParseArenaID(tc.input)
@@ -36,6 +37,7 @@ func TestArenaIDValueObject(t *testing.T) {
 		{name: "blank", input: "   ", want: domain.ErrEmptyArenaID},
 		{name: "too long", input: strings.Repeat("a", 65), want: domain.ErrInvalidArenaID},
 		{name: "inner space", input: "arena id", want: domain.ErrInvalidArenaID},
+		{name: "inner DEL", input: "arena\x7fid", want: domain.ErrInvalidArenaID},
 		{name: "newline", input: "arena\nid", want: domain.ErrInvalidArenaID},
 		{name: "non-ascii", input: "arena-ção", want: domain.ErrInvalidArenaID},
 	}

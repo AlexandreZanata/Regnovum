@@ -80,6 +80,7 @@ func TestPassReferenceValueObject(t *testing.T) {
 		{input: "member:2026-09:018f6b2a", want: "member:2026-09:018f6b2a"},
 		{input: "  admin:ticket-9  ", want: "admin:ticket-9"},
 		{input: strings.Repeat("r", 200), want: strings.Repeat("r", 200)},
+		{input: "edge!~ref", want: "edge!~ref"},
 	}
 	for _, tc := range valid {
 		reference, err := domain.ParseReference(tc.input)
@@ -100,6 +101,7 @@ func TestPassReferenceValueObject(t *testing.T) {
 		{name: "blank", input: "   ", want: domain.ErrEmptyReference},
 		{name: "too long", input: strings.Repeat("r", 201), want: domain.ErrReferenceTooLong},
 		{name: "inner space", input: "stripe: evt", want: domain.ErrInvalidReference},
+		{name: "inner DEL", input: "stripe:\x7f64", want: domain.ErrInvalidReference},
 		{name: "newline", input: "stripe:\nevt", want: domain.ErrInvalidReference},
 		{name: "non-ascii", input: "stripe:ção", want: domain.ErrInvalidReference},
 	}

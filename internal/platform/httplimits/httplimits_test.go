@@ -356,6 +356,12 @@ func (failingBody) Close() error                  { return nil }
 func TestDeadlineTravelsInTheContext(t *testing.T) {
 	t.Parallel()
 
+	// The cancellation is waited for rather than hoped for: the handler closes
+	// `waiting` once it has read its deadline and is about to block on the
+	// context, and the client cancels then. A fixed pause would assert that 50ms
+	// is longer than the middleware takes to reach the handler, which is a
+	// property of the machine and not of the product.
+	waiting := make(chan struct{})
 	handler := &recorderHandler{answer: func(writer http.ResponseWriter, request *http.Request) {
 		deadline, ok := request.Context().Deadline()
 		if !ok {
@@ -366,16 +372,18 @@ func TestDeadlineTravelsInTheContext(t *testing.T) {
 		if remaining <= 0 || remaining > 5*time.Second {
 			t.Errorf("deadline is %v away, want a positive budget below the request timeout", remaining)
 		}
+		close(waiting)
 		<-request.Context().Done()
 		writer.WriteHeader(http.StatusOK)
 	}}
 
 	request := httptest.NewRequest(http.MethodGet, "/health/live", nil)
 	ctx, cancel := context.WithCancel(request.Context())
+	defer cancel()
 	request = request.WithContext(ctx)
 
 	go func() {
-		time.Sleep(50 * time.Millisecond)
+		<-waiting
 		cancel()
 	}()
 

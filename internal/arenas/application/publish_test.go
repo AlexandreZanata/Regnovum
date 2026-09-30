@@ -260,3 +260,39 @@ func TestDeriveSlugIsStableAndBounded(t *testing.T) {
 		t.Fatalf("long slug %q must end with the id suffix", longSlug.String())
 	}
 }
+
+func TestDeriveSlugKeepsMinimalBase(t *testing.T) {
+	// A statement slugifying to exactly SlugMinLength keeps its base: only
+	// shorter bases fall back to the placeholder (mutation gate:
+	// publish_arena.go:118).
+	statement, err := domain.ParseStatement("abc!!!!!!!", domain.DefaultStatementPolicy())
+	if err != nil {
+		t.Fatalf("ParseStatement: %v", err)
+	}
+	category, _ := domain.ParseCategory("technology")
+	language, _ := domain.ParseLanguage("pt-BR")
+	arena, err := domain.ReconstituteArena(
+		domain.ArenaID("018f6b2a-0000-7000-8000-000000000022"),
+		domain.CreatorID(testCreatorID),
+		statement,
+		domain.Context{},
+		category,
+		language,
+		domain.ArenaStatusDraft,
+		domain.Slug{},
+		1,
+		testInstant,
+		nil,
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("ReconstituteArena: %v", err)
+	}
+	slug, err := application.DeriveSlug(*arena)
+	if err != nil {
+		t.Fatalf("DeriveSlug() error = %v", err)
+	}
+	if slug.String() != "abc-018f6b2a" {
+		t.Fatalf("slug = %q, want the minimal base plus the id prefix", slug.String())
+	}
+}

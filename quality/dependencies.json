@@ -1,0 +1,629 @@
+{
+  "schema": 1,
+  "note": "Registro de dependências da P23-T09: a política e o inventário no mesmo documento, porque a autorização e a coisa autorizada são a mesma decisão. Cada entrada aprova (tipo, nome, versão) com dono, finalidade, alcance, classe e licença; `make audit-deps` recusa o componente que nenhuma entrada aprova, a entrada que a árvore não declara mais, a entrada sem os campos que a triagem exige e a licença fora do que a classe homologa. As licenças foram lidas do texto que cada pacote distribui (`LICENSE` no cache de módulos e `license` no manifesto do npm) na data desta tarefa; o portão prova que elas estão declaradas com dono no catálogo, e não que o texto foi lido — essa lacuna é impressa em toda execução. Nunca editado à mão no que o censo mede: `$(GO) run ./tools/dependencyaudit -print-register` imprime o inventário que a árvore declara e os campos que faltam para o próximo run recusar.",
+  "statement": "docs/DEPENDENCIES.md",
+  "banned": [
+    "react",
+    "preact",
+    "vue",
+    "@vue/",
+    "angular",
+    "@angular/",
+    "svelte",
+    "solid-js",
+    "htmx",
+    "alpinejs",
+    "jquery",
+    "lodash",
+    "underscore",
+    "axios",
+    "vite",
+    "webpack",
+    "rollup",
+    "esbuild",
+    "parcel",
+    "babel",
+    "@babel/",
+    "tailwindcss",
+    "bootstrap",
+    "sass",
+    "less",
+    "styled-components",
+    "next",
+    "nuxt",
+    "express",
+    "koa",
+    "fastify"
+  ],
+  "browser_specifiers": [],
+  "paths": {
+    "go_mod": "go.mod",
+    "manifests": [
+      "*/package.json",
+      "*/*/package.json"
+    ],
+    "browser_manifests": [
+      "web/package.json"
+    ],
+    "images": [
+      "Dockerfile",
+      "compose*.yaml",
+      "compose*.yml",
+      ".github/workflows/*.yml"
+    ],
+    "production_images": [
+      "Dockerfile",
+      "compose.production.yaml"
+    ],
+    "workflows": [
+      ".github/workflows/*.yml"
+    ],
+    "sources": [
+      "web/src"
+    ],
+    "sbom": "quality/sbom.json"
+  },
+  "classes": [
+    {
+      "name": "runtime-library",
+      "role": "runtime",
+      "pin": "exact",
+      "licenses": [
+        "MIT",
+        "Apache-2.0",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "ISC",
+        "PostgreSQL License"
+      ],
+      "reason": "É o código que entra no binário que o serviço executa: só licença permissiva, e a versão exata é a única coisa que torna o build reproduzível — uma faixa aqui é um binário diferente a cada máquina."
+    },
+    {
+      "name": "build-tooling",
+      "role": "build",
+      "pin": "exact",
+      "licenses": [
+        "MIT",
+        "Apache-2.0",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "ISC"
+      ],
+      "reason": "Compila o que é entregue, e não é entregue: ainda assim a versão é exata, porque o compilador que segue o fornecedor emite bytes que ninguém revisou."
+    },
+    {
+      "name": "tooling-isolated",
+      "role": "tooling",
+      "pin": "exact",
+      "licenses": [
+        "MIT",
+        "Apache-2.0",
+        "BSD-3-Clause",
+        "GPL-3.0",
+        "AGPL-3.0"
+      ],
+      "reason": "Executa fora do artefato, na esteira ou na máquina do operador: a reciprocidade forte que seria proibida no binário é aceitável aqui porque o binário não carrega uma linha dela — e é essa fronteira que a classe registra."
+    },
+    {
+      "name": "tooling-external",
+      "role": "tooling",
+      "pin": "named",
+      "licenses": [
+        "MIT",
+        "Apache-2.0",
+        "BSD-3-Clause",
+        "GPL-3.0",
+        "AGPL-3.0"
+      ],
+      "reason": "Ferramenta que a árvore exige pelo nome e cuja versão é escolhida por quem roda o alvo: o portão mede e imprime essa população em vez de fingir que existe um pino que o repositório não escreve."
+    },
+    {
+      "name": "container-image",
+      "role": "infra",
+      "pin": "digest",
+      "licenses": [
+        "MIT",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "Apache-2.0",
+        "PostgreSQL License"
+      ],
+      "reason": "Imagem de contêiner: em produção ela é o digest e nunca o rótulo, porque a tag é um apelido que o registro do fornecedor pode mover debaixo do mesmo commit."
+    },
+    {
+      "name": "ci-action",
+      "role": "ci",
+      "pin": "commit",
+      "licenses": [
+        "MIT",
+        "Apache-2.0"
+      ],
+      "reason": "Action que roda dentro da esteira em cada pull request: presa a um commit revisado, porque a tag é uma ref que o dono da action pode repontar para outro conteúdo."
+    },
+    {
+      "name": "platform-service",
+      "role": "platform",
+      "pin": "named",
+      "licenses": [
+        "Proprietária (SaaS)",
+        "Serviço GitHub"
+      ],
+      "reason": "Serviço consumido sem artefato de código — borda, runner, telemetria, email — ou configuração de repositório que nenhum arquivo da árvore declara: tem dono, finalidade e licença para provar e nenhuma linha de manifesto para extrair."
+    }
+  ],
+  "entries": [
+    {
+      "kind": "action",
+      "name": "actions/checkout",
+      "version": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "class": "ci-action",
+      "owner": ".github/workflows",
+      "purpose": "Clonagem do repositório no runner, com a profundidade que cada job precisa.",
+      "scope": "os três workflows",
+      "license": "MIT",
+      "label": "actions/checkout"
+    },
+    {
+      "kind": "action",
+      "name": "actions/setup-go",
+      "version": "924ae3a1cded613372ab5595356fb5720e22ba16",
+      "class": "ci-action",
+      "owner": ".github/workflows",
+      "purpose": "Toolchain Go fixada pela versão do `go.mod`, com cache do `go.sum`.",
+      "scope": "os três workflows",
+      "license": "MIT",
+      "label": "actions/setup-go"
+    },
+    {
+      "kind": "action",
+      "name": "actions/setup-node",
+      "version": "820762786026740c76f36085b0efc47a31fe5020",
+      "class": "ci-action",
+      "owner": ".github/workflows",
+      "purpose": "Node 24 com cache do `web/package-lock.json` para o typecheck, o build e as jornadas.",
+      "scope": "quick.yml e verify.yml",
+      "license": "MIT",
+      "label": "actions/setup-node"
+    },
+    {
+      "kind": "action",
+      "name": "aquasecurity/trivy-action",
+      "version": "57a97c7e7821a5776cebc9bb87c984fa69cba8f1",
+      "class": "ci-action",
+      "owner": ".github/workflows",
+      "purpose": "Varredura de vulnerabilidades das imagens declaradas e do artefato construído.",
+      "scope": "supply-chain.yml e verify.yml (job `image`)",
+      "license": "Apache-2.0",
+      "label": "aquasecurity/trivy-action"
+    },
+    {
+      "kind": "action",
+      "name": "gitleaks/gitleaks-action",
+      "version": "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e",
+      "class": "ci-action",
+      "owner": ".github/workflows",
+      "purpose": "Varredura de credenciais no histórico e no conteúdo da árvore.",
+      "scope": "supply-chain.yml",
+      "license": "MIT",
+      "label": "gitleaks"
+    },
+    {
+      "kind": "image",
+      "name": "caddy",
+      "version": "2.10.0-alpine",
+      "class": "container-image",
+      "owner": "compose.production.yaml e infra/caddy",
+      "purpose": "Proxy reverso com terminação TLS automática e compressão.",
+      "scope": "compose.production.yaml (por digest) e a configuração em infra/caddy",
+      "license": "Apache-2.0",
+      "label": "Caddy 2"
+    },
+    {
+      "kind": "image",
+      "name": "gcr.io/distroless/static-debian12",
+      "version": "nonroot",
+      "class": "container-image",
+      "owner": "Dockerfile, estágio `runtime`",
+      "purpose": "Base da imagem final: sem shell, sem gerenciador de pacotes e sem usuário root.",
+      "scope": "Dockerfile (estágio runtime)",
+      "license": "Apache-2.0",
+      "label": "gcr.io/distroless/static-debian12:nonroot"
+    },
+    {
+      "kind": "image",
+      "name": "golang",
+      "version": "1.27.1-bookworm",
+      "class": "container-image",
+      "owner": "Dockerfile, estágio `build`",
+      "purpose": "Estágio de build que compila os binários Go do repositório.",
+      "scope": "Dockerfile (estágio build) — não entra na imagem final",
+      "license": "BSD-3-Clause",
+      "label": "golang:1.27.1-bookworm"
+    },
+    {
+      "kind": "image",
+      "name": "node",
+      "version": "24-bookworm-slim",
+      "class": "container-image",
+      "owner": "Dockerfile, estágio `web`",
+      "purpose": "Estágio de build que roda o `tsc` e emite o JavaScript do frontend.",
+      "scope": "Dockerfile (estágio web) — não entra na imagem final",
+      "license": "MIT",
+      "label": "node:24-bookworm-slim"
+    },
+    {
+      "kind": "image",
+      "name": "postgres",
+      "version": "18.4",
+      "class": "container-image",
+      "owner": "compose.yaml, compose.production.yaml e o serviço do job de verificação",
+      "purpose": "Sistema relacional de registro do serviço e dos testes de integração.",
+      "scope": "compose.yaml (desenvolvimento), compose.production.yaml (produção, por digest) e .github/workflows/verify.yml (serviço)",
+      "license": "PostgreSQL License",
+      "label": "PostgreSQL 18.x"
+    },
+    {
+      "kind": "module",
+      "name": "github.com/jackc/pgpassfile",
+      "version": "v1.0.0",
+      "class": "runtime-library",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "purpose": "Leitura do arquivo de senha do PostgreSQL usada pelo driver.",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "license": "MIT",
+      "label": "github.com/jackc/pgpassfile",
+      "direct": false
+    },
+    {
+      "kind": "module",
+      "name": "github.com/jackc/pgservicefile",
+      "version": "v0.0.0-20240606120523-5a60cdf6a761",
+      "class": "runtime-library",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "purpose": "Leitura do `pg_service.conf` pelo driver.",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "license": "MIT",
+      "label": "github.com/jackc/pgservicefile",
+      "direct": false
+    },
+    {
+      "kind": "module",
+      "name": "github.com/jackc/pgx/v5",
+      "version": "v5.11.0",
+      "class": "runtime-library",
+      "owner": "internal/platform/postgres e os adapters postgres dos módulos",
+      "purpose": "Driver PostgreSQL: pool, transações, tipos e leitura dos rows do schema `app`.",
+      "scope": "internal/**/adapters/postgres, internal/platform/dbmigrate e os cmd que abrem o pool",
+      "license": "MIT",
+      "label": "github.com/jackc/pgx/v5",
+      "direct": true
+    },
+    {
+      "kind": "module",
+      "name": "github.com/jackc/puddle/v2",
+      "version": "v2.2.2",
+      "class": "runtime-library",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "purpose": "Pool genérico de recursos sobre o qual o pool do driver é construído.",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "license": "MIT",
+      "label": "github.com/jackc/puddle/v2",
+      "direct": false
+    },
+    {
+      "kind": "module",
+      "name": "github.com/mfridman/interpolate",
+      "version": "v0.0.2",
+      "class": "runtime-library",
+      "owner": "trago por github.com/pressly/goose/v3",
+      "purpose": "Interpolação das variáveis de ambiente usadas nas migrations do goose.",
+      "scope": "transitiva de github.com/pressly/goose/v3",
+      "license": "MIT",
+      "label": "github.com/mfridman/interpolate",
+      "direct": false
+    },
+    {
+      "kind": "module",
+      "name": "github.com/pressly/goose/v3",
+      "version": "v3.28.0",
+      "class": "runtime-library",
+      "owner": "internal/platform/dbmigrate",
+      "purpose": "Execução das migrations versionadas do schema `app`, na subida e no alvo de migração.",
+      "scope": "internal/platform/dbmigrate",
+      "license": "MIT",
+      "label": "github.com/pressly/goose/v3",
+      "direct": true
+    },
+    {
+      "kind": "module",
+      "name": "github.com/rivo/uniseg",
+      "version": "v0.4.7",
+      "class": "runtime-library",
+      "owner": "internal/platform/text",
+      "purpose": "Segmentação de grapheme clusters (UAX #29) para o teto de 3.000 clusters e a tarifação de 1 INK por cluster (ADR-013).",
+      "scope": "internal/platform/text e os domínios que contam clusters pela porta dele",
+      "license": "MIT",
+      "label": "github.com/rivo/uniseg",
+      "direct": true
+    },
+    {
+      "kind": "module",
+      "name": "github.com/sethvargo/go-retry",
+      "version": "v0.4.0",
+      "class": "runtime-library",
+      "owner": "trago por github.com/pressly/goose/v3",
+      "purpose": "Retentativa com backoff usada pelo goose ao falar com o banco.",
+      "scope": "transitiva de github.com/pressly/goose/v3",
+      "license": "Apache-2.0",
+      "label": "github.com/sethvargo/go-retry",
+      "direct": false
+    },
+    {
+      "kind": "module",
+      "name": "github.com/stripe/stripe-go/v78",
+      "version": "v78.12.0",
+      "class": "runtime-library",
+      "owner": "internal/billing/adapters/stripe",
+      "purpose": "Checkout, assinatura e validação de assinatura de webhook do provedor de pagamento.",
+      "scope": "internal/billing/adapters/stripe — nenhum tipo do SDK cruza a fronteira do adapter",
+      "license": "MIT",
+      "label": "github.com/stripe/stripe-go",
+      "direct": true
+    },
+    {
+      "kind": "module",
+      "name": "go.uber.org/multierr",
+      "version": "v1.11.0",
+      "class": "runtime-library",
+      "owner": "trago por github.com/pressly/goose/v3",
+      "purpose": "Agregação de erros do goose.",
+      "scope": "transitiva de github.com/pressly/goose/v3",
+      "license": "MIT",
+      "label": "go.uber.org/multierr",
+      "direct": false
+    },
+    {
+      "kind": "module",
+      "name": "golang.org/x/crypto",
+      "version": "v0.57.0",
+      "class": "runtime-library",
+      "owner": "internal/identity/adapters/argon2id",
+      "purpose": "Argon2id para o hash de senha.",
+      "scope": "internal/identity/adapters/argon2id",
+      "license": "BSD-3-Clause",
+      "label": "golang.org/x/crypto",
+      "direct": true
+    },
+    {
+      "kind": "module",
+      "name": "golang.org/x/sync",
+      "version": "v0.23.0",
+      "class": "runtime-library",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "purpose": "Primitivas de sincronização usadas pelo driver e pelo goose.",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "license": "BSD-3-Clause",
+      "label": "golang.org/x/sync",
+      "direct": false
+    },
+    {
+      "kind": "module",
+      "name": "golang.org/x/sys",
+      "version": "v0.48.0",
+      "class": "runtime-library",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "purpose": "Chamadas de sistema usadas pelo driver.",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "license": "BSD-3-Clause",
+      "label": "golang.org/x/sys",
+      "direct": false
+    },
+    {
+      "kind": "module",
+      "name": "golang.org/x/text",
+      "version": "v0.42.0",
+      "class": "runtime-library",
+      "owner": "trago por github.com/jackc/pgx/v5",
+      "purpose": "Normalização e codificação de texto usadas pelo driver.",
+      "scope": "transitiva de github.com/jackc/pgx/v5",
+      "license": "BSD-3-Clause",
+      "label": "golang.org/x/text",
+      "direct": false
+    },
+    {
+      "kind": "npm",
+      "name": "@playwright/test",
+      "version": "1.61.0",
+      "class": "tooling-isolated",
+      "owner": "tools/e2e",
+      "purpose": "Navegadores reais para as jornadas end-to-end, isolado do pacote entregue.",
+      "scope": "tools/e2e — o `make test-e2e` prova por gate que nada do runner entra no build do frontend",
+      "license": "Apache-2.0",
+      "label": "playwright"
+    },
+    {
+      "kind": "npm",
+      "name": "typescript",
+      "version": "7.0.2",
+      "class": "build-tooling",
+      "owner": "web/",
+      "purpose": "Compilador oficial do frontend: emite os módulos ESM nativos que o browser carrega, e nada dele é entregue.",
+      "scope": "web/ — nenhuma dependência de runtime no browser",
+      "license": "Apache-2.0",
+      "label": "typescript"
+    },
+    {
+      "kind": "platform",
+      "name": "cloudflare",
+      "version": "",
+      "class": "platform-service",
+      "owner": "operação de borda",
+      "purpose": "CDN dos ativos públicos, mitigação de DDoS e Turnstile na entrada humana.",
+      "scope": "borda da implantação; a verificação do Turnstile roda no servidor",
+      "license": "Proprietária (SaaS)",
+      "label": "Cloudflare (DNS/CDN/WAF)"
+    },
+    {
+      "kind": "platform",
+      "name": "cloudflare-r2",
+      "version": "",
+      "class": "platform-service",
+      "owner": "internal/platform — futuro",
+      "purpose": "Armazenamento de arquivos estáticos, quando houver.",
+      "scope": "ainda não incorporado: nenhum arquivo da árvore o consome",
+      "license": "Proprietária (SaaS)",
+      "label": "Cloudflare R2 (futuro)"
+    },
+    {
+      "kind": "platform",
+      "name": "dependabot",
+      "version": "",
+      "class": "platform-service",
+      "owner": "configuração do repositório no GitHub",
+      "purpose": "Monitoramento de novas versões e de CVEs das dependências declaradas.",
+      "scope": "configuração do repositório: nenhum arquivo da árvore a declara, e o portão imprime essa lacuna",
+      "license": "Serviço GitHub",
+      "label": "dependabot",
+      "note": "Habilitação vive na configuração do repositório no GitHub e não na árvore; o registro guarda dono, finalidade e alcance porque a decisão existe, e o portão mede a ausência de arquivo em vez de inventar um."
+    },
+    {
+      "kind": "platform",
+      "name": "github-actions",
+      "version": "",
+      "class": "platform-service",
+      "owner": ".github/workflows",
+      "purpose": "Runner e orquestração dos workflows: o contrato do CI é o próprio arquivo versionado.",
+      "scope": "os três workflows",
+      "license": "Proprietária (SaaS)",
+      "label": "GitHub Actions"
+    },
+    {
+      "kind": "platform",
+      "name": "posthog",
+      "version": "",
+      "class": "platform-service",
+      "owner": "internal/platform/observability",
+      "purpose": "Recebimento dos eventos de produto pelo endpoint de lote, sem SDK (P19-T05).",
+      "scope": "internal/platform/observability",
+      "license": "Proprietária (SaaS)",
+      "label": "PostHog (API HTTP)"
+    },
+    {
+      "kind": "platform",
+      "name": "resend",
+      "version": "",
+      "class": "platform-service",
+      "owner": "internal/notifications/adapters/email",
+      "purpose": "Envio dos emails transacionais pela API HTTP, sem o SDK do fornecedor.",
+      "scope": "internal/notifications/adapters/email",
+      "license": "Proprietária (SaaS)",
+      "label": "Resend (API HTTP)"
+    },
+    {
+      "kind": "platform",
+      "name": "sentry",
+      "version": "",
+      "class": "platform-service",
+      "owner": "internal/platform/observability",
+      "purpose": "Recebimento dos relatórios de erro pelo envelope HTTP da própria API, sem SDK (P19-T05).",
+      "scope": "internal/platform/observability — nenhum tipo do fornecedor cruza a fronteira",
+      "license": "Proprietária (SaaS)",
+      "label": "Sentry (API HTTP)"
+    },
+    {
+      "kind": "tool",
+      "name": "docker-compose",
+      "version": "",
+      "class": "tooling-external",
+      "owner": "compose.yaml, compose.production.yaml e tools/composeaudit",
+      "purpose": "Orquestração local e de deploy do monólito na VPS.",
+      "scope": "make compose-verify e make deploy-verify",
+      "license": "Apache-2.0",
+      "label": "Docker Compose",
+      "note": "Validado pelo portão de composição, que lê os arquivos versionados; o binário é do operador e a versão dele não está escrita na árvore."
+    },
+    {
+      "kind": "tool",
+      "name": "govulncheck",
+      "version": "v1.8.0",
+      "class": "tooling-isolated",
+      "owner": "Makefile e .github/workflows/supply-chain.yml",
+      "purpose": "Varredura oficial de vulnerabilidades conhecidas nos pacotes Go do módulo e na cadeia que o binário alcança.",
+      "scope": "make vuln, no caminho rápido de release",
+      "license": "BSD-3-Clause",
+      "label": "govulncheck",
+      "version_evidence": [
+        {
+          "path": ".github/workflows/supply-chain.yml",
+          "regex": "govulncheck@(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+        },
+        {
+          "path": "Makefile",
+          "regex": "govulncheck@(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+        }
+      ]
+    },
+    {
+      "kind": "tool",
+      "name": "k6",
+      "version": "",
+      "class": "tooling-external",
+      "owner": "tests/load e os alvos de carga",
+      "purpose": "Corrida de carga e medição de SLO de performance; o cenário versionado é que é o contrato, o binário é do operador.",
+      "scope": "make test-load-smoke e make disaster-drill, fora de `make verify`",
+      "license": "AGPL-3.0",
+      "label": "k6",
+      "note": "A árvore exige o binário pelo nome e não escreve a versão: quem roda escolhe. A lacuna é medida e impressa em toda execução do portão."
+    },
+    {
+      "kind": "tool",
+      "name": "sqlc",
+      "version": "v1.29.0",
+      "class": "tooling-isolated",
+      "owner": "db/queries e internal/platform/postgres",
+      "purpose": "Compilação das queries SQL tipadas em Go sem reflexão; a versão é a que assina os artefatos gerados.",
+      "scope": "make generate e tools/releaseverify/verify.sh",
+      "license": "MIT",
+      "label": "sqlc",
+      "version_evidence": [
+        {
+          "path": ".github/workflows/verify.yml",
+          "regex": "sqlc@(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+        },
+        {
+          "path": "tools/releaseverify/verify.sh",
+          "regex": "sqlc@(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+        }
+      ]
+    },
+    {
+      "kind": "tool",
+      "name": "staticcheck",
+      "version": "v0.8.1",
+      "class": "tooling-isolated",
+      "owner": "tools/staticaudit e o Makefile",
+      "purpose": "Analisador fixado do `make lint`: correctness, nilness, contexto e tratamento de erro (ADR-016).",
+      "scope": "make lint, no `make quick-verify` de cada pull request",
+      "license": "MIT",
+      "label": "staticcheck",
+      "version_evidence": [
+        {
+          "path": "Makefile",
+          "regex": "STATICCHECK_VERSION := (v[0-9]+\\.[0-9]+\\.[0-9]+)"
+        }
+      ]
+    },
+    {
+      "kind": "tool",
+      "name": "trivy",
+      "version": "",
+      "class": "tooling-external",
+      "owner": "Makefile e .github/workflows/supply-chain.yml",
+      "purpose": "Varredura de vulnerabilidades da imagem construída; a esteira usa a action presa por commit, o operador instala o scanner fora do repositório.",
+      "scope": "make image-scan, fora de `make verify`",
+      "license": "Apache-2.0",
+      "label": "trivy",
+      "note": "Como o k6: o alvo recusa a ausência do scanner e não a versão dele."
+    }
+  ]
+}

@@ -165,7 +165,6 @@ func TestMetricsReconstructFromSources(t *testing.T) {
 
 	// Passes: six purchased lots of two, six member lots of one, six
 	// consumptions in window.
-	var purchaseLots []pgtype.UUID
 	for i := 0; i < 6; i++ {
 		var lotID pgtype.UUID
 		if err := pool.QueryRow(ctx, `
@@ -174,7 +173,6 @@ func TestMetricsReconstructFromSources(t *testing.T) {
 			RETURNING id`, authors[i].ID, fmt.Sprintf("metrics-purchase-%d", i), inWindow).Scan(&lotID); err != nil {
 			t.Fatalf("seed purchase lot: %v", err)
 		}
-		purchaseLots = append(purchaseLots, lotID)
 		if _, err := pool.Exec(ctx, `
 			INSERT INTO app.arena_pass_lots (account_id, origin, quantity, remaining_quantity, reference, expires_at, created_at)
 			VALUES ($1, 'MEMBER', 1, 1, $2, $3, $3)`, authors[i].ID, fmt.Sprintf("metrics-member-%d", i), inWindow); err != nil {

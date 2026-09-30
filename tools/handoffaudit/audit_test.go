@@ -357,7 +357,7 @@ func TestATrackedArtifactIsAPathOfTheRepository(t *testing.T) {
 	checkout := cleanCheckout(t)
 	artifact := "docs/RELEASE_CHECKLIST.md"
 	if err := os.Remove(filepath.Join(checkout, artifact)); err != nil {
-		t.Skipf("this regression needs the committed artifact: %v", err)
+		t.Fatalf("this regression is about a committed artifact, and %s is part of the tree: %v", artifact, err)
 	}
 	loaded, err := newFacts(checkout, parseDocument("README.md", "a evidência está em `"+artifact+"`\n"))
 	if err != nil {

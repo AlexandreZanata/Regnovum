@@ -103,11 +103,10 @@ func (c fakeClock) Now() time.Time { return c.now }
 
 // fakeDirectory answers the account question from a table.
 type fakeDirectory struct {
-	ref    application.AccountRef
-	err    error
-	asked  []string
-	mu     sync.Mutex
-	frozen bool
+	ref   application.AccountRef
+	err   error
+	asked []string
+	mu    sync.Mutex
 }
 
 func (d *fakeDirectory) AccountForAddress(_ context.Context, address string) (application.AccountRef, error) {
@@ -677,7 +676,7 @@ func TestEnqueuerRequiresTheQueueAndAContext(t *testing.T) {
 		Locale:    domain.LocaleDefault,
 		EventKey:  domain.EventKey(domain.TemplateVerification, "ana@example.com", knownCode),
 	}
-	//nolint:staticcheck // the explicit nil context is the failure under test
+	//lint:ignore SA1012 the explicit nil context is the failure under test
 	if _, err := built.enqueuer.Enqueue(nil, resolved); err == nil {
 		t.Error("Enqueue(nil) error = nil, want a refusal")
 	}

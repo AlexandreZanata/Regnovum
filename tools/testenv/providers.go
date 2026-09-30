@@ -83,14 +83,6 @@ func (s *providerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `{"error":"testenv_provider_not_implemented","detail":%q,"hint":"P22-T05 gives this provider its protocol scenarios; the call was recorded"}`, r.Method+" "+r.URL.Path)
 }
 
-// calls returns what the service has been asked, for the tests of the service
-// itself.
-func (s *providerServer) callsSnapshot() []recordedCall {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return append([]recordedCall(nil), s.calls...)
-}
-
 // runProviders is the subcommand the environment runs inside the isolated
 // network: `arena-testenv providers -addr 0.0.0.0:9090`. It serves until the
 // container is stopped, and it never reads the process environment.

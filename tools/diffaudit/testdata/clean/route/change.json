@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "base": "base0000",
+  "head": "head0000",
+  "commits": [
+    {
+      "sha": "aaaaaaa8",
+      "message": "feat(arenas): serve the arguments of an arena over HTTP and publish them",
+      "files": [
+        {
+          "status": "M",
+          "path": "internal/arenas/adapters/http/routes.go",
+          "before": "package http\n\nimport (\n\t\"net/http\"\n\n\t\"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver\"\n)\n\nfunc init() {\n\thttpserver.RegisterRouteProvider(Routes)\n}\n\nfunc Routes() []httpserver.Route {\n\treturn []httpserver.Route{\n\t\t{Method: http.MethodGet, Path: \"/api/v1/arenas\"},\n\t}\n}\n",
+          "after": "package http\n\nimport (\n\t\"net/http\"\n\n\t\"github.com/AlexandreZanata/Regnovum/internal/platform/httpserver\"\n)\n\nfunc init() {\n\thttpserver.RegisterRouteProvider(Routes)\n}\n\nfunc Routes() []httpserver.Route {\n\treturn []httpserver.Route{\n\t\t{Method: http.MethodGet, Path: \"/api/v1/arenas\"},\n\t\t{Method: http.MethodGet, Path: \"/api/v1/arenas/{slug}/arguments\"},\n\t}\n}\n"
+        },
+        {
+          "status": "M",
+          "path": "api/openapi.json"
+        },
+        {
+          "status": "M",
+          "path": "web/src/contracts/generated.ts"
+        }
+      ]
+    }
+  ]
+}

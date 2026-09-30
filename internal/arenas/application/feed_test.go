@@ -147,11 +147,20 @@ func TestFeedCursorCodec(t *testing.T) {
 		signed("v1|2026-09-17T12:00:00Z|"),
 		signed("v1|2026-09-17T12:00:00Z|arena\nbroken"),
 		signed("v1|2026-09-17T12:00:00Z|arena-a|extra"),
+		signed("v1|2026-09-17T12:00:00Z|arena broken"),
+		signed("v1|2026-09-17T12:00:00Z|arena\x7fbroken"),
 	}
 	for _, raw := range invalid {
 		if _, err := codec.Decode(raw); !errors.Is(err, application.ErrInvalidCursor) {
 			t.Errorf("Decode(%q) error = %v, want ErrInvalidCursor", raw, err)
 		}
+	}
+
+	// The printable range edges are valid identifier bytes (mutation
+	// gate: feed_cursor.go:103).
+	edged, err := codec.Decode(signed("v1|2026-09-17T12:00:00Z|edge!~id"))
+	if err != nil || edged.ArenaID != "edge!~id" {
+		t.Fatalf("edge cursor = (%+v, %v), want edge!~id decoded", edged, err)
 	}
 }
 
@@ -264,5 +273,20 @@ func TestGetArenaFeedUseCaseClampsLimitsAndValidatesFilters(t *testing.T) {
 	repo.err = errors.New("storage unavailable")
 	if _, err := useCase.Execute(context.Background(), application.GetArenaFeedCommand{}); !errors.Is(err, repo.err) {
 		t.Fatalf("repository error not propagated: %v", err)
+	}
+}
+
+func TestGetArenaFeedExactPageCarriesNoCursor(t *testing.T) {
+	repo := &fakeFeedRepo{arenas: mustFeedArenas(t, 2)}
+	useCase := newTestFeedUseCase(t, repo)
+
+	// Exactly the requested rows complete the page: no cursor may point
+	// past it (mutation gate: get_arena_feed.go:61).
+	feed, err := useCase.Execute(context.Background(), application.GetArenaFeedCommand{Limit: 2})
+	if err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+	if len(feed.Arenas) != 2 || feed.NextCursor != "" {
+		t.Fatalf("exact page = %d arenas/cursor %q, want two with no cursor", len(feed.Arenas), feed.NextCursor)
 	}
 }

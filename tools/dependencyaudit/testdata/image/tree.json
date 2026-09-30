@@ -1,0 +1,45 @@
+{
+  "note": "O anti-padrão: o arquivo que roda em produção nomeia a imagem por tag. A tag é um apelido que o registro do fornecedor pode mover debaixo do mesmo commit.",
+  "register": {
+    "schema": 1,
+    "note": "fixture",
+    "statement": "CATALOG.md",
+    "banned": [],
+    "browser_specifiers": [],
+    "paths": {
+      "go_mod": "go.mod",
+      "manifests": ["*/package.json"],
+      "browser_manifests": ["web/package.json"],
+      "images": ["Dockerfile"],
+      "production_images": ["Dockerfile"],
+      "workflows": [".github/workflows/*.yml"],
+      "sources": ["web/src"],
+      "sbom": "sbom.json"
+    },
+    "classes": [
+      {"name": "container-image", "role": "infra", "pin": "digest", "licenses": ["MIT"], "reason": "fixture"}
+    ],
+    "entries": [
+      {
+        "kind": "image",
+        "name": "example.com/base",
+        "version": "latest",
+        "class": "container-image",
+        "owner": "probe",
+        "purpose": "prova da imagem sem digest",
+        "scope": "probe",
+        "license": "MIT",
+        "label": "example.com/base"
+      }
+    ]
+  },
+  "files": {
+    "go.mod": "module example.com/probe\n\ngo 1.27.1\n",
+    "CATALOG.md": "| Dependência | Classe | Dono | Finalidade | Licença |\n| --- | --- | --- | --- | --- |\n| `example.com/base` | infra | probe | prova | MIT |\n",
+    "web/package.json": "{\n  \"name\": \"probe\",\n  \"private\": true,\n  \"devDependencies\": {\n    \"typescript\": \"7.0.2\"\n  }\n}\n",
+    "web/src/app.ts": "import { start } from \"./start\";\n\nexport const boot = () => start();\n",
+    "web/src/start.ts": "export const start = () => 1;\n",
+    "Dockerfile": "FROM example.com/base:latest\n",
+    ".github/workflows/ci.yml": "jobs:\n  build:\n    steps:\n      - uses: example/action@1111111111111111111111111111111111111111 # v1.0.0\n"
+  }
+}

@@ -222,23 +222,3 @@ func writeCacheableHTML(w http.ResponseWriter, r *http.Request, body []byte) {
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(body)
 }
-
-// etagMatches implements the weak comparison of RFC 9110 for If-None-Match.
-// It mirrors the JSON public reads; the copy keeps the adapters independent.
-func etagMatches(header, etag string) bool {
-	header = strings.TrimSpace(header)
-	if header == "" {
-		return false
-	}
-	if header == "*" {
-		return true
-	}
-	for _, candidate := range strings.Split(header, ",") {
-		candidate = strings.TrimSpace(candidate)
-		candidate = strings.TrimPrefix(candidate, "W/")
-		if candidate == etag {
-			return true
-		}
-	}
-	return false
-}

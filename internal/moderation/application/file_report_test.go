@@ -49,17 +49,34 @@ func (f *fakeTargets) DescribeProfile(_ context.Context, id string) (*applicatio
 }
 
 type fakeReports struct {
-	duplicates map[string]*application.ReportRecord
-	recent     int
-	inserts    []application.InsertReportRequest
-	seq        int
+	duplicates  map[string]*application.ReportRecord
+	duplicateAt map[string]time.Time
+	recent      int
+	inserts     []application.InsertReportRequest
+	seq         int
+	lastDupAt   time.Time
+	lastCountAt time.Time
 }
 
-func (f *fakeReports) FindDuplicate(_ context.Context, reporter domain.AccountID, target domain.TargetType, targetID string, reason domain.Reason, _ time.Time) (*application.ReportRecord, error) {
-	return f.duplicates[reporter.String()+"|"+target.String()+"|"+targetID+"|"+reason.String()], nil
+func (f *fakeReports) FindDuplicate(_ context.Context, reporter domain.AccountID, target domain.TargetType, targetID string, reason domain.Reason, since time.Time) (*application.ReportRecord, error) {
+	key := reporter.String() + "|" + target.String() + "|" + targetID + "|" + reason.String()
+	f.lastDupAt = since
+	record := f.duplicates[key]
+	if record == nil {
+		return nil, nil
+	}
+	// Like the SQL predicate, the duplicate only resolves inside the
+	// window: a `since` past the original instant finds nothing, which
+	// is what makes window inversions observable here instead of only
+	// against PostgreSQL (mutation gate: file_report.go:141,145).
+	if at, ok := f.duplicateAt[key]; !ok || since.After(at) {
+		return nil, nil
+	}
+	return record, nil
 }
 
-func (f *fakeReports) CountRecentByReporter(_ context.Context, _ domain.AccountID, _ time.Time) (int, error) {
+func (f *fakeReports) CountRecentByReporter(_ context.Context, _ domain.AccountID, since time.Time) (int, error) {
+	f.lastCountAt = since
 	return f.recent, nil
 }
 
@@ -82,7 +99,7 @@ func reportFixture() (*fakeTargets, *fakeReports) {
 			arenaID: {Exists: true, Owner: ownerID},
 		},
 	}
-	return targets, &fakeReports{duplicates: map[string]*application.ReportRecord{}}
+	return targets, &fakeReports{duplicates: map[string]*application.ReportRecord{}, duplicateAt: map[string]time.Time{}}
 }
 
 func TestFileReportAcceptsSpamAndSelfReport(t *testing.T) {
@@ -110,6 +127,10 @@ func TestFileReportAcceptsSpamAndSelfReport(t *testing.T) {
 	}
 	if spam.Replayed || spam.ReportID == "" {
 		t.Fatalf("spam result = %+v, want fresh report", spam)
+	}
+	// A fresh report counts itself in the window exactly once.
+	if spam.ReportsInWindow != 1 {
+		t.Fatalf("fresh ReportsInWindow = %d, want 1", spam.ReportsInWindow)
 	}
 
 	// Self-reports are allowed: the owner contesting owned content asks for
@@ -173,11 +194,13 @@ func TestFileReportDeduplicatesAndSignalsRate(t *testing.T) {
 	targets, reports := reportFixture()
 	existing := &application.ReportRecord{ID: "report-original-1", Reporter: reporterID}
 	reports.duplicates[reporterID.String()+"|arena|"+arenaID+"|spam"] = existing
+	clockNow := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
+	reports.duplicateAt[reporterID.String()+"|arena|"+arenaID+"|spam"] = clockNow
 	reports.recent = domain.RateThreshold
 	uc, err := application.NewFileReportUseCase(application.FileReportDependencies{
 		Targets: targets,
 		Reports: reports,
-		Clock:   &fakeClock{},
+		Clock:   &fakeClock{now: clockNow},
 	})
 	if err != nil {
 		t.Fatalf("NewFileReportUseCase: %v", err)
@@ -200,6 +223,16 @@ func TestFileReportDeduplicatesAndSignalsRate(t *testing.T) {
 	}
 	if len(reports.inserts) != 0 {
 		t.Fatalf("inserts = %d, want 0 (deduplicated)", len(reports.inserts))
+	}
+	// Both windows anchor on the clock: the duplicate lookup reaches one
+	// duplicate window back and the rate count one rate window back, so a
+	// sign flip on either window is observable here (mutation gate:
+	// file_report.go:141,145).
+	if !reports.lastDupAt.Equal(clockNow.Add(-domain.DuplicateWindow)) {
+		t.Fatalf("duplicate since = %v, want %v", reports.lastDupAt, clockNow.Add(-domain.DuplicateWindow))
+	}
+	if !reports.lastCountAt.Equal(clockNow.Add(-domain.RateWindow)) {
+		t.Fatalf("rate since = %v, want %v", reports.lastCountAt, clockNow.Add(-domain.RateWindow))
 	}
 }
 

@@ -295,11 +295,11 @@ func (a *audit) walkHistory(ctx context.Context, data *reportData) error {
 				return err
 			}
 			data.Failure = *failure
-			if err := a.cluster.drop(ctx, failureName); err != nil {
+			if err := a.cluster.drop(failureName); err != nil {
 				return err
 			}
 		}
-		if err := a.cluster.drop(ctx, upgradeName); err != nil {
+		if err := a.cluster.drop(upgradeName); err != nil {
 			return err
 		}
 	}
@@ -736,18 +736,6 @@ func checkVersionTable(snapshot *snapshot, version int64, where string) error {
 		return fmt.Errorf("%s: version %d is missing from the history", where, version)
 	}
 	return nil
-}
-
-func sameHistory(before, after []versionRow) bool {
-	if len(before) != len(after) {
-		return false
-	}
-	for index := range before {
-		if before[index] != after[index] {
-			return false
-		}
-	}
-	return true
 }
 
 func versionTableIsComplete(snapshot *snapshot, sources []source) bool {

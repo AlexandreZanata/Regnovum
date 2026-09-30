@@ -60,6 +60,7 @@ func TestOperationTypeVocabularyMirrorsLedgerCheck(t *testing.T) {
 		"debit_argument",
 		"debit_admin",
 		"debit_refund",
+		"debit_conversion",
 		"expire_free",
 	}
 
@@ -112,6 +113,7 @@ func TestOperationTypeDirections(t *testing.T) {
 		domain.OperationDebitArgument,
 		domain.OperationDebitAdmin,
 		domain.OperationDebitRefund,
+		domain.OperationDebitConversion,
 		domain.OperationExpireFree,
 	}
 	for _, operationType := range debits {
@@ -181,6 +183,7 @@ func TestReferenceValueObject(t *testing.T) {
 		{input: "stripe:evt_1Pabcdefghijklmnop", want: "stripe:evt_1Pabcdefghijklmnop"},
 		{input: "  moderation:case-42  ", want: "moderation:case-42"},
 		{input: strings.Repeat("a", 200), want: strings.Repeat("a", 200)},
+		{input: "edge!~ref", want: "edge!~ref"},
 	}
 	for _, tc := range valid {
 		reference, err := domain.ParseReference(tc.input)
@@ -204,6 +207,7 @@ func TestReferenceValueObject(t *testing.T) {
 		{name: "blank", input: "   ", want: domain.ErrEmptyReference},
 		{name: "too long", input: strings.Repeat("a", 201), want: domain.ErrReferenceTooLong},
 		{name: "inner space", input: "argument: 42", want: domain.ErrInvalidReference},
+		{name: "inner DEL", input: "argument:\x7f42", want: domain.ErrInvalidReference},
 		{name: "inner newline", input: "argument:\n42", want: domain.ErrInvalidReference},
 		{name: "nul byte", input: "argument:\x0042", want: domain.ErrInvalidReference},
 		{name: "non-ascii", input: "argumento:ção", want: domain.ErrInvalidReference},

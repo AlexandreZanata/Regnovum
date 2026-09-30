@@ -174,3 +174,61 @@ func TestDefaultFreeCyclePolicy(t *testing.T) {
 		t.Fatalf("franchise = %d, want %d", policy.Franchise.Int64(), domain.FreeMonthlyFranchise)
 	}
 }
+
+func TestPeriodMultiYearDiffAndNegativeMonths(t *testing.T) {
+	t.Parallel()
+
+	anchor := time.Date(2026, 9, 17, 12, 0, 0, 0, time.UTC)
+
+	// A two-year span counts 29 months: the year arithmetic cannot hide
+	// behind single-year cases (mutation gate: period.go:93).
+	far := domain.PeriodFor(anchor, time.Date(2028, 3, 5, 12, 0, 0, 0, time.UTC))
+	if far.Index() != 17 {
+		t.Errorf("Index() across years = %d, want 17", far.Index())
+	}
+	if !far.Start().Equal(time.Date(2028, 2, 17, 12, 0, 0, 0, time.UTC)) {
+		t.Errorf("Start() across years = %v, want 2028-02-17", far.Start())
+	}
+
+	// Negative months walk the floor division backward: -13 lands thirteen
+	// months before the anchor, -25 two years and a month back (mutation
+	// gate: period.go:101,119,127).
+	neg13 := domain.PeriodAt(anchor, -13)
+	if neg13.Index() != -13 {
+		t.Fatalf("Index() = %d, want -13", neg13.Index())
+	}
+	if !neg13.Start().Equal(time.Date(2025, 8, 17, 12, 0, 0, 0, time.UTC)) {
+		t.Errorf("Start() at -13 = %v, want 2025-08-17", neg13.Start())
+	}
+	if !neg13.Contains(time.Date(2025, 8, 20, 12, 0, 0, 0, time.UTC)) {
+		t.Error("period -13 must contain 2025-08-20")
+	}
+	neg25 := domain.PeriodAt(anchor, -25)
+	if !neg25.Start().Equal(time.Date(2024, 8, 17, 12, 0, 0, 0, time.UTC)) {
+		t.Errorf("Start() at -25 = %v, want 2024-08-17", neg25.Start())
+	}
+	// An exact multiple of twelve stays exact through the floor helpers.
+	neg24 := domain.PeriodAt(anchor, -24)
+	if !neg24.Start().Equal(time.Date(2024, 9, 17, 12, 0, 0, 0, time.UTC)) {
+		t.Errorf("Start() at -24 = %v, want 2024-09-17", neg24.Start())
+	}
+	// A January anchor makes negative months hit exact multiples of the
+	// divisor, which is the only input that tells the remainder check
+	// apart (mutation gate: period.go:119).
+	january := time.Date(2026, 1, 15, 12, 0, 0, 0, time.UTC)
+	janNeg24 := domain.PeriodAt(january, -24)
+	if !janNeg24.Start().Equal(time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)) {
+		t.Errorf("Start() at january-24 = %v, want 2024-01-15", janNeg24.Start())
+	}
+	janNeg25 := domain.PeriodAt(january, -25)
+	if !janNeg25.Start().Equal(time.Date(2023, 12, 15, 12, 0, 0, 0, time.UTC)) {
+		t.Errorf("Start() at january-25 = %v, want 2023-12-15", janNeg25.Start())
+	}
+
+	// Thirteen months forward crosses a year boundary with a non-zero
+	// floor quotient (mutation gate: period.go:101).
+	pos13 := domain.PeriodAt(anchor, 13)
+	if !pos13.Start().Equal(time.Date(2027, 10, 17, 12, 0, 0, 0, time.UTC)) {
+		t.Errorf("Start() at 13 = %v, want 2027-10-17", pos13.Start())
+	}
+}

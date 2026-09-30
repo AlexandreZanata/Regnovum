@@ -37,7 +37,6 @@ type recordingQueue struct {
 	mu       sync.Mutex
 	stored   map[string]string
 	order    []string
-	held     bool
 	holdFunc func()
 }
 

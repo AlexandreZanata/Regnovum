@@ -194,6 +194,12 @@ func validate(query, language string, limit int) (string, string, int, error) {
 	if query == "" || len(query) > 200 {
 		return "", "", 0, fmt.Errorf("%w: query must contain 1..200 characters", ErrInvalidQuery)
 	}
+	// NUL nunca chega ao banco: o PostgreSQL recusa o byte e o erro do
+	// driver viraria 500 não classificado. A busca é texto de interface,
+	// e NUL não é texto.
+	if strings.ContainsRune(query, '\x00') {
+		return "", "", 0, fmt.Errorf("%w: query must not contain NUL", ErrInvalidQuery)
+	}
 	if language != "" && language != "pt-BR" && language != "en-US" {
 		return "", "", 0, fmt.Errorf("%w: unsupported language", ErrInvalidQuery)
 	}

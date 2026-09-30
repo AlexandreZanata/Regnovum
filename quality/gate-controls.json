@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "note": "Fail-closed inventory of the quality gates (P30-T04). Each class names the gate that owns it, one positive and one negative control by file and test, and the fixture that carries the artificial defect. Mode execute runs the negative control as a subprocess and fails when the defect passes; mode inventory covers gates that need PostgreSQL, long runs or mutants, whose efficacy their own suites prove in CI. Fixtures never enter the binary or runtime: every fixture path is test-only.",
+  "gates": [
+    {
+      "class": "architectural",
+      "gate": "architecture",
+      "mode": "execute",
+      "package": "./internal/",
+      "test": "TestTheBoundaryRulesRefuseFixtures",
+      "positive": {"file": "internal/architecture_boundaries_test.go", "test": "TestLayerDependenciesPointInward"},
+      "negative": {"file": "internal/architecture_boundaries_test.go", "test": "TestTheBoundaryRulesRefuseFixtures"},
+      "fixture": ""
+    },
+    {
+      "class": "business-rule",
+      "gate": "business-validation",
+      "mode": "inventory",
+      "positive": {"file": "internal/billing/adapters/postgres/entitlement_model_test.go", "test": "TestBillingEntitlementModel"},
+      "negative": {"file": "internal/billing/adapters/postgres/entitlement_model_test.go", "test": "TestBillingEntitlementDetectsMutantFranchise"},
+      "fixture": ""
+    },
+    {
+      "class": "sql-drift",
+      "gate": "schema-manifest",
+      "mode": "inventory",
+      "positive": {"file": "internal/platform/postgres/schema_manifest_test.go", "test": "TestSchemaManifestMatchesFreshDatabase"},
+      "negative": {"file": "internal/platform/postgres/schema_manifest_test.go", "test": "TestSchemaManifestDetectsDrift"},
+      "fixture": ""
+    },
+    {
+      "class": "auth",
+      "gate": "authorization-matrix",
+      "mode": "inventory",
+      "positive": {"file": "internal/contract/authorization_matrix_test.go", "test": "TestAuthorizationMatrixPublicReads"},
+      "negative": {"file": "internal/contract/authorization_matrix_test.go", "test": "TestAuthorizationMatrixModeration"},
+      "fixture": ""
+    },
+    {
+      "class": "secret",
+      "gate": "canary-exfiltration",
+      "mode": "execute",
+      "package": "./internal/contract/",
+      "test": "TestCanary",
+      "positive": {"file": "internal/contract/canary_exfiltration_test.go", "test": "TestCanaryFixtures"},
+      "negative": {"file": "internal/contract/canary_exfiltration_test.go", "test": "TestCanaryHTTPResponses"},
+      "fixture": ""
+    },
+    {
+      "class": "vulnerability",
+      "gate": "audit-deps",
+      "mode": "execute",
+      "package": "./tools/dependencyaudit/",
+      "test": "TestEachRuleRefusesItsOwnFixtureSeparately",
+      "positive": {"file": "tools/dependencyaudit/dependencyaudit_test.go", "test": "TestTheDeliveredRegisterApprovesTheTree"},
+      "negative": {"file": "tools/dependencyaudit/dependencyaudit_test.go", "test": "TestEachRuleRefusesItsOwnFixtureSeparately"},
+      "fixture": "tools/dependencyaudit/testdata"
+    },
+    {
+      "class": "flake",
+      "gate": "flake-detect",
+      "mode": "execute",
+      "package": "./tools/flakedetect/",
+      "test": "TestDetectsControlledFlake",
+      "positive": {"file": "tools/flakedetect/flakedetect_test.go", "test": "TestCleanAddressPasses"},
+      "negative": {"file": "tools/flakedetect/flakedetect_test.go", "test": "TestDetectsControlledFlake"},
+      "fixture": ""
+    },
+    {
+      "class": "mutant",
+      "gate": "audit-mutations",
+      "mode": "execute",
+      "package": "./tools/mutationaudit/",
+      "test": "TestAuditRefusesPinDrift",
+      "positive": {"file": "tools/mutationaudit/mutationaudit_test.go", "test": "TestAuditAcceptsCleanTree"},
+      "negative": {"file": "tools/mutationaudit/mutationaudit_test.go", "test": "TestAuditRefusesPinDrift"},
+      "fixture": ""
+    },
+    {
+      "class": "contract",
+      "gate": "compat",
+      "mode": "execute",
+      "package": "./internal/contract/",
+      "test": "TestEachBreakingChangeRefusesItsFixture",
+      "positive": {"file": "internal/contract/compat_test.go", "test": "TestCompatibleAdditionsPass"},
+      "negative": {"file": "internal/contract/compat_test.go", "test": "TestEachBreakingChangeRefusesItsFixture"},
+      "fixture": "internal/contract/testdata"
+    },
+    {
+      "class": "performance",
+      "gate": "budgets",
+      "mode": "inventory",
+      "positive": {"file": "internal/performance/budget_test.go", "test": "TestHotFunctionBudgets"},
+      "negative": {"file": "internal/performance/payload_test.go", "test": "TestExportDocumentStaysBounded"},
+      "fixture": ""
+    },
+    {
+      "class": "truncated-evidence",
+      "gate": "evidence",
+      "mode": "execute",
+      "package": "./tools/evidence/",
+      "test": "TestEveryDeclaredRuleIsExercisedByAFixture",
+      "positive": {"file": "tools/evidence/evidence_test.go", "test": "TestAStreamBecomesOneDocument"},
+      "negative": {"file": "tools/evidence/evidence_test.go", "test": "TestEveryDeclaredRuleIsExercisedByAFixture"},
+      "fixture": ""
+    }
+  ]
+}

@@ -20,6 +20,7 @@ func TestTxContextRoundTrip(t *testing.T) {
 	if _, ok := postgres.TxFromContext(context.Background()); ok {
 		t.Fatal("a plain context must not carry a transaction")
 	}
+	//lint:ignore SA1012 o contexto nulo é o caso sob teste: a função tem de responder sem entrar em pânico
 	if _, ok := postgres.TxFromContext(nil); ok {
 		t.Fatal("a nil context must not carry a transaction")
 	}

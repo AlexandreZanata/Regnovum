@@ -183,15 +183,6 @@ func (v Violation) String() string {
 // Violations is the list, with the sort and the summary the command prints.
 type Violations []Violation
 
-func (v Violations) has(code string) bool {
-	for _, violation := range v {
-		if violation.Code == code {
-			return true
-		}
-	}
-	return false
-}
-
 // Records is what the register resolves against: the catalog's own classes and
 // the tree the tests it cites have to exist in.
 type Records struct {

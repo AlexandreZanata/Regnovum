@@ -77,9 +77,14 @@ func main() {
 	}
 }
 
+// errUsage is the sentinel of a bad invocation: the usage text is printed on the
+// output, and the error says what is missing without carrying the whole manual.
+var errUsage = errors.New("invalid invocation")
+
 func run(args []string, stdout io.Writer) error {
 	if len(args) == 0 {
-		return errors.New("a subcommand is required\n\n" + usage)
+		fmt.Fprint(stdout, usage)
+		return fmt.Errorf("%w: a subcommand is required", errUsage)
 	}
 
 	switch args[0] {
@@ -91,7 +96,8 @@ func run(args []string, stdout io.Writer) error {
 		fmt.Fprintln(stdout, usage)
 		return nil
 	default:
-		return fmt.Errorf("unknown subcommand %q\n\n%s", args[0], usage)
+		fmt.Fprint(stdout, usage)
+		return fmt.Errorf("%w: unknown subcommand %q", errUsage, args[0])
 	}
 }
 

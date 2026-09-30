@@ -177,7 +177,7 @@ func TestMoneyIsExactAndNeverFormatsAPrice(t *testing.T) {
 func TestProductIDVocabulary(t *testing.T) {
 	t.Parallel()
 
-	for _, input := range []string{"ink_10000", "pass_1", "member_monthly", "abc", "a_1"} {
+	for _, input := range []string{"ink_10000", "pass_1", "member_monthly", "abc", "a_1", strings.Repeat("p", 64)} {
 		id, err := domain.ParseProductID(input)
 		if err != nil {
 			t.Fatalf("ParseProductID(%q) error = %v", input, err)
@@ -448,6 +448,14 @@ func TestCatalogIsVersionedOrderedAndValidated(t *testing.T) {
 	if products := catalog.ProductsForMarket(domain.MarketBrazil); len(products) != 2 {
 		t.Errorf("ProductsForMarket(BR) has %d entries, want 2", len(products))
 	}
+	for _, product := range catalog.ProductsForMarket(domain.MarketBrazil) {
+		if product.Market() != domain.MarketBrazil {
+			t.Errorf("ProductsForMarket(BR) returned %s product %s", product.Market(), product.ID())
+		}
+	}
+	if products := catalog.ProductsForMarket(domain.MarketInternational); len(products) != 2 {
+		t.Errorf("ProductsForMarket(INTL) has %d entries, want 2", len(products))
+	}
 	if !catalog.Has(domain.MarketBrazil, "ink_10000") || catalog.Has(domain.MarketBrazil, "ink_40000") {
 		t.Error("Has must report only the catalogued entries")
 	}
@@ -558,5 +566,88 @@ func TestCatalog_ProductByPriceID(t *testing.T) {
 	_, err = cat.ProductByPriceID(domain.StripePriceID("price_unknown999"))
 	if !errors.Is(err, domain.ErrUnknownProduct) {
 		t.Errorf("unknown price ID error = %v, want ErrUnknownProduct", err)
+	}
+}
+
+func TestCatalogBoundaryIdentifiersAndMoney(t *testing.T) {
+	t.Parallel()
+
+	// A three-character product identifier is the boundary and parses;
+	// two characters refuse (mutation gate: catalog.go:24).
+	if _, err := domain.ParseProductID("ab1"); err != nil {
+		t.Fatalf("3-char product id: %v", err)
+	}
+	if _, err := domain.ParseProductID("ab"); !errors.Is(err, domain.ErrInvalidProductID) {
+		t.Fatalf("2-char product id error = %v, want ErrInvalidProductID", err)
+	}
+	// One minor unit is a priced product; zero is not (mutation gate:
+	// catalog.go:198).
+	oneCentID, err := domain.ParseProductID("one_cent")
+	if err != nil {
+		t.Fatalf("parse one_cent: %v", err)
+	}
+	oneCentPrice, err := domain.ParseStripePriceID("")
+	if err != nil {
+		t.Fatalf("parse empty price: %v", err)
+	}
+	if _, err := domain.NewProduct(domain.MarketBrazil, oneCentID, mustMoney(t, 1, domain.CurrencyBRL), mustINKGrant(t, 1), oneCentPrice); err != nil {
+		t.Fatalf("1-minor-unit product: %v", err)
+	}
+	if _, err := domain.NewProduct(domain.MarketBrazil, oneCentID, mustMoney(t, 0, domain.CurrencyBRL), mustINKGrant(t, 1), oneCentPrice); !errors.Is(err, domain.ErrInvalidMoney) {
+		t.Fatalf("0-minor-unit product error = %v, want ErrInvalidMoney", err)
+	}
+}
+
+func TestCatalogSingleMarketResolution(t *testing.T) {
+	t.Parallel()
+
+	// A single-market catalog resolves only its own market: the market
+	// filter must compare for equality, and a 200-character price
+	// identifier is the boundary that parses (mutation gate:
+	// catalog.go:67,278,291).
+	solo, err := domain.NewCatalog(1, []domain.Product{
+		mustProduct(t, domain.MarketBrazil, "ink_10000", 990, domain.CurrencyBRL, mustINKGrant(t, 10000), ""),
+	})
+	if err != nil {
+		t.Fatalf("NewCatalog: %v", err)
+	}
+	markets := solo.Markets()
+	if len(markets) != 1 || markets[0] != domain.MarketBrazil {
+		t.Fatalf("Markets() = %v, want exactly [brazil]", markets)
+	}
+	if products := solo.ProductsForMarket(domain.MarketBrazil); len(products) != 1 {
+		t.Fatalf("ProductsForMarket(BR) has %d entries, want 1", len(products))
+	}
+	if products := solo.ProductsForMarket(domain.MarketInternational); len(products) != 0 {
+		t.Fatalf("ProductsForMarket(INTL) has %d entries, want 0", len(products))
+	}
+
+	price200, err := domain.ParseStripePriceID("price_" + strings.Repeat("p", 194))
+	if err != nil {
+		t.Fatalf("200-char price id: %v", err)
+	}
+	if price200.String() != "price_"+strings.Repeat("p", 194) {
+		t.Fatalf("price id round-trip = %q", price200.String())
+	}
+	if _, err := domain.ParseStripePriceID("price_" + strings.Repeat("p", 195)); !errors.Is(err, domain.ErrInvalidStripePriceID) {
+		t.Fatalf("201-char price id error = %v, want ErrInvalidStripePriceID", err)
+	}
+}
+
+func TestCatalogRejectsDuplicatesInLargeCatalogs(t *testing.T) {
+	t.Parallel()
+
+	// Thirteen entries force the general sorting path: a duplicate pair
+	// far apart must still meet and refuse, whatever the comparator
+	// admits (mutation gate: catalog.go:247,249).
+	ids := []string{"ink_a", "ink_b", "ink_c", "ink_d", "ink_e", "ink_f", "ink_g", "ink_h", "ink_i", "ink_j", "ink_k"}
+	products := make([]domain.Product, 0, 13)
+	products = append(products, mustProduct(t, domain.MarketBrazil, "ink_dup", 990, domain.CurrencyBRL, mustINKGrant(t, 10000), ""))
+	for _, id := range ids {
+		products = append(products, mustProduct(t, domain.MarketBrazil, id, 990, domain.CurrencyBRL, mustINKGrant(t, 10000), ""))
+	}
+	products = append(products, mustProduct(t, domain.MarketBrazil, "ink_dup", 990, domain.CurrencyBRL, mustINKGrant(t, 10000), ""))
+	if _, err := domain.NewCatalog(1, products); !errors.Is(err, domain.ErrDuplicateProduct) {
+		t.Fatalf("far-apart duplicate error = %v, want ErrDuplicateProduct", err)
 	}
 }

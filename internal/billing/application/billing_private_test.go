@@ -2,6 +2,7 @@ package application_test
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"strings"
 	"testing"
@@ -125,4 +126,38 @@ func (f *fakePortalCustomers) RecordStripeCustomer(_ context.Context, _ applicat
 
 func (f *fakePortalCustomers) AccountIDByStripeCustomer(_ context.Context, _ domain.StripeCustomerID) (domain.AccountID, error) {
 	return "", nil
+}
+
+func TestGetBillingPortalKeyBoundaryLength(t *testing.T) {
+	t.Parallel()
+
+	// The derived portal key ("portal:" + account + ":" + token) is
+	// accepted at exactly the provider bound and refused past it
+	// (mutation gate: get_billing_portal.go:65).
+	account := domain.AccountID(strings.Repeat("a", 47))
+	customerID, _ := domain.ParseStripeCustomerID("cus_portal123")
+	storedCustomers := &fakePortalCustomers{
+		record: &application.StripeCustomerRecord{AccountID: account, CustomerID: customerID},
+	}
+	gateway := &fakeReconcileGateway{portalURL: "https://billing.example/portal/session-1"}
+	uc, err := application.NewGetBillingPortalUseCase(application.PortalDependencies{
+		Customers: storedCustomers,
+		Gateway:   gateway,
+		ReturnURL: "https://arena.example/billing/return",
+	})
+	if err != nil {
+		t.Fatalf("NewGetBillingPortalUseCase: %v", err)
+	}
+	key200 := strings.Repeat("k", 200)
+	if len("portal:"+account.String()+":"+key200) != 255 {
+		t.Fatalf("fixture key length = %d, want exactly 255", len("portal:"+account.String()+":"+key200))
+	}
+	if _, err := uc.Execute(context.Background(), account, key200); err != nil {
+		t.Fatalf("255-byte portal key rejected: %v", err)
+	}
+	longAccount := domain.AccountID(strings.Repeat("a", 48))
+	storedCustomers.record = &application.StripeCustomerRecord{AccountID: longAccount, CustomerID: customerID}
+	if _, err := uc.Execute(context.Background(), longAccount, key200); !errors.Is(err, domain.ErrIdempotencyKeyTooLong) {
+		t.Fatalf("256-byte portal key error = %v, want ErrIdempotencyKeyTooLong", err)
+	}
 }

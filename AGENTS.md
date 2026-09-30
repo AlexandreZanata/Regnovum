@@ -7,11 +7,12 @@ Este documento estabelece as regras mandatórias de execução técnica, arquite
 - **Uma microtarefa por vez:** execute estritamente uma única tarefa por ciclo. É proibido acumular tarefas, pular etapas ou ampliar escopo não solicitado.
 - **Commits atômicos:** cada tarefa concluída deve gerar exatamente um commit atômico após todos os gates passarem.
 - **Padrão de commit:** utilize o formato Conventional Commits (`type(scope): descrição`), conforme documentado em `docs/COMMITS.md`.
-- **Publicação autorizada (branch de fase + PR + merge):** a política anterior de "nunca fazer push" foi **substituída por autorização expressa do titular do repositório (2026-09-18)**. O fluxo obrigatório é: uma branch de trabalho por microfase (`phase-NN-<slug>`), um commit por microtarefa empurrado para essa branch, um Pull Request por fase (aberto em rascunho e marcado como pronto ao final) e merge **somente** após o exit gate da fase e o CI `verify` verdes. Ferramenta canônica: `.local/git-flow.sh`. Nunca empurre direto em `main`; nunca use `--force`, `--admin` ou `--no-verify`; tags e releases continuam proibidas nesta política.
+- **Publicação autorizada (branch de fase + PR + merge):** uma branch por microfase (`phase-NN-<slug>`), um commit por microtarefa e um PR por fase. Após os testes direcionados e o exit gate, o merge exige `make quick-verify` local e o check remoto `Quick verification` verde. A suíte completa é gate de release somente depois do merge de todas as fases atuais até P44, na futura P45; P30/P44 apenas preparam os gates. Ferramenta canônica: `.local/git-flow.sh`. Nunca empurre direto em `main`; nunca use `--force`, `--admin` ou `--no-verify`.
 - **Proibição de operações destrutivas:** é proibido usar `git reset --hard`, `git clean -fd`, `--force` ou `--no-verify`.
 - **Limpeza do repositório:** antes de iniciar qualquer alteração, confirme que o repositório está limpo (`git status --short`). Ao finalizar, o repositório deve permanecer limpo.
 - **Segredos e dados privados:** é estritamente proibido inserir dados reais, segredos, credenciais, endereços de email pessoais ou dumps de produção.
 - **Critério de interrupção:** se qualquer teste, compilação ou validação falhar, ou se houver dúvida sobre requisitos, pare imediatamente e não faça commit.
+- **Registro histórico e wiki:** ao encerrar cada fase, registre o que foi entregue, a evidência e o PR mergeado em `docs/HISTORY.md` e publique o espelho com `./.local/git-flow.sh wiki`. A wiki é a vitrine pública do histórico; o plano local (`.local/`) nunca é publicado.
 
 ## 2. Arquitetura Obrigatória
 
@@ -45,7 +46,7 @@ Este documento estabelece as regras mandatórias de execução técnica, arquite
 
 ## 4. Validação e Gates de Qualidade
 
-Toda alteração deve ser validada antes de qualquer commit. Execute as verificações pertinentes:
+Toda alteração deve ser validada antes de qualquer commit. Execute os testes diretamente pertinentes e a validação mínima da tarefa; falha conhecida não é adiada para release. Em Q0, teste casos positivos, negativos, autorização, idempotência, concorrência e falha parcial quando aplicáveis, com PostgreSQL real para regras transacionais. `make quick-verify` e o check remoto curto são o gate de integração; `make verify` e os gates caros são de release na P45, após todas as fases atuais até P44. Execute as verificações pertinentes:
 
 - **Integridade Git:**
   ```bash

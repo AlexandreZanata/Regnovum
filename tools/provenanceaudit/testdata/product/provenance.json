@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "note": "Fixture: o produto de build que o .gitignore não cobre — o repositório aceitaria os bytes de um build.",
+  "families": [
+    {
+      "name": "i18n",
+      "generator": "i18ngen",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/source.txt",
+          "digest": "sha256:547c5798ddb98d5dc9852dc6e8c93a16eac2463e43534c876acf60ea800eb953"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/source.txt",
+          "digest": "sha256:547c5798ddb98d5dc9852dc6e8c93a16eac2463e43534c876acf60ea800eb953"
+        }
+      ]
+    },
+    {
+      "name": "contracts",
+      "generator": "contractgen",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/source.txt",
+          "digest": "sha256:547c5798ddb98d5dc9852dc6e8c93a16eac2463e43534c876acf60ea800eb953"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/source.txt",
+          "digest": "sha256:547c5798ddb98d5dc9852dc6e8c93a16eac2463e43534c876acf60ea800eb953"
+        }
+      ]
+    },
+    {
+      "name": "sqlc",
+      "generator": "sqlc",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/source.txt",
+          "digest": "sha256:547c5798ddb98d5dc9852dc6e8c93a16eac2463e43534c876acf60ea800eb953"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/source.txt",
+          "digest": "sha256:547c5798ddb98d5dc9852dc6e8c93a16eac2463e43534c876acf60ea800eb953"
+        }
+      ]
+    },
+    {
+      "name": "assets",
+      "generator": "assetgen",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/source.txt",
+          "digest": "sha256:547c5798ddb98d5dc9852dc6e8c93a16eac2463e43534c876acf60ea800eb953"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/source.txt",
+          "digest": "sha256:547c5798ddb98d5dc9852dc6e8c93a16eac2463e43534c876acf60ea800eb953"
+        }
+      ],
+      "buildOutputs": [
+        "build/out"
+      ]
+    }
+  ]
+}

@@ -241,14 +241,28 @@ func TestWalletStatementRejectsInvalidCursors(t *testing.T) {
 	emptyID := signedCursor("v1|2026-09-17T12:00:00Z|")
 	nonASCII := signedCursor("v1|2026-09-17T12:00:00Z|trans\nação")
 	tooManyParts := signedCursor("v1|2026-09-17T12:00:00Z|transaction-a|extra")
+	spaceID := signedCursor("v1|2026-09-17T12:00:00Z|trans action")
+	delID := signedCursor("v1|2026-09-17T12:00:00Z|trans\x7faction")
 
-	for _, cursor := range []string{notBase64, unsigned, forged, wrongVersion, badTime, emptyID, nonASCII, tooManyParts} {
+	for _, cursor := range []string{notBase64, unsigned, forged, wrongVersion, badTime, emptyID, nonASCII, tooManyParts, spaceID, delID} {
 		if _, err := useCase.Execute(context.Background(), domain.AccountID(testAccountID), cursor, 5); !errors.Is(err, application.ErrInvalidCursor) {
 			t.Errorf("cursor %q error = %v, want ErrInvalidCursor", cursor, err)
 		}
 	}
 	if repo.pages != 0 {
 		t.Fatalf("repository was queried %d times for invalid cursors", repo.pages)
+	}
+
+	// The printable range edges are valid identifier bytes: a cursor
+	// carrying '!' or '~' decodes and reaches the repository (mutation
+	// gate: statement_cursor.go:97).
+	for _, cursor := range []string{
+		signedCursor("v1|2026-09-17T12:00:00Z|trans!action"),
+		signedCursor("v1|2026-09-17T12:00:00Z|trans~action"),
+	} {
+		if _, err := useCase.Execute(context.Background(), domain.AccountID(testAccountID), cursor, 5); err != nil {
+			t.Errorf("edge cursor %q error = %v, want success", cursor, err)
+		}
 	}
 
 	if _, err := useCase.Execute(context.Background(), domain.AccountID(""), "", 5); !errors.Is(err, domain.ErrEmptyAccountID) {

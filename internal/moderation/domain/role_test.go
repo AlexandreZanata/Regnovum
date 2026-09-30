@@ -128,6 +128,14 @@ func TestStepUpPolicy(t *testing.T) {
 	if _, err := domain.StepUpSatisfied(domain.ActionBan, -time.Minute); !errors.Is(err, domain.ErrInvalidSessionAge) {
 		t.Fatalf("negative age error = %v, want ErrInvalidSessionAge", err)
 	}
+	// Zero is a valid age, not skew: both low-impact and fresh high-impact
+	// sessions satisfy at the boundary (mutation gate: policy.go:117).
+	if ok, err := domain.StepUpSatisfied(domain.ActionWarning, 0); err != nil || !ok {
+		t.Fatalf("warning at age zero = %v, %v; want satisfied", ok, err)
+	}
+	if ok, err := domain.StepUpSatisfied(domain.ActionSuspension, 0); err != nil || !ok {
+		t.Fatalf("suspension at age zero = %v, %v; want satisfied", ok, err)
+	}
 }
 
 func TestConflictPolicyUsesIdentifiersOnly(t *testing.T) {

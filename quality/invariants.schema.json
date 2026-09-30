@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AlexandreZanata/Regnovum/quality/invariants.schema.json",
+  "title": "Backend invariant matrix",
+  "description": "The versioned matrix of preconditions, transitions, postconditions, global invariants and prohibited effects for the twelve business modules, linked to the executable catalog. The loader that judges it is tools/qualityinvariants.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "modules", "invariants"],
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "The only matrix version the loader understands."
+    },
+    "generator": {
+      "type": "string",
+      "description": "The tool that owns the shape of this document."
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 12,
+      "items": { "type": "string" },
+      "description": "The twelve business modules the matrix covers."
+    },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/invariant" }
+    }
+  },
+  "$defs": {
+    "invariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "module",
+        "packages",
+        "risk",
+        "transition",
+        "precondition",
+        "postcondition",
+        "global_invariant",
+        "prohibited_effect",
+        "catalog",
+        "persisted",
+        "unreachable",
+        "tests"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^INV-[A-Z0-9-]+$",
+          "description": "Stable identity of the invariant row."
+        },
+        "module": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One of the twelve business modules, or an adjacent platform module for full Q0/Q1 linkage."
+        },
+        "packages": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "risk": {
+          "enum": ["Q0", "Q1"],
+          "description": "Only critical and high invariants live in this matrix."
+        },
+        "transition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "precondition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "postcondition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "global_invariant": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prohibited_effect": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalog": {
+          "type": "string",
+          "pattern": "^QUAL-[A-Z0-9-]+$",
+          "description": "The catalog rule this row proves."
+        },
+        "persisted": {
+          "type": "boolean",
+          "description": "True when the transition writes durable state and therefore demands all four cases."
+        },
+        "unreachable": {
+          "type": "boolean",
+          "description": "True when the row proves an unreachable state is refused."
+        },
+        "tests": { "$ref": "#/$defs/tests" }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valid", "invalid", "limit", "replay"],
+      "properties": {
+        "valid": { "type": "string" },
+        "invalid": { "type": "string" },
+        "limit": { "type": "string" },
+        "replay": { "type": "string" }
+      }
+    }
+  }
+}

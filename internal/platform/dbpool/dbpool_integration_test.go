@@ -41,8 +41,7 @@ func TestIntegrationPoolLifecycleAndCancellation(t *testing.T) {
 	// 1. Connect to PostgreSQL
 	pool, err := dbpool.New(ctx, dsn, cfg, logger, clock)
 	if err != nil {
-		t.Skipf("skipping database integration test (could not connect to %s): %v", dsn, err)
-		return
+		t.Fatalf("PostgreSQL is required for the integration suite and the pool could not connect to %s: %v", dsn, err)
 	}
 
 	// 2. Query execution
@@ -107,8 +106,7 @@ func TestIntegrationReadinessChangesWithDatabaseState(t *testing.T) {
 	// 1. Healthy database pool
 	healthyPool, err := dbpool.New(ctx, dsn, cfg, logger, clock)
 	if err != nil {
-		t.Skipf("skipping integration test (database unavailable): %v", err)
-		return
+		t.Fatalf("PostgreSQL is required for the integration suite and the healthy pool could not be opened: %v", err)
 	}
 	defer healthyPool.Close()
 

@@ -198,12 +198,21 @@ func TestRecordAttributionsAcceptsEmptyAndSmallSelections(t *testing.T) {
 	}
 
 	// Up to three arguments are recorded in one transaction.
-	result, err := useCase.Execute(context.Background(), recordCommand("argument-a", "argument-b", "argument-c"))
+	result, err := useCase.Execute(context.Background(), recordCommand("argument-c", "argument-a", "argument-b"))
 	if err != nil {
 		t.Fatalf("record Execute() error = %v", err)
 	}
 	if result.Replayed || len(result.ArgumentIDs) != 3 {
 		t.Fatalf("result = %+v, want three fresh attributions", result)
+	}
+	// The recorded set resolves in deterministic ascending order,
+	// however the request orders them (mutation gate:
+	// record_attributions.go:155).
+	wantOrder := []string{"argument-a", "argument-b", "argument-c"}
+	for i, id := range result.ArgumentIDs {
+		if id.String() != wantOrder[i] {
+			t.Fatalf("order = %v, want %v", result.ArgumentIDs, wantOrder)
+		}
 	}
 	if repo.recordedCount(testChangeRaw) != 3 || uow.calls != 2 {
 		t.Fatalf("recorded = %d, transactions = %d, want 3/2", repo.recordedCount(testChangeRaw), uow.calls)

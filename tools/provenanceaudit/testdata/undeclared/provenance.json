@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "note": "Fixture: um pipeline que a fase nomeia e o registro esquece (assets), um artefato que se anuncia gerado e ninguém declara (tree/undisclosed.go) e uma família que não diz como a sua reprodutibilidade é provada (contracts).",
+  "families": [
+    {
+      "name": "i18n",
+      "generator": "i18ngen",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/locales.json",
+          "digest": "sha256:3afcbf7e1b1ff82999219457984d52ea898f01ef3454e100fa533db8efefdb90"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/i18n.go",
+          "digest": "sha256:6a407b5eed08bde099bb8961690a4db136d831c51b47c88fa0d01789819cd4a5"
+        }
+      ]
+    },
+    {
+      "name": "contracts",
+      "generator": "contractgen",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "inputs": [
+        {
+          "path": "tree/contract.json",
+          "digest": "sha256:d97a9f52e31fea66178a2d5a537d00e9585b68f5f45702002bb669cf4e9a01ce"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/contract.ts",
+          "digest": "sha256:0cd3ef7aede2c897c8af96ce6df540a49dc4b73d2d52f01f0f1060296bf4db91"
+        }
+      ]
+    },
+    {
+      "name": "sqlc",
+      "generator": "sqlc",
+      "command": "make generate",
+      "version": "",
+      "versionEvidence": "",
+      "verifyCommand": "make generate-check",
+      "inputs": [
+        {
+          "path": "tree/queries.sql",
+          "digest": "sha256:ea15ab999f2241e0d409ad3a38b0e487870259a5a70fc8093ea26636f244651a"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "tree/db.sql.go",
+          "digest": "sha256:7a044b805fb9f89f48eaaad9d1a662c5e4eeb07d66280a4cf656572b7b6bcd59"
+        }
+      ]
+    }
+  ]
+}

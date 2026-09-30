@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/AlexandreZanata/Regnovum/internal/platform/dbtest"
 	platformpg "github.com/AlexandreZanata/Regnovum/internal/platform/postgres"
+	"github.com/AlexandreZanata/Regnovum/internal/platform/testsource"
 	walletpg "github.com/AlexandreZanata/Regnovum/internal/wallet/adapters/postgres"
 	"github.com/AlexandreZanata/Regnovum/internal/wallet/application"
 	"github.com/AlexandreZanata/Regnovum/internal/wallet/domain"
@@ -857,15 +857,18 @@ func TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence(t *testin
 	acc := mustWalletAccount(t, ctx, q, "balance-derived@arena.example.com")
 	accountID := domain.AccountID(uuidString(acc.ID))
 
-	rng := rand.New(rand.NewSource(42))
+	// The stream comes from the registered source and not from the global generator: the
+	// seed is printed on every run and replayed with `ARENA_TEST_SEED`, which is what
+	// makes a failure of this sequence reproducible at all.
+	rng := testsource.NewRandom(testsource.SeedFor(t))
 	var expectedFree, expectedPurchased int64
 	operations := 0
 
 	for i := 0; i < 60; i++ {
 		key := fmt.Sprintf("random-sequence:%d", i)
-		switch rng.Intn(3) {
+		switch rng.Int64n(3) {
 		case 0:
-			amount := int64(rng.Intn(5000) + 1)
+			amount := rng.Int64n(5000) + 1
 			if _, err := repo.ApplyCredit(ctx, mustCreditRequest(
 				t, accountID, domain.BucketFree, domain.OperationCreditFree, amount, fmt.Sprintf("free:%d", i), key,
 			)); err != nil {
@@ -873,7 +876,7 @@ func TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence(t *testin
 			}
 			expectedFree += amount
 		case 1:
-			amount := int64(rng.Intn(5000) + 1)
+			amount := rng.Int64n(5000) + 1
 			if _, err := repo.ApplyCredit(ctx, mustCreditRequest(
 				t, accountID, domain.BucketPurchased, domain.OperationCreditPurchase, amount, fmt.Sprintf("stripe:evt_%d", i), key,
 			)); err != nil {
@@ -885,7 +888,7 @@ func TestRepository_DerivedBalanceMatchesProjectionAfterRandomSequence(t *testin
 			if total == 0 {
 				continue
 			}
-			amount := int64(rng.Intn(int(total)) + 1)
+			amount := rng.Int64n(total) + 1
 			if _, err := repo.ApplyDebit(ctx, mustDebitRequest(
 				t, accountID, domain.OperationDebitArgument, amount, fmt.Sprintf("argument:%d", i), key,
 			)); err != nil {

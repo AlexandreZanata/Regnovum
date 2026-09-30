@@ -98,10 +98,6 @@ const failFastDeadline = 10 * time.Second
 // record's handler count, which is 2 — the email delivery and the scheduled
 // session cleanup — instead of the 1 of a process that delivers nothing.
 func TestWorkerRegistersTheTransactionalEmailHandlerInProduction(t *testing.T) {
-	if testing.Short() {
-		t.Skip("subprocess lifecycle test skipped in -short mode")
-	}
-
 	db := dbtest.New(t)
 
 	repoRoot, err := filepath.Abs(filepath.Join("..", ".."))
@@ -199,10 +195,6 @@ func TestWorkerRegistersTheTransactionalEmailHandlerInProduction(t *testing.T) {
 // internal/jobs/application (TestWorkerGracefulShutdownCompletesInFlightJob),
 // because no workload handler is registered yet: they arrive with P15-T03/T04.
 func TestWorkerBootsAndStopsOnSIGTERM(t *testing.T) {
-	if testing.Short() {
-		t.Skip("subprocess lifecycle test skipped in -short mode")
-	}
-
 	db := dbtest.New(t)
 
 	repoRoot, err := filepath.Abs(filepath.Join("..", ".."))

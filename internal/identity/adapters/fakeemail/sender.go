@@ -46,6 +46,9 @@ func NewSender() *Sender {
 
 // SendVerificationEmail records the sent verification email.
 func (s *Sender) SendVerificationEmail(ctx context.Context, email domain.Email, token string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -62,6 +65,9 @@ func (s *Sender) SendVerificationEmail(ctx context.Context, email domain.Email, 
 
 // SendPasswordResetEmail records the sent password reset email.
 func (s *Sender) SendPasswordResetEmail(ctx context.Context, email domain.Email, token string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -78,6 +84,9 @@ func (s *Sender) SendPasswordResetEmail(ctx context.Context, email domain.Email,
 
 // SendPasswordChangedEmail records the notice that the password changed.
 func (s *Sender) SendPasswordChangedEmail(ctx context.Context, email domain.Email, changeID string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

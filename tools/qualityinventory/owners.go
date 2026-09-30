@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 )
 
 // routeOwners answers "which module serves this route?" from the source that
@@ -94,15 +93,4 @@ type routeIndexError struct{}
 
 func (e *routeIndexError) Error() string {
 	return "no adapter declares a route: the path-to-module index is empty, and every owner would be a guess"
-}
-
-// sortedOwners is the index as ordered pairs, for the tests that hold the
-// reader to the tree without depending on a map's disorder.
-func (owners routeOwners) sortedOwners() []string {
-	pairs := make([]string, 0, len(owners.byPath))
-	for path, owner := range owners.byPath {
-		pairs = append(pairs, owner+" "+path)
-	}
-	sort.Strings(pairs)
-	return pairs
 }

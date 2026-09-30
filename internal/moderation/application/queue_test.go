@@ -117,3 +117,64 @@ func TestQueueDeniesUnknownViewerAndForgedCursor(t *testing.T) {
 		t.Fatalf("bogus filter error = %v, want ErrInvalidQueueFilter", err)
 	}
 }
+
+func TestQueueCursorSecretBoundaryAndIdentifierEdges(t *testing.T) {
+	t.Parallel()
+
+	// Thirty-two bytes are exactly 256 bits and must be accepted;
+	// thirty-one refuse (mutation gate: queue.go:44).
+	if _, err := application.NewQueueCursorCodec(make([]byte, 32)); err != nil {
+		t.Fatalf("32-byte secret error = %v, want accepted", err)
+	}
+	if _, err := application.NewQueueCursorCodec(make([]byte, 31)); !errors.Is(err, application.ErrWeakQueueCursorSecret) {
+		t.Fatalf("31-byte secret error = %v, want ErrWeakQueueCursorSecret", err)
+	}
+
+	codec, err := application.NewQueueCursorCodec(queueSecret)
+	if err != nil {
+		t.Fatalf("NewQueueCursorCodec: %v", err)
+	}
+	base := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
+	// The printable range edges are valid identifier bytes, while the
+	// space and DEL beside them refuse (mutation gate: queue.go:118-119).
+	edged := codec.Encode(base, "case!~9")
+	position, err := codec.Decode(edged)
+	if err != nil || position.CaseID != "case!~9" {
+		t.Fatalf("edge cursor = (%+v, %v), want case!~9 decoded", position, err)
+	}
+	for _, id := range []string{"case 9", "case\x7f9"} {
+		if _, err := codec.Decode(codec.Encode(base, id)); !errors.Is(err, application.ErrInvalidCursor) {
+			t.Fatalf("identifier %q error = %v, want ErrInvalidCursor", id, err)
+		}
+	}
+}
+
+func TestQueueZeroLimitSelectsDefault(t *testing.T) {
+	t.Parallel()
+
+	base := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
+	queue := &fakeQueue{items: []application.QueueItem{
+		{CaseID: "case-003", Status: application.CaseOpen, CreatedAt: base},
+		{CaseID: "case-002", Status: application.CaseOpen, CreatedAt: base.Add(-time.Hour)},
+		{CaseID: "case-001", Status: application.CaseOpen, CreatedAt: base.Add(-2 * time.Hour)},
+	}}
+	viewer, roles := queueViewer()
+	uc, err := application.NewGetCaseQueueUseCase(queue, roles)
+	if err != nil {
+		t.Fatalf("NewGetCaseQueueUseCase: %v", err)
+	}
+	codec, err := application.NewQueueCursorCodec(queueSecret)
+	if err != nil {
+		t.Fatalf("NewQueueCursorCodec: %v", err)
+	}
+
+	// A non-positive limit selects the default: all three rows arrive
+	// with no cursor (mutation gate: queue.go:200).
+	page, err := uc.Execute(context.Background(), viewer, "", "", 0, codec)
+	if err != nil {
+		t.Fatalf("zero limit: %v", err)
+	}
+	if len(page.Items) != 3 || page.NextCursor != "" {
+		t.Fatalf("zero-limit page = %d items/cursor %q, want 3 with no cursor", len(page.Items), page.NextCursor)
+	}
+}

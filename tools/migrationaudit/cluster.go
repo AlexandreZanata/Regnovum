@@ -123,7 +123,10 @@ func (c *cluster) open(ctx context.Context, name string) (*sql.DB, error) {
 // drop removes one of the cluster's databases, disconnecting whatever is left
 // connected to it. A database another session holds open cannot be dropped, and
 // a served copy is exactly the state the audit leaves behind when it fails.
-func (c *cluster) drop(ctx context.Context, name string) error {
+//
+// It takes no context on purpose: it runs on the cleanup path of a failed or
+// cancelled run, so the run's context would be the one thing it must not obey.
+func (c *cluster) drop(name string) error {
 	// The cleanup context is deliberately independent of the run's: a run that
 	// failed or was cancelled must still be able to take its databases away.
 	cleanupCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -149,7 +152,7 @@ func (c *cluster) drop(ctx context.Context, name string) error {
 // close drops everything this run created.
 func (c *cluster) close() {
 	for _, name := range append([]string(nil), c.created...) {
-		if err := c.drop(context.Background(), name); err != nil {
+		if err := c.drop(name); err != nil {
 			fmt.Fprintf(c.log, "migrationaudit: cleanup: %v\n", err)
 		}
 	}

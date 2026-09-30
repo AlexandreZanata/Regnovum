@@ -291,6 +291,9 @@ func TestApplyRefundPartialINK(t *testing.T) {
 	if result.InkRevoked != 5000 || result.NeedsReview {
 		t.Errorf("partial result = %+v, want 5000 without review", result)
 	}
+	if result.ReviewReason != "" {
+		t.Errorf("partial reason = %q, want empty", result.ReviewReason)
+	}
 	if len(ledger.debits) != 1 || ledger.debits[0].Amount != 5000 {
 		t.Fatalf("debits = %+v, want 5000", ledger.debits)
 	}
@@ -428,6 +431,9 @@ func TestApplyRefundPassesUnusedAndConsumed(t *testing.T) {
 		}
 		if result.PassesRevoked != 1 || result.NeedsReview {
 			t.Errorf("unused pass result = %+v, want 1 without review", result)
+		}
+		if result.ReviewReason != "" {
+			t.Errorf("unused pass reason = %q, want empty", result.ReviewReason)
 		}
 		if len(passes.revokes) != 1 {
 			t.Fatalf("revokes = %v, want one", passes.revokes)
@@ -588,5 +594,187 @@ func TestProcessWebhookAppliesRefundEndToEnd(t *testing.T) {
 	trail, _ := journal.ListRefundsByIntent(context.Background(), intent.ID)
 	if len(trail) != 1 {
 		t.Fatalf("audit trail = %d, want 1", len(trail))
+	}
+}
+
+func TestApplyRefundFullRefundCarriesNoReviewReason(t *testing.T) {
+	t.Parallel()
+
+	// A fully reversible refund sets no attribution: the review reason
+	// stays empty when nothing needs review (mutation gate:
+	// apply_refund.go:252,393).
+	catalog := mustRefundCatalog(t)
+	intents := newFakeRefundIntents()
+	intent := mustRefundIntent(t, "cs_test_fullreason1", "ink_10000")
+	intents.intents[intent.ID] = intent
+	ledger := &fakeRefundLedger{balance: 10000}
+	uc := newRefundUseCase(t, catalog, intents, ledger, newFakeRefundPasses(), newFakeRefundJournal())
+
+	result, err := uc.Execute(context.Background(), application.ApplyRefundCommand{
+		SessionID:           refundSessionID(t, "cs_test_fullreason1"),
+		ProviderRefundID:    "re_fullreason1",
+		Source:              domain.RefundSourceRefund,
+		RefundedAmountMinor: 990,
+	})
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if result.NeedsReview || result.ReviewReason != "" {
+		t.Errorf("full refund result = %+v, want applied with empty reason", result)
+	}
+}
+
+func TestApplyRefundSmallDebitAttributesConsumption(t *testing.T) {
+	t.Parallel()
+
+	// A debit below the reversible quantity attributes the consumption
+	// even when the mirror arithmetic would round it away (mutation gate:
+	// apply_refund.go:393).
+	catalog := mustRefundCatalog(t)
+	intents := newFakeRefundIntents()
+	intent := mustRefundIntent(t, "cs_test_smalldebit1", "ink_10000")
+	intents.intents[intent.ID] = intent
+	ledger := &fakeRefundLedger{balance: 1}
+	uc := newRefundUseCase(t, catalog, intents, ledger, newFakeRefundPasses(), newFakeRefundJournal())
+
+	result, err := uc.Execute(context.Background(), application.ApplyRefundCommand{
+		SessionID:           refundSessionID(t, "cs_test_smalldebit1"),
+		ProviderRefundID:    "re_smalldebit1",
+		Source:              domain.RefundSourceRefund,
+		RefundedAmountMinor: 495,
+	})
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if result.InkRevoked != 1 || !result.NeedsReview {
+		t.Errorf("small debit result = %+v, want 1 with review", result)
+	}
+	if result.ReviewReason != application.RefundReviewAlreadyConsumed {
+		t.Errorf("review reason = %q, want already_consumed", result.ReviewReason)
+	}
+}
+
+func TestApplyRefundZeroDebitSkipsLedgerWrite(t *testing.T) {
+	t.Parallel()
+
+	// A zero debit writes nothing: the ledger call is guarded, not merely
+	// a zero-amount write (mutation gate: apply_refund.go:255).
+	catalog := mustRefundCatalog(t)
+	intents := newFakeRefundIntents()
+	intent := mustRefundIntent(t, "cs_test_zerodebit1", "ink_10000")
+	intents.intents[intent.ID] = intent
+	ledger := &fakeRefundLedger{balance: 0}
+	uc := newRefundUseCase(t, catalog, intents, ledger, newFakeRefundPasses(), newFakeRefundJournal())
+
+	result, err := uc.Execute(context.Background(), application.ApplyRefundCommand{
+		SessionID:           refundSessionID(t, "cs_test_zerodebit1"),
+		ProviderRefundID:    "re_zerodebit1",
+		Source:              domain.RefundSourceRefund,
+		RefundedAmountMinor: 990,
+	})
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if result.InkRevoked != 0 {
+		t.Errorf("ink revoked = %d, want 0", result.InkRevoked)
+	}
+	if len(ledger.debits) != 0 {
+		t.Fatalf("debits = %+v, want no ledger write", ledger.debits)
+	}
+}
+
+func TestApplyRefundPassDisputeKeepsChargebackReason(t *testing.T) {
+	t.Parallel()
+
+	// A pass dispute keeps the chargeback attribution through the
+	// fallback: the fallback only fills an empty reason (mutation gate:
+	// apply_refund.go:306,316).
+	catalog := mustRefundCatalog(t)
+	intents := newFakeRefundIntents()
+	intent := mustRefundIntent(t, "cs_test_passdispute1", "pass_1")
+	intents.intents[intent.ID] = intent
+	ledger := &fakeRefundLedger{}
+	passes := newFakeRefundPasses()
+	account := domain.AccountID("018f6b2a-0000-7000-8000-0000000000aa")
+	ref, _ := domain.ParseReference(intent.ID)
+	passes.lots[account.String()+"|"+ref.String()] = &application.RefundPassLot{LotID: "lot-dispute-1", Quantity: 1, Remaining: 1, Found: true}
+	uc := newRefundUseCase(t, catalog, intents, ledger, passes, newFakeRefundJournal())
+
+	result, err := uc.Execute(context.Background(), application.ApplyRefundCommand{
+		SessionID:           refundSessionID(t, "cs_test_passdispute1"),
+		ProviderRefundID:    "dp_passdispute1",
+		Source:              domain.RefundSourceDispute,
+		RefundedAmountMinor: 990,
+	})
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if !result.NeedsReview || result.ReviewReason != application.RefundReviewChargeback {
+		t.Errorf("dispute result = %+v, want review with chargeback", result)
+	}
+}
+
+func TestApplyRefundShrunkLotAttributesConsumption(t *testing.T) {
+	t.Parallel()
+
+	// A lot holding fewer passes than its original quantity is partial
+	// consumption even when the current grant covers the remainder: the
+	// lot's own history decides, not the catalog (mutation gate:
+	// apply_refund.go:306).
+	catalog := mustRefundCatalog(t)
+	intents := newFakeRefundIntents()
+	intent := mustRefundIntent(t, "cs_test_shrunklot1", "pass_1")
+	intents.intents[intent.ID] = intent
+	ledger := &fakeRefundLedger{}
+	passes := newFakeRefundPasses()
+	account := domain.AccountID("018f6b2a-0000-7000-8000-0000000000aa")
+	ref, _ := domain.ParseReference(intent.ID)
+	passes.lots[account.String()+"|"+ref.String()] = &application.RefundPassLot{LotID: "lot-shrunk-1", Quantity: 5, Remaining: 1, Found: true}
+	uc := newRefundUseCase(t, catalog, intents, ledger, passes, newFakeRefundJournal())
+
+	result, err := uc.Execute(context.Background(), application.ApplyRefundCommand{
+		SessionID:           refundSessionID(t, "cs_test_shrunklot1"),
+		ProviderRefundID:    "re_shrunklot1",
+		Source:              domain.RefundSourceRefund,
+		RefundedAmountMinor: 990,
+	})
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if result.ReviewReason != application.RefundReviewAlreadyConsumed {
+		t.Errorf("shrunk lot result = %+v, want already_consumed attribution", result)
+	}
+	if result.PassesRevoked != 1 {
+		t.Errorf("passes revoked = %d, want 1", result.PassesRevoked)
+	}
+}
+
+func TestApplyRefundDisputeWithoutBalanceKeepsChargeback(t *testing.T) {
+	t.Parallel()
+
+	// A dispute with nothing to revoke still attributes the chargeback:
+	// the empty-debit fallback only fills an empty reason (mutation gate:
+	// apply_refund.go:275).
+	catalog := mustRefundCatalog(t)
+	intents := newFakeRefundIntents()
+	intent := mustRefundIntent(t, "cs_test_disputeempty1", "ink_10000")
+	intents.intents[intent.ID] = intent
+	ledger := &fakeRefundLedger{balance: 0}
+	uc := newRefundUseCase(t, catalog, intents, ledger, newFakeRefundPasses(), newFakeRefundJournal())
+
+	result, err := uc.Execute(context.Background(), application.ApplyRefundCommand{
+		SessionID:           refundSessionID(t, "cs_test_disputeempty1"),
+		ProviderRefundID:    "dp_emptybalance1",
+		Source:              domain.RefundSourceDispute,
+		RefundedAmountMinor: 990,
+	})
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if !result.NeedsReview || result.ReviewReason != application.RefundReviewChargeback {
+		t.Errorf("empty dispute result = %+v, want review with chargeback", result)
+	}
+	if len(ledger.debits) != 0 {
+		t.Fatalf("debits = %+v, want no ledger write", ledger.debits)
 	}
 }

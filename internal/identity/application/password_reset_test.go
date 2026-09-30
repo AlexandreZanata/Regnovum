@@ -489,3 +489,44 @@ func TestPasswordReset_ConcurrentRaceOnSameToken(t *testing.T) {
 		t.Errorf("expected %d replay rejections, got %d", workers-1, replayCount)
 	}
 }
+
+func TestPasswordReset_BoundaryPasswordLength(t *testing.T) {
+	hasher, _ := argon2id.New(argon2id.FastParams(), rand.Reader)
+	accRepo := newInMemoryAccountRepo()
+	credRepo := newInMemoryCredentialRepo()
+	resetRepo := newInMemoryResetTokenRepo()
+	sessRepo := newInMemorySessionRepo()
+	sender := fakeemail.NewSender()
+	clock := &fakeClock{now: time.Date(2026, 9, 17, 12, 0, 0, 0, time.UTC)}
+	rnd := &seqRandom{}
+	ctx := context.Background()
+
+	email, _ := domain.ParseEmail("boundary@arena.local")
+	oldPass := "OriginalPassword123!"
+	h, _ := hasher.HashPassword(oldPass)
+	acc, _ := accRepo.CreateAccountWithPassword(ctx, email, h)
+	_ = acc.VerifyEmail(clock.Now())
+	credRepo.credentials[string(acc.ID())] = &application.PasswordCredentialRecord{
+		AccountID: acc.ID(), PasswordHash: h, Algorithm: "argon2id", Version: 1,
+	}
+	requestUC := application.NewRequestPasswordResetUseCase(accRepo, resetRepo, sender, clock, rnd, domain.DefaultPasswordResetPolicy())
+	completeUC := application.NewCompletePasswordResetUseCase(accRepo, credRepo, resetRepo, nil, sessRepo, hasher, sender, clock)
+	if err := requestUC.Execute(ctx, application.RequestPasswordResetCommand{Email: email.String()}); err != nil {
+		t.Fatalf("request reset failed: %v", err)
+	}
+	resetToken, ok := sender.LastResetTokenForEmail(email)
+	if !ok || resetToken == "" {
+		t.Fatalf("expected reset token to be sent")
+	}
+	// Seven characters refuse; exactly eight is the boundary and completes.
+	if err := completeUC.Execute(ctx, application.CompletePasswordResetCommand{
+		Token: resetToken, NewPassword: "1234567",
+	}); !errors.Is(err, application.ErrWeakPassword) {
+		t.Errorf("7-char password error = %v, want ErrWeakPassword", err)
+	}
+	if err := completeUC.Execute(ctx, application.CompletePasswordResetCommand{
+		Token: resetToken, NewPassword: "12345678",
+	}); err != nil {
+		t.Errorf("8-char password rejected: %v", err)
+	}
+}

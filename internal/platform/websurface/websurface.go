@@ -190,26 +190,27 @@ type Presenter func(w http.ResponseWriter, r *http.Request, refusal Refusal)
 // package composes itself; the middleware refusals reach the page through
 // Refusals.
 func refuse(w http.ResponseWriter, r *http.Request, refusal Refusal) {
-	_ = writeProblem(w, r, refusal.Status, string(refusal.Kind))
+	writeProblem(w, r, refusal.Status, string(refusal.Kind))
 }
 
 // writeProblem writes a minimal problem document for a refusal this package
 // composes. The code is the stable kind, which is what the translation of the
 // surrounding middleware reads.
-func writeProblem(w http.ResponseWriter, r *http.Request, status int, code string) error {
-	document, err := json.Marshal(map[string]any{
+//
+// The writer answers nothing: the document is built from a status and strings,
+// so the encoder cannot fail on it, and the status line is already on the wire
+// by the time the encode is attempted — a second failure has nowhere to go. It
+// is the same decision the problem writer of the platform records for every JSON
+// surface, and the reason the caller has nothing to handle.
+func writeProblem(w http.ResponseWriter, r *http.Request, status int, code string) {
+	w.Header().Set("Content-Type", ProblemMediaType)
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]any{
 		"type":   "about:blank",
 		"title":  "request refused",
 		"status": status,
 		"code":   code,
 	})
-	if err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", ProblemMediaType)
-	w.WriteHeader(status)
-	_, err = w.Write(document)
-	return err
 }
 
 // Refusals turns the problem documents the platform middleware produces around

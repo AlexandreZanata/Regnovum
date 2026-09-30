@@ -1,0 +1,45 @@
+{
+  "note": "O anti-padrão: o framework que a política bane por nome entrou no manifesto de build. O nome apareceu onde a decisão já tinha sido tomada.",
+  "register": {
+    "schema": 1,
+    "note": "fixture",
+    "statement": "CATALOG.md",
+    "banned": ["react", "@vue/", "tailwindcss"],
+    "browser_specifiers": [],
+    "paths": {
+      "go_mod": "go.mod",
+      "manifests": ["*/package.json"],
+      "browser_manifests": ["web/package.json"],
+      "images": ["Dockerfile"],
+      "production_images": ["Dockerfile"],
+      "workflows": [".github/workflows/*.yml"],
+      "sources": ["web/src"],
+      "sbom": "sbom.json"
+    },
+    "classes": [
+      {"name": "build-tooling", "role": "build", "pin": "exact", "licenses": ["MIT"], "reason": "fixture"}
+    ],
+    "entries": [
+      {
+        "kind": "npm",
+        "name": "react",
+        "version": "19.0.0",
+        "class": "build-tooling",
+        "owner": "probe",
+        "purpose": "o nome que a política bane",
+        "scope": "probe",
+        "license": "MIT",
+        "label": "react"
+      }
+    ]
+  },
+  "files": {
+    "go.mod": "module example.com/probe\n\ngo 1.27.1\n",
+    "CATALOG.md": "| Dependência | Classe | Dono | Finalidade | Licença |\n| --- | --- | --- | --- | --- |\n| `react` | build | probe | prova | MIT |\n",
+    "web/package.json": "{\n  \"name\": \"probe\",\n  \"private\": true,\n  \"devDependencies\": {\n    \"react\": \"19.0.0\"\n  }\n}\n",
+    "web/src/app.ts": "import { start } from \"./start\";\n\nexport const boot = () => start();\n",
+    "web/src/start.ts": "export const start = () => 1;\n",
+    "Dockerfile": "FROM example.com/base@sha256:0000000000000000000000000000000000000000000000000000000000000001\n",
+    ".github/workflows/ci.yml": "jobs:\n  build:\n    steps:\n      - uses: example/action@1111111111111111111111111111111111111111 # v1.0.0\n"
+  }
+}

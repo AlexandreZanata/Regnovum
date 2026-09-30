@@ -24,7 +24,7 @@ O que segue é a leitura humana exigida pela fase: qual é a fronteira, o que o 
 
 **TB-03 — Caddy ↔ Backend Go.** A aplicação não confia no proxy para nada que decida segurança: CSRF por duplo envio assinado (HMAC-SHA256 sobre o token, comparação em tempo constante) **mais** comparação de `Origin`/`Referer`; `httpcache.Private` em toda resposta privada; limites de corpo nos adapters; e a validação de sessão consulta o banco em cada requisição. **Nota de residual registrada, não escondida:** `security.New` é composto com `AllowedOrigins` vazio e `RequireOrigin` falso (`internal/bootstrap/participation.go`), então a comparação de origem aceita `r.Host` como mesma origem e tolera a ausência de `Origin`/`Referer` quando o token do duplo envio confere. Quem decide é o **duplo envio** — o token é assinado, mora num cookie `SameSite=Lax` que só o próprio host escreve e é comparado em tempo constante com o header —, e a comparação de origem é defesa em profundidade. A confiança em `r.Host` só é segura porque **a porta da aplicação nunca é publicada** (provado por `tools/composeaudit/verify.sh`) e o edge recusa SNI desconhecido (TB-02); é por isso que ela é aceitável aqui e não seria num host alcançável direto. Residual: baixo, com a dependência declarada.
 
-**TB-04 — Adapters ↔ Domínio.** `internal/architecture_test.go` recusa o tipo de fornecedor atravessando a fronteira (`TestProviderSDKIsConfinedToItsAdapter`), a direção das dependências e o relógio/aleatoriedade fora de `platform` (`TestNoDirectClockOrRandomOutsidePlatform`). É uma asserção de compilação e de grafo de imports, não de prosa.
+**TB-04 — Adapters ↔ Domínio.** `internal/architecture_test.go` recusa a direção das dependências e o relógio/aleatoriedade fora de `platform` (`TestNoDirectClockOrRandomOutsidePlatform`), e `internal/architecture_boundaries_test.go` (P23-T01) recusa o tipo de fornecedor atravessando a fronteira, com uma linha por dependência homologada (`TestOwnedDependenciesStayWithTheirOwners`: o SDK de pagamento, o driver PostgreSQL, a ferramenta de migration, `golang.org/x/crypto` e a biblioteca Unicode), a direção dentro do módulo (`TestLayerDependenciesPointInward`) e o adapter instanciado fora do composition root (`TestOnlyTheCompositionRootWiresAdapters`). É uma asserção de compilação e de grafo de imports, não de prosa.
 
 **TB-05 — Backend ↔ PostgreSQL.** Duas provas independentes: as queries tipadas do `sqlc` (aplicação nunca monta SQL por concatenação) e o **ledger de privilégios medido** pela auditoria de migrations ([MIGRATION_AUDIT.md](MIGRATION_AUDIT.md)): a role de runtime `arena_app` lê todas as tabelas, não tem `TRUNCATE`, `REFERENCES` nem `TRIGGER` em nenhuma, não pode apagar em nome próprio nas tabelas de histórico, e o ledger financeiro (`wallet_transactions`, `wallet_operations`) é append-only para ela. Residual: baixo.
 
@@ -48,7 +48,7 @@ Cada área tem um comando que o portão **roda** (não uma promessa) e, quando o
 | `double-spend` | Débito e publicação na mesma transação, `SELECT … FOR UPDATE` no saldo, `CHECK (balance >= 0)` no schema e chave de idempotência com `ON CONFLICT … DO NOTHING` — medido com o detector de corrida. | `go test -count=1 -race ./internal/arguments/adapters/postgres/... ./internal/wallet/adapters/postgres/...` | — |
 | `idor` | Leitura e escrita de argumento, arena e faturamento conferem a titularidade no servidor; recurso alheio não vira 200. | `go test -count=1 ./internal/arguments/adapters/http/... ./internal/arenas/adapters/http/... ./internal/billing/adapters/http/...` | — |
 | `secrets` | Redação de valores e de endereços no log; varredura estrutural da árvore (`.env` rastreado, bloco de chave privada, `.env` fora do `.gitignore`) feita pelo próprio portão. | `go test -count=1 ./internal/platform/logging/...` | `source-scans` (gitleaks) |
-| `dependencies` | Vulnerabilidades conhecidas nas dependências Go pelo `govulncheck`. | `make vuln` | `source-scans` (`npm audit`), `dependency-review` |
+| `dependencies` | Vulnerabilidades conhecidas nas dependências Go pelo `govulncheck`, e a procedência de cada dependência, action e imagem: o componente sem aprovação, a versão que se moveu sem o registro, a licença fora do que a classe homologa e a lista de materiais que discorda da árvore. | `make vuln`, `make audit-deps` | `source-scans` (`govulncheck`, `npm audit`), `quick` (`make audit-deps` em cada pull request) |
 | `container` | As regras da receita e do artefato (base por digest, sem `ADD`/`COPY . .`, `USER` não-root, sem compilador, cache, fonte ou credencial na imagem). | `go test -count=1 ./tools/imageaudit/...` | `image` (`make image-verify`), `image-scan` (trivy) |
 
 ---
@@ -389,9 +389,9 @@ O bloco abaixo é lido por `tools/secaudit`. Ele é a forma mecânica do que est
     {
       "key": "dependencies",
       "execution": "make vuln",
-      "deferred_to": ["source-scans", "dependency-review"],
-      "evidence": ["go.mod", "go.sum", "docs/DEPENDENCIES.md"],
-      "note": "govulncheck sobre todos os pacotes; npm audit e a revisão de dependências alteradas ficam na esteira."
+      "deferred_to": ["source-scans", "quick"],
+      "evidence": ["go.mod", "go.sum", "quality/dependencies.json", "quality/sbom.json", "docs/DEPENDENCIES.md"],
+      "note": "govulncheck sobre todos os pacotes e, no caminho rápido de cada pull request, a procedência: `make audit-deps` recusa a dependência que ninguém aprovou — inclusive a transitiva —, a versão que se moveu sem o registro, a licença fora do que a classe homologa e a lista de materiais que discorda da árvore. A revisão de dependências que a esteira de release prometia é hoje um portão local que roda antes dos testes caros; `npm audit` continua na esteira."
     },
     {
       "key": "container",

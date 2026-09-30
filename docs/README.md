@@ -43,6 +43,7 @@ Quem chega agora começa pelo [README da raiz](../README.md): ele é o handoff d
 - [FRONTEND.md](FRONTEND.md) — componentes TypeScript nativos e CSS.
 - [BACKEND.md](BACKEND.md) — domain, application, ports e adapters.
 - [SCALABILITY.md](SCALABILITY.md) — caminho mensurável para alta escala.
+- [SLO.md](SLO.md) — SLOs e budgets por jornada: baseline medido vs compromisso (P28-T01).
 - [SECURITY.md](SECURITY.md) — requisitos técnicos de segurança.
 - [DEPLOYMENT.md](DEPLOYMENT.md) — topologia, ambientes, backup e evolução.
 - [RUNBOOKS.md](RUNBOOKS.md) — alertas iniciais, thresholds e runbooks de incidente.
@@ -63,6 +64,10 @@ Quem chega agora começa pelo [README da raiz](../README.md): ele é o handoff d
 - [RISKS_AND_ASSUMPTIONS.md](RISKS_AND_ASSUMPTIONS.md) — riscos, hipóteses e plano de validação.
 - [DECISIONS.md](DECISIONS.md) — log de decisões de produto.
 - [GLOSSARY.md](GLOSSARY.md) — vocabulário comum.
+
+## História
+
+- [HISTORY.md](HISTORY.md) — linha do tempo pública da construção (P00–P20): o que cada fase entregou, com que evidência e em qual PR, e como o trabalho acontece; atualizada ao fim de cada fase e espelhada na wiki.
 
 ## Regra de manutenção
 

@@ -51,12 +51,6 @@ const (
 // stated there, next to the reasons for it.
 var Roles = []string{RolePostgres, RoleProviders, RoleMigrate, RoleApp, RoleWorker, RoleDoor}
 
-// serviceRoles are the roles of the program's own processes: the ones that run
-// delivered code and therefore live on the isolated network and nowhere else.
-// The migration is one of them and the door is the exception, and the door is
-// not a service of the product — it is the environment's own forwarder.
-var serviceRoles = []string{RolePostgres, RoleProviders, RoleMigrate, RoleApp, RoleWorker}
-
 // The addresses inside the isolated network. They are not published and not
 // configurable: a service of the environment reaches another by name, which is
 // what the network is for, and the host reaches only what the environment

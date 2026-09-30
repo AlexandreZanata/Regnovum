@@ -276,3 +276,44 @@ func FuzzParseEmail(f *testing.F) {
 		}
 	})
 }
+
+func TestParseEmailRangeEndpointsAreAccepted(t *testing.T) {
+	// Every endpoint of the local-part and label ranges must validate:
+	// each boundary mutant moves exactly one fence, and only the fence
+	// character itself tells the two versions apart (mutation gate:
+	// email.go:96,133,135).
+	valid := []string{
+		"aZzA09@example.com",
+		"user@aZzA09-x.example.com",
+		"9lives@9lives-ninth.example.com",
+	}
+	for _, input := range valid {
+		if _, err := domain.ParseEmail(input); err != nil {
+			t.Errorf("ParseEmail(%q) = %v, want valid", input, err)
+		}
+	}
+}
+
+func TestParseEmailRangeNeighborsAreRejected(t *testing.T) {
+	// Bytes no class admits stay refused around every fence. The fence
+	// characters themselves (covered above as valid) are what tell a
+	// boundary mutant apart; these neighbors pin the refusal side so a
+	// loosened range cannot pass in silence. Note the local part also
+	// allows RFC specials (among them the backtick and braces), so its
+	// neighbors must avoid that list.
+	invalid := []string{
+		"user,x@example.com",
+		"user:x@example.com",
+		"user@ex`mple.com",
+		"user@ex{mple.com",
+		"user@ex[mple.com",
+		"user@ex:mple.com",
+		"user@ex_ample.com",
+		"user:x@example.com",
+	}
+	for _, input := range invalid {
+		if _, err := domain.ParseEmail(input); !errors.Is(err, domain.ErrInvalidEmail) {
+			t.Errorf("ParseEmail(%q) = nil, want ErrInvalidEmail", input)
+		}
+	}
+}

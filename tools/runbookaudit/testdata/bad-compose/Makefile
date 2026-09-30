@@ -1,0 +1,2 @@
+ok-target:
+	@echo ok

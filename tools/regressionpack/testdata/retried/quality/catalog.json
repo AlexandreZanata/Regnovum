@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {"id": "QUAL-FIX-01", "risk": "Q0", "modules": ["internal/probe"]}
+  ]
+}

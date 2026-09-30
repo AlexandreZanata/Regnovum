@@ -1,0 +1,558 @@
+{
+  "schema": 1,
+  "note": "Trace Q01-Q36 to requirements, planned threats, contracts, modules, planned tests and owners (P31-T02). Threat contents land in P31-T05; until then THR-ECON-NN are planned identifiers. Owners are roles, never people. Planned code paths carry the (planejado) marker; only refs entries must exist, and the coverage verifier enforces it.",
+  "owners": [
+    "produto",
+    "coroa",
+    "disputas",
+    "legado",
+    "tesouro",
+    "economia",
+    "livros"
+  ],
+  "entries": [
+    {
+      "q": "Q01",
+      "req": "REQ-REINO-01",
+      "threats": [
+        "THR-ECON-01"
+      ],
+      "contracts": "superfície pública e textos do produto (planejado); sem rota até ratificação",
+      "modules": "reino/produto (planejado)",
+      "tests": "nomes públicos usam Reino e Arena de debate sem ambiguidade",
+      "owner": "produto",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q02",
+      "req": "REQ-REINO-02",
+      "threats": [
+        "THR-ECON-02"
+      ],
+      "contracts": "superfície pública e textos do produto (planejado); sem rota até ratificação",
+      "modules": "reino/produto (planejado)",
+      "tests": "comunicação não anuncia disputas como ativas",
+      "owner": "produto",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q03",
+      "req": "REQ-REINO-03",
+      "threats": [
+        "THR-ECON-03"
+      ],
+      "contracts": "superfície pública e textos do produto (planejado); sem rota até ratificação",
+      "modules": "reino/produto (planejado)",
+      "tests": "rito privado sem aceite é recusado; denúncia não cria credor",
+      "owner": "produto",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q04",
+      "req": "REQ-REINO-04",
+      "threats": [
+        "THR-ECON-04"
+      ],
+      "contracts": "superfície pública e textos do produto (planejado); sem rota até ratificação",
+      "modules": "reino/produto (planejado)",
+      "tests": "resultado sem vencedor oficial nem verdade decretada",
+      "owner": "produto",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q05",
+      "req": "REQ-REINO-05",
+      "threats": [
+        "THR-ECON-05"
+      ],
+      "contracts": "superfície pública e textos do produto (planejado); sem rota até ratificação",
+      "modules": "reino/produto (planejado)",
+      "tests": "recusa conserva histórico, exportação e liquidação; sem conversão",
+      "owner": "produto",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q06",
+      "req": "REQ-REINO-06",
+      "threats": [
+        "THR-ECON-06"
+      ],
+      "contracts": "atos reais expressos e rastreáveis (planejado); sem ato até ratificação",
+      "modules": "reino/coroa (planejado)",
+      "tests": "violação avaliada pela regra vigente no fato, sem retroação",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q07",
+      "req": "REQ-REINO-07",
+      "threats": [
+        "THR-ECON-07"
+      ],
+      "contracts": "atos reais expressos e rastreáveis (planejado); sem ato até ratificação",
+      "modules": "reino/coroa (planejado)",
+      "tests": "prerrogativa sem delegação indevida; segunda conferência em ato grave",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q08",
+      "req": "REQ-REINO-08",
+      "threats": [
+        "THR-ECON-08"
+      ],
+      "contracts": "atos reais expressos e rastreáveis (planejado); sem ato até ratificação",
+      "modules": "reino/coroa (planejado)",
+      "tests": "efeito futuro com origem legítima; passado imutável; correção vinculada",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q09",
+      "req": "REQ-REINO-09",
+      "threats": [
+        "THR-ECON-09"
+      ],
+      "contracts": "atos reais expressos e rastreáveis (planejado); sem ato até ratificação",
+      "modules": "reino/coroa (planejado)",
+      "tests": "decreto publica campos obrigatórios; sensíveis só na íntegra",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q10",
+      "req": "REQ-REINO-10",
+      "threats": [
+        "THR-ECON-10"
+      ],
+      "contracts": "atos reais expressos e rastreáveis (planejado); sem ato até ratificação",
+      "modules": "reino/coroa (planejado)",
+      "tests": "revisão e auditoria com novo ato vinculado; operador responde",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q11",
+      "req": "REQ-REINO-11",
+      "threats": [
+        "THR-ECON-11"
+      ],
+      "contracts": "atos reais expressos e rastreáveis (planejado); sem ato até ratificação",
+      "modules": "reino/coroa (planejado)",
+      "tests": "sem confisco nem retroação; liquidação e patrimônio disponível",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q12",
+      "req": "REQ-REINO-12",
+      "threats": [
+        "THR-ECON-12"
+      ],
+      "contracts": "atos reais expressos e rastreáveis (planejado); sem ato até ratificação",
+      "modules": "reino/coroa (planejado)",
+      "tests": "perdão sem apagar fatos; benção sem recriar patrimônio",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q13",
+      "req": "REQ-REINO-13",
+      "threats": [
+        "THR-ECON-13"
+      ],
+      "contracts": "ritos com aceite explícito (planejado); sem rito até ratificação",
+      "modules": "reino/disputas (planejado)",
+      "tests": "rito sem adesão recusado; contenção com defesa e proporção",
+      "owner": "disputas",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q14",
+      "req": "REQ-REINO-14",
+      "threats": [
+        "THR-ECON-14"
+      ],
+      "contracts": "ritos com aceite explícito (planejado); sem rito até ratificação",
+      "modules": "reino/disputas (planejado)",
+      "tests": "sanção severa sem rito completo é recusada",
+      "owner": "disputas",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q15",
+      "req": "REQ-REINO-15",
+      "threats": [
+        "THR-ECON-15"
+      ],
+      "contracts": "ritos com aceite explícito (planejado); sem rito até ratificação",
+      "modules": "reino/disputas (planejado)",
+      "tests": "reabertura sem prova nova recusada; abuso com custo",
+      "owner": "disputas",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q16",
+      "req": "REQ-REINO-16",
+      "threats": [
+        "THR-ECON-16"
+      ],
+      "contracts": "ritos com aceite explícito (planejado); sem rito até ratificação",
+      "modules": "reino/disputas (planejado)",
+      "tests": "quarentena além do teto recusada; preventiva sem revisão não herda prazo",
+      "owner": "disputas",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q17",
+      "req": "REQ-REINO-17",
+      "threats": [
+        "THR-ECON-17"
+      ],
+      "contracts": "ritos com aceite explícito (planejado); sem rito até ratificação",
+      "modules": "reino/disputas (planejado)",
+      "tests": "pena caduca sem execução substitutiva automática",
+      "owner": "disputas",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q18",
+      "req": "REQ-REINO-18",
+      "threats": [
+        "THR-ECON-18"
+      ],
+      "contracts": "ritos com aceite explícito (planejado); sem rito até ratificação",
+      "modules": "reino/disputas (planejado)",
+      "tests": "ocultação sem revisão restaura o conteúdo no prazo",
+      "owner": "disputas",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q19",
+      "req": "REQ-REINO-19",
+      "threats": [
+        "THR-ECON-19"
+      ],
+      "contracts": "livro legado intacto; contexto em internal/wallet/domain/ink.go, somente leitura",
+      "modules": "reino/legado (planejado)",
+      "tests": "conversão automática recusada; opt-in explícito ou manutenção",
+      "owner": "legado",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md",
+        "internal/wallet/domain/ink.go"
+      ]
+    },
+    {
+      "q": "Q20",
+      "req": "REQ-REINO-20",
+      "threats": [
+        "THR-ECON-20"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "qualquer emissão fora do Tesouro é recusada; soma S preservada",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q21",
+      "req": "REQ-REINO-21",
+      "threats": [
+        "THR-ECON-21"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "divisão inteira com sobras no Tesouro; sem arredondar para cima",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q22",
+      "req": "REQ-REINO-22",
+      "threats": [
+        "THR-ECON-22"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "venda sem cotação válida suspensa; total exibido antes do aceite",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q23",
+      "req": "REQ-REINO-23",
+      "threats": [
+        "THR-ECON-23"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "unidade em partição única; sem contagem dupla",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q24",
+      "req": "REQ-REINO-24",
+      "threats": [
+        "THR-ECON-24"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "cobrança só no liquidado; reembolso reverte na mesma trilha",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md",
+        "internal/billing/adapters/stripe/webhook.go"
+      ]
+    },
+    {
+      "q": "Q25",
+      "req": "REQ-REINO-25",
+      "threats": [
+        "THR-ECON-25"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "duplicata bloqueada com contestação; N=0 distribui zero",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q26",
+      "req": "REQ-REINO-26",
+      "threats": [
+        "THR-ECON-26"
+      ],
+      "contracts": "conceito sem oferta (planejado); sem produto até ratificação e análise posterior",
+      "modules": "reino/economia (planejado)",
+      "tests": "oferta ou rendimento sem análise é recusado",
+      "owner": "economia",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q27",
+      "req": "REQ-REINO-27",
+      "threats": [
+        "THR-ECON-27"
+      ],
+      "contracts": "conceito sem oferta (planejado); sem produto até ratificação e análise posterior",
+      "modules": "reino/economia (planejado)",
+      "tests": "venda sem preço, vagas, duração e reversão é recusada",
+      "owner": "economia",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q28",
+      "req": "REQ-REINO-28",
+      "threats": [
+        "THR-ECON-28"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "ordem de liquidação respeitada; residual só renunciável com aviso",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q29",
+      "req": "REQ-REINO-29",
+      "threats": [
+        "THR-ECON-29"
+      ],
+      "contracts": "conceito sem oferta (planejado); sem produto até ratificação e análise posterior",
+      "modules": "reino/economia (planejado)",
+      "tests": "mercado sem pacote prévio recusado; sem promessa de abertura",
+      "owner": "economia",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q30",
+      "req": "REQ-REINO-30",
+      "threats": [
+        "THR-ECON-30"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "terceiro de boa-fé conserva; sem INK inventado nem saldo oculto",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md",
+        "internal/billing/adapters/stripe/webhook.go"
+      ]
+    },
+    {
+      "q": "Q31",
+      "req": "REQ-REINO-31",
+      "threats": [
+        "THR-ECON-31"
+      ],
+      "contracts": "custódia única e partições exclusivas (planejado); sem movimento até ratificação",
+      "modules": "reino/tesouro (planejado)",
+      "tests": "R4/IRR com período e N/A divulgados; sem leitura como rendimento",
+      "owner": "tesouro",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q32",
+      "req": "REQ-REINO-32",
+      "threats": [
+        "THR-ECON-32"
+      ],
+      "contracts": "atos reais expressos e rastreáveis (planejado); sem ato até ratificação",
+      "modules": "reino/coroa (planejado)",
+      "tests": "autoridade comprada ou com interesse cruzado é recusada",
+      "owner": "coroa",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q33",
+      "req": "REQ-REINO-33",
+      "threats": [
+        "THR-ECON-33"
+      ],
+      "contracts": "resumo público e íntegra sob sigilo (planejado); sem regime até ratificação",
+      "modules": "reino/livros (planejado)",
+      "tests": "nota única opaca recusada; correção disponível",
+      "owner": "livros",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q34",
+      "req": "REQ-REINO-34",
+      "threats": [
+        "THR-ECON-34"
+      ],
+      "contracts": "resumo público e íntegra sob sigilo (planejado); sem regime até ratificação",
+      "modules": "reino/livros (planejado)",
+      "tests": "sensível publicado recusado; defesa com acesso necessário",
+      "owner": "livros",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q35",
+      "req": "REQ-REINO-35",
+      "threats": [
+        "THR-ECON-35"
+      ],
+      "contracts": "resumo público e íntegra sob sigilo (planejado); sem regime até ratificação",
+      "modules": "reino/livros (planejado)",
+      "tests": "coleta sem finalidade e prazo publicados é recusada",
+      "owner": "livros",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    },
+    {
+      "q": "Q36",
+      "req": "REQ-REINO-36",
+      "threats": [
+        "THR-ECON-36"
+      ],
+      "contracts": "resumo público e íntegra sob sigilo (planejado); sem regime até ratificação",
+      "modules": "reino/livros (planejado)",
+      "tests": "exclusão física recusada; canal de defesa e liquidação preservados",
+      "owner": "livros",
+      "refs": [
+        "docs/reino/RESPOSTAS.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ]
+    }
+  ]
+}

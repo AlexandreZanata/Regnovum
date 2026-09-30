@@ -1,0 +1,4096 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Regnovum API",
+    "version": "0.1.0",
+    "description": "Public HTTP contract of Regnovum. Versioned per the master plan: routes registered by the binary must match this document; the contract test fails on drift.",
+    "summary": "Arena API contract"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Versioned API surface served by the arena binary."
+    }
+  ],
+  "paths": {
+    "/health/live": {
+      "get": {
+        "operationId": "getHealthLive",
+        "summary": "Liveness probe",
+        "description": "Reports that the process is running. Never inspects dependencies: a wedged database must not make the supervisor restart a healthy-but-busy process.",
+        "responses": {
+          "200": {
+            "description": "Process is alive.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthStatus" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "getHealthReady",
+        "summary": "Readiness probe",
+        "description": "Reports deployment readiness. Validates process, configuration and database connectivity when configured.",
+        "responses": {
+          "200": {
+            "description": "Process, configuration and dependencies are ready.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthStatus" }
+              }
+            }
+          },
+          "503": {
+            "description": "One or more dependencies are unavailable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthStatus" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "authRegister",
+        "summary": "Register a new account",
+        "description": "Registers a new account. Prevents user enumeration by returning a uniform confirmation.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account registration initiated.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RegisterResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/v1/auth/verify": {
+      "get": {
+        "operationId": "authVerify",
+        "summary": "Verify account email",
+        "description": "Verifies an account email using the single-use cryptographic verification token.",
+        "tags": ["auth"],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "description": "Single-use raw verification token.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusResponse" }
+              },
+              "text/html": {
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "authLogin",
+        "summary": "Authenticate and create session",
+        "description": "Authenticates credentials and establishes a new session, setting the arena_session cookie.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "authLogout",
+        "summary": "Revoke active session",
+        "description": "Revokes the active session and clears the arena_session cookie.",
+        "tags": ["auth"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Logged out successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/request": {
+      "post": {
+        "operationId": "authRequestPasswordReset",
+        "summary": "Request password recovery",
+        "description": "Requests a password reset token. Anti-enumeration: returns 200 regardless of account existence.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PasswordResetRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset email dispatched if account exists.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset": {
+      "get": {
+        "operationId": "authViewPasswordReset",
+        "summary": "Password reset landing page",
+        "description": "Renders the password reset HTML form for email recovery links.",
+        "tags": ["auth"],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "description": "Password recovery token.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTML form rendered.",
+            "content": {
+              "text/html": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/confirm": {
+      "post": {
+        "operationId": "authConfirmPasswordReset",
+        "summary": "Complete password reset",
+        "description": "Consumes the password recovery token, updates the credential, and revokes all active sessions.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PasswordResetConfirm" }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/PasswordResetConfirm" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset complete.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusResponse" }
+              },
+              "text/html": {
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/v1/me/profile": {
+      "get": {
+        "operationId": "getPrivateProfile",
+        "summary": "Owner profile",
+        "description": "Returns the profile projection of the authenticated owner. Private responses always carry Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["profiles"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Private profile of the authenticated account.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PrivateProfile" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/me/exports": {
+      "post": {
+        "operationId": "requestPersonalExport",
+        "summary": "Request a personal data export",
+        "description": "Creates (or replays) the authenticated owner's personal data export job and returns the single-use download token exactly once; only its SHA-256 is persisted. The request is step-up protected: the session must have authenticated within the last 15 minutes, and a stale session answers 401 with code step_up_required. The document is generated by the export job and is separate from the public Arena export: it may contain private categories of the subject and never contains provider identifiers, moderation evidence, device signals or antifraud data. Responses are private, no-store (THR-CACHE-01).",
+        "tags": ["profiles"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "202": {
+            "description": "Export job accepted (fresh or replayed active job); the download token is returned exactly once.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PersonalExportJob" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/v1/me/exports/{id}/download": {
+      "get": {
+        "operationId": "downloadPersonalExport",
+        "summary": "Download a personal data export",
+        "description": "Serves the generated personal data export to its owner. Ownership and the opaque download token are both required; the single-use link expires after 24 hours and a replayed, exhausted or expired link answers 404 export_not_found without serving the document again. The response is a machine-readable JSON attachment, schema_version 1, and carries Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["profiles"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque export identifier returned by the request endpoint.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "description": "Single-use download capability returned exactly once by the request endpoint.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Versioned personal data export document.",
+            "headers": {
+              "Content-Disposition": { "description": "Attachment filename; never reflects request-controlled data.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Private cache policy (private, no-store).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PersonalExportDocument" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/me/deletion": {
+      "post": {
+        "operationId": "requestAccountDeletion",
+        "summary": "Request account deletion",
+        "description": "Starts the account deletion cooling-off period (7 days). The holder can cancel it during the window; after the cooldown the workflow anonymizes the account: private rows (profile, username history, credentials, tokens, sessions) are removed, the account keeps its stable identifier with an opaque placeholder email and can never authenticate again, while billing, ledger, pass, moderation and audit records are preserved under their retention obligations. Public content stays intact with an unresolvable author. Requesting is idempotent: a replay resolves the existing record and answers Idempotency-Replayed: true. Responses are private, no-store (THR-CACHE-01).",
+        "tags": ["profiles"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "202": {
+            "description": "Deletion request accepted (fresh or replayed).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountDeletionRequest" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "get": {
+        "operationId": "getAccountDeletionStatus",
+        "summary": "Read my deletion request",
+        "description": "Returns the authenticated holder's deletion request state: requested (cooling off), executed or canceled. The cancel reason is restricted evidence and never serializes. Responses are private, no-store (THR-CACHE-01).",
+        "tags": ["profiles"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Owner deletion request.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountDeletionRequest" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/me/deletion/cancel": {
+      "post": {
+        "operationId": "cancelAccountDeletion",
+        "summary": "Cancel account deletion",
+        "description": "Cancels a deletion request inside its cooling-off window. A terminal request (executed or already canceled) answers 409 deletion_not_cancellable. The optional reason is stored as restricted evidence and never appears in public projections. Responses are private, no-store (THR-CACHE-01).",
+        "tags": ["profiles"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AccountDeletionCancelRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canceled deletion request.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountDeletionRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/me/wallet": {
+      "get": {
+        "operationId": "getWalletBalance",
+        "summary": "Derived INK balance",
+        "description": "Returns the owner's INK bucket balances recomputed from the append-only ledger. Quantities are integer INK units (never floats, never pre-formatted money).",
+        "tags": ["wallet"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Derived bucket balances.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WalletBalance" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/me/wallet/transactions": {
+      "get": {
+        "operationId": "getWalletStatement",
+        "summary": "Ledger statement",
+        "description": "Returns the owner's ledger statement, newest first, as a cursor page. Entries carry the stable operation type, bucket, signed integer amount, reference and RFC 3339 UTC timestamp; administrative justifications, actors and antifraud details never serialize.",
+        "tags": ["wallet"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque server-signed cursor returned as next_cursor by the previous page.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1..100); defaults to 20.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One statement page.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WalletStatement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/me/passes": {
+      "get": {
+        "operationId": "getArenaPassSummary",
+        "summary": "Arena Pass summary",
+        "description": "Returns the owner's Arena Pass summary: the derived available total and the private per-lot breakdown. Expiration is derived at the checked instant and expired lots are never counted as available.",
+        "tags": ["passes"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Derived pass summary and private breakdown.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArenaPassSummary" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/me/passes/history": {
+      "get": {
+        "operationId": "getArenaPassHistory",
+        "summary": "Arena Pass consumption history",
+        "description": "Returns the owner's pass consumption history, newest first, as a cursor page. Entries carry the Arena identifier, the stable grant origin and reference and the RFC 3339 UTC instant; internal lot identifiers and provider payloads never serialize.",
+        "tags": ["passes"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque server-signed cursor returned as next_cursor by the previous page.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1..100); defaults to 20.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One consumption history page.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArenaPassHistory" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/me/billing/checkout": {
+      "post": {
+        "operationId": "createBillingCheckout",
+        "summary": "Create a server-priced checkout",
+        "description": "Creates one server-authoritative checkout for the owner's account and returns the redirect URL with the priced amount. Amount, currency and return URLs come from the versioned catalog and allowlisted configuration; provider identifiers never serialize. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["billing"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BillingCheckoutRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout created.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BillingCheckout" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/v1/me/billing/subscription": {
+      "get": {
+        "operationId": "getBillingSubscription",
+        "summary": "Member subscription projection",
+        "description": "Returns the owner's Member subscription projection from the local mirror: lifecycle and period only. Provider identifiers never serialize. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["billing"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Subscription projection.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BillingSubscription" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/me/billing/portal": {
+      "post": {
+        "operationId": "createBillingPortal",
+        "summary": "Open the customer portal",
+        "description": "Opens the hosted customer portal for the owner's stored customer and returns only the portal URL. Provider identifiers never serialize. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["billing"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BillingPortalRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Portal session.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BillingPortal" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/me/moderation/reports": {
+      "post": {
+        "operationId": "fileModerationReport",
+        "summary": "File a structured content report",
+        "description": "Contests an Arena, argument or profile with a closed reason vocabulary and optional bounded context. Reports are restricted evidence and never remove content by themselves. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["moderation"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ModerationReportRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Report filed.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ModerationReport" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/me/moderation/appeals": {
+      "post": {
+        "operationId": "fileModerationAppeal",
+        "summary": "Appeal a sanction",
+        "description": "Contests one eligible sanction for the sanctioned owner inside the appeal window. Exactly one appeal contests one action. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["moderation"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ModerationAppealRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Appeal filed.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ModerationAppeal" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/moderation/cases": {
+      "get": {
+        "operationId": "listModerationCases",
+        "summary": "Triage case queue",
+        "description": "Returns one cursor page of case routing for active moderators: target, lifecycle, priority and claim holder. Restricted evidence never serializes. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["moderation"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Lifecycle filter: open, under_review, decided or closed; empty lists every lifecycle.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque server-signed cursor returned as next_cursor by the previous page.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1..100); defaults to 20.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One triage queue page.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ModerationCasePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/v1/moderation/cases/{id}/claim": {
+      "post": {
+        "operationId": "claimModerationCase",
+        "summary": "Claim a case under lease",
+        "description": "Moves an open case (or an expired lease) under the calling moderator with a fresh bounded lease. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["moderation"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Case claimed.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ModerationClaim" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/moderation/cases/{id}/decisions": {
+      "post": {
+        "operationId": "decideModerationCase",
+        "summary": "Record a case decision",
+        "description": "Records one explicit sanction with rule, justification and optional expiry, applying the projection effect in the same transaction as the audit event. The moderator's measure travels untouched. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["moderation"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ModerationDecisionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Decision recorded.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ModerationDecision" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/public/transparency": {
+      "get": {
+        "operationId": "getTransparencyMetrics",
+        "summary": "Versioned platform metrics",
+        "description": "Returns the suppressed per-period platform metrics with methodology version, UTC bounds, timezone label and derivation instant. Bodies carry integer counts only: no email, no Stripe identifier, no IP and no account-level position ever serializes. Served with Cache-Control: public, max-age=3600 and a strong ETag.",
+        "tags": ["transparency"],
+        "parameters": [
+          {
+            "name": "period_start",
+            "in": "query",
+            "required": false,
+            "description": "Inclusive window start (RFC 3339); defaults with period_end to the trailing thirty days.",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "period_end",
+            "in": "query",
+            "required": false,
+            "description": "Exclusive window end (RFC 3339).",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "timezone",
+            "in": "query",
+            "required": false,
+            "description": "IANA timezone label echoed by the document; derivation stays in UTC.",
+            "schema": { "type": "string", "default": "UTC" }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Versioned metrics document.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Public cache policy (public, max-age=3600).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TransparencyMetrics" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "400": { "$ref": "#/components/responses/Validation" }
+        }
+      }
+    },
+    "/transparency": {
+      "get": {
+        "operationId": "getTransparencyDocument",
+        "summary": "Public transparency document (HTML)",
+        "description": "Renders the localized public HTML transparency document with the same suppressed metrics as the JSON API: stable codes with integer counts, methodology note, period, timezone and derivation instant. Served with Cache-Control: public, max-age=3600 and a strong ETag.",
+        "tags": ["transparency"],
+        "parameters": [
+          {
+            "name": "period_start",
+            "in": "query",
+            "required": false,
+            "description": "Inclusive window start (RFC 3339); defaults with period_end to the trailing thirty days.",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "period_end",
+            "in": "query",
+            "required": false,
+            "description": "Exclusive window end (RFC 3339).",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "timezone",
+            "in": "query",
+            "required": false,
+            "description": "IANA timezone label echoed by the document; derivation stays in UTC.",
+            "schema": { "type": "string", "default": "UTC" }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "description": "Interface locale (pt-BR or en-US); unknown values fall back to the default without reflection.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public transparency document.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Public cache policy (public, max-age=3600).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "text/html": {
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "400": {
+            "description": "Incoherent window or unknown timezone. The error document is not cacheable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Problem" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/arena-drafts": {
+      "post": {
+        "operationId": "createArenaDraft",
+        "summary": "Create a private draft",
+        "description": "Creates a private Arena draft owned by the authenticated account. Drafts never consume an Arena Pass, are never publicly visible and are served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ArenaDraftRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Draft created.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PrivateArena" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "get": {
+        "operationId": "listArenaDrafts",
+        "summary": "Owner draft list",
+        "description": "Returns the drafts owned by the authenticated account, newest first. The collection is bounded by the account's own drafts and stays private.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Owner drafts.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PrivateArenaList" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/me/arena-drafts/{id}": {
+      "get": {
+        "operationId": "getArenaDraft",
+        "summary": "Read an owned draft",
+        "description": "Returns the draft owned by the authenticated account. An Arena that does not exist or belongs to another account is not found.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier returned by the draft creation.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned draft.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PrivateArena" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "operationId": "updateArenaDraft",
+        "summary": "Replace an owned draft",
+        "description": "Applies a full replacement under the optimistic version check. A stale expected_version fails with the version_conflict code and no write happens.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier returned by the draft creation.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ArenaDraftUpdateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft replaced.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PrivateArena" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      },
+      "delete": {
+        "operationId": "deleteArenaDraft",
+        "summary": "Discard an owned draft",
+        "description": "Discards a private draft. Only drafts are deletable: published content is retained (P08-T01). The response has no body.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier returned by the draft creation.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Draft discarded." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/me/arena-drafts/{id}/publish": {
+      "post": {
+        "operationId": "publishArenaDraft",
+        "summary": "Publish a draft",
+        "description": "Publishes the draft according to the creator rule, consuming exactly one Arena Pass in the same transaction. Without an available pass nothing is written and the code no_pass_available is returned; retries resolve the published Arena without consuming again.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier returned by the draft creation.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Published Arena.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PrivateArena" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/me/arenas/{id}/close": {
+      "post": {
+        "operationId": "closeArena",
+        "summary": "Close a published Arena",
+        "description": "Closes the creator's published Arena. Only the creator may close, it is not deletable, and retries resolve the closed Arena without a second transition.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier returned by the draft creation.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Closed Arena.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PrivateArena" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/search/arenas": {
+      "get": {
+        "operationId": "searchArenas",
+        "summary": "Search public Arenas",
+        "description": "Language-aware PostgreSQL full-text search over public Arenas. Drafts, removed Arenas and private moderation content are excluded; the cursor is signed and keyset-paginated.",
+        "tags": ["search"],
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 200 } },
+          { "name": "language", "in": "query", "required": false, "schema": { "type": "string", "enum": ["pt-BR", "en-US"] } },
+          { "name": "cursor", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 } },
+          { "name": "If-None-Match", "in": "header", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Relevant public Arenas.", "headers": { "ETag": { "schema": { "type": "string" } }, "Cache-Control": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SearchArenaPage" } } } },
+          "304": { "description": "Not modified." },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "500": { "$ref": "#/components/responses/Internal" }
+        }
+      }
+    },
+    "/api/v1/search/arguments": {
+      "get": {
+        "operationId": "searchArguments",
+        "summary": "Search public arguments",
+        "description": "Language-aware PostgreSQL full-text search over published arguments attached to public Arenas. Withdrawn, removed and moderated content is excluded.",
+        "tags": ["search"],
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 200 } },
+          { "name": "language", "in": "query", "required": false, "schema": { "type": "string", "enum": ["pt-BR", "en-US"] } },
+          { "name": "cursor", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 } },
+          { "name": "If-None-Match", "in": "header", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Relevant published arguments.", "headers": { "ETag": { "schema": { "type": "string" } }, "Cache-Control": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SearchArgumentPage" } } } },
+          "304": { "description": "Not modified." },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "500": { "$ref": "#/components/responses/Internal" }
+        }
+      }
+    },
+    "/api/v1/arenas": {
+      "get": {
+        "operationId": "getArenaFeed",
+        "summary": "Public Arena feed",
+        "description": "Returns the public feed, newest first, as a keyset cursor page. Optional filters by language, category and publicly visible status; drafts and removed Arenas never appear. The response carries an ETag and public cache headers and may be revalidated with If-None-Match.",
+        "tags": ["arenas"],
+        "parameters": [
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "description": "Content language filter.",
+            "schema": { "type": "string", "enum": ["pt-BR", "en-US"] }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "description": "Editorial category filter.",
+            "schema": { "type": "string", "enum": ["technology", "science", "philosophy", "politics", "economics", "health", "culture", "society"] }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Publicly visible status filter.",
+            "schema": { "type": "string", "enum": ["published", "closed", "restricted"] }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque server-signed cursor returned as next_cursor by the previous page.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1..100); defaults to 20.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One feed page.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArenaFeed" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "400": { "$ref": "#/components/responses/Validation" }
+        }
+      }
+    },
+    "/api/v1/arenas/{slug}": {
+      "get": {
+        "operationId": "getPublicArena",
+        "summary": "Public Arena document",
+        "description": "Returns the public Arena addressed by its slug. Drafts are never addressable and removed Arenas are not found. The response carries an ETag and public cache headers and may be revalidated with If-None-Match.",
+        "tags": ["arenas"],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "description": "Stable public Arena address.",
+            "schema": { "type": "string", "minLength": 3, "maxLength": 80 }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public Arena.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PublicArena" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/arenas/{id}/export": {
+      "get": {
+        "operationId": "exportPublicArena",
+        "summary": "Versioned public Arena export",
+        "description": "Returns one page of the versioned public Arena export (schema_version 1): Arena identity and state, aggregate position distributions with low-count suppression, valid influence counts, and a keyset-paginated list of public arguments with their sources. Only public data serializes: no individual position, individual change history or attributor identity is ever part of the document. The strong ETag is the content hash of the exact body; revalidate with If-None-Match. Unknown, draft and removed Arenas are not found.",
+        "tags": ["transparency"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Stable public Arena identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque server-signed cursor returned as next_cursor by the previous page.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1..100); defaults to 20.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of the versioned public Arena export.",
+            "headers": {
+              "ETag": { "description": "Strong validator computed over the content hash of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArenaExport" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/me/arenas/{id}/position": {
+      "post": {
+        "operationId": "confirmPosition",
+        "summary": "Confirm the initial position",
+        "description": "Confirms the authenticated account's first position in one Arena. The call is idempotent: retrying the same value resolves the recorded projection, while a different value conflicts because the initial choice is immutable history. A first confirmation requires an eligible account and a published, open Arena; drafts and removed Arenas are not found. Private responses always carry Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["positions"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PositionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded projection (fresh or replayed).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PositionConfirmation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      },
+      "get": {
+        "operationId": "getMyPosition",
+        "summary": "Read my position",
+        "description": "Returns the authenticated account's position projection in one Arena. A pair without a confirmed position is not found; another account's projection is unreachable.",
+        "tags": ["positions"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owner position projection.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PrivatePosition" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/me/arenas/{id}/position/changes": {
+      "post": {
+        "operationId": "changePosition",
+        "summary": "Change my position",
+        "description": "Records one position change: the immutable history row is appended and the current-position projection moves in the same transaction under the optimistic version check. A concurrent change either advances the chain or answers version_conflict; a closed Arena accepts no new changes and changing to the current position conflicts. The response carries the change identifier, kept for later attribution.",
+        "tags": ["positions"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PositionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recorded change and updated projection.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PositionChangeRecord" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      },
+      "get": {
+        "operationId": "listMyPositionChanges",
+        "summary": "List my position changes",
+        "description": "Returns the authenticated account's change history in one Arena, newest first. The history is private by default and bounded by the account's own changes in the Arena.",
+        "tags": ["positions"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owner change history.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PositionChangeHistory" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/arenas/{id}/positions": {
+      "get": {
+        "operationId": "getPositionAggregate",
+        "summary": "Public position aggregate",
+        "description": "Returns the public aggregate of one Arena: the initial and current distributions over eligible participants, the eligible total and the derivation instant. Below the configured privacy threshold every count is withheld (suppressed: true), so a small sample never reveals an individual position. The local visitor choice gates the UI, never the API: the aggregate is not a secret. The response carries an ETag and short public cache headers and may be revalidated with If-None-Match.",
+        "tags": ["positions"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Privacy-safe aggregate.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Short public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PositionAggregate" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "400": { "$ref": "#/components/responses/Validation" }
+        }
+      }
+    },
+    "/api/v1/me/arenas/{id}/arguments": {
+      "post": {
+        "operationId": "publishArgument",
+        "summary": "Publish an argument",
+        "description": "Publishes one argument in a published, open Arena: the content is measured in grapheme clusters (1 INK per cluster), the INK cost is debited and the argument plus its sources are inserted in the same transaction. The Idempotency-Key header is mandatory; a retry resolves the recorded argument (200 plus Idempotency-Replayed: true) instead of charging again. Private responses always carry Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["arguments"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Client attempt key, unique per author and endpoint; a retry resolves the recorded argument without charging INK again.",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 128 }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ArgumentPublishRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Argument published.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArgumentMutationResult" }
+              }
+            }
+          },
+          "200": {
+            "description": "Retry resolved the recorded argument (replayed).",
+            "headers": {
+              "Idempotency-Replayed": { "description": "true on replays.", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArgumentMutationResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/me/arenas/{id}/arguments/{argumentID}/replies": {
+      "post": {
+        "operationId": "replyToArgument",
+        "summary": "Reply to an argument",
+        "description": "Publishes a reply through the same publication use case: the parent must belong to the same Arena and be published, and the reply depth policy accepts one recursion level (a reply to a reply answers reply_depth_exceeded). The Arena travels in the path so cross-Arena replies stay refused. The Idempotency-Key header is mandatory.",
+        "tags": ["arguments"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "argumentID",
+            "in": "path",
+            "required": true,
+            "description": "Opaque parent argument identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Client attempt key, unique per author and endpoint; a retry resolves the recorded argument without charging INK again.",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 128 }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ArgumentPublishRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reply published.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArgumentMutationResult" }
+              }
+            }
+          },
+          "200": {
+            "description": "Retry resolved the recorded reply (replayed).",
+            "headers": {
+              "Idempotency-Replayed": { "description": "true on replays.", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArgumentMutationResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/me/arguments/{id}/withdraw": {
+      "post": {
+        "operationId": "withdrawArgument",
+        "summary": "Withdraw my argument",
+        "description": "Retracts the author's argument from the public display without erasing the historical content and without any automatic refund. The action is owner-scoped and idempotent: repeats resolve the recorded withdrawal (replayed). A moderation removal is never overridden by the author.",
+        "tags": ["arguments"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque argument identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Withdrawal recorded or replayed.",
+            "headers": {
+              "Idempotency-Replayed": { "description": "true on replays.", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArgumentMutationResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/me/position-changes/{id}/attributions": {
+      "post": {
+        "operationId": "recordAttributions",
+        "summary": "Record influence attributions",
+        "description": "Records the optional, contextual attribution of one confirmed position change: zero to three arguments that contributed to it. The change is loaded scoped to the authenticated account, so a foreign change stays indistinguishable from a missing one, and eligibility (same Arena, published before the change, another author, not invalidated) is enforced before anything is written. An empty selection is a valid skip and never creates a fake attribution. The recording is transactional and idempotent per argument: retrying the same selection resolves the recorded set with Idempotency-Replayed: true. The response echoes only the identifiers the caller already sent and never names who else credited the arguments.",
+        "tags": ["persuasion"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque position change identifier returned when the change was recorded.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AttributionRecordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Selection recorded.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AttributionRecordResult" }
+              }
+            }
+          },
+          "200": {
+            "description": "Selection already recorded: the response resolves it instead of writing again.",
+            "headers": {
+              "Idempotency-Replayed": { "description": "true on replays.", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AttributionRecordResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/moderation/attribution-signals/{authorID}": {
+      "get": {
+        "operationId": "getAttributionSignals",
+        "summary": "Restricted attribution abuse signals",
+        "description": "Returns the advisory attribution signals of one author for the configured window: reciprocity (mutual credit between the author and another account), concentration (one account holding a dominant share of the author's valid attributions) and rapid alternation (repeated position reversals by one account). The surface is restricted to authorized moderators: the caller is authorized before any fact is read, and every response carries the mandatory private cache policy. A signal carries the kind, the counterpart account and the counts that crossed a versioned threshold — never a score, a severity, an algorithmic weight or an automatic action; a human reviews the case and decides (MODERATION §5, §10). Signals are prevention data and never appear in a public page, metric or export (CONSTITUTION §Dados pessoais). Invalidated attributions, which are closed cases, never feed the counts.",
+        "tags": ["persuasion"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "authorID",
+            "in": "path",
+            "required": true,
+            "description": "Opaque account identifier of the author under review.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Advisory signals of the author in the window, ordered by kind and counterpart.",
+            "headers": {
+              "Cache-Control": { "description": "Mandatory private cache policy of authenticated routes (private, no-store, no-cache, must-revalidate).", "schema": { "type": "string" } },
+              "Pragma": { "description": "no-cache, as required for authenticated responses.", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AttributionSignals" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/v1/arenas/{id}/arguments": {
+      "get": {
+        "operationId": "listArenaArguments",
+        "summary": "Public per-relation argument list",
+        "description": "Returns one keyset page of published top-level arguments of one relation in one Arena, newest first, with the derived published-reply count computed in the same statement. Withdrawn and removed arguments never appear. The response carries an ETag and short public cache headers and may be revalidated with If-None-Match.",
+        "tags": ["arguments"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque Arena identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "relation",
+            "in": "query",
+            "required": true,
+            "description": "Relation filter of the list.",
+            "schema": { "type": "string", "enum": ["support", "oppose", "context"] }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque server-signed cursor returned as next_cursor by the previous page.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1..100); defaults to 20.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One argument page.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Short public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArgumentPage" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "400": { "$ref": "#/components/responses/Validation" }
+        }
+      }
+    },
+    "/api/v1/arguments/{id}/attributions": {
+      "get": {
+        "operationId": "getArgumentAttributions",
+        "summary": "Public attribution count of one argument",
+        "description": "Returns the public counts of one argument: the valid attribution events it received and the eligible people who credited it, each person counted once. The attributor identity is private by default, so no endpoint ever returns the list of people behind the count; the document carries counts only. Invalidated attributions never integrate the valid totals, and withdrawing or removing the argument does not rewrite the historical counts. An unknown argument is a plain 404. The response carries an ETag and short public cache headers and may be revalidated with If-None-Match.",
+        "tags": ["persuasion"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque argument identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public counts of the argument.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Short public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArgumentAttributionMetrics" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/arguments/{id}/replies": {
+      "get": {
+        "operationId": "listArgumentReplies",
+        "summary": "Public replies list",
+        "description": "Returns one keyset page of published replies of one argument, newest first. The depth policy forbids grandchildren, so replies carry no derived reply count. The response carries an ETag and short public cache headers.",
+        "tags": ["arguments"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque parent argument identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque server-signed cursor returned as next_cursor by the previous page.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1..100); defaults to 20.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One replies page.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Short public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ArgumentPage" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "400": { "$ref": "#/components/responses/Validation" }
+        }
+      }
+    },
+    "/api/v1/arguments/{id}": {
+      "get": {
+        "operationId": "getPublicArgument",
+        "summary": "Public argument",
+        "description": "Returns one argument for the public surface. A withdrawn argument resolves as a retracted placeholder: its identity and status stay visible while the content is withheld. A moderation-removed argument is not found. The response carries an ETag and short public cache headers.",
+        "tags": ["arguments"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Opaque argument identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public argument or retracted placeholder.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Short public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Argument" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/d/{slug}": {
+      "get": {
+        "operationId": "getArenaDocument",
+        "summary": "Public Arena document (HTML)",
+        "description": "Renders the cacheable public HTML document of an Arena addressed by its slug: title, description, canonical link, OpenGraph and JSON-LD built from the Arena's own content and content_language. Metadata never includes aggregated results (none exist in the MVP). Removed Arenas answer 410 Gone and every other unresolvable value answers 404; error documents are never cached and never echo the requested address.",
+        "tags": ["arenas"],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "description": "Stable public Arena address.",
+            "schema": { "type": "string", "minLength": 3, "maxLength": 80 }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public Arena document.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "text/html": {
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "404": {
+            "description": "Arena not found. The error document is not cacheable.",
+            "content": {
+              "text/html": {
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "410": {
+            "description": "Arena removed by moderation. The error document is not cacheable.",
+            "content": {
+              "text/html": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/{username}": {
+      "get": {
+        "operationId": "getPublicProfile",
+        "summary": "Public profile",
+        "description": "Returns the public projection of a profile: username, interface locale and creation instant. Email, internal identifiers, payment data, antifraud flags and administrative notes are never part of this document.",
+        "tags": ["profiles"],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "description": "Public username, matched case-insensitively.",
+            "schema": { "type": "string", "minLength": 3, "maxLength": 30 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public profile.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PublicProfile" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/profiles/{username}/reputation": {
+      "get": {
+        "operationId": "getProfileReputation",
+        "summary": "Public factual reputation of a profile",
+        "description": "Returns the public factual reputation of one author, addressed by the canonical username: the headline influenced_people (each participant counted at most once per author in each Arena, so the headline is the sum of the per-Arena distinct counts), the valid attributions received, and the same facts distributed by category, by language and per Arena. There is no universal score and no ranking. Only counts and public identifiers are served: attributor, account and email data never appear, and a username without a profile is a plain 404. The response carries an ETag and short public cache headers and may be revalidated with If-None-Match.",
+        "tags": ["persuasion"],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "description": "Public username, matched case-insensitively.",
+            "schema": { "type": "string", "minLength": 3, "maxLength": 30 }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "Validator returned by a previous read; a match answers 304 without a body.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public reputation of the profile.",
+            "headers": {
+              "ETag": { "description": "Strong validator of the exact response document; revalidate with If-None-Match.", "schema": { "type": "string" } },
+              "Cache-Control": { "description": "Short public cache policy (public, max-age=60).", "schema": { "type": "string" } }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProfileReputation" }
+              }
+            }
+          },
+          "304": { "description": "Not modified: the If-None-Match validator matches the current document." },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/me/mfa/enrollment": {
+      "post": {
+        "operationId": "beginMFAEnrollment",
+        "summary": "Begin a second factor enrollment",
+        "description": "Generates a pending TOTP secret for the authenticated account and returns it with the otpauth URI exactly once. The secret is stored sealed (AES-256-GCM, bound to the account identifier) and never returned again. The enrollment stays pending until a code confirms it, and an account with a confirmed enrollment is refused, so this route can never replace a working second factor (P16-T05).",
+        "tags": ["auth"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Pending enrollment with its secret and otpauth URI.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MFAEnrollmentResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/me/mfa/enrollment/confirm": {
+      "post": {
+        "operationId": "confirmMFAEnrollment",
+        "summary": "Confirm a second factor enrollment",
+        "description": "Verifies a code from the pending enrollment, records the confirmation and returns the one-time recovery codes in their only clear-text appearance: they are stored hashed and can be spent exactly once. The code that confirms the enrollment is spent, so it cannot be replayed at step-up (P16-T05).",
+        "tags": ["auth"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MFAConfirmRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Enrollment confirmed with its one-time recovery codes.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MFAConfirmResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/v1/me/mfa/step-up": {
+      "post": {
+        "operationId": "stepUpMFA",
+        "summary": "Elevate the session with a second factor code",
+        "description": "Verifies a TOTP code and marks the calling session as second-factor elevated, which is what the administrative surface requires. The accepted time step is spent, so a replay of the same code is refused even inside the tolerated clock window (P16-T05).",
+        "tags": ["auth"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MFAVerifyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session elevated.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MFAElevationResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/v1/me/mfa/recovery": {
+      "post": {
+        "operationId": "recoverMFA",
+        "summary": "Spend a one-time recovery code",
+        "description": "Spends one backup code and elevates the calling session: the path of an operator whose authenticator is gone. The code is consumed before anything else and only a code that was never spent can be spent, and the recovery is recorded in the audit trail before the session is elevated, so a recovery that cannot be attributed cannot succeed (P16-T05).",
+        "tags": ["auth"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MFAVerifyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session elevated by a recovery code.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MFAElevationResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/v1/me/sessions": {
+      "get": {
+        "operationId": "listSessions",
+        "summary": "List the caller's own sessions",
+        "description": "Returns the sessions of the authenticated account that are still usable under the session policy (idle and absolute expiry), most recently seen first, with the calling session marked. The list carries only what each session recorded — creation, last activity, deadline, address and user agent — and never a token, a token hash or a derived device fingerprint (P16-T06). Responses are private, no-store (THR-CACHE-01).",
+        "tags": ["auth"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "The account's usable sessions.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SessionListResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/me/sessions/rotation": {
+      "post": {
+        "operationId": "rotateSession",
+        "summary": "Rotate the calling session",
+        "description": "Ends the session making the request and issues a fresh opaque token in the same response, so a copy of the previous token taken before the rotation is worthless after it. The new token is generated server-side from the platform's entropy port: no value supplied by the client can become a session token, which is what closes session fixation. Responses are private, no-store (THR-CACHE-01).",
+        "tags": ["auth"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "The session was rotated; the response carries the new cookie.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SessionRotationResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/v1/me/sessions/revocation": {
+      "post": {
+        "operationId": "revokeSession",
+        "summary": "End another session of the account",
+        "description": "Ends one session of the authenticated account. The action is critical, so it requires the account password in the same request: a session cookie alone cannot evict the sessions of the person it was stolen from. The password is verified before the session is looked at, so a wrong password and an unknown session identifier receive the same answer and the endpoint cannot be used to probe identifiers; a refusal changes nothing. The calling session is ended by the logout route instead (P16-T06). Responses are private, no-store (THR-CACHE-01).",
+        "tags": ["auth"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SessionRevocationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The session was ended.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SessionRevocationResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/register": {
+      "get": {
+        "operationId": "showRegisterPage",
+        "summary": "Registration page (HTML)",
+        "description": "Renders the browser registration form: the fields with their labels, the platform CSRF token as a hidden field and the client module that only adds the busy state to a submission. The page is a document a person fills in and it works with JavaScript switched off, so it is private and never stored. The double submit travels in the form body because a browser form cannot set the CSRF header.",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "Registration form.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitRegisterPage",
+        "summary": "Registration submission (HTML form)",
+        "description": "Creates the account from the submitted form. The answer is uniform: an address that already has an account and a fresh address both reach the confirmation page, so the surface cannot be asked whether an address is registered (the same guarantee the JSON route gives with its uniform 201). A submission whose email or password the domain refuses is answered with the same form, the field's message and a summary of what to fix.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/AuthRegisterForm" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Uniform confirmation page: the registration was accepted.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "400": {
+            "description": "The form does not satisfy the rules; the page is re-rendered with the field messages.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/verify": {
+      "get": {
+        "operationId": "showVerifyPage",
+        "summary": "Email confirmation page (HTML)",
+        "description": "Renders the form that redeems the single-use confirmation code delivered by email. The code is carried by the email as a code rather than a link, so the page is reachable from the site itself.",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "Confirmation form.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitVerifyPage",
+        "summary": "Email confirmation submission (HTML form)",
+        "description": "Consumes the single-use confirmation code and activates the account. Every rejection is one refusal — a code that is wrong, expired or already spent produces the same message — exactly as the JSON route answers.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/AuthCodeForm" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Confirmation page: the email is verified.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "400": {
+            "description": "The code is invalid, expired or already used; the page is re-rendered with the refusal.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/login": {
+      "get": {
+        "operationId": "showLoginPage",
+        "summary": "Sign-in page (HTML)",
+        "description": "Renders the browser sign-in form with its labels, the CSRF hidden field and the link to the recovery journey.",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "Sign-in form.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitLoginPage",
+        "summary": "Sign-in submission (HTML form)",
+        "description": "Verifies credentials and opens the session, then answers a 303 redirect so a reload never resubmits the credentials. A refusal is one uniform message for every cause — wrong password, unknown address, suspended account — because the page must not become the oracle the JSON route refuses to be. The session cookie is rotated together with the CSRF token (post-login rotation), and the attempt is reported to the risk signal that gates the next hard challenge, exactly as the JSON route reports it.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/AuthLoginForm" }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Signed in: the browser is sent to the authenticated root with the new session cookie.",
+            "headers": {
+              "Location": {
+                "description": "The authenticated root (/).",
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "401": {
+            "description": "Uniform credential refusal; the form is re-rendered without saying which part was wrong.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/logout": {
+      "get": {
+        "operationId": "showLogoutPage",
+        "summary": "Sign-out confirmation page (HTML)",
+        "description": "Renders the confirmation whose form ends the session, so a plain navigation to the address never ends a session by itself.",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "Sign-out confirmation.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitLogoutPage",
+        "summary": "Sign-out submission (HTML form)",
+        "description": "Revokes the session of the presented cookie and clears both the session and the CSRF cookies, then answers a 303 redirect to the sign-in page. The cookies are cleared even when the revocation fails, because a person who asked to end the session must not be left inside it by a transient storage fault; the failure is logged, not silently accepted.",
+        "tags": ["auth"],
+        "responses": {
+          "303": {
+            "description": "Session ended: the browser is sent to the sign-in page.",
+            "headers": {
+              "Location": {
+                "description": "The sign-in page (/login).",
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/reset": {
+      "get": {
+        "operationId": "showPasswordResetRequestPage",
+        "summary": "Recovery request page (HTML)",
+        "description": "Renders the form that asks for a recovery code, with the CSRF hidden field and the link to the page that redeems the code.",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "Recovery request form.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitPasswordResetRequestPage",
+        "summary": "Recovery request submission (HTML form)",
+        "description": "Asks for a recovery code and answers the uniform notice for every outcome, including a sending failure: the answer is where the existence of the account would leak, so a mailer that is down is not a reason to start answering questions about accounts (the same non-enumeration rule the JSON route follows).",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/AuthRecoveryRequestForm" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Uniform notice: a code was sent when the address has an account.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "400": {
+            "description": "The email field is empty; the page is re-rendered with the message.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/reset/confirm": {
+      "get": {
+        "operationId": "showPasswordResetConfirmPage",
+        "summary": "New password page (HTML)",
+        "description": "Renders the form that redeems the recovery code and sets the new password in one submission.",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "New password form.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitPasswordResetConfirmPage",
+        "summary": "New password submission (HTML form)",
+        "description": "Consumes the recovery code, sets the new password and ends every older session of the account. Two failures are told apart on purpose and only these two: a password below the minimum is about the person's own input and must be actionable, while a code that is wrong, expired or already spent is one refusal. Nothing about the account is revealed either way.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/AuthPasswordResetForm" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Confirmation page: the password was changed.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "400": {
+            "description": "The code or the password is refused; the page is re-rendered with the message.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/arenas/{slug}": {
+      "get": {
+        "operationId": "showArenaParticipationPage",
+        "summary": "Arena participation page (HTML)",
+        "description": "Renders the page a person acts on: the statement and the public metadata of the Arena, the aggregate result when the visitor asks for it (?reveal=1), the local position choice of a visitor without a session, the stored position of an authenticated person together with the forms that confirm or change it, the newest page of each relation's arguments, and the form that publishes one. The identity is optional here: a visitor without a session reads the page and chooses a position locally, and only the transitions require an account. The page is never publicly cacheable and is marked noindex, because the canonical public document of an Arena is /d/{slug}.",
+        "tags": ["arenas"],
+        "responses": {
+          "200": {
+            "description": "Participation page. The aggregate is omitted unless the request asked for it, and the personalized regions are omitted without a session.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "410": {
+            "description": "The Arena was removed by moderation.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/arenas/{slug}/position": {
+      "post": {
+        "operationId": "submitArenaInitialPosition",
+        "summary": "Confirm the initial position (HTML form)",
+        "description": "Records the first confirmed position of the account in the Arena and answers a 303 redirect to the page with the code of the transition. The initial choice is immutable: confirming it twice with another value is refused with the message of the form, while every other refusal the application can produce stays the refusal page of its kind. The submitted position is validated against the closed vocabulary of the page before the use case is called.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/ArenaPositionForm" }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Position recorded: the browser is sent back to the page of the Arena.",
+            "headers": {
+              "Location": {
+                "description": "The participation page with the code of the transition.",
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": {
+            "description": "The field is empty or carries a position outside the vocabulary; the page is re-rendered with the message on the field.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": {
+            "description": "The initial position is already confirmed with another value; the page is re-rendered with the message of the refusal.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/arenas/{slug}/position/change": {
+      "post": {
+        "operationId": "submitArenaPositionChange",
+        "summary": "Change the confirmed position (HTML form)",
+        "description": "Appends one accepted change to the immutable history, moves the current-position projection in the same transaction and answers a 303 redirect to the page. A concurrent change fails the optimistic version check and is answered with the message of the form, never with a projection that diverges from the chain.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/ArenaPositionForm" }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Change recorded: the browser is sent back to the page of the Arena.",
+            "headers": {
+              "Location": {
+                "description": "The participation page with the code of the transition.",
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": {
+            "description": "The field is empty or carries a position outside the vocabulary; the page is re-rendered with the message on the field.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": {
+            "description": "The version of the stored position moved meanwhile; the page is re-rendered with the message of the refusal.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/arenas/{slug}/arguments": {
+      "post": {
+        "operationId": "submitArenaArgument",
+        "summary": "Publish an argument (HTML form)",
+        "description": "Publishes one argument of an authenticated account and answers a 303 redirect to the page. The attempt key travels in the form, generated when the page was rendered, so a double submission of the same document resolves the argument that was already recorded instead of debiting INK twice; the debit itself happens inside the transaction of the publication, and this surface only reports the refusal when the balance does not cover it. The relation is validated against the closed vocabulary of the page before the use case is called.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/ArenaArgumentForm" }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Argument published: the browser is sent back to the page of the Arena.",
+            "headers": {
+              "Location": {
+                "description": "The participation page with the code of the transition.",
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": {
+            "description": "A field is empty or carries a relation outside the vocabulary; the page is re-rendered with the message on the field.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": {
+            "description": "The publication is refused with a message for the form: content outside the accepted bounds, or a balance that does not cover it.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/arenas/{slug}/attributions": {
+      "post": {
+        "operationId": "submitArenaAttributions",
+        "summary": "Record what influenced a position change (HTML form)",
+        "description": "Records the arguments one position change is credited to, owner-only and idempotent per argument, and answers a 303 redirect to the page. The selection is bounded by the attribution policy of the change rather than by a repetition budget, which is why this transition carries no throttle of its own; the page refuses to render a selection larger than that policy.",
+        "tags": ["arenas"],
+        "security": [{ "SessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/ArenaAttributionForm" }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Attribution recorded: the browser is sent back to the page of the Arena.",
+            "headers": {
+              "Location": {
+                "description": "The participation page with the code of the transition.",
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": {
+            "description": "No change and no argument was submitted, or the selection is larger than the attribution policy; the page is re-rendered with the message.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": {
+            "description": "The change or one of the chosen arguments is no longer available; the page is re-rendered with the message of the refusal.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MFAEnrollmentResponse": {
+        "type": "object",
+        "required": ["secret", "uri"],
+        "properties": {
+          "secret": { "type": "string", "description": "Base32 shared secret, returned exactly once." },
+          "uri": { "type": "string", "description": "otpauth URI for the authenticator application." }
+        }
+      },
+      "MFAConfirmRequest": {
+        "type": "object",
+        "required": ["code"],
+        "properties": {
+          "code": { "type": "string", "minLength": 6, "maxLength": 8, "pattern": "^[0-9]{6,8}$" }
+        }
+      },
+      "MFAConfirmResponse": {
+        "type": "object",
+        "required": ["backup_codes"],
+        "properties": {
+          "backup_codes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "One-time recovery codes, returned exactly once and stored hashed."
+          }
+        }
+      },
+      "MFAVerifyRequest": {
+        "type": "object",
+        "required": ["code"],
+        "properties": {
+          "code": { "type": "string", "description": "TOTP code, or a one-time recovery code on the recovery route." }
+        }
+      },
+      "MFAElevationResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string", "enum": ["elevated"] }
+        }
+      },
+      "SessionSummary": {
+        "type": "object",
+        "description": "One entry of the owner's device list. It carries the facts the session recorded and nothing derived from them: no token, no token hash, no device identifier and no cross-session correlation.",
+        "required": ["id", "created_at", "last_seen_at", "expires_at", "current"],
+        "properties": {
+          "id": { "type": "string", "description": "Opaque session identifier, never the session token." },
+          "created_at": { "type": "string", "format": "date-time" },
+          "last_seen_at": { "type": "string", "format": "date-time" },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "ip_address": { "type": "string", "description": "Client address the session recorded, when it recorded one." },
+          "user_agent": { "type": "string", "description": "User agent the session presented, bounded and unmodified." },
+          "current": { "type": "boolean", "description": "True for the session making the request." }
+        }
+      },
+      "SessionListResponse": {
+        "type": "object",
+        "required": ["sessions"],
+        "properties": {
+          "sessions": { "type": "array", "items": { "$ref": "#/components/schemas/SessionSummary" } }
+        }
+      },
+      "SessionRevocationRequest": {
+        "type": "object",
+        "required": ["session_id", "password"],
+        "properties": {
+          "session_id": { "type": "string", "description": "Session to end; the account of the caller must own it." },
+          "password": { "type": "string", "description": "Account password, which re-authenticates the owner for this critical action." }
+        }
+      },
+      "SessionRevocationResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string", "enum": ["revoked"] }
+        }
+      },
+      "SessionRotationResponse": {
+        "type": "object",
+        "required": ["status", "session_id"],
+        "properties": {
+          "status": { "type": "string", "enum": ["rotated"] },
+          "session_id": { "type": "string", "description": "Identifier of the new session; the new token travels only in the cookie." }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 8 }
+        }
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string", "enum": ["pending_verification"] }
+        }
+      },
+      "ArenaPositionForm": {
+        "type": "object",
+        "required": ["position", "csrf_token"],
+        "properties": {
+          "position": {
+            "type": "string",
+            "enum": ["agree", "disagree", "undecided"],
+            "description": "The submitted position. It is validated against this closed vocabulary before the use case is called."
+          },
+          "csrf_token": {
+            "type": "string"
+          }
+        }
+      },
+      "ArenaArgumentForm": {
+        "type": "object",
+        "required": ["relation", "content", "attempt", "csrf_token"],
+        "properties": {
+          "relation": {
+            "type": "string",
+            "enum": ["support", "oppose", "context"],
+            "description": "Relation of the argument to the statement, validated against this closed vocabulary."
+          },
+          "content": {
+            "type": "string",
+            "description": "The argument itself, from one to three thousand grapheme clusters (UAX #29). The count is the server's; the form documents the limit instead of leaving it to the browser."
+          },
+          "attempt": {
+            "type": "string",
+            "description": "Attempt key generated when the page was rendered. A retry of the same document resolves the recorded argument instead of debiting INK again."
+          },
+          "csrf_token": {
+            "type": "string"
+          }
+        }
+      },
+      "ArenaAttributionForm": {
+        "type": "object",
+        "required": ["change_id", "argument_ids", "csrf_token"],
+        "properties": {
+          "change_id": {
+            "type": "string",
+            "description": "Identifier of the position change being credited; it travels as a hidden field of the rendered form."
+          },
+          "argument_ids": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Arguments the change is credited to. A checkbox group submits one entry per selection, and the cumulative limit of the attribution policy is enforced by the application."
+          },
+          "csrf_token": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthRegisterForm": {
+        "type": "object",
+        "required": ["email", "password", "csrf_token"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 8 },
+          "csrf_token": { "type": "string", "description": "Double-submit token rendered by the form and read from the body, because a browser form cannot set the CSRF header." }
+        }
+      },
+      "AuthLoginForm": {
+        "type": "object",
+        "required": ["email", "password", "csrf_token"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" },
+          "csrf_token": { "type": "string" }
+        }
+      },
+      "AuthCodeForm": {
+        "type": "object",
+        "required": ["token", "csrf_token"],
+        "properties": {
+          "token": { "type": "string", "description": "Single-use code delivered by email; it is never echoed back into the form." },
+          "csrf_token": { "type": "string" }
+        }
+      },
+      "AuthRecoveryRequestForm": {
+        "type": "object",
+        "required": ["email", "csrf_token"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "csrf_token": { "type": "string" }
+        }
+      },
+      "AuthPasswordResetForm": {
+        "type": "object",
+        "required": ["token", "password", "csrf_token"],
+        "properties": {
+          "token": { "type": "string" },
+          "password": { "type": "string", "minLength": 8 },
+          "csrf_token": { "type": "string" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": ["status", "account_id"],
+        "properties": {
+          "status": { "type": "string", "enum": ["authenticated"] },
+          "account_id": { "type": "string" }
+        }
+      },
+      "PasswordResetRequest": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": { "type": "string", "format": "email" }
+        }
+      },
+      "PasswordResetConfirm": {
+        "type": "object",
+        "required": ["token", "password"],
+        "properties": {
+          "token": { "type": "string" },
+          "password": { "type": "string", "minLength": 8 }
+        }
+      },
+      "StatusResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string" }
+        }
+      },
+      "PublicProfile": {
+        "type": "object",
+        "description": "Public projection of a profile. Never contains email, internal identifiers, payment data, antifraud flags or administrative notes.",
+        "required": ["username", "interface_locale", "created_at"],
+        "properties": {
+          "username": { "type": "string", "minLength": 3, "maxLength": 30 },
+          "interface_locale": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PrivateProfile": {
+        "type": "object",
+        "description": "Owner projection of a profile. Adds only the mutation instant to the public fields; account, payment, antifraud and moderation data stay in their owning modules.",
+        "required": ["username", "interface_locale", "created_at", "updated_at"],
+        "properties": {
+          "username": { "type": "string", "minLength": 3, "maxLength": 30 },
+          "interface_locale": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "AccountDeletionRequest": {
+        "type": "object",
+        "description": "Owner projection of one account deletion request. The cancel reason is restricted evidence and never serializes.",
+        "required": ["status", "requested_at", "executed_at", "canceled_at"],
+        "properties": {
+          "status": { "type": "string", "enum": ["requested", "executed", "canceled"] },
+          "requested_at": { "type": "string", "format": "date-time" },
+          "executed_at": { "type": ["string", "null"], "format": "date-time" },
+          "canceled_at": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "AccountDeletionCancelRequest": {
+        "type": "object",
+        "description": "Optional cancellation reason; restricted evidence, bounded and never reflected in public projections.",
+        "properties": {
+          "reason": { "type": "string", "maxLength": 500 }
+        }
+      },
+      "PersonalExportJob": {
+        "type": "object",
+        "description": "Accepted personal export job. The raw download token is returned exactly once; only its SHA-256 hash is persisted.",
+        "required": ["export_id", "status", "download_token"],
+        "properties": {
+          "export_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["requested", "ready"] },
+          "download_token": { "type": "string", "description": "Single-use opaque 256-bit download capability." }
+        }
+      },
+      "PersonalExportDocument": {
+        "type": "object",
+        "description": "Versioned machine-readable personal data export (schema_version 1), served only to the authenticated owner. It may carry private categories of the subject; provider identifiers, webhook payloads, moderation evidence, device signals, IP addresses and secrets never appear.",
+        "required": ["schema_version", "generated_at", "excluded_categories", "account", "positions", "position_changes", "arena_drafts", "arguments", "wallet", "passes", "billing"],
+        "properties": {
+          "schema_version": { "type": "integer", "minimum": 1 },
+          "generated_at": { "type": "string", "format": "date-time" },
+          "excluded_categories": { "type": "array", "items": { "type": "string", "enum": ["security_restricted", "moderation_evidence", "payment_provider_identifiers", "antifraud_signals"] } },
+          "account": { "$ref": "#/components/schemas/PersonalExportAccount" },
+          "positions": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportPosition" } },
+          "position_changes": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportPositionChange" } },
+          "arena_drafts": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportArenaDraft" } },
+          "arguments": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportArgument" } },
+          "wallet": { "$ref": "#/components/schemas/PersonalExportWallet" },
+          "passes": { "$ref": "#/components/schemas/PersonalExportPasses" },
+          "billing": { "$ref": "#/components/schemas/PersonalExportBilling" }
+        }
+      },
+      "PersonalExportAccount": {
+        "type": "object",
+        "description": "Account identity plus optional profile preferences and the account's own sessions, without device signals or credentials.",
+        "required": ["id", "email", "status", "email_verified", "created_at", "profile", "preferences", "username_history", "sessions"],
+        "properties": {
+          "id": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "status": { "type": "string", "enum": ["pending", "active", "suspended", "deleted"] },
+          "email_verified": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "profile": { "oneOf": [{ "$ref": "#/components/schemas/PersonalExportProfile" }, { "type": "null" }] },
+          "preferences": { "oneOf": [{ "$ref": "#/components/schemas/PersonalExportPreference" }, { "type": "null" }] },
+          "username_history": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportUsername" } },
+          "sessions": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportSession" } }
+        }
+      },
+      "PersonalExportProfile": {
+        "type": "object",
+        "description": "Private profile projection of the subject.",
+        "required": ["username", "interface_locale", "timezone", "created_at", "updated_at"],
+        "properties": {
+          "username": { "type": "string" },
+          "interface_locale": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "timezone": { "type": ["string", "null"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportPreference": {
+        "type": "object",
+        "description": "Explicit communication preference of the subject.",
+        "required": ["marketing_opt_in", "updated_at"],
+        "properties": {
+          "marketing_opt_in": { "type": "boolean" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportUsername": {
+        "type": "object",
+        "description": "One historical username entry.",
+        "required": ["username", "changed_at"],
+        "properties": {
+          "username": { "type": "string" },
+          "changed_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportSession": {
+        "type": "object",
+        "description": "One of the account's sessions without IP address or user agent, which are restricted security data.",
+        "required": ["id", "created_at", "expires_at", "revoked_at"],
+        "properties": {
+          "id": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "revoked_at": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "PersonalExportPosition": {
+        "type": "object",
+        "description": "One individual position with its Arena context.",
+        "required": ["arena_id", "arena_slug", "arena_statement", "initial_position", "current_position", "version", "created_at", "updated_at"],
+        "properties": {
+          "arena_id": { "type": "string" },
+          "arena_slug": { "type": "string" },
+          "arena_statement": { "type": "string" },
+          "initial_position": { "type": "string", "enum": ["agree", "disagree", "undecided"] },
+          "current_position": { "type": "string", "enum": ["agree", "disagree", "undecided"] },
+          "version": { "type": "integer", "minimum": 1 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportPositionChange": {
+        "type": "object",
+        "description": "One individual position change.",
+        "required": ["arena_id", "from_position", "to_position", "version", "changed_at"],
+        "properties": {
+          "arena_id": { "type": "string" },
+          "from_position": { "type": "string", "enum": ["agree", "disagree", "undecided"] },
+          "to_position": { "type": "string", "enum": ["agree", "disagree", "undecided"] },
+          "version": { "type": "integer", "minimum": 2 },
+          "changed_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportArenaDraft": {
+        "type": "object",
+        "description": "One unpublished Arena draft; private data that only exists in the personal export.",
+        "required": ["id", "statement", "context", "category", "language", "version", "created_at"],
+        "properties": {
+          "id": { "type": "string" },
+          "statement": { "type": "string" },
+          "context": { "type": ["string", "null"] },
+          "category": { "type": "string" },
+          "language": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "version": { "type": "integer", "minimum": 1 },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportArgument": {
+        "type": "object",
+        "description": "One argument or reply authored by the subject, published or withdrawn, with its sources. Moderation-removed content is restricted evidence and never appears.",
+        "required": ["id", "arena_id", "parent_id", "relation", "content", "status", "created_at", "withdrawn_at", "sources"],
+        "properties": {
+          "id": { "type": "string" },
+          "arena_id": { "type": "string" },
+          "parent_id": { "type": ["string", "null"] },
+          "relation": { "type": "string", "enum": ["support", "oppose", "context"] },
+          "content": { "type": "string" },
+          "status": { "type": "string", "enum": ["published", "withdrawn"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "withdrawn_at": { "type": ["string", "null"], "format": "date-time" },
+          "sources": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportSource" } }
+        }
+      },
+      "PersonalExportSource": {
+        "type": "object",
+        "description": "One source supporting one argument.",
+        "required": ["url", "description"],
+        "properties": {
+          "url": { "type": "string" },
+          "description": { "type": ["string", "null"] }
+        }
+      },
+      "PersonalExportWallet": {
+        "type": "object",
+        "description": "INK balance projection plus the signed ledger deltas; the operation reference never serializes.",
+        "required": ["balance_free", "balance_purchased", "transactions"],
+        "properties": {
+          "balance_free": { "type": "integer", "minimum": 0 },
+          "balance_purchased": { "type": "integer", "minimum": 0 },
+          "transactions": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportWalletEntry" } }
+        }
+      },
+      "PersonalExportWalletEntry": {
+        "type": "object",
+        "description": "One signed INK ledger delta.",
+        "required": ["operation", "bucket", "amount", "created_at"],
+        "properties": {
+          "operation": { "type": "string" },
+          "bucket": { "type": "string", "enum": ["FREE_INK", "PURCHASED_INK"] },
+          "amount": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportPasses": {
+        "type": "object",
+        "description": "Arena Pass lots and consumptions; the grant reference never serializes.",
+        "required": ["lots", "consumptions"],
+        "properties": {
+          "lots": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportPassLot" } },
+          "consumptions": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportPassConsumption" } }
+        }
+      },
+      "PersonalExportPassLot": {
+        "type": "object",
+        "description": "One Arena Pass lot.",
+        "required": ["origin", "quantity", "remaining", "expires_at", "created_at"],
+        "properties": {
+          "origin": { "type": "string", "enum": ["PURCHASE", "MEMBER", "ADMIN"] },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "remaining": { "type": "integer", "minimum": 0 },
+          "expires_at": { "type": ["string", "null"], "format": "date-time" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportPassConsumption": {
+        "type": "object",
+        "description": "One consumed Arena Pass.",
+        "required": ["arena_id", "consumed_at"],
+        "properties": {
+          "arena_id": { "type": "string" },
+          "consumed_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PersonalExportBilling": {
+        "type": "object",
+        "description": "Local purchase and subscription history; provider session, payment, subscription and price identifiers never serialize.",
+        "required": ["checkout_intents", "subscriptions"],
+        "properties": {
+          "checkout_intents": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportCheckoutIntent" } },
+          "subscriptions": { "type": "array", "items": { "$ref": "#/components/schemas/PersonalExportSubscription" } }
+        }
+      },
+      "PersonalExportCheckoutIntent": {
+        "type": "object",
+        "description": "One local purchase attempt: amount in minor units with ISO currency, status and dates only.",
+        "required": ["product_id", "market", "currency", "amount_minor", "status", "created_at", "paid_at"],
+        "properties": {
+          "product_id": { "type": "string" },
+          "market": { "type": "string", "enum": ["BR", "INTERNATIONAL"] },
+          "currency": { "type": "string", "enum": ["BRL", "USD"] },
+          "amount_minor": { "type": "integer", "minimum": 1 },
+          "status": { "type": "string", "enum": ["created", "open", "paid", "expired", "failed"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "paid_at": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "PersonalExportSubscription": {
+        "type": "object",
+        "description": "One subscription state with periods and cancellation flag, without provider or price identifiers.",
+        "required": ["product_id", "status", "current_period_start", "current_period_end", "cancel_at_period_end", "created_at", "updated_at"],
+        "properties": {
+          "product_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["incomplete", "incomplete_expired", "trialing", "active", "past_due", "canceled", "unpaid", "paused"] },
+          "current_period_start": { "type": ["string", "null"], "format": "date-time" },
+          "current_period_end": { "type": ["string", "null"], "format": "date-time" },
+          "cancel_at_period_end": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "WalletBalance": {
+        "type": "object",
+        "description": "INK bucket balances derived from the append-only ledger. Integer INK units: never floats and never pre-formatted money.",
+        "required": ["balance_free", "balance_purchased"],
+        "properties": {
+          "balance_free": { "type": "integer", "minimum": 0, "description": "FREE_INK balance (plan franchise, consumed first)." },
+          "balance_purchased": { "type": "integer", "minimum": 0, "description": "PURCHASED_INK balance (bought INK, consumed after the franchise)." }
+        }
+      },
+      "WalletStatementEntry": {
+        "type": "object",
+        "description": "One ledger line of the owner statement. Restricted administrative reasons, actors and antifraud data are never part of this document.",
+        "required": ["transaction_id", "operation_id", "operation_type", "bucket", "amount", "reference", "created_at"],
+        "properties": {
+          "transaction_id": { "type": "string" },
+          "operation_id": { "type": "string" },
+          "operation_type": {
+            "type": "string",
+            "enum": [
+              "credit_free",
+              "credit_member",
+              "credit_purchase",
+              "credit_refund",
+              "credit_admin",
+              "debit_argument",
+              "debit_admin",
+              "debit_refund",
+              "expire_free"
+            ]
+          },
+          "bucket": { "type": "string", "enum": ["FREE_INK", "PURCHASED_INK"] },
+          "amount": { "type": "integer", "description": "Signed INK delta: positive credits the bucket, negative debits it." },
+          "reference": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "WalletStatement": {
+        "type": "object",
+        "description": "Cursor page of the owner ledger statement.",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/WalletStatementEntry" } },
+          "next_cursor": { "type": ["string", "null"], "description": "Opaque signed cursor of the next page; null on the last page." }
+        }
+      },
+      "ArenaPassLot": {
+        "type": "object",
+        "description": "Private breakdown entry of one Arena Pass lot: derived availability, grant origin and optional immutable expiration.",
+        "required": ["origin", "quantity", "remaining", "expires_at", "expired", "created_at"],
+        "properties": {
+          "origin": { "type": "string", "enum": ["PURCHASE", "MEMBER", "ADMIN"] },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "remaining": { "type": "integer", "minimum": 0 },
+          "expires_at": { "type": ["string", "null"], "format": "date-time", "description": "Null when the lot never expires." },
+          "expired": { "type": "boolean", "description": "Derived at the checked instant; expired lots are not counted as available." },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ArenaPassSummary": {
+        "type": "object",
+        "description": "Owner Arena Pass projection: available total plus the private per-lot breakdown.",
+        "required": ["available_total", "checked_at", "lots"],
+        "properties": {
+          "available_total": { "type": "integer", "minimum": 0, "description": "Passes available at checked_at; expired lots are excluded." },
+          "checked_at": { "type": "string", "format": "date-time" },
+          "lots": { "type": "array", "items": { "$ref": "#/components/schemas/ArenaPassLot" } }
+        }
+      },
+      "ArenaPassHistoryEntry": {
+        "type": "object",
+        "description": "One Arena Pass consumption of the owner history.",
+        "required": ["consumption_id", "arena_id", "origin", "reference", "consumed_at"],
+        "properties": {
+          "consumption_id": { "type": "string" },
+          "arena_id": { "type": "string" },
+          "origin": { "type": "string", "enum": ["PURCHASE", "MEMBER", "ADMIN"] },
+          "reference": { "type": "string" },
+          "consumed_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ArenaPassHistory": {
+        "type": "object",
+        "description": "Cursor page of the owner pass consumption history.",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ArenaPassHistoryEntry" } },
+          "next_cursor": { "type": ["string", "null"], "description": "Opaque signed cursor of the next page; null on the last page." }
+        }
+      },
+      "BillingCheckoutRequest": {
+        "type": "object",
+        "description": "Minimal purchase intent the browser may name. Amount, currency, price and return URLs are resolved by the server.",
+        "required": ["market", "product", "idempotency_key"],
+        "properties": {
+          "market": { "type": "string", "enum": ["BR", "INTERNATIONAL"] },
+          "product": { "type": "string" },
+          "idempotency_key": { "type": "string" }
+        }
+      },
+      "BillingCheckout": {
+        "type": "object",
+        "description": "Private checkout document: local intent, priced money and redirect URL. No provider identifier serializes.",
+        "required": ["intent_id", "status", "redirect_url", "amount_minor", "currency", "market", "product", "replayed"],
+        "properties": {
+          "intent_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["created", "open", "paid", "expired", "failed"] },
+          "redirect_url": { "type": "string" },
+          "amount_minor": { "type": "integer", "minimum": 1, "description": "Exact price in minor units of the currency." },
+          "currency": { "type": "string", "enum": ["BRL", "USD"] },
+          "market": { "type": "string", "enum": ["BR", "INTERNATIONAL"] },
+          "product": { "type": "string" },
+          "replayed": { "type": "boolean" }
+        }
+      },
+      "BillingSubscription": {
+        "type": "object",
+        "description": "Private Member subscription projection: lifecycle and period only. No provider identifier serializes.",
+        "required": ["has_subscription"],
+        "properties": {
+          "has_subscription": { "type": "boolean" },
+          "status": { "type": "string", "enum": ["incomplete", "incomplete_expired", "trialing", "active", "past_due", "canceled", "unpaid", "paused"] },
+          "product": { "type": "string" },
+          "market": { "type": "string", "enum": ["BR", "INTERNATIONAL"] },
+          "current_period_end": { "type": ["string", "null"], "format": "date-time" },
+          "cancel_at_period_end": { "type": "boolean" }
+        }
+      },
+      "BillingPortalRequest": {
+        "type": "object",
+        "description": "Optional operation token for an idempotent portal opening.",
+        "properties": {
+          "idempotency_key": { "type": "string" }
+        }
+      },
+      "BillingPortal": {
+        "type": "object",
+        "description": "Hosted portal session. Only the portal URL leaves the billing module.",
+        "required": ["portal_url"],
+        "properties": {
+          "portal_url": { "type": "string" }
+        }
+      },
+      "TransparencyMetrics": {
+        "type": "object",
+        "description": "Versioned per-period platform metrics. Integer counts only: no email, no Stripe identifier, no IP and no account-level position ever serializes.",
+        "required": ["methodology_version", "period_start", "period_end", "timezone", "updated_at", "metrics"],
+        "properties": {
+          "methodology_version": { "type": "integer", "minimum": 1 },
+          "period_start": { "type": "string", "format": "date-time" },
+          "period_end": { "type": "string", "format": "date-time" },
+          "timezone": { "type": "string" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "metrics": { "$ref": "#/components/schemas/TransparencyMetricCounts" }
+        }
+      },
+      "TransparencyMetricCounts": {
+        "type": "object",
+        "description": "Suppressed integer counts keyed by stable snake_case codes.",
+        "required": ["eligible_accounts", "arenas_published", "arenas_closed", "arenas_restricted", "arenas_removed", "arguments_published", "arguments_withdrawn", "position_changes", "attributions_valid", "attributions_invalidated", "influenced_authors", "ink_free_granted", "ink_free_expired", "ink_free_consumed", "ink_purchased_granted", "ink_purchased_consumed", "ink_refunded", "ink_admin_adjusted", "passes_purchase_granted", "passes_member_granted", "passes_consumed", "reports_filed", "actions_recorded", "appeals_filed", "appeals_reversed"],
+        "properties": {
+          "eligible_accounts": { "type": "integer", "minimum": 0 },
+          "arenas_published": { "type": "integer", "minimum": 0 },
+          "arenas_closed": { "type": "integer", "minimum": 0 },
+          "arenas_restricted": { "type": "integer", "minimum": 0 },
+          "arenas_removed": { "type": "integer", "minimum": 0 },
+          "arguments_published": { "type": "integer", "minimum": 0 },
+          "arguments_withdrawn": { "type": "integer", "minimum": 0 },
+          "position_changes": { "type": "integer", "minimum": 0 },
+          "attributions_valid": { "type": "integer", "minimum": 0 },
+          "attributions_invalidated": { "type": "integer", "minimum": 0 },
+          "influenced_authors": { "type": "integer", "minimum": 0 },
+          "ink_free_granted": { "type": "integer", "minimum": 0 },
+          "ink_free_expired": { "type": "integer", "minimum": 0 },
+          "ink_free_consumed": { "type": "integer", "minimum": 0 },
+          "ink_purchased_granted": { "type": "integer", "minimum": 0 },
+          "ink_purchased_consumed": { "type": "integer", "minimum": 0 },
+          "ink_refunded": { "type": "integer", "minimum": 0 },
+          "ink_admin_adjusted": { "type": "integer", "minimum": 0 },
+          "passes_purchase_granted": { "type": "integer", "minimum": 0 },
+          "passes_member_granted": { "type": "integer", "minimum": 0 },
+          "passes_consumed": { "type": "integer", "minimum": 0 },
+          "reports_filed": { "type": "integer", "minimum": 0 },
+          "actions_recorded": { "type": "integer", "minimum": 0 },
+          "appeals_filed": { "type": "integer", "minimum": 0 },
+          "appeals_reversed": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ArenaExport": {
+        "type": "object",
+        "description": "Versioned public Arena export (schema_version 1). Only public data serializes: Arena identity and state, aggregate positions, valid influence counts and public arguments; no individual position, individual change history or attributor identity is ever part of the document.",
+        "required": ["schema_version", "arena", "positions", "influence", "arguments"],
+        "properties": {
+          "schema_version": { "type": "integer", "minimum": 1 },
+          "arena": { "$ref": "#/components/schemas/PublicArena" },
+          "positions": { "$ref": "#/components/schemas/ArenaExportPositions" },
+          "influence": { "$ref": "#/components/schemas/ArenaExportInfluence" },
+          "arguments": { "$ref": "#/components/schemas/ArenaExportArgumentPage" }
+        }
+      },
+      "ArenaExportPositions": {
+        "type": "object",
+        "description": "Aggregated position picture of one Arena. Below the low-count threshold every count is withheld (suppressed true, participants_total and position_changes zero and distributions zeroed), so a small sample never reveals an individual position; individual change histories never serialize.",
+        "required": ["participants_total", "suppressed", "position_changes", "initial", "current"],
+        "properties": {
+          "participants_total": { "type": "integer", "minimum": 0 },
+          "suppressed": { "type": "boolean" },
+          "position_changes": { "type": "integer", "minimum": 0 },
+          "initial": { "$ref": "#/components/schemas/PositionDistribution" },
+          "current": { "$ref": "#/components/schemas/PositionDistribution" }
+        }
+      },
+      "ArenaExportInfluence": {
+        "type": "object",
+        "description": "Valid influence counts of one Arena: valid attribution events and the distinct authors credited there. Counts only: no attributor, account or email data is ever part of this document.",
+        "required": ["valid_attributions", "influenced_authors"],
+        "properties": {
+          "valid_attributions": { "type": "integer", "minimum": 0 },
+          "influenced_authors": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ArenaExportArgumentInfluence": {
+        "type": "object",
+        "description": "Public counts of one exported argument: valid attribution events and the eligible people who credited it, each counted once. Counts only: no attributor identity ever serializes.",
+        "required": ["valid_attributions", "distinct_people"],
+        "properties": {
+          "valid_attributions": { "type": "integer", "minimum": 0 },
+          "distinct_people": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ArenaExportArgument": {
+        "type": "object",
+        "description": "One public argument of the export. Content and sources are withheld (null and empty array) while the argument is withdrawn; removed arguments never appear.",
+        "required": ["id", "parent_id", "relation", "content", "status", "created_at", "withdrawn_at", "sources", "influence"],
+        "properties": {
+          "id": { "type": "string" },
+          "parent_id": { "type": ["string", "null"], "description": "Null for top-level arguments." },
+          "relation": { "type": "string", "enum": ["support", "oppose", "context"] },
+          "content": { "type": ["string", "null"], "description": "Null when retracted by the author." },
+          "status": { "type": "string", "enum": ["published", "withdrawn"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "withdrawn_at": { "type": ["string", "null"], "format": "date-time" },
+          "sources": { "type": "array", "items": { "$ref": "#/components/schemas/ArgumentSource" } },
+          "influence": { "$ref": "#/components/schemas/ArenaExportArgumentInfluence" }
+        }
+      },
+      "ArenaExportArgumentPage": {
+        "type": "object",
+        "description": "Cursor page of exported arguments, oldest first.",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ArenaExportArgument" } },
+          "next_cursor": { "type": ["string", "null"], "description": "Opaque signed cursor of the next page; null on the last page." }
+        }
+      },
+      "ModerationReportRequest": {
+        "type": "object",
+        "description": "Structured content report. Reason is a closed vocabulary; context is optional bounded text.",
+        "required": ["target_type", "target_id", "reason"],
+        "properties": {
+          "target_type": { "type": "string", "enum": ["arena", "argument", "profile"] },
+          "target_id": { "type": "string" },
+          "reason": { "type": "string", "enum": ["violence", "doxxing", "harassment", "sexual", "fraud", "spam", "illegal", "evasion", "multiaccount", "malware", "other"] },
+          "context": { "type": "string", "maxLength": 2000 }
+        }
+      },
+      "ModerationReport": {
+        "type": "object",
+        "description": "Filed report identity with dedup and rate signals. Reporter context never serializes.",
+        "required": ["report_id", "replayed", "rate_limited", "reports_in_window"],
+        "properties": {
+          "report_id": { "type": "string" },
+          "replayed": { "type": "boolean" },
+          "rate_limited": { "type": "boolean" },
+          "reports_in_window": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ModerationAppealRequest": {
+        "type": "object",
+        "description": "Sanction appeal with appellant context.",
+        "required": ["action_id", "context"],
+        "properties": {
+          "action_id": { "type": "string" },
+          "context": { "type": "string", "maxLength": 2000 }
+        }
+      },
+      "ModerationAppeal": {
+        "type": "object",
+        "description": "Filed appeal identity. Appellant context never serializes.",
+        "required": ["appeal_id", "action_id", "replayed"],
+        "properties": {
+          "appeal_id": { "type": "string" },
+          "action_id": { "type": "string" },
+          "replayed": { "type": "boolean" }
+        }
+      },
+      "ModerationCase": {
+        "type": "object",
+        "description": "Triage routing entry: target, lifecycle, priority and claim holder. Restricted evidence never serializes.",
+        "required": ["case_id", "target_type", "target_id", "status", "priority", "created_at"],
+        "properties": {
+          "case_id": { "type": "string" },
+          "target_type": { "type": "string", "enum": ["arena", "argument", "profile"] },
+          "target_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["open", "under_review", "decided", "closed"] },
+          "priority": { "type": "string", "enum": ["low", "normal", "high", "urgent"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "claimed_by": { "type": "string" }
+        }
+      },
+      "ModerationCasePage": {
+        "type": "object",
+        "description": "Cursor page of the triage queue.",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ModerationCase" } },
+          "next_cursor": { "type": ["string", "null"], "description": "Opaque signed cursor of the next page; null on the last page." }
+        }
+      },
+      "ModerationClaim": {
+        "type": "object",
+        "description": "Claimed review routing.",
+        "required": ["case_id", "status", "claimed_by"],
+        "properties": {
+          "case_id": { "type": "string" },
+          "status": { "type": "string" },
+          "claimed_by": { "type": "string" }
+        }
+      },
+      "ModerationDecisionRequest": {
+        "type": "object",
+        "description": "Explicit sanction with rule, justification and optional expiry. Severity is never derived.",
+        "required": ["action", "rule", "justification"],
+        "properties": {
+          "action": { "type": "string", "enum": ["no_action", "warning", "link_hide", "interaction_limit", "argument_remove", "arena_close", "attribution_invalidate", "position_invalidate", "suspension", "ban", "preserve_legal"] },
+          "rule": { "type": "string", "maxLength": 200 },
+          "justification": { "type": "string", "maxLength": 2000 },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ModerationDecision": {
+        "type": "object",
+        "description": "Recorded sanction identity. The justification never serializes.",
+        "required": ["action_id", "case_id", "action"],
+        "properties": {
+          "action_id": { "type": "string" },
+          "case_id": { "type": "string" },
+          "action": { "type": "string" }
+        }
+      },
+      "ArenaDraftRequest": {
+        "type": "object",
+        "description": "Private draft formulation. Limits are versioned policy (statement 10..280 runes, context up to 2000); categories are the seeded editorial slugs.",
+        "required": ["statement", "category", "language"],
+        "properties": {
+          "statement": { "type": "string", "minLength": 10, "maxLength": 280 },
+          "context": { "type": "string", "maxLength": 2000 },
+          "category": { "type": "string", "enum": ["technology", "science", "philosophy", "politics", "economics", "health", "culture", "society"] },
+          "language": { "type": "string", "enum": ["pt-BR", "en-US"] }
+        }
+      },
+      "ArenaDraftUpdateRequest": {
+        "type": "object",
+        "description": "Full replacement of a private draft under the optimistic version check.",
+        "required": ["statement", "category", "language", "expected_version"],
+        "properties": {
+          "statement": { "type": "string", "minLength": 10, "maxLength": 280 },
+          "context": { "type": "string", "maxLength": 2000 },
+          "category": { "type": "string", "enum": ["technology", "science", "philosophy", "politics", "economics", "health", "culture", "society"] },
+          "language": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "expected_version": { "type": "integer", "minimum": 1, "description": "Version returned by the last read; a stale value fails with version_conflict." }
+        }
+      },
+      "PrivateArena": {
+        "type": "object",
+        "description": "Owner projection of an Arena. Never contains email, payment or moderation data; draft responses stay private and no-store.",
+        "required": ["id", "statement", "category", "language", "status", "version", "created_at"],
+        "properties": {
+          "id": { "type": "string" },
+          "slug": { "type": ["string", "null"], "description": "Stable public address; null while the Arena is a draft." },
+          "statement": { "type": "string" },
+          "context": { "type": ["string", "null"] },
+          "category": { "type": "string" },
+          "language": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "status": { "type": "string", "enum": ["draft", "published", "closed", "restricted", "removed"] },
+          "version": { "type": "integer", "minimum": 1 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "published_at": { "type": ["string", "null"], "format": "date-time" },
+          "closes_at": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "PrivateArenaList": {
+        "type": "object",
+        "description": "Drafts owned by the authenticated account, newest first. Bounded by the account's own drafts and never cached publicly.",
+        "required": ["items"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/PrivateArena" } }
+        }
+      },
+      "PublicArenaSummary": {
+        "type": "object",
+        "description": "One public feed entry. No context, no version and no internal identifiers beyond the stable public id and slug.",
+        "required": ["id", "slug", "statement", "category", "language", "status", "published_at"],
+        "properties": {
+          "id": { "type": "string" },
+          "slug": { "type": "string", "minLength": 3, "maxLength": 80 },
+          "statement": { "type": "string" },
+          "category": { "type": "string" },
+          "language": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "status": { "type": "string", "enum": ["published", "closed", "restricted"] },
+          "published_at": { "type": "string", "format": "date-time" },
+          "closes_at": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "PublicArena": {
+        "type": "object",
+        "description": "Public Arena document addressed by slug. Drafts are never addressable and removed Arenas are not found.",
+        "required": ["id", "slug", "statement", "context", "category", "language", "status", "published_at"],
+        "properties": {
+          "id": { "type": "string" },
+          "slug": { "type": "string", "minLength": 3, "maxLength": 80 },
+          "statement": { "type": "string" },
+          "context": { "type": ["string", "null"] },
+          "category": { "type": "string" },
+          "language": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "status": { "type": "string", "enum": ["published", "closed", "restricted"] },
+          "published_at": { "type": "string", "format": "date-time" },
+          "closes_at": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "ArenaFeed": {
+        "type": "object",
+        "description": "Cursor page of the public Arena feed, newest first. Drafts and removed Arenas never appear.",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/PublicArenaSummary" } },
+          "next_cursor": { "type": ["string", "null"], "description": "Opaque signed cursor of the next page; null on the last page." }
+        }
+      },
+      "SearchArenaPage": {
+        "type": "object",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/SearchArenaResult" } },
+          "next_cursor": { "type": ["string", "null"] }
+        }
+      },
+      "SearchArenaResult": {
+        "type": "object",
+        "required": ["id", "slug", "statement", "category", "language", "published_at", "score"],
+        "properties": {
+          "id": { "type": "string" }, "slug": { "type": "string" }, "statement": { "type": "string" }, "category": { "type": "string" }, "language": { "type": "string", "enum": ["pt-BR", "en-US"] }, "published_at": { "type": "string", "format": "date-time" }, "score": { "type": "number", "format": "double", "minimum": 0 }
+        }
+      },
+      "SearchArgumentPage": {
+        "type": "object",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/SearchArgumentResult" } },
+          "next_cursor": { "type": ["string", "null"] }
+        }
+      },
+      "SearchArgumentResult": {
+        "type": "object",
+        "required": ["id", "arena_id", "relation", "content", "language", "created_at", "score"],
+        "properties": {
+          "id": { "type": "string" }, "arena_id": { "type": "string" }, "relation": { "type": "string", "enum": ["support", "oppose", "context"] }, "content": { "type": "string" }, "language": { "type": "string", "enum": ["pt-BR", "en-US"] }, "created_at": { "type": "string", "format": "date-time" }, "score": { "type": "number", "format": "double", "minimum": 0 }
+        }
+      },
+      "PositionRequest": {
+        "type": "object",
+        "description": "The chosen position: the closed vocabulary agree, disagree or undecided. No plan, payment or reputation weight is attached.",
+        "required": ["position"],
+        "properties": {
+          "position": { "type": "string", "enum": ["agree", "disagree", "undecided"] }
+        }
+      },
+      "PrivatePosition": {
+        "type": "object",
+        "description": "Owner projection of one position in one Arena. Private by default: another account's projection is never addressable.",
+        "required": ["arena_id", "initial_position", "current_position", "version", "created_at", "updated_at"],
+        "properties": {
+          "arena_id": { "type": "string" },
+          "initial_position": { "type": "string", "enum": ["agree", "disagree", "undecided"], "description": "Immutable first confirmed position." },
+          "current_position": { "type": "string", "enum": ["agree", "disagree", "undecided"], "description": "Derived projection of the chain tip." },
+          "version": { "type": "integer", "minimum": 1 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PositionConfirmation": {
+        "type": "object",
+        "description": "Outcome of the idempotent initial confirmation.",
+        "required": ["position", "replayed"],
+        "properties": {
+          "position": { "$ref": "#/components/schemas/PrivatePosition" },
+          "replayed": { "type": "boolean", "description": "True when the call resolved an existing confirmation instead of writing." }
+        }
+      },
+      "PositionChangeRecord": {
+        "type": "object",
+        "description": "Outcome of one recorded change: the stored change identifier (kept for later attribution) and the updated projection.",
+        "required": ["change_id", "position"],
+        "properties": {
+          "change_id": { "type": "string" },
+          "position": { "$ref": "#/components/schemas/PrivatePosition" }
+        }
+      },
+      "PositionChangeEntry": {
+        "type": "object",
+        "description": "One row of the owner change history.",
+        "required": ["change_id", "from_position", "to_position", "version", "changed_at"],
+        "properties": {
+          "change_id": { "type": "string" },
+          "from_position": { "type": "string", "enum": ["agree", "disagree", "undecided"] },
+          "to_position": { "type": "string", "enum": ["agree", "disagree", "undecided"] },
+          "version": { "type": "integer", "minimum": 2 },
+          "changed_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PositionChangeHistory": {
+        "type": "object",
+        "description": "Owner change history, newest first; bounded by the account's own changes in the Arena.",
+        "required": ["items"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/PositionChangeEntry" } }
+        }
+      },
+      "PositionDistribution": {
+        "type": "object",
+        "description": "Count of one aggregate dimension. Counts only: no account identifier is ever part of an aggregate.",
+        "required": ["agree", "disagree", "undecided"],
+        "properties": {
+          "agree": { "type": "integer", "minimum": 0 },
+          "disagree": { "type": "integer", "minimum": 0 },
+          "undecided": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "PositionAggregate": {
+        "type": "object",
+        "description": "Privacy-safe public aggregate of one Arena. Below the configured threshold every count is withheld (suppressed true and zeroed counts), so a small sample never reveals an individual position.",
+        "required": ["participants_total", "suppressed", "initial", "current", "checked_at"],
+        "properties": {
+          "participants_total": { "type": "integer", "minimum": 0, "description": "Eligible participants counted at checked_at; zero when suppressed." },
+          "suppressed": { "type": "boolean" },
+          "initial": { "$ref": "#/components/schemas/PositionDistribution" },
+          "current": { "$ref": "#/components/schemas/PositionDistribution" },
+          "checked_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ArgumentPublishRequest": {
+        "type": "object",
+        "description": "Publication body: the declared relation, the plaintext content (at most 3.000 grapheme clusters) and optional structured sources.",
+        "required": ["relation", "content"],
+        "properties": {
+          "relation": { "type": "string", "enum": ["support", "oppose", "context"] },
+          "content": { "type": "string", "minLength": 1, "maxLength": 12000 },
+          "sources": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ArgumentSource" }
+          }
+        }
+      },
+      "ArgumentSource": {
+        "type": "object",
+        "description": "Structured source supporting an argument: an absolute http(s) URL plus an optional short description.",
+        "required": ["url"],
+        "properties": {
+          "url": { "type": "string", "minLength": 8, "maxLength": 2048 },
+          "description": { "type": "string", "maxLength": 500 }
+        }
+      },
+      "Argument": {
+        "type": "object",
+        "description": "Cache-safe public projection of one argument: no account identifier is ever part of it. Content is null when the author retracted the argument.",
+        "required": ["id", "arena_id", "parent_id", "relation", "content", "status", "created_at"],
+        "properties": {
+          "id": { "type": "string" },
+          "arena_id": { "type": "string" },
+          "parent_id": { "type": ["string", "null"], "description": "Null for top-level arguments." },
+          "relation": { "type": "string", "enum": ["support", "oppose", "context"] },
+          "content": { "type": ["string", "null"], "description": "Null when retracted by the author." },
+          "status": { "type": "string", "enum": ["published", "withdrawn"] },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ArgumentListItem": {
+        "type": "object",
+        "description": "One list entry: the public argument plus the derived published-reply count computed in the same statement.",
+        "required": ["id", "arena_id", "parent_id", "relation", "content", "status", "created_at", "reply_count"],
+        "properties": {
+          "id": { "type": "string" },
+          "arena_id": { "type": "string" },
+          "parent_id": { "type": ["string", "null"] },
+          "relation": { "type": "string", "enum": ["support", "oppose", "context"] },
+          "content": { "type": ["string", "null"] },
+          "status": { "type": "string", "enum": ["published", "withdrawn"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "reply_count": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ArgumentPage": {
+        "type": "object",
+        "description": "Cursor page of public arguments, newest first.",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ArgumentListItem" } },
+          "next_cursor": { "type": ["string", "null"], "description": "Opaque signed cursor of the next page; null on the last page." }
+        }
+      },
+      "ArgumentMutationResult": {
+        "type": "object",
+        "description": "Outcome of a publication, reply or withdrawal: the stored projection and whether the call resolved an earlier attempt.",
+        "required": ["argument", "replayed"],
+        "properties": {
+          "argument": { "$ref": "#/components/schemas/Argument" },
+          "replayed": { "type": "boolean" }
+        }
+      },
+      "AttributionRecordRequest": {
+        "type": "object",
+        "description": "Selection of zero to three arguments that contributed to one position change. An empty list is a valid skip and never creates a fake attribution; each argument counts at most once per change.",
+        "required": ["argument_ids"],
+        "properties": {
+          "argument_ids": { "type": "array", "maxItems": 3, "items": { "type": "string", "description": "Opaque argument identifier published in the same Arena before the change and authored by another participant." } }
+        }
+      },
+      "AttributionRecordResult": {
+        "type": "object",
+        "description": "Recorded selection of one change: the credited argument identifiers and whether the call resolved an earlier recording.",
+        "required": ["argument_ids", "replayed"],
+        "properties": {
+          "argument_ids": { "type": "array", "items": { "type": "string" } },
+          "replayed": { "type": "boolean", "description": "True when the call resolved an already recorded selection instead of writing." }
+        }
+      },
+      "ArgumentAttributionMetrics": {
+        "type": "object",
+        "description": "Public counts of one argument: the eligible people who credited it (each counted once per argument) and the valid attribution events it received. Counts only: no attributor, account or email data is ever part of this document.",
+        "required": ["valid_attributions", "distinct_people", "checked_at"],
+        "properties": {
+          "valid_attributions": { "type": "integer", "minimum": 0, "description": "Valid attributions received; fraudulent ones invalidated by moderation are excluded." },
+          "distinct_people": { "type": "integer", "minimum": 0, "description": "Eligible attributors counted once per argument." },
+          "checked_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ReputationArenaSlice": {
+        "type": "object",
+        "description": "Per-Arena facts of a public reputation: eligible people influenced there and valid attributions received there. Arena identifiers are public; attributors are not part of the document.",
+        "required": ["arena_id", "category", "language", "distinct_people", "valid_attributions"],
+        "properties": {
+          "arena_id": { "type": "string" },
+          "category": { "type": "string" },
+          "language": { "type": "string", "enum": ["pt-BR", "en-US"] },
+          "distinct_people": { "type": "integer", "minimum": 0 },
+          "valid_attributions": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ReputationDimension": {
+        "type": "object",
+        "description": "One bucket of a public reputation distribution (category or language), under the same per-Arena counting rule as the headline.",
+        "required": ["label", "distinct_people", "valid_attributions"],
+        "properties": {
+          "label": { "type": "string" },
+          "distinct_people": { "type": "integer", "minimum": 0 },
+          "valid_attributions": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ProfileReputation": {
+        "type": "object",
+        "description": "Public factual reputation of one author, addressed by the canonical username. influenced_people is the headline metric: each participant counts at most once per author in each Arena, so it equals the sum of the per-Arena distinct counts. No score, no ranking and no attributor identity is part of this document.",
+        "required": ["username", "influenced_people", "valid_attributions", "arenas", "by_category", "by_language", "checked_at"],
+        "properties": {
+          "username": { "type": "string" },
+          "influenced_people": { "type": "integer", "minimum": 0 },
+          "valid_attributions": { "type": "integer", "minimum": 0 },
+          "arenas": { "type": "array", "items": { "$ref": "#/components/schemas/ReputationArenaSlice" } },
+          "by_category": { "type": "array", "items": { "$ref": "#/components/schemas/ReputationDimension" } },
+          "by_language": { "type": "array", "items": { "$ref": "#/components/schemas/ReputationDimension" } },
+          "checked_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "AttributionSignal": {
+        "type": "object",
+        "description": "One advisory signal on the restricted moderation surface. The kind-specific counts are omitted when they do not apply. Restricted prevention data: no score, no severity and no weight is ever attached, and nothing acts on a signal automatically.",
+        "required": ["kind", "counterpart_id"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["reciprocity", "concentration", "rapid_alternation"] },
+          "counterpart_id": { "type": "string", "description": "Opaque account identifier of the counterpart whose behaviour crossed the threshold. Internal and restricted: never published or exported." },
+          "mutual_events": { "type": "integer", "minimum": 1, "description": "Reciprocity only: mutual credit events in the window, both directions summed." },
+          "dominant_events": { "type": "integer", "minimum": 1, "description": "Concentration only: valid attributions held by the counterpart in the window." },
+          "share_basis_points": { "type": "integer", "minimum": 1, "maximum": 10000, "description": "Concentration only: the counterpart's share of the author's valid attributions, in basis points (integer; no floating point)." },
+          "changes": { "type": "integer", "minimum": 1, "description": "Rapid alternation only: position changes of the counterpart inside the window." },
+          "reversals": { "type": "integer", "minimum": 1, "description": "Rapid alternation only: changes back to the position held before the previous change." }
+        }
+      },
+      "AttributionSignals": {
+        "type": "object",
+        "description": "Restricted assessment document of one author: the signals that crossed the thresholds, the policy revision and window that produced them and the reading instant. Served only to authorized moderators with the private cache policy.",
+        "required": ["author_id", "policy_version", "window_seconds", "checked_at", "signals"],
+        "properties": {
+          "author_id": { "type": "string", "description": "Opaque account identifier of the author under review." },
+          "policy_version": { "type": "string", "description": "Revision of the threshold policy that produced the assessment, so a reviewed case stays explainable when the thresholds change." },
+          "window_seconds": { "type": "integer", "minimum": 1, "description": "Length of the assessed window in seconds." },
+          "checked_at": { "type": "string", "format": "date-time" },
+          "signals": { "type": "array", "items": { "$ref": "#/components/schemas/AttributionSignal" }, "description": "Ordered by kind and counterpart; an author without any pattern above the thresholds answers an empty array." }
+        }
+      },
+      "HealthStatus": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["live", "ready", "unavailable"],
+            "description": "Probe verdict."
+          }
+        }
+      },
+      "Problem": {
+        "description": "RFC 9457 Problem Details document returned by every error response, with media type application/problem+json.",
+        "type": "object",
+        "required": ["type", "title", "status", "code"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Stable URI identifying the problem kind.",
+            "examples": ["https://regnovum.example/problems/validation"]
+          },
+          "title": {
+            "type": "string",
+            "description": "Short human-readable summary, generic for internal errors."
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code, identical to the response status."
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable machine-readable error code, e.g. ARENA-validation."
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Correlation ID echoed by the X-Request-Id middleware; join it with server logs."
+          },
+          "detail": {
+            "type": "string",
+            "description": "Public safe detail. Suppressed for internal errors: causes never serialize to clients."
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "SessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "arena_session",
+        "description": "Opaque session token cookie (Secure, HttpOnly, SameSite). Sessions arrive with the identity phase; the scheme is declared now to anchor the contract."
+      },
+      "CsrfHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token",
+        "description": "Per-request CSRF token required by state-changing requests once sessions exist."
+      }
+    },
+    "parameters": {
+      "RequestId": {
+        "name": "X-Request-Id",
+        "in": "header",
+        "required": false,
+        "description": "Client-supplied correlation ID; validated (<=64 chars, [A-Za-z0-9_-]) and reused, or replaced by a generated one. Always echoed back.",
+        "schema": { "type": "string", "maxLength": 64 }
+      }
+    },
+    "responses": {
+      "Validation": {
+        "description": "Request validation failed.",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/Problem" }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Authentication is required.",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/Problem" }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "The authenticated caller is not allowed to do this.",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/Problem" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found.",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/Problem" }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "The request conflicts with the current state.",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/Problem" }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Too many requests.",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/Problem" }
+          }
+        }
+      },
+      "Internal": {
+        "description": "Unexpected failure. The body stays generic; details go to logs, never to clients.",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/Problem" }
+          }
+        }
+      }
+    },
+    "headers": {
+      "RequestId": {
+        "description": "Correlation ID resolved by the request ID middleware.",
+        "schema": { "type": "string", "maxLength": 64 }
+      }
+    }
+  },
+  "x-conventions": {
+    "pagination": {
+      "description": "List endpoints return cursor pages. Request: ?cursor=<opaque>&limit=<1..100>; limit defaults to 20. Response envelope: { items: [...], next_cursor: string|null }. Cursors are opaque, server-signed and never inspected by clients.",
+      "cursorParameter": "cursor",
+      "limitParameter": "limit",
+      "limitDefault": 20,
+      "limitMaximum": 100,
+      "responseEnvelope": {
+        "type": "object",
+        "required": ["items", "next_cursor"],
+        "properties": {
+          "items": { "type": "array", "items": {} },
+          "next_cursor": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "idempotency": {
+      "description": "State-changing POST endpoints accept an Idempotency-Key header. Keys are scoped per session and endpoint, stored with the request fingerprint, and a replay returns the original result instead of re-executing the mutation. Responses carry Idempotency-Replayed: true on replays.",
+      "header": "Idempotency-Key",
+      "scope": "session+endpoint",
+      "replayHeader": "Idempotency-Replayed"
+    }
+  },
+  "security": [],
+  "tags": [
+    { "name": "health", "description": "Process probes consumed by the supervisor." },
+    { "name": "auth", "description": "Authentication, registration, session management and recovery." },
+    { "name": "profiles", "description": "Public and private profile projections." },
+    { "name": "wallet", "description": "Authenticated INK balance and statement reads." },
+    { "name": "passes", "description": "Authenticated Arena Pass summary and consumption history." },
+    { "name": "arenas", "description": "Arena drafts, publication, closing and the public feed." },
+    { "name": "arguments", "description": "Argument publication, replies, withdrawal and the public reads." },
+    { "name": "search", "description": "Language-aware PostgreSQL full-text search over public Arenas and arguments." },
+    { "name": "persuasion", "description": "Private influence attribution and the public factual counts it feeds." }
+  ]
+}

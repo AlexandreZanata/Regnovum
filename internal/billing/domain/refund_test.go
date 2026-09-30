@@ -216,3 +216,26 @@ func TestRefundEventClassifiers(t *testing.T) {
 		t.Error("checkout event must not classify as refund/dispute")
 	}
 }
+
+func TestAssessINKUnitBoundaries(t *testing.T) {
+	t.Parallel()
+
+	// One is a valid quantity on every side: the fences refuse only below
+	// one, and a full refund of one reverses one (mutation gate:
+	// refund.go:184,187,190, grant.go:54).
+	debit, review, err := domain.AssessINK(1, 1, 1, 1, domain.RefundSourceRefund)
+	if err != nil {
+		t.Fatalf("AssessINK(1,1,1,1): %v", err)
+	}
+	if debit != 1 || review {
+		t.Errorf("unit refund debit = %d review %v, want 1 false", debit, review)
+	}
+	if _, err := domain.NewINKGrant(1); err != nil {
+		t.Fatalf("NewINKGrant(1): %v", err)
+	}
+	for _, args := range [][4]int64{{0, 1, 1, 1}, {1, 0, 1, 1}, {1, 1, 0, 1}} {
+		if _, _, err := domain.AssessINK(args[0], args[1], args[2], args[3], domain.RefundSourceRefund); err == nil {
+			t.Errorf("AssessINK%v = nil, want refusal below one", args)
+		}
+	}
+}

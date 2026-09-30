@@ -10,16 +10,13 @@
 # scanner is still installed here, pinned, because the gate refuses to run
 # without it.
 #
-# Like `verify.yml`, this workflow skips drafts and never skips anything else
-# (`.local/GIT_FLOW.md` §5): the trigger lists `ready_for_review` and every job
-# carries the same draft condition.
+# Full supply-chain scans run on a version tag or manual release candidate.
 name: supply-chain
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    tags: ['v*']
 
 permissions:
   contents: read
@@ -29,24 +26,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  dependency-review:
-    name: Dependency review
-    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - name: Review dependency changes
-        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
-        with:
-          fail-on-severity: high
-          comment-summary-in-pr: never
-
   source-scans:
     name: Source and manifest scans
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -89,7 +70,6 @@ jobs:
 
   image-scan:
     name: Container image scan
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

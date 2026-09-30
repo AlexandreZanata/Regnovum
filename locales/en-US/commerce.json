@@ -1,0 +1,20 @@
+{
+  "commerce": {
+    "receipt": {
+      "title": "Trade receipt",
+      "gross": "{total} thousandths of INK (gross)",
+      "tithe": "{total} thousandths of INK (tithe)",
+      "net": "{total} thousandths of INK (net)",
+      "posted": "Posted {date}",
+      "settled": "Settled {date}"
+    },
+    "statement": {
+      "title": "Trade statement",
+      "empty": "No trades yet"
+    },
+    "failure": {
+      "title": "Receipt unavailable",
+      "detail": "Check the data and try again."
+    }
+  }
+}
