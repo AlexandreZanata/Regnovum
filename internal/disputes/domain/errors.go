@@ -69,6 +69,10 @@ const (
 	// recorded key: replays return the custody unchanged, conflicts
 	// refuse instead of paying twice.
 	CodeSettlementConflict ErrorCode = "DISPUTES_SETTLEMENT_CONFLICT"
+	// CodeUnknownCase names a read of a case key the records never
+	// filed: unknown keys read as absent, never as someone else's
+	// case.
+	CodeUnknownCase ErrorCode = "DISPUTES_UNKNOWN_CASE"
 )
 
 // DomainError represents an invariant or rule failure in the disputes domain.
@@ -201,5 +205,12 @@ var (
 	ErrSettlementConflict = DomainError{
 		Code:    CodeSettlementConflict,
 		Message: "recorded claim keys never pay twice: replays return the custody unchanged, divergent claims conflict",
+	}
+	// ErrUnknownCase refuses a read of a case key the records never
+	// filed: unknown keys read as absent, so strangers learn nothing
+	// about other people's cases.
+	ErrUnknownCase = DomainError{
+		Code:    CodeUnknownCase,
+		Message: "no such private case for this account: unknown keys read as absent",
 	}
 )
