@@ -36,6 +36,10 @@ const (
 	// CodeNewcomerNotParty names a stranger speaking for a grant:
 	// only the holder appeals its own blocked grant.
 	CodeNewcomerNotParty ErrorCode = "CRUMBS_NEWCOMER_NOT_PARTY"
+	// CodeInvalidDistribution names a malformed distribution plan:
+	// a negative budget, a non-positive per-person cap, an
+	// unsealable epoch, a corrupt snapshot or a doubled account.
+	CodeInvalidDistribution ErrorCode = "CRUMBS_INVALID_DISTRIBUTION"
 )
 
 // DomainError represents an invariant or rule failure in the crumbs domain.
@@ -113,5 +117,12 @@ var (
 	ErrNewcomerNotParty = DomainError{
 		Code:    CodeNewcomerNotParty,
 		Message: "only the holder appeals its own blocked grant: strangers never speak for a newcomer",
+	}
+	// ErrInvalidDistribution refuses a distribution plan that cannot
+	// name fixed-stock shares: the budget, cap, epoch and snapshot
+	// must be exact, or nothing is planned.
+	ErrInvalidDistribution = DomainError{
+		Code:    CodeInvalidDistribution,
+		Message: "crumb distribution needs a non-negative budget, a positive per-person cap, a sealable epoch and a clean admitted snapshot: never rounded up, never above stock",
 	}
 )
