@@ -28,6 +28,28 @@ const (
 	// CodeCaseNotParty names a stranger opening or declining someone
 	// else's private case: only a named party moves its own case.
 	CodeCaseNotParty ErrorCode = "DISPUTES_CASE_NOT_PARTY"
+	// CodeInvalidRuling names a malformed ruling entry: a blank or
+	// abusive arbiter, digest, grounds or reason, an unknown
+	// verdict, a negative award, a missing instant or a ruling by
+	// someone other than the designated arbiter.
+	CodeInvalidRuling ErrorCode = "DISPUTES_INVALID_RULING"
+	// CodeRulingConflict names an arbiter with an interest in the
+	// case: a party ruling its own dispute, or a party named as
+	// arbiter.
+	CodeRulingConflict ErrorCode = "DISPUTES_RULING_CONFLICT"
+	// CodeLateEvidence names an exhibit filed past the evidence
+	// deadline: late proof never joins the record.
+	CodeLateEvidence ErrorCode = "DISPUTES_LATE_EVIDENCE"
+	// CodeMissingDefense names a ruling without a defense from both
+	// sides: each named party files at least one exhibit before the
+	// arbiter rules.
+	CodeMissingDefense ErrorCode = "DISPUTES_MISSING_DEFENSE"
+	// CodeBeyondContract names a ruling beyond the accepted terms:
+	// the award never exceeds the declared value.
+	CodeBeyondContract ErrorCode = "DISPUTES_BEYOND_CONTRACT"
+	// CodeDuplicateAppeal names a second appeal over one ruling:
+	// the previste recurso opens once.
+	CodeDuplicateAppeal ErrorCode = "DISPUTES_DUPLICATE_APPEAL"
 )
 
 // DomainError represents an invariant or rule failure in the disputes domain.
@@ -90,5 +112,42 @@ var (
 	ErrCaseNotParty = DomainError{
 		Code:    CodeCaseNotParty,
 		Message: "only a named party opens or declines its own private case: strangers never move a case",
+	}
+	// ErrInvalidRuling refuses a ruling entry that cannot name its
+	// rite: the entry needs a known verdict, an impartial arbiter,
+	// a non-negative award, explicit grounds and live instants.
+	ErrInvalidRuling = DomainError{
+		Code:    CodeInvalidRuling,
+		Message: "ruling entry needs a known verdict, the designated arbiter, explicit grounds and live instants",
+	}
+	// ErrRulingConflict refuses an arbiter with an interest in the
+	// case: parties never rule their own dispute.
+	ErrRulingConflict = DomainError{
+		Code:    CodeRulingConflict,
+		Message: "impartial arbiter only: a party never rules its own dispute",
+	}
+	// ErrLateEvidence refuses an exhibit past the evidence deadline:
+	// late proof never joins the record.
+	ErrLateEvidence = DomainError{
+		Code:    CodeLateEvidence,
+		Message: "late proof never joins the record: exhibits arrive before the evidence deadline",
+	}
+	// ErrMissingDefense refuses a ruling without both defenses:
+	// each named party files at least one exhibit first.
+	ErrMissingDefense = DomainError{
+		Code:    CodeMissingDefense,
+		Message: "no ruling without both defenses: each named party files at least one exhibit first",
+	}
+	// ErrBeyondContract refuses a ruling beyond the accepted terms:
+	// the award never exceeds the declared value.
+	ErrBeyondContract = DomainError{
+		Code:    CodeBeyondContract,
+		Message: "the ruling applies the accepted terms only: the award never exceeds the declared value",
+	}
+	// ErrDuplicateAppeal refuses a second appeal over one ruling:
+	// the previsto recurso opens once.
+	ErrDuplicateAppeal = DomainError{
+		Code:    CodeDuplicateAppeal,
+		Message: "one appeal per ruling: a second appeal over the same ruling refuses",
 	}
 )
