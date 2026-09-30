@@ -65,6 +65,10 @@ Quem chega agora começa pelo [README da raiz](../README.md): ele é o handoff d
 - [DECISIONS.md](DECISIONS.md) — log de decisões de produto.
 - [GLOSSARY.md](GLOSSARY.md) — vocabulário comum.
 
+## História
+
+- [HISTORY.md](HISTORY.md) — linha do tempo pública da construção (P00–P20): o que cada fase entregou, com que evidência e em qual PR, e como o trabalho acontece; atualizada ao fim de cada fase e espelhada na wiki.
+
 ## Regra de manutenção
 
 Toda mudança que altere incentivos, elegibilidade, contagem pública, moderação, preço, reputação ou privacidade deve atualizar os documentos afetados e acrescentar uma entrada em `DECISIONS.md` no mesmo conjunto de mudanças.

@@ -12,6 +12,7 @@ Este documento estabelece as regras mandatórias de execução técnica, arquite
 - **Limpeza do repositório:** antes de iniciar qualquer alteração, confirme que o repositório está limpo (`git status --short`). Ao finalizar, o repositório deve permanecer limpo.
 - **Segredos e dados privados:** é estritamente proibido inserir dados reais, segredos, credenciais, endereços de email pessoais ou dumps de produção.
 - **Critério de interrupção:** se qualquer teste, compilação ou validação falhar, ou se houver dúvida sobre requisitos, pare imediatamente e não faça commit.
+- **Registro histórico e wiki:** ao encerrar cada fase, registre o que foi entregue, a evidência e o PR mergeado em `docs/HISTORY.md` e publique o espelho com `./.local/git-flow.sh wiki`. A wiki é a vitrine pública do histórico; o plano local (`.local/`) nunca é publicado.
 
 ## 2. Arquitetura Obrigatória
 
