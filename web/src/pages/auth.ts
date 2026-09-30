@@ -25,6 +25,7 @@ import {
   BUSY_ELEMENT,
   BUSY_REGION_ATTRIBUTES,
   BUSY_SUBMITTER_ATTRIBUTES,
+  BUSY_SUBMITTER_MARKER,
   busyAttributes,
   idleAttributes,
   submissionStart,
@@ -119,9 +120,18 @@ export function installSubmissionGuard(document: Document = globalThis.document)
       return;
     }
     inFlight = false;
+    const idle = idleAttributes();
     for (const form of document.querySelectorAll("form")) {
-      if (form instanceof HTMLFormElement) {
-        applyState(form, null, idleAttributes());
+      if (!(form instanceof HTMLFormElement)) {
+        continue;
+      }
+      applyState(form, null, idle);
+      // The guard disabled the control that started the abandoned submission,
+      // and the restored document still carries that disabled state: freeing
+      // the marked control is what makes the form usable again. A control the
+      // server disabled for its own reason carries no marker.
+      for (const submitter of form.querySelectorAll(`[${BUSY_SUBMITTER_MARKER}]`)) {
+        applyManaged(submitter, BUSY_SUBMITTER_ATTRIBUTES, idle.submitter);
       }
     }
   });

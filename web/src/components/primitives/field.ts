@@ -1,6 +1,12 @@
 /**
  * `ga-field` — accessible form field (P18-T04).
  *
+ * Tag: `ga-field`.
+ *
+ * Responsibility: complete the wiring of one field the server already
+ * rendered — its label, control, hint and error — so assistive technology can
+ * name the control and read its messages.
+ *
  * Attributes (every text is already translated by the page, never here):
  *
  *   name      identifier base; the control becomes `<name>-control` (required)
@@ -9,11 +15,31 @@
  *   error     optional error text; sets `aria-invalid` and announces as alert
  *   required  presence sets `aria-required` on the control
  *
+ * Events: none. The element completes markup; the form owns the submission.
+ *
+ * States: quiet (valid and optional), hinted (described), invalid (described
+ * and announced) and required (`aria-required`). There is no loading state:
+ * the page owns submissions and `ga-busy` presents them.
+ *
+ * Keyboard and focus: nothing beyond the control is focusable, and the control
+ * keeps its native tab order; the element never moves focus on its own.
+ *
+ * CSS: `ga-field` and its `__label`, `__control`, `__hint` and `__error`
+ * elements, styled by primitives.css with the tokens of tokens.css.
+ *
+ * External effects: none; there is nothing to cancel in `disconnectedCallback`.
+ *
  * Light DOM contract: the element contains a form control — an element with
  * `data-ga-control`, or the first `input`/`select`/`textarea` belonging to this
  * field — and may already contain the label and the message paragraphs the
  * server rendered. The element adopts those nodes and completes the wiring, so
  * the form is usable before the script runs and stays identical after it.
+ *
+ * Usage:
+ *   <ga-field name="email" label="E-mail" required>
+ *     <label for="email-control">E-mail</label>
+ *     <input id="email-control" name="email" />
+ *   </ga-field>
  */
 import { ensureChild, findControl, replaceAttributes, setText, toggleHidden } from "./dom.js";
 import { fieldWiring } from "./model.js";

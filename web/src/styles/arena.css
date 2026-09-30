@@ -67,3 +67,79 @@
     list-style: none;
   }
 }
+
+/* Presentation of the public aggregate the visitor reveals in place
+ * (P18-T06 journey). The element renders the same information the server
+ * renders for `?reveal=1`, so the two paths read alike. */
+@layer components {
+  /* The local choice is a group of toggle buttons: the chosen one has to read
+   * as chosen to a sighted person too, not only through `aria-pressed`. The
+   * base rule exists so the pressed state is a border/background change in
+   * every browser, instead of depending on the user agent's own button skin. */
+  .ga-arena__choices button {
+    padding-block: var(--ga-space-1);
+    padding-inline: var(--ga-space-2);
+    border: 1px solid var(--ga-color-border);
+    border-radius: var(--ga-radius-sm);
+    background-color: var(--ga-color-surface);
+    color: var(--ga-color-text);
+  }
+
+  .ga-arena__choices [aria-pressed="true"] {
+    border-color: var(--ga-color-action);
+    background-color: var(--ga-color-surface-muted);
+    color: var(--ga-color-action);
+    font-weight: var(--ga-font-weight-medium);
+  }
+
+  /* In forced colors the palette is replaced by system colors, so the border
+   * style — not its color — is what keeps the chosen button distinguishable. */
+  @media (forced-colors: active) {
+    .ga-arena__choices [aria-pressed="true"] {
+      border-style: dashed;
+    }
+  }
+
+  .ga-position-aggregate {
+    display: grid;
+    gap: var(--ga-space-2);
+  }
+
+  .ga-position-aggregate__heading {
+    margin: 0;
+    font-size: var(--ga-font-size-lg);
+    line-height: var(--ga-line-height-tight);
+  }
+
+  .ga-position-aggregate__distribution-heading {
+    margin: 0;
+    font-size: var(--ga-font-size-md);
+    font-weight: var(--ga-font-weight-semibold);
+  }
+
+  .ga-position-aggregate__note,
+  .ga-position-aggregate__total,
+  .ga-position-aggregate__checked {
+    margin: 0;
+    color: var(--ga-color-text-muted);
+    font-size: var(--ga-font-size-sm);
+  }
+
+  .ga-position-aggregate__rows {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--ga-space-1) var(--ga-space-4);
+    margin: 0;
+    padding: 0;
+  }
+
+  .ga-position-aggregate__label,
+  .ga-position-aggregate__count {
+    margin: 0;
+  }
+
+  .ga-position-aggregate__count {
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+  }
+}

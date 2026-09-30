@@ -13,23 +13,38 @@ import { test } from "node:test";
 
 import {
   POSITIONS,
+  arenaSlugFromPath,
+  attributionLimitMessage,
   attributionSelection,
   choiceStorageKey,
   chooseLocalChoice,
   readLocalChoice,
 } from "../../src/pages/participation.js";
+import { createTranslator } from "../../src/i18n/translator.js";
 
 test("the position vocabulary is the one the generated contract declares", () => {
   assert.deepEqual([...POSITIONS], ["agree", "disagree", "undecided"]);
 });
 
-test("the storage key is scoped to one Arena", () => {
+test("the storage key is scoped to one Arena slug", () => {
   const first = choiceStorageKey("arena-a");
   const second = choiceStorageKey("arena-b");
 
   assert.notEqual(first, second);
-  assert.ok(first.endsWith("arena-a"), `expected the key to end with the Arena id, got ${first}`);
+  assert.ok(first.endsWith("arena-a"), `expected the key to end with the Arena slug, got ${first}`);
   assert.ok(!first.includes("arena-b"), "one Arena must never read the choice of another");
+});
+
+test("the slug is read from the participation pathname", () => {
+  assert.equal(arenaSlugFromPath("/arenas/first-arena"), "first-arena");
+  assert.equal(arenaSlugFromPath("/arenas/first-arena/"), "first-arena");
+  assert.equal(arenaSlugFromPath("//arenas//first-arena//"), "first-arena");
+});
+
+test("an address that is not a participation page has no slug", () => {
+  for (const pathname of ["", "/", "/arenas", "/arenas/", "/d/first-arena", "/arenas/a/b", "/outra/first-arena"]) {
+    assert.equal(arenaSlugFromPath(pathname), null, `arenaSlugFromPath(${JSON.stringify(pathname)}) must refuse`);
+  }
 });
 
 test("a stored value is accepted only when it is a position of the page", () => {
@@ -102,4 +117,20 @@ test("an empty value is never a selection", () => {
   const decision = attributionSelection([], "", true, 3);
   assert.equal(decision.allowed, false);
   assert.deepEqual(decision.selected, []);
+});
+
+test("the refusal message names the limit in the locale of the page", () => {
+  const pt = createTranslator("pt-BR", { namespaces: ["arenas"] });
+  const en = createTranslator("en-US", { namespaces: ["arenas"] });
+
+  assert.equal(attributionLimitMessage(pt, 3), "Escolha no máximo 3 argumentos.");
+  assert.equal(attributionLimitMessage(en, 3), "Choose at most 3 arguments.");
+});
+
+test("the refusal message formats a large limit for the locale", () => {
+  const pt = createTranslator("pt-BR", { namespaces: ["arenas"] });
+  const en = createTranslator("en-US", { namespaces: ["arenas"] });
+
+  assert.ok(attributionLimitMessage(pt, 1234).includes("1.234"));
+  assert.ok(attributionLimitMessage(en, 1234).includes("1,234"));
 });

@@ -115,6 +115,21 @@ test("components do not import the translation singleton", () => {
   assert.deepEqual(offenders, [], "components receive their translated text, never a translation module");
 });
 
+test("every component that observes attributes handles their changes", () => {
+  const components = browserSources().filter((file) => file.startsWith("src/components/"));
+  assert.ok(components.length >= 5, `expected to scan the components, found ${components.length}`);
+
+  const offenders = components.filter((file) => {
+    const source = readPackageFile(file);
+    return /static\s+observedAttributes/.test(source) && !/attributeChangedCallback/.test(source);
+  });
+  assert.deepEqual(
+    offenders,
+    [],
+    "an observed attribute without attributeChangedCallback is an attribute the element silently ignores",
+  );
+});
+
 test("only the i18n runtime reads the generated catalog", () => {
   const readers = browserSources().filter((file) => importsCatalog(file));
 
@@ -140,6 +155,18 @@ test("no delivered source formats with the browser's own locale", () => {
     }
   }
   assert.deepEqual(offenders, [], "formatting passes the resolved locale explicitly or goes through the i18n runtime");
+});
+
+test("the delivered modules do not ship the comments that document the sources", () => {
+  const config = JSON.parse(readPackageFile("tsconfig.json")) as {
+    readonly compilerOptions?: { readonly removeComments?: boolean };
+  };
+
+  assert.equal(
+    config.compilerOptions?.removeComments,
+    true,
+    "the compiler strips comments: they document the sources, and the browser downloads the modules",
+  );
 });
 
 test("the browser bundle carries no runtime dependency", () => {
