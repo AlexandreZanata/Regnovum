@@ -102,21 +102,21 @@
     },
     {
       "temp": "TEMP-06",
-      "state": "BLOQUEADO",
+      "state": "PLANEJADO",
       "req": "REQ-SEASON-06",
       "threats": [
         "THR-SEASON-06"
       ],
-      "contracts": "corte [início,fim), barreira de transações, fechamento recuperável e no máximo uma temporada ativa (planejado); cláusula terminal de escrow sem aceite",
+      "contracts": "corte [início,fim), barreira e fechamento recuperável (planejado); política terminal definida para implementação inerte na seção 5.1 de TEMPORADAS_SUCESSAO.md; sem alterar contratos legados ou autorizar lançamento",
       "modules": "seasons worker interno (planejado P46-T09); escrows consumidores (planejado P46-T07)",
-      "tests": "dois closers, crash antes/depois de cada checkpoint, timeout de lease (planejado P46-T09)",
+      "tests": "termos/aceites, classificação bloqueante e dois liberadores no mesmo escrow (P46-T07); dois closers, crash por checkpoint e BLOCKED impedindo selo (P46-T09/T10)",
       "owner": "economia",
       "refs": [
         "docs/reino/TEMPORADAS_SUCESSAO.md",
         "internal/economy",
         "internal/commerce"
       ],
-      "note": "BLOQUEADO: política terminal de escrow depende de aceite do titular; barreira e cutoff mecânicos avançam em P46-T09 sem distribuir valor"
+      "note": "PLANEJADO: titular solicitou desbloqueio de desenvolvimento em 2026-09-30; política da seção 5.1 exige aceite prévio das partes nos contratos novos; sem autorização de lançamento ou ratificação dos demais TEMP/Q"
     },
     {
       "temp": "TEMP-07",

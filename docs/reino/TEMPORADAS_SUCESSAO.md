@@ -45,6 +45,30 @@ Compra fiat tem temporada, consentimento, validade e prazo de liquidação limit
 
 Direitos anteriores que não tinham expiração sazonal — INK legado comprado, passes, períodos Member pagos — conservam seu contrato. Opt-in para uso sazonal mostra o fim e consome o direito convertido **uma única vez**, sem nova conversão grátis em cada reset. Serviços de assinatura não econômicos podem atravessar o calendário; benefícios INK precisam de política sazonal aceita. Sem termos ratificados de venda/expiração/reembolso, checkout sazonal permanece bloqueado; não criar uma percentagem de reembolso ou uma janela de vendas por inferência.
 
+### 5.1. TEMP-06 — cláusula terminal e desbloqueio de P46-T07
+
+**Decisão de implementação (2026-09-30):** a pedido do titular para desbloquear P46-T07, este contrato fica definido para desenvolvimento/testes inertes. TEMP-06 passa de BLOQUEADO a PLANEJADO nesse escopo. Não é certificação ou autorização de lançamento, não ratifica outros TEMP/Q e não altera contratos já aceitos. Aplicação a participantes exige termos publicados/aceitos antes do financiamento e gate de release.
+
+**Referente:** escrow financeiro do `TradeContract` em `internal/commerce`. `charter` oferece Carta/aceites de P46-T05, não o contrato comercial. `disputes` oferece procedimento/decisão de P39, não um segundo ledger/escrow persistido. Aceitar a Carta não aceita automaticamente contrato comercial.
+
+**Termos obrigatórios:** temporada, comprador, prestador, principal inteiro, vencimento até `ends_at`, versão/hash da política terminal e evidência de aceite de ambas as partes antes do financiamento. Persistir/vincular à intenção e livro. Ausência/divergência impede novo financiamento sazonal; migration não completa aceites antigos. Não admitir nova prestação INK exigível depois do fim.
+
+**Classificação após barreira e drenagem de P46-T09:**
+
+- `released`, `refunded`, `resolved`: preservar recibo, sem novo efeito terminal. Refund posterior autorizado é evento vinculado separado, não reabertura do escrow.
+- `accepted`: pagar ao prestador somente com aceite válido do comprador admitido antes do cutoff e ausência comprovada de litígio/impedimento. Usar Dízimo/arredondamento vigentes, sem criar alíquota.
+- `funded`, sem entrega aceita e comprovadamente incontroverso: a cláusula previamente aceita cancela obrigação sazonal e devolve principal ainda retido ao comprador. Depósito/devolução de escrow não é prestação liquidada e não cria Dízimo.
+- `expired`: executar somente resolução competente, final e persistida que determine release/refund. Vencimento sozinho não escolhe beneficiário; sem resolução final, bloquear.
+- Litígio/recurso tempestivo pendente, decisão conflitante/não final, titularidade incerta, termos/aceites ausentes ou integridade divergente: preservar custódia e retornar `BLOCKED`. Estado desconhecido/fonte indisponível também bloqueia; ausência de dados não prova ausência de litígio.
+
+**Contrato indecidível** é essa categoria BLOCKED: falta evidência final/verificável para escolher destinação. Não é julgamento por IA. Resolver pelo procedimento competente de P39 ou acordo válido das partes, nunca discricionariedade do Rei/worker. T07 entrega classificação/resultado bloqueante; T09 impede selo enquanto houver BLOCKED; T10 não abre sucessora sem selo.
+
+Pagamento/devolução usa somente saldo efetivamente retido no livro original, sem duplicar parcelas liquidadas. Não adicionar liquidação parcial se o modelo não a suporta: divergência principal/custódia/recibos bloqueia. Sem carry-over, mint, confisco para Coroa, eliminação de litígio ou cancelamento de obrigação externa. Contratos legados sem esta cláusula conservam regras e não são terminalizados automaticamente.
+
+**Dois liberadores** = duas execuções autorizadas concorrentes no mesmo escrow, por exemplo dois `ReleaseContractUseCase`; não significa duas assinaturas de aprovação. T09 inclui dois workers de fechamento. Decisão terminal/legs são uma transação, com lock/CAS e unicidade terminal por escrow/temporada compartilhada entre pagamento/devolução. Replay idêntico retorna recibo; payload/destinação conflitante é recusado. Chaves diferentes de release/refund não permitem dois efeitos. Crash antes do commit = zero efeito; depois = um recuperável por replay.
+
+**Limite de T07:** adaptar admissão sazonal, consumidores, termos/classificação e preservar atomicidade/idempotência existentes. Worker, barreira global, terminalização em CLOSING, selo, sucessora e suas provas pertencem a T09/T10. Não criar tribunal novo nem ativar produto.
+
 ## 6. Migalhas, fluxo e estado que reinicia
 
 Proposta recomendada: uma elegibilidade de Migalhas **por pessoa por temporada**, incluindo contas preexistentes que ingressem nela; nunca exigir trabalho/publicação. Isso altera o alcance da proposta Q25 e precisa de aceite explícito antes de ativação. Sinais antifraude e sanções de segurança continuam globais: criar conta ou mudar temporada não remove impedimento.

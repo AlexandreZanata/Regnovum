@@ -170,7 +170,7 @@ func TestSeasonTraceCoversEveryIntent(t *testing.T) {
 
 // TestSeasonTraceStatesIntentHonestly pins the approval boundary:
 // TEMP-01–TEMP-04 carry approved intent without launch
-// authorization, and the five details awaiting the holder stay
+// authorization, and the remaining details awaiting the holder stay
 // blocked instead of advancing by inference.
 func TestSeasonTraceStatesIntentHonestly(t *testing.T) {
 	t.Parallel()
@@ -185,10 +185,18 @@ func TestSeasonTraceStatesIntentHonestly(t *testing.T) {
 			t.Errorf("%s state = %q, want INTENCAO-APROVADA", temp, byTemp[temp].State)
 		}
 	}
-	for _, temp := range []string{"TEMP-06", "TEMP-07", "TEMP-08", "TEMP-09", "TEMP-12"} {
+	for _, temp := range []string{"TEMP-07", "TEMP-08", "TEMP-09", "TEMP-12"} {
 		if byTemp[temp].State != "BLOQUEADO" {
 			t.Errorf("%s state = %q, want BLOQUEADO: holder acceptance is absent", temp, byTemp[temp].State)
 		}
+	}
+	terminal := byTemp["TEMP-06"]
+	if terminal.State != "PLANEJADO" {
+		t.Errorf("TEMP-06 state = %q, want PLANEJADO: development only, not launch", terminal.State)
+	}
+	if !strings.Contains(terminal.Contracts, "seção 5.1") ||
+		!strings.Contains(terminal.Note, "sem autorização de lançamento") {
+		t.Error("TEMP-06 must name the terminal clause and preserve the launch boundary")
 	}
 }
 
