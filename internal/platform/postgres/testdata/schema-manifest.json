@@ -3065,6 +3065,1137 @@
       ]
     },
     {
+      "name": "app.commerce_contracts",
+      "owner": "arena_owner",
+      "comment": "Funded formal trade contracts: idempotency key, service object, parties, exact amount, sealed terms and locking transfer, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "contract_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Caller operation token scoped by buyer: a retry replays instead of locking twice"
+        },
+        {
+          "name": "kind",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "buyer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "provider_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "object",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "terms_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "escrow_transfer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Journal transfer that locked the buyer amount in exclusive escrow"
+        },
+        {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_contracts_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "commerce_contracts_buyer_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (buyer_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_contracts_buyer_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (buyer_id, contract_key)"
+        },
+        {
+          "name": "commerce_contracts_escrow_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (escrow_transfer_id)"
+        },
+        {
+          "name": "commerce_contracts_hash_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM terms_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_contracts_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM contract_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_contracts_kind_check",
+          "kind": "c",
+          "definition": "CHECK (kind = 'trade'::text)"
+        },
+        {
+          "name": "commerce_contracts_object_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM object) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_contracts_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_contracts_provider_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (provider_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_contracts_buyer_idx",
+          "definition": "CREATE INDEX commerce_contracts_buyer_idx ON app.commerce_contracts USING btree (buyer_id, posted_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "commerce_contracts_buyer_key_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_contracts_buyer_key_unique ON app.commerce_contracts USING btree (buyer_id, contract_key)",
+          "valid": true
+        },
+        {
+          "name": "commerce_contracts_escrow_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_contracts_escrow_transfer_unique ON app.commerce_contracts USING btree (escrow_transfer_id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_contracts_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_contracts_pkey ON app.commerce_contracts USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_disguise_reviews",
+      "owner": "arena_owner",
+      "comment": "Flagged gifts under review for disguised trade: caller token, closed reason, minimized evidence digest and reporter, append-only, never moves value",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "review_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Caller operation token scoped by transfer: a retry replays instead of reviewing twice"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "evidence_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Minimized proof digest (64 lowercase hex): no PII content ever stored"
+        },
+        {
+          "name": "reporter",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_disguise_reviews_evidence_check",
+          "kind": "c",
+          "definition": "CHECK (evidence_hash ~ '^[0-9a-f]{64}$'::text)"
+        },
+        {
+          "name": "commerce_disguise_reviews_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM review_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_disguise_reviews_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_disguise_reviews_reason_check",
+          "kind": "c",
+          "definition": "CHECK (reason = ANY (ARRAY['contract'::text, 'announcement'::text, 'delivery'::text, 'recurrence'::text]))"
+        },
+        {
+          "name": "commerce_disguise_reviews_reporter_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM reporter) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_disguise_reviews_transfer_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (transfer_id) REFERENCES app.commerce_transfers(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_disguise_reviews_transfer_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id, review_key)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_disguise_reviews_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_reviews_pkey ON app.commerce_disguise_reviews USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_reviews_transfer_idx",
+          "definition": "CREATE INDEX commerce_disguise_reviews_transfer_idx ON app.commerce_disguise_reviews USING btree (transfer_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_reviews_transfer_key_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_reviews_transfer_key_unique ON app.commerce_disguise_reviews USING btree (transfer_id, review_key)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_disguise_steps",
+      "owner": "arena_owner",
+      "comment": "Review lifecycle steps: party contest, false-positive dismissal and confirmed act with basis, trail, explicit charge and appeal window, append-only, never moves value",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "review_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "action",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "decided_by",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "basis",
+          "type": "text",
+          "nullable": true,
+          "default": "",
+          "comment": "Contractual basis of a confirmed act: required only for confirm, never for contest or dismissal"
+        },
+        {
+          "name": "trail_hash",
+          "type": "text",
+          "nullable": true,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "charge_milli",
+          "type": "bigint",
+          "nullable": true,
+          "default": "",
+          "comment": "Explicit floor(10%) charge owed on confirmation: recorded debt with appeal, never an automatic debit"
+        },
+        {
+          "name": "appeal_until",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_disguise_steps_action_check",
+          "kind": "c",
+          "definition": "CHECK (action = ANY (ARRAY['contest'::text, 'dismiss'::text, 'confirm'::text]))"
+        },
+        {
+          "name": "commerce_disguise_steps_basis_check",
+          "kind": "c",
+          "definition": "CHECK (basis IS NULL OR TRIM(BOTH FROM basis) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_disguise_steps_charge_check",
+          "kind": "c",
+          "definition": "CHECK (charge_milli IS NULL OR charge_milli \u003e= 0 AND charge_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "commerce_disguise_steps_decided_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM decided_by) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_disguise_steps_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_disguise_steps_review_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (review_id) REFERENCES app.commerce_disguise_reviews(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_disguise_steps_shape_check",
+          "kind": "c",
+          "definition": "CHECK (action = 'contest'::text AND basis IS NULL AND trail_hash IS NULL AND charge_milli IS NULL AND appeal_until IS NULL OR action = 'dismiss'::text AND basis IS NULL AND trail_hash IS NULL AND charge_milli IS NULL AND appeal_until IS NOT NULL OR action = 'confirm'::text AND basis IS NOT NULL AND trail_hash IS NOT NULL AND charge_milli IS NOT NULL AND appeal_until IS NOT NULL)"
+        },
+        {
+          "name": "commerce_disguise_steps_trail_check",
+          "kind": "c",
+          "definition": "CHECK (trail_hash IS NULL OR trail_hash ~ '^[0-9a-f]{64}$'::text)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_disguise_steps_contest_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_steps_contest_unique ON app.commerce_disguise_steps USING btree (review_id) WHERE (action = 'contest'::text)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_steps_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_steps_pkey ON app.commerce_disguise_steps USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_steps_review_idx",
+          "definition": "CREATE INDEX commerce_disguise_steps_review_idx ON app.commerce_disguise_steps USING btree (review_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_disguise_steps_terminal_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_disguise_steps_terminal_unique ON app.commerce_disguise_steps USING btree (review_id) WHERE (action = ANY (ARRAY['dismiss'::text, 'confirm'::text]))",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_refund_obligations",
+      "owner": "arena_owner",
+      "comment": "Explicit shortfall debts: at most one per service refund, naming the provider debtor, the buyer creditor and the uncovered share, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "refund_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "debtor_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "creditor_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_refund_obligations_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "commerce_refund_obligations_creditor_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (creditor_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_refund_obligations_debtor_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (debtor_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_refund_obligations_parties_check",
+          "kind": "c",
+          "definition": "CHECK (debtor_id \u003c\u003e creditor_id)"
+        },
+        {
+          "name": "commerce_refund_obligations_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_refund_obligations_refund_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (refund_id) REFERENCES app.commerce_service_refunds(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_refund_obligations_refund_unique",
+          "kind": "u",
+          "definition": "UNIQUE (refund_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_refund_obligations_debtor_idx",
+          "definition": "CREATE INDEX commerce_refund_obligations_debtor_idx ON app.commerce_refund_obligations USING btree (debtor_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_refund_obligations_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_refund_obligations_pkey ON app.commerce_refund_obligations USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_refund_obligations_refund_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_refund_obligations_refund_unique ON app.commerce_refund_obligations USING btree (refund_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_sanctions",
+      "owner": "arena_owner",
+      "comment": "Sanctioned accounts blocked from paying and receiving: rows are managed by governance, read by settlement",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "account_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Blocked account: payer and payee checks run in the settling transaction"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "decided_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_sanctions_account_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (account_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_sanctions_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (account_id)"
+        },
+        {
+          "name": "commerce_sanctions_reason_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM reason) \u003c\u003e ''::text)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_sanctions_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_sanctions_pkey ON app.commerce_sanctions USING btree (account_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_service_refunds",
+      "owner": "arena_owner",
+      "comment": "Proportional service refunds linked to their liquidated payment: idempotency key, total returned, tithe reversal, provider share, explicit shortfall and moving transfer, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "contract_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "refund_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Caller operation token scoped by contract: a retry replays instead of compensating twice"
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "tithe_reversal_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "provider_share_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "obligation_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": "Shortfall the provider could not cover: explicit debt to the buyer, never a hidden negative balance"
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "",
+          "comment": "Journal transfer moving provider share and tithe reversal to the buyer; NULL only when dust plus a broke provider moves nothing and the full share becomes obligation"
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_service_refunds_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "commerce_service_refunds_contract_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (contract_id) REFERENCES app.commerce_contracts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_service_refunds_contract_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (contract_id, refund_key)"
+        },
+        {
+          "name": "commerce_service_refunds_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM refund_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_service_refunds_obligation_check",
+          "kind": "c",
+          "definition": "CHECK (obligation_milli \u003e= 0 AND obligation_milli \u003c= provider_share_milli)"
+        },
+        {
+          "name": "commerce_service_refunds_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_service_refunds_provider_check",
+          "kind": "c",
+          "definition": "CHECK (provider_share_milli = (amount_milli - tithe_reversal_milli))"
+        },
+        {
+          "name": "commerce_service_refunds_tithe_check",
+          "kind": "c",
+          "definition": "CHECK (tithe_reversal_milli = (amount_milli / 10))"
+        },
+        {
+          "name": "commerce_service_refunds_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_service_refunds_contract_idx",
+          "definition": "CREATE INDEX commerce_service_refunds_contract_idx ON app.commerce_service_refunds USING btree (contract_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_service_refunds_contract_key_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_service_refunds_contract_key_unique ON app.commerce_service_refunds USING btree (contract_id, refund_key)",
+          "valid": true
+        },
+        {
+          "name": "commerce_service_refunds_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_service_refunds_pkey ON app.commerce_service_refunds USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_service_refunds_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_service_refunds_transfer_unique ON app.commerce_service_refunds USING btree (transfer_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_settlements",
+      "owner": "arena_owner",
+      "comment": "Escrow lifecycle steps: acceptance, provider payment, buyer refund, lapse marking and competent resolutions, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "contract_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "action",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Lifecycle step: accept and expire move no legs; release, refund and resolutions move under new transfers"
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "decided_by",
+          "type": "text",
+          "nullable": true,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_settlements_action_check",
+          "kind": "c",
+          "definition": "CHECK (action = ANY (ARRAY['accept'::text, 'release'::text, 'refund'::text, 'expire'::text, 'resolve-release'::text, 'resolve-refund'::text]))"
+        },
+        {
+          "name": "commerce_settlements_contract_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (contract_id) REFERENCES app.commerce_contracts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_settlements_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_settlements_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_settlements_contract_idx",
+          "definition": "CREATE INDEX commerce_settlements_contract_idx ON app.commerce_settlements USING btree (contract_id, posted_at)",
+          "valid": true
+        },
+        {
+          "name": "commerce_settlements_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_settlements_pkey ON app.commerce_settlements USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_settlements_terminal_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_settlements_terminal_unique ON app.commerce_settlements USING btree (contract_id) WHERE (action = ANY (ARRAY['release'::text, 'refund'::text, 'resolve-release'::text, 'resolve-refund'::text]))",
+          "valid": true
+        },
+        {
+          "name": "commerce_settlements_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_settlements_transfer_unique ON app.commerce_settlements USING btree (transfer_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.commerce_transfers",
+      "owner": "arena_owner",
+      "comment": "Settled voluntary transfers: idempotency key, immutable kind, payer, payee, exact amount, consent reference and journal transfer, append-only",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "intention_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Caller operation token scoped by payer: a retry replays instead of paying twice"
+        },
+        {
+          "name": "kind",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Business kind sealed at acceptance: gifts, formal trades, refunds and treasury movements never interchange"
+        },
+        {
+          "name": "payer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "payee_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "amount_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "consent_ref",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "payload_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "transfer_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "",
+          "comment": "Journal transfer moving the exact amount: row and legs share one intention"
+        },
+        {
+          "name": "posted_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commerce_transfers_amount_check",
+          "kind": "c",
+          "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "commerce_transfers_consent_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM consent_ref) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_transfers_hash_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM payload_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_transfers_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM intention_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "commerce_transfers_kind_check",
+          "kind": "c",
+          "definition": "CHECK (kind = ANY (ARRAY['gift'::text, 'trade'::text, 'refund'::text, 'treasury'::text]))"
+        },
+        {
+          "name": "commerce_transfers_payee_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (payee_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_transfers_payer_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (payer_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_transfers_payer_key_unique",
+          "kind": "u",
+          "definition": "UNIQUE (payer_id, intention_key)"
+        },
+        {
+          "name": "commerce_transfers_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_transfers_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "commerce_transfers_payer_idx",
+          "definition": "CREATE INDEX commerce_transfers_payer_idx ON app.commerce_transfers USING btree (payer_id, posted_at DESC)",
+          "valid": true
+        },
+        {
+          "name": "commerce_transfers_payer_key_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_transfers_payer_key_unique ON app.commerce_transfers USING btree (payer_id, intention_key)",
+          "valid": true
+        },
+        {
+          "name": "commerce_transfers_pkey",
+          "definition": "CREATE UNIQUE INDEX commerce_transfers_pkey ON app.commerce_transfers USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "commerce_transfers_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX commerce_transfers_transfer_unique ON app.commerce_transfers USING btree (transfer_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.communication_preference_history",
       "owner": "arena_owner",
       "comment": "Append-only audit trail of every explicit communication preference change",
@@ -15530,6 +16661,2184 @@
     {
       "table": "app.checkout_intents",
       "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "contract_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "contract_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "contract_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "contract_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "contract_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "contract_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "escrow_transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "escrow_transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "escrow_transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "escrow_transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "escrow_transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "escrow_transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "expires_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "expires_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "kind",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "kind",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "object",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "object",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "object",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "object",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "object",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "object",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terms_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terms_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terms_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "evidence_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "reporter",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "review_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_reviews",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "appeal_until",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "basis",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "charge_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "review_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_disguise_steps",
+      "column": "trail_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "creditor_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "debtor_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_refund_obligations",
+      "column": "refund_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "account_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "account_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "decided_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_sanctions",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "obligation_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "provider_share_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "refund_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "tithe_reversal_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_service_refunds",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "action",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "action",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "action",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "contract_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "contract_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "contract_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "decided_by",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "decided_by",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "decided_by",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_settlements",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "amount_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "amount_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "consent_ref",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "consent_ref",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "consent_ref",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "consent_ref",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "consent_ref",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "consent_ref",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "intention_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "intention_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "intention_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "intention_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "intention_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "intention_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "kind",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "kind",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "kind",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payee_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payee_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payee_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payee_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payee_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payee_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payer_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payload_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payload_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "posted_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "posted_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "transfer_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "transfer_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "transfer_id",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
