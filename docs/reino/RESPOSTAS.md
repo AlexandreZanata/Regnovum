@@ -4,6 +4,8 @@
 
 ## A. Produto e entrada no Reino
 
+**Leitura posterior:** [TEMPORADAS_SUCESSAO.md](TEMPORADAS_SUCESSAO.md), solicitado em 2026-09-30, estende estas propostas: Q07 distingue o cargo real conquistável do operador, Q20 tem Genesis único por temporada e Q25 deve tratar elegibilidade no ciclo de 90 dias. As respostas originais permanecem como trilha; seus valores pendentes não são aprovados por esse ajuste.
+
 1. **Nome do espaço:** cada instância atual é uma **Arena de debate**; **Regnovum** é o único Reino e o nome do produto. “Arena” isoladamente só deve aparecer quando o contexto não permitir confundi-la com o Reino.
 2. **Promessa inicial:** “Debata ideias, registre sua posição e acompanhe mudanças de opinião dentro de Regnovum.” A resolução voluntária de disputas é uma ampliação futura, não substitui o núcleo já existente nem deve ser anunciada como ativa.
 3. **Conversão de controvérsia:** desafio ou arbitragem privados requerem aceite explícito de cada parte sobre objeto, regras, custos e consequência. Denúncia de risco pode iniciar moderação institucional sem esse aceite, mas não transforma automaticamente o denunciante em credor nem o denunciado em réu de disputa privada.

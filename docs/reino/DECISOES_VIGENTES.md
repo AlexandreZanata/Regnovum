@@ -5,7 +5,7 @@
 **Titular da aprovação:** titular do repositório (aprovação expressa, por item)
 **Data:** — (nenhum item ratificado até esta versão)
 
-**Estado geral: NENHUM ITEM APROVADO.** Todas as 36 linhas abaixo estão
+**Estado de Q01–Q36: NENHUM ITEM APROVADO.** Todas as 36 linhas abaixo estão
 `PENDENTE`. Proposta não é autorização: nenhum item `PENDENTE` constitui
 regra ativa, parâmetro vigente ou permissão para implementar, cobrar,
 cunhar, confiscar ou oferecer qualquer produto econômico. Parâmetros
@@ -17,6 +17,8 @@ Vocabulário de estado: `APROVADA` (titular aprovou expressamente, com
 data) | `PENDENTE` (aguarda aprovação) | `REJEITADA` (titular recusou,
 com motivo). Não marcar aprovação em nome do titular: apenas ele move
 uma linha para `APROVADA`.
+
+**Adendo de produto aprovado em 2026-09-30:** o titular solicitou expressamente temporada de 90 dias, reinício econômico, memória das temporadas e sucessão automática por riqueza maior que a Coroa. Essa aprovação é registrada como TEMP-01–TEMP-04 em [TEMPORADAS_SUCESSAO.md](TEMPORADAS_SUCESSAO.md), separadamente dos 36 itens acima. Não ratifica seus parâmetros pendentes. Q07 passa a distinguir a função real sazonal do operador; Q20 trata do Genesis por temporada; Q25 exige revisão da elegibilidade sazonal proposta. Detalhes de riqueza, desempate, titular inicial e direitos pagos exigem o aceite indicado no adendo antes da ativação.
 
 ## A. Produto e entrada no Reino
 
@@ -79,8 +81,10 @@ regra temporal vigente.
 **Fases bloqueadas:** P31, P39.
 
 ### Q07 — Titularidade real
-**Texto normativo (proposto):** apenas o titular designado exerce
-prerrogativa soberana; delegados têm competência operacional limitada e
+**Texto normativo (proposto, ajustado ao adendo):** apenas o ocupante
+sazonal designado no manifesto ou sucedido por TEMP-04 exerce
+prerrogativa de jogo; isso não transfere propriedade/credencial do operador.
+Delegados têm competência operacional limitada e
 revogável; ato patrimonial, irreversível ou de morte de conta exige
 segunda conferência independente.
 **Fonte:** RESPOSTAS.md §B item 7. **Estado:** `PENDENTE`.
@@ -203,8 +207,8 @@ ocorrer; o livro legado segue intacto.
 **Fases bloqueadas:** P31, P33.
 
 ### Q20 — Genesis
-**Texto normativo (proposto):** **sugestão: 2.100.000.000 INK** nascem
-integralmente no Tesouro em custódia única; reserva, venda, operação e
+**Texto normativo (proposto, escopo sazonal):** **sugestão: 2.100.000.000 INK** nascem
+uma vez por temporada, integralmente no Tesouro em custódia única; reserva, venda, operação e
 obrigações são subcontas mutuamente exclusivas, sem oferta adicional.
 **Fonte:** RESPOSTAS.md §D item 20. **Estado:** `PENDENTE`.
 **Impacto:** sem ratificação, não há oferta, montante ou Tesouro
@@ -251,8 +255,9 @@ desfaz pagamento e Dízimo na mesma trilha.
 **Fases bloqueadas:** P31, P37.
 
 ### Q25 — Migalhas
-**Texto normativo (proposto):** conta nova elegível com antifraude
-proporcional e **sugestão: uma concessão por pessoa**; `N=0` implica
+**Texto normativo (proposto, ajuste pendente):** pessoa elegível que
+ingresse na temporada, com antifraude persistente e proporcional e
+**sugestão: uma concessão por pessoa por temporada**; `N=0` implica
 distribuição zero; frações abaixo de um milliINK não pagas, resto no
 Tesouro.
 **Fonte:** RESPOSTAS.md §D item 25. **Estado:** `PENDENTE`.

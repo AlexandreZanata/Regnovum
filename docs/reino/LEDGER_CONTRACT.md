@@ -7,6 +7,8 @@
 
 ## 1. Contas de custódia exclusivas
 
+**Adendo posterior:** [TEMPORADAS_SUCESSAO.md](TEMPORADAS_SUCESSAO.md) acrescenta `season_id` a toda identidade econômica: Genesis único e soma S são **por temporada**. A implementação entregue antes do adendo possui um singleton global e será adaptada por migration aditiva, sem alterar lançamentos anteriores. Livro selado conserva saldo e não admite gasto; a sucessora tem contas novas e nenhum carry-over. A palavra "único" nas seções seguintes deve ser lida nesse escopo.
+
 Toda unidade Genesis vive em uma e apenas uma custódia. Partições mutuamente exclusivas:
 
 - Tesouro (custódia única do Genesis) com subcontas internas exclusivas: Reserva Soberana, Estoque Comercial, Caixa Operacional, Obrigações e Empenhos. Subconta interna nunca se soma ao Tesouro.
