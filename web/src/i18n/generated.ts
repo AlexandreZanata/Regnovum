@@ -84,6 +84,9 @@ export const messageKeys = {
     "arenas.participation.relation.context",
     "arenas.participation.relation.oppose",
     "arenas.participation.relation.support",
+    "arenas.realm.arena",
+    "arenas.realm.kingdom",
+    "arenas.realm.no_official_outcome",
   ] as const,
   auth: [
     "auth.brand",
@@ -335,6 +338,9 @@ export type MessageKey =
   | "arenas.participation.relation.context"
   | "arenas.participation.relation.oppose"
   | "arenas.participation.relation.support"
+  | "arenas.realm.arena"
+  | "arenas.realm.kingdom"
+  | "arenas.realm.no_official_outcome"
   | "auth.brand"
   | "auth.errors.csrf_detail"
   | "auth.errors.csrf_title"
@@ -573,6 +579,9 @@ export const messagePlaceholders = Object.freeze({
   "arenas.participation.relation.context": [],
   "arenas.participation.relation.oppose": [],
   "arenas.participation.relation.support": [],
+  "arenas.realm.arena": [],
+  "arenas.realm.kingdom": [],
+  "arenas.realm.no_official_outcome": [],
   "auth.brand": [],
   "auth.errors.csrf_detail": [],
   "auth.errors.csrf_title": [],
@@ -812,6 +821,9 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.participation.relation.context": "Context",
     "arenas.participation.relation.oppose": "Oppose",
     "arenas.participation.relation.support": "Support",
+    "arenas.realm.arena": "Debate arena — controversy instance",
+    "arenas.realm.kingdom": "Regnovum — the Kingdom",
+    "arenas.realm.no_official_outcome": "Debates carry no winner and no official truth",
     "auth.brand": "Regnovum",
     "auth.errors.csrf_detail": "The form protection expired. Reload the page and submit it again.",
     "auth.errors.csrf_title": "The page is no longer valid",
@@ -1048,6 +1060,9 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.participation.relation.context": "Contexto",
     "arenas.participation.relation.oppose": "Contra",
     "arenas.participation.relation.support": "A favor",
+    "arenas.realm.arena": "Arena de debate — instância de controvérsia",
+    "arenas.realm.kingdom": "Regnovum — o Reino",
+    "arenas.realm.no_official_outcome": "Debates não têm vencedor nem verdade oficial",
     "auth.brand": "Regnovum",
     "auth.errors.csrf_detail": "A proteção do formulário expirou. Recarregue a página e envie novamente.",
     "auth.errors.csrf_title": "A página perdeu a validade",
