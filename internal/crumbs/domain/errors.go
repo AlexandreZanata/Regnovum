@@ -40,6 +40,12 @@ const (
 	// a negative budget, a non-positive per-person cap, an
 	// unsealable epoch, a corrupt snapshot or a doubled account.
 	CodeInvalidDistribution ErrorCode = "CRUMBS_INVALID_DISTRIBUTION"
+	// CodeInvalidRun names a malformed distribution run: a plan whose
+	// accounting does not close or whose seal no longer agrees.
+	CodeInvalidRun ErrorCode = "CRUMBS_INVALID_RUN"
+	// CodeRunState names an illegal run move: paying outside an open
+	// run, closing twice or reopening a closed epoch.
+	CodeRunState ErrorCode = "CRUMBS_RUN_STATE"
 )
 
 // DomainError represents an invariant or rule failure in the crumbs domain.
@@ -124,5 +130,17 @@ var (
 	ErrInvalidDistribution = DomainError{
 		Code:    CodeInvalidDistribution,
 		Message: "crumb distribution needs a non-negative budget, a positive per-person cap, a sealable epoch and a clean admitted snapshot: never rounded up, never above stock",
+	}
+	// ErrInvalidRun refuses a run that cannot execute a plan: the
+	// accounting must close and the seal must agree, or nothing runs.
+	ErrInvalidRun = DomainError{
+		Code:    CodeInvalidRun,
+		Message: "crumb run needs a sealed plan whose distributed and remainder close the budget: tampered epochs never execute",
+	}
+	// ErrRunState refuses an illegal run move: open runs pay each
+	// account once, closed epochs never reopen and never pay again.
+	ErrRunState = DomainError{
+		Code:    CodeRunState,
+		Message: "crumb run pays each planned account once while open: closed epochs never reopen, retries never double-pay",
 	}
 )
