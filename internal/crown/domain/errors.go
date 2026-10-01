@@ -85,6 +85,30 @@ const (
 	// without scheduled review: urgency only contains temporarily
 	// with review, never executes finally alone.
 	CodeEmergencyWithoutReview ErrorCode = "CROWN_EMERGENCY_WITHOUT_REVIEW"
+	// CodeNonMonetaryAct names an execution request over a decree
+	// whose kind never moves value: only the economic kind carries
+	// origin and amount, so any other kind stops before custody.
+	CodeNonMonetaryAct ErrorCode = "CROWN_NON_MONETARY_ACT"
+	// CodeForbiddenOrigin names an execution funded outside the
+	// free treasury: escrow, contract, title, principal alheio and
+	// confiscation without an independent procedure never fund a
+	// crown move.
+	CodeForbiddenOrigin ErrorCode = "CROWN_FORBIDDEN_ORIGIN"
+	// CodeSelfGrant names a decree paying its own author: the King
+	// never grants treasury to itself, directly or by alias.
+	CodeSelfGrant ErrorCode = "CROWN_SELF_GRANT"
+	// CodeInsufficientTreasury names an execution beyond the free
+	// treasury availability: conserved custody moves at most what
+	// is available, never by mint.
+	CodeInsufficientTreasury ErrorCode = "CROWN_INSUFFICIENT_TREASURY"
+	// CodeExecutionFrozen names an execution while the book is
+	// frozen: a security freeze stops every movement, never
+	// extends the calendar and never picks a beneficiary.
+	CodeExecutionFrozen ErrorCode = "CROWN_EXECUTION_FROZEN"
+	// CodeConflictedBenefit names a benefit with an unresolved
+	// conflict and no independent review: legitimate reparation
+	// passes an independent procedure, never the beneficiary.
+	CodeConflictedBenefit ErrorCode = "CROWN_CONFLICTED_BENEFIT"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -221,5 +245,36 @@ var (
 	ErrEmergencyWithoutReview = DomainError{
 		Code:    CodeEmergencyWithoutReview,
 		Message: "urgency without review executes nothing finally: emergency only contains temporarily with scheduled review",
+	}
+	// ErrNonMonetaryAct refuses to move value for a decree whose
+	// kind never carries it.
+	ErrNonMonetaryAct = DomainError{
+		Code:    CodeNonMonetaryAct,
+		Message: "the decree never moves value: only the economic kind carries origin and amount",
+	}
+	// ErrForbiddenOrigin refuses funding outside the free treasury.
+	ErrForbiddenOrigin = DomainError{
+		Code:    CodeForbiddenOrigin,
+		Message: "the origin cannot fund a crown move: escrow, contract, title, principal alheio and confiscation stay where they are",
+	}
+	// ErrSelfGrant refuses to pay the decree author.
+	ErrSelfGrant = DomainError{
+		Code:    CodeSelfGrant,
+		Message: "the author cannot grant to itself: the King never takes the treasury as personal wealth",
+	}
+	// ErrInsufficientTreasury refuses to move beyond availability.
+	ErrInsufficientTreasury = DomainError{
+		Code:    CodeInsufficientTreasury,
+		Message: "the free treasury cannot cover the decree: conserved custody moves at most what is available, never by mint",
+	}
+	// ErrExecutionFrozen refuses every movement under freeze.
+	ErrExecutionFrozen = DomainError{
+		Code:    CodeExecutionFrozen,
+		Message: "the book is frozen: no decree moves value while the freeze holds",
+	}
+	// ErrConflictedBenefit refuses a benefit with unresolved conflict.
+	ErrConflictedBenefit = DomainError{
+		Code:    CodeConflictedBenefit,
+		Message: "the benefit has an unresolved conflict: legitimate reparation passes an independent procedure",
 	}
 )
