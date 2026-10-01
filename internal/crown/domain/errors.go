@@ -108,6 +108,16 @@ const (
 	// CodeConflictedBenefit names a benefit with an unresolved
 	// conflict and no independent review: legitimate reparation
 	// passes an independent procedure, never the beneficiary.
+	// CodeAnonymousRecord names a book entry without authorship:
+	// every royal fact names who issued it, or it is not recorded.
+	CodeAnonymousRecord ErrorCode = "CROWN_ANONYMOUS_RECORD"
+	// CodeDetachedCorrection names a correction that links no
+	// recorded original: a correction never floats alone, and the
+	// original stays visible beside it.
+	CodeDetachedCorrection ErrorCode = "CROWN_DETACHED_CORRECTION"
+	// CodeUnrecordedAct names an executed act missing from the
+	// book: hidden decrees decide nothing, every act is published.
+	CodeUnrecordedAct     ErrorCode = "CROWN_UNRECORDED_ACT"
 	CodeConflictedBenefit ErrorCode = "CROWN_CONFLICTED_BENEFIT"
 )
 
@@ -276,5 +286,20 @@ var (
 	ErrConflictedBenefit = DomainError{
 		Code:    CodeConflictedBenefit,
 		Message: "the benefit has an unresolved conflict: legitimate reparation passes an independent procedure",
+	}
+	// ErrAnonymousRecord refuses a book entry without authorship.
+	ErrAnonymousRecord = DomainError{
+		Code:    CodeAnonymousRecord,
+		Message: "the record names no author: every royal fact is attributable or it is not recorded",
+	}
+	// ErrDetachedCorrection refuses a correction without a recorded original.
+	ErrDetachedCorrection = DomainError{
+		Code:    CodeDetachedCorrection,
+		Message: "the correction links no recorded original: corrections arrive linked and the original stays visible",
+	}
+	// ErrUnrecordedAct refuses to leave an executed act unpublished.
+	ErrUnrecordedAct = DomainError{
+		Code:    CodeUnrecordedAct,
+		Message: "the act is missing from the book: hidden decrees decide nothing, every act is published",
 	}
 )
