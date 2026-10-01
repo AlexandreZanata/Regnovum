@@ -135,6 +135,21 @@ const (
 	// custody, never the public vault.
 	CodeTreasuryFundedRestitution ErrorCode = "CROWN_TREASURY_FUNDED_RESTITUTION"
 	CodeConflictedBenefit         ErrorCode = "CROWN_CONFLICTED_BENEFIT"
+	// CodeUnknownOffice names an office outside the closed game
+	// vocabulary: inquisitor, justice, defender, witness, arbiter,
+	// auditor, executor and certifier only, never by inference.
+	CodeUnknownOffice ErrorCode = "CROWN_UNKNOWN_OFFICE"
+	// CodeOfficeExpired names a mandate past its window: game
+	// offices never survive the season end without a fresh valid
+	// designation.
+	CodeOfficeExpired ErrorCode = "CROWN_OFFICE_EXPIRED"
+	// CodeConflictedOffice names an accuser judging, an interested
+	// witness or executor, or the King judging a rival dispute in
+	// own cause: conflicts decide nothing.
+	CodeConflictedOffice ErrorCode = "CROWN_CONFLICTED_OFFICE"
+	// CodeOutcomePay names a fee conditioned on conviction: game
+	// offices are paid per service, never per result.
+	CodeOutcomePay ErrorCode = "CROWN_OUTCOME_PAY"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -337,5 +352,26 @@ var (
 	ErrTreasuryFundedRestitution = DomainError{
 		Code:    CodeTreasuryFundedRestitution,
 		Message: "the free treasury funds no restitution: the responsible repairs from own custody",
+	}
+	// ErrUnknownOffice refuses an office outside the closed vocabulary.
+	ErrUnknownOffice = DomainError{
+		Code:    CodeUnknownOffice,
+		Message: "unknown game office: only inquisidor, justiceiro, defensor, testemunha, arbitro, auditor, carrasco and certificador qualify",
+	}
+	// ErrOfficeExpired refuses a mandate past its window.
+	ErrOfficeExpired = DomainError{
+		Code:    CodeOfficeExpired,
+		Message: "the mandate expired: game offices never survive the season end without a fresh designation",
+	}
+	// ErrConflictedOffice refuses an accuser judging, an interested
+	// witness or executor, or the King judging a rival in own cause.
+	ErrConflictedOffice = DomainError{
+		Code:    CodeConflictedOffice,
+		Message: "the office is conflicted: accuser never judges, interested never witness or execute, the King never judges a rival in own cause",
+	}
+	// ErrOutcomePay refuses a fee conditioned on conviction.
+	ErrOutcomePay = DomainError{
+		Code:    CodeOutcomePay,
+		Message: "the fee follows the result: game offices are paid per service, never per conviction",
 	}
 )
