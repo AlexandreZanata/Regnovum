@@ -84,6 +84,23 @@ const (
 	// mandatory sealed phase: the case carries a sealed
 	// envelope or a motivated waiver, never neither.
 	CodeUnsealedPhase ErrorCode = "INQUISITION_UNSEALED_PHASE"
+	// CodeDefenselessSentence names a sentence over a sealed
+	// case whose defense never saw the proof: a sealed phase
+	// without disclosure to the defense sentences nobody.
+	CodeDefenselessSentence ErrorCode = "INQUISITION_DEFENSELESS_SENTENCE"
+	// CodeOutOfCompetence names a sanction outside the
+	// published competence: unknown sanctions and a
+	// competence divorced from the case stop here.
+	CodeOutOfCompetence ErrorCode = "INQUISITION_OUT_OF_COMPETENCE"
+	// CodeCharterMismatch names a sentence bound to a charter
+	// version other than the one in force at the fact: the
+	// sentence judges under the contemporary rule, never
+	// under a later or earlier version by inference.
+	CodeCharterMismatch ErrorCode = "INQUISITION_CHARTER_MISMATCH"
+	// CodeUntimelyAppeal names an appeal outside its window:
+	// appeals arrive after the sentence and at or before the
+	// published deadline, never before it and never past it.
+	CodeUntimelyAppeal ErrorCode = "INQUISITION_UNTIMELY_APPEAL"
 )
 
 // DomainError represents an invariant or rule failure in the
@@ -205,5 +222,28 @@ var (
 	ErrUnsealedPhase = DomainError{
 		Code:    CodeUnsealedPhase,
 		Message: "the sealed phase is missing: a severe case carries a sealed envelope bound to the case or a motivated waiver, never neither",
+	}
+	// ErrDefenselessSentence refuses a sentence whose defense
+	// never saw the sealed proof.
+	ErrDefenselessSentence = DomainError{
+		Code:    CodeDefenselessSentence,
+		Message: "the sentence has no defense: a sealed phase without disclosure to the defense before the decision sentences nobody",
+	}
+	// ErrOutOfCompetence refuses a sanction outside the
+	// published competence.
+	ErrOutOfCompetence = DomainError{
+		Code:    CodeOutOfCompetence,
+		Message: "the sanction is out of competence: only the closed sanctions under the case competence apply, never by inference",
+	}
+	// ErrCharterMismatch refuses a sentence bound to the wrong
+	// charter version.
+	ErrCharterMismatch = DomainError{
+		Code:    CodeCharterMismatch,
+		Message: "the charter version mismatches the fact: the sentence binds the version in force at the fact, never another by inference",
+	}
+	// ErrUntimelyAppeal refuses an appeal outside its window.
+	ErrUntimelyAppeal = DomainError{
+		Code:    CodeUntimelyAppeal,
+		Message: "the appeal is untimely: appeals arrive after the sentence and at or before the published deadline",
 	}
 )
