@@ -68,6 +68,23 @@ const (
 	// charter version: facts bind to one published vN, never to
 	// "current" or "latest" by inference.
 	CodeAmbiguousCharter ErrorCode = "CROWN_AMBIGUOUS_CHARTER"
+	// CodeSelfApproval names a check by its own author: the author
+	// never reviews its own irreversible act.
+	CodeSelfApproval ErrorCode = "CROWN_SELF_APPROVAL"
+	// CodeDuplicateApproval names two checks that are not
+	// independent: same identifier or same checker replayed.
+	CodeDuplicateApproval ErrorCode = "CROWN_DUPLICATE_APPROVAL"
+	// CodeTamperedAct names a check bound to another payload: any
+	// change of identity, vigour, target, effect, value or charter
+	// breaks both checks first.
+	CodeTamperedAct ErrorCode = "CROWN_TAMPERED_ACT"
+	// CodeCheckExpired names a check outside its live window:
+	// spent approvals authorize nothing new.
+	CodeCheckExpired ErrorCode = "CROWN_CHECK_EXPIRED"
+	// CodeEmergencyWithoutReview names an urgent containment
+	// without scheduled review: urgency only contains temporarily
+	// with review, never executes finally alone.
+	CodeEmergencyWithoutReview ErrorCode = "CROWN_EMERGENCY_WITHOUT_REVIEW"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -179,5 +196,30 @@ var (
 	ErrAmbiguousCharter = DomainError{
 		Code:    CodeAmbiguousCharter,
 		Message: "the charter version is ambiguous: decrees bind to one published vN, never to current or latest by inference",
+	}
+	// ErrSelfApproval refuses the author reviewing its own act.
+	ErrSelfApproval = DomainError{
+		Code:    CodeSelfApproval,
+		Message: "the author cannot check its own act: irreversible acts need a distinct independent checker",
+	}
+	// ErrDuplicateApproval refuses checks that are not independent.
+	ErrDuplicateApproval = DomainError{
+		Code:    CodeDuplicateApproval,
+		Message: "the checks are not independent: identifiers and checkers both differ, replay authorizes nothing new",
+	}
+	// ErrTamperedAct refuses a check bound to another payload.
+	ErrTamperedAct = DomainError{
+		Code:    CodeTamperedAct,
+		Message: "the payload changed after the check: identity, vigour, target, effect, value and charter all bind the digest",
+	}
+	// ErrCheckExpired refuses a spent check.
+	ErrCheckExpired = DomainError{
+		Code:    CodeCheckExpired,
+		Message: "the check window passed: spent approvals authorize nothing new",
+	}
+	// ErrEmergencyWithoutReview refuses urgency without review.
+	ErrEmergencyWithoutReview = DomainError{
+		Code:    CodeEmergencyWithoutReview,
+		Message: "urgency without review executes nothing finally: emergency only contains temporarily with scheduled review",
 	}
 )
