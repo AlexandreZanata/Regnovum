@@ -1,0 +1,19 @@
+{
+  "seasons": {
+    "current": {
+      "title": "Current season"
+    },
+    "history": {
+      "title": "Season history",
+      "empty": "No seasons yet"
+    },
+    "detail": {
+      "title": "Season",
+      "state": "Lifecycle state"
+    },
+    "failure": {
+      "title": "Season unavailable",
+      "detail": "Check the data and try again."
+    }
+  }
+}

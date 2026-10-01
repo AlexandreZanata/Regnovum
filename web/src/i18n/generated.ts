@@ -252,6 +252,15 @@ export const messageKeys = {
     "metering.statement.empty",
     "metering.statement.title",
   ] as const,
+  seasons: [
+    "seasons.current.title",
+    "seasons.detail.state",
+    "seasons.detail.title",
+    "seasons.failure.detail",
+    "seasons.failure.title",
+    "seasons.history.empty",
+    "seasons.history.title",
+  ] as const,
   transparency: [
     "transparency.document.heading",
     "transparency.document.methodology",
@@ -510,6 +519,13 @@ export type MessageKey =
   | "metering.statement.balance"
   | "metering.statement.empty"
   | "metering.statement.title"
+  | "seasons.current.title"
+  | "seasons.detail.state"
+  | "seasons.detail.title"
+  | "seasons.failure.detail"
+  | "seasons.failure.title"
+  | "seasons.history.empty"
+  | "seasons.history.title"
   | "transparency.document.heading"
   | "transparency.document.methodology"
   | "transparency.document.metric"
@@ -766,6 +782,13 @@ export const messagePlaceholders = Object.freeze({
   "metering.statement.balance": ["total"],
   "metering.statement.empty": [],
   "metering.statement.title": [],
+  "seasons.current.title": [],
+  "seasons.detail.state": [],
+  "seasons.detail.title": [],
+  "seasons.failure.detail": [],
+  "seasons.failure.title": [],
+  "seasons.history.empty": [],
+  "seasons.history.title": [],
   "transparency.document.heading": [],
   "transparency.document.methodology": [],
   "transparency.document.metric": [],
@@ -1023,6 +1046,13 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "metering.statement.balance": "Balance: {total} thousandths of INK",
     "metering.statement.empty": "No publications yet",
     "metering.statement.title": "INK statement",
+    "seasons.current.title": "Current season",
+    "seasons.detail.state": "Lifecycle state",
+    "seasons.detail.title": "Season",
+    "seasons.failure.detail": "Check the data and try again.",
+    "seasons.failure.title": "Season unavailable",
+    "seasons.history.empty": "No seasons yet",
+    "seasons.history.title": "Season history",
     "transparency.document.heading": "Platform transparency",
     "transparency.document.methodology": "Aggregated metrics per period; counts below 5 are suppressed to reduce reidentification.",
     "transparency.document.metric": "Metric",
@@ -1277,6 +1307,13 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "metering.statement.balance": "Saldo: {total} milésimos de INK",
     "metering.statement.empty": "Nenhuma publicação ainda",
     "metering.statement.title": "Extrato de INK",
+    "seasons.current.title": "Temporada atual",
+    "seasons.detail.state": "Estado do ciclo",
+    "seasons.detail.title": "Temporada",
+    "seasons.failure.detail": "Confira os dados e tente novamente.",
+    "seasons.failure.title": "Temporada indisponível",
+    "seasons.history.empty": "Nenhuma temporada ainda",
+    "seasons.history.title": "Histórico de temporadas",
     "transparency.document.heading": "Transparência da plataforma",
     "transparency.document.methodology": "Métricas agregadas por período; contagens abaixo de 5 são omitidas para reduzir reidentificação.",
     "transparency.document.metric": "Métrica",

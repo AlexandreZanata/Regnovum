@@ -34,6 +34,18 @@ const (
 	// lease: the book changes hands only past leased_until on the
 	// database clock.
 	CodeLeaseHeld ErrorCode = "SEASONS_LEASE_HELD"
+	// CodeSeasonMismatch refuses the compat-legacy namespace as live:
+	// explicitly inactive history, never a current book.
+	CodeSeasonMismatch ErrorCode = "SEASONS_SEASON_MISMATCH"
+	// CodeSeasonClosed refuses live reads without ACTIVE: suspension
+	// or fechamento em curso, never a silent empty.
+	CodeSeasonClosed ErrorCode = "SEASONS_SEASON_CLOSED"
+	// CodeSeasonArchived refuses live reads with only an archived
+	// predecessor: the old book sealed, the successor not yet open.
+	CodeSeasonArchived ErrorCode = "SEASONS_SEASON_ARCHIVED"
+	// CodeSeasonUnknown refuses unknown books without leaking which
+	// books exist beyond the allowlist.
+	CodeSeasonUnknown ErrorCode = "SEASONS_SEASON_UNKNOWN"
 )
 
 // DomainError represents an invariant or rule failure in the seasons domain.
@@ -103,5 +115,30 @@ var (
 	ErrLeaseHeld = DomainError{
 		Code:    CodeLeaseHeld,
 		Message: "the book is already held: takeover waits for the lease to lapse on the database clock",
+	}
+	// ErrSeasonMismatch refuses the compatibility namespace as live:
+	// explicitly inactive history, never a current book.
+	ErrSeasonMismatch = DomainError{
+		Code:    CodeSeasonMismatch,
+		Message: "the compatibility namespace is explicitly inactive: live reads serve the staged calendar only",
+	}
+	// ErrSeasonClosed refuses live reads without ACTIVE: suspension or
+	// fechamento em curso, never a silent empty.
+	ErrSeasonClosed = DomainError{
+		Code:    CodeSeasonClosed,
+		Message: "no active season: the service is suspended or closing is still draining",
+	}
+	// ErrSeasonArchived refuses live reads with only an archived
+	// predecessor: history serves, live does not until the successor
+	// opens.
+	ErrSeasonArchived = DomainError{
+		Code:    CodeSeasonArchived,
+		Message: "predecessor archived: the successor is not open yet",
+	}
+	// ErrSeasonUnknown refuses unknown books without leaking the
+	// allowlist beyond the requested key.
+	ErrSeasonUnknown = DomainError{
+		Code:    CodeSeasonUnknown,
+		Message: "no such season for this account",
 	}
 )
