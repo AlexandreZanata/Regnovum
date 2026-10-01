@@ -23,6 +23,10 @@ const (
 	CodeInvalidExpiry        ErrorCode = "MODERATION_INVALID_EXPIRY"
 	CodeTargetActionMismatch ErrorCode = "MODERATION_TARGET_ACTION_MISMATCH"
 	CodeInvalidOutcome       ErrorCode = "MODERATION_INVALID_OUTCOME"
+	CodeThirdPartyTarget     ErrorCode = "MODERATION_THIRD_PARTY_TARGET"
+	CodeReviewTimeout        ErrorCode = "MODERATION_REVIEW_TIMEOUT"
+	CodeMissingConviction    ErrorCode = "MODERATION_MISSING_CONVICTION"
+	CodeExcessiveQuarantine  ErrorCode = "MODERATION_EXCESSIVE_QUARANTINE"
 )
 
 // DomainError represents an invariant or rule failure in the moderation domain.
@@ -61,4 +65,8 @@ var (
 	ErrInvalidExpiry        = DomainError{Code: CodeInvalidExpiry, Message: "sanction expiry is required only for time-boxed measures and must be future"}
 	ErrTargetActionMismatch = DomainError{Code: CodeTargetActionMismatch, Message: "moderation action cannot sanction this target type"}
 	ErrInvalidOutcome       = DomainError{Code: CodeInvalidOutcome, Message: "appeal outcome is outside the supported vocabulary"}
+	ErrThirdPartyTarget     = DomainError{Code: CodeThirdPartyTarget, Message: "severe measures target the accused account or piece only, never third-party content"}
+	ErrReviewTimeout        = DomainError{Code: CodeReviewTimeout, Message: "the independent review arrived past its deadline: the preventive measure already lapsed"}
+	ErrMissingConviction    = DomainError{Code: CodeMissingConviction, Message: "quarantine follows a conviction only: no sentence, no quarantine"}
+	ErrExcessiveQuarantine  = DomainError{Code: CodeExcessiveQuarantine, Message: "quarantine exceeds the ratified cap"}
 )
