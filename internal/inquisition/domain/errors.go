@@ -33,6 +33,35 @@ const (
 	// charter version: facts bind to one published vN, never to
 	// "current" or "latest" by inference.
 	CodeAmbiguousCharter ErrorCode = "INQUISITION_AMBIGUOUS_CHARTER"
+	// CodeInterestedProsecution names an opening by an interested
+	// inquisitor or a panel with a financial or relational
+	// conflict: the opener is never the reporter or the accused
+	// and never belongs to the interested set, and the arbiter
+	// and the auditor never belong to it either.
+	CodeInterestedProsecution ErrorCode = "INQUISITION_INTERESTED_PROSECUTION"
+	// CodeSelfReview names a proceeding where one holder reviews
+	// its own act: inquisitor, arbiter and auditor are three
+	// distinct holders, and a candidate never reviews its own
+	// succession eligibility.
+	CodeSelfReview ErrorCode = "INQUISITION_SELF_REVIEW"
+	// CodeDuplicateCase names a second opening of the same case
+	// or of the same report: one report opens at most one severe
+	// case, replay authorizes nothing new.
+	CodeDuplicateCase ErrorCode = "INQUISITION_DUPLICATE_CASE"
+	// CodeExpiredMandate names an opening outside the opener
+	// mandate: the mandate holder opens only inside its issued
+	// window, never before it and never at or past its end.
+	CodeExpiredMandate ErrorCode = "INQUISITION_EXPIRED_MANDATE"
+	// CodeConflictedThrone names a King with an interest in the
+	// throne dispute deciding or reviewing it: an interested
+	// King neither seats the severe panel nor reviews a rival
+	// eligibility.
+	CodeConflictedThrone ErrorCode = "INQUISITION_CONFLICTED_THRONE"
+	// CodeUnpublishedProceeding names an opening without a
+	// published competence and deadline: competence arrives as
+	// stated text and the deadline arrives after the opening
+	// inside the allowed cap.
+	CodeUnpublishedProceeding ErrorCode = "INQUISITION_UNPUBLISHED_PROCEEDING"
 )
 
 // DomainError represents an invariant or rule failure in the
@@ -90,5 +119,40 @@ var (
 	ErrAmbiguousCharter = DomainError{
 		Code:    CodeAmbiguousCharter,
 		Message: "the charter version is ambiguous: reports bind to one published vN, never to current or latest by inference",
+	}
+	// ErrInterestedProsecution refuses an opening by an
+	// interested holder or a panel with a conflict.
+	ErrInterestedProsecution = DomainError{
+		Code:    CodeInterestedProsecution,
+		Message: "the prosecution is interested: the opener is never the reporter or the accused and the panel never carries a financial or relational conflict",
+	}
+	// ErrSelfReview refuses one holder reviewing its own act.
+	ErrSelfReview = DomainError{
+		Code:    CodeSelfReview,
+		Message: "the review is not independent: inquisitor, arbiter and auditor are three distinct holders and nobody reviews its own eligibility",
+	}
+	// ErrDuplicateCase refuses a second opening of the same case
+	// or report.
+	ErrDuplicateCase = DomainError{
+		Code:    CodeDuplicateCase,
+		Message: "the case already exists: one report opens at most one severe case, replay authorizes nothing new",
+	}
+	// ErrExpiredMandate refuses an opening outside the opener
+	// mandate window.
+	ErrExpiredMandate = DomainError{
+		Code:    CodeExpiredMandate,
+		Message: "the mandate expired: the holder opens only inside its issued window, never before it and never at or past its end",
+	}
+	// ErrConflictedThrone refuses an interested King deciding or
+	// reviewing the throne dispute.
+	ErrConflictedThrone = DomainError{
+		Code:    CodeConflictedThrone,
+		Message: "the throne is conflicted: an interested King neither seats the severe panel nor reviews a rival eligibility",
+	}
+	// ErrUnpublishedProceeding refuses an opening without a
+	// published competence and deadline.
+	ErrUnpublishedProceeding = DomainError{
+		Code:    CodeUnpublishedProceeding,
+		Message: "the proceeding is unpublished: competence arrives as stated text and the deadline arrives after the opening inside the allowed cap",
 	}
 )
