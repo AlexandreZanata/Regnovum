@@ -48,6 +48,26 @@ const (
 	// CodeGrantExpired names a reused grant past its session: a
 	// recorded authorization never outlives the session that made it.
 	CodeGrantExpired ErrorCode = "CROWN_GRANT_EXPIRED"
+	// CodeUnknownAct names a decree kind outside the closed royal
+	// vocabulary: season alterations of deadline, Genesis or wealth
+	// criteria never become a kind by inference.
+	CodeUnknownAct ErrorCode = "CROWN_UNKNOWN_ACT"
+	// CodeIncompleteAct names a decree missing a required field or
+	// carrying an economic payload outside the economic kind: the
+	// shape refuses before any effect.
+	CodeIncompleteAct ErrorCode = "CROWN_INCOMPLETE_ACT"
+	// CodeRetroactiveAct names a decree whose vigour starts before
+	// its date: harmful backdating refuses, even when the text
+	// claims a correction (corrections arrive as new prospective
+	// acts linked to the original).
+	CodeRetroactiveAct ErrorCode = "CROWN_RETROACTIVE_ACT"
+	// CodeUnknownOrigin names an economic decree without a known
+	// funding origin: value never moves from nowhere.
+	CodeUnknownOrigin ErrorCode = "CROWN_UNKNOWN_ORIGIN"
+	// CodeAmbiguousCharter names a decree without an explicit
+	// charter version: facts bind to one published vN, never to
+	// "current" or "latest" by inference.
+	CodeAmbiguousCharter ErrorCode = "CROWN_AMBIGUOUS_CHARTER"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -134,5 +154,30 @@ var (
 	ErrGrantExpired = DomainError{
 		Code:    CodeGrantExpired,
 		Message: "the grant outlived its session: recorded authorization never outlives the session that made it",
+	}
+	// ErrUnknownAct refuses a kind outside the closed vocabulary.
+	ErrUnknownAct = DomainError{
+		Code:    CodeUnknownAct,
+		Message: "unknown royal act: the kind is not normative, office, process, economic, pardon or blessing, and season alterations never qualify",
+	}
+	// ErrIncompleteAct refuses a decree missing a required field.
+	ErrIncompleteAct = DomainError{
+		Code:    CodeIncompleteAct,
+		Message: "the decree is incomplete: identity, authority, reason, target, effect, vigencia and charter version all arrive whole, and only the economic kind carries value",
+	}
+	// ErrRetroactiveAct refuses harmful backdating.
+	ErrRetroactiveAct = DomainError{
+		Code:    CodeRetroactiveAct,
+		Message: "the decree backdates its vigour: effects start at or after the decree date, corrections arrive as new prospective acts",
+	}
+	// ErrUnknownOrigin refuses an economic decree without origin.
+	ErrUnknownOrigin = DomainError{
+		Code:    CodeUnknownOrigin,
+		Message: "the economic decree names no known origin: value never moves from nowhere",
+	}
+	// ErrAmbiguousCharter refuses a decree without explicit version.
+	ErrAmbiguousCharter = DomainError{
+		Code:    CodeAmbiguousCharter,
+		Message: "the charter version is ambiguous: decrees bind to one published vN, never to current or latest by inference",
 	}
 )
