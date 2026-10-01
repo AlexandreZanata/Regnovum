@@ -101,6 +101,15 @@ const (
 	// appeals arrive after the sentence and at or before the
 	// published deadline, never before it and never past it.
 	CodeUntimelyAppeal ErrorCode = "INQUISITION_UNTIMELY_APPEAL"
+	// CodeInsufficientGround names a reopening plea outside the
+	// three admitted grounds: only new material proof,
+	// procedural fraud and decisive error reopen the same
+	// fact; a larger bond alone never suffices.
+	CodeInsufficientGround ErrorCode = "INQUISITION_INSUFFICIENT_GROUND"
+	// CodeRepeatedPetition names a plea already denied on the
+	// same ground and proof: twenty repeated pleas open no
+	// twenty cases, replay decides nothing new.
+	CodeRepeatedPetition ErrorCode = "INQUISITION_REPEATED_PETITION"
 )
 
 // DomainError represents an invariant or rule failure in the
@@ -245,5 +254,17 @@ var (
 	ErrUntimelyAppeal = DomainError{
 		Code:    CodeUntimelyAppeal,
 		Message: "the appeal is untimely: appeals arrive after the sentence and at or before the published deadline",
+	}
+	// ErrInsufficientGround refuses a reopening plea outside
+	// the three admitted grounds.
+	ErrInsufficientGround = DomainError{
+		Code:    CodeInsufficientGround,
+		Message: "the ground is insufficient: only new material proof, procedural fraud and decisive error reopen the same fact, never a larger bond alone",
+	}
+	// ErrRepeatedPetition refuses a plea already denied on the
+	// same ground and proof.
+	ErrRepeatedPetition = DomainError{
+		Code:    CodeRepeatedPetition,
+		Message: "the plea repeats a denied one: the same ground and proof decide once, replay opens no new case",
 	}
 )
