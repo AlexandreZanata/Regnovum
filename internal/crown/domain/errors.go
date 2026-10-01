@@ -117,8 +117,24 @@ const (
 	CodeDetachedCorrection ErrorCode = "CROWN_DETACHED_CORRECTION"
 	// CodeUnrecordedAct names an executed act missing from the
 	// book: hidden decrees decide nothing, every act is published.
-	CodeUnrecordedAct     ErrorCode = "CROWN_UNRECORDED_ACT"
-	CodeConflictedBenefit ErrorCode = "CROWN_CONFLICTED_BENEFIT"
+	CodeUnrecordedAct ErrorCode = "CROWN_UNRECORDED_ACT"
+	// CodeImproperPetitioner names a petition outside the affected
+	// channel: the act author appeals nothing, corrections of own
+	// errors arrive as new linked acts, never as petitions.
+	CodeImproperPetitioner ErrorCode = "CROWN_IMPROPER_PETITIONER"
+	// CodeInterestedAuditor names a review by an interested party:
+	// the author, the petitioner and the responsible never audit
+	// their own action.
+	CodeInterestedAuditor ErrorCode = "CROWN_INTERESTED_AUDITOR"
+	// CodeUnreviewedRepair names a correction without a repair
+	// verdict: errors are corrected by new acts under independent
+	// review, never by solitary rewrite.
+	CodeUnreviewedRepair ErrorCode = "CROWN_UNREVIEWED_REPAIR"
+	// CodeTreasuryFundedRestitution names a restitution charged to
+	// the free treasury: the responsible funds the repair from own
+	// custody, never the public vault.
+	CodeTreasuryFundedRestitution ErrorCode = "CROWN_TREASURY_FUNDED_RESTITUTION"
+	CodeConflictedBenefit         ErrorCode = "CROWN_CONFLICTED_BENEFIT"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -301,5 +317,25 @@ var (
 	ErrUnrecordedAct = DomainError{
 		Code:    CodeUnrecordedAct,
 		Message: "the act is missing from the book: hidden decrees decide nothing, every act is published",
+	}
+	// ErrImproperPetitioner refuses a petition by the act author.
+	ErrImproperPetitioner = DomainError{
+		Code:    CodeImproperPetitioner,
+		Message: "the petitioner cannot appeal its own act: the channel belongs to the affected holder, authors correct by new linked acts",
+	}
+	// ErrInterestedAuditor refuses a review by an interested party.
+	ErrInterestedAuditor = DomainError{
+		Code:    CodeInterestedAuditor,
+		Message: "the auditor cannot review its own action: author, petitioner and responsible never audit the case",
+	}
+	// ErrUnreviewedRepair refuses a correction without a repair verdict.
+	ErrUnreviewedRepair = DomainError{
+		Code:    CodeUnreviewedRepair,
+		Message: "the correction carries no repair verdict: errors are corrected by new acts under independent review",
+	}
+	// ErrTreasuryFundedRestitution refuses to charge the free treasury.
+	ErrTreasuryFundedRestitution = DomainError{
+		Code:    CodeTreasuryFundedRestitution,
+		Message: "the free treasury funds no restitution: the responsible repairs from own custody",
 	}
 )
