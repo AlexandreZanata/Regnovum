@@ -334,7 +334,7 @@ func TestRefusalRefundFrozenRefuses(t *testing.T) {
 	refuseCharter(t, ctx, repo, holder, "v1")
 	makeCustody(t, ctx, pool, "user", holder)
 	freezeWithOrphan(t, ctx, pool, holder)
-	if _, err := repo.Reconcile(ctx); err != nil {
+	if _, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey)); err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
 	useCase := application.NewRefusalRefundUseCase(repo)

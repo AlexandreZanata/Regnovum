@@ -2,6 +2,8 @@ package application
 
 import (
 	"context"
+
+	"github.com/AlexandreZanata/Regnovum/internal/billing/domain"
 )
 
 // SettlePurchaseCommand carries one inbound provider event delivery:
@@ -25,12 +27,14 @@ type SettlePurchaseRequest struct {
 
 // SettlePurchaseResult is the settled delivery: the intent, the
 // settlement record, the INK the buyer received and whether the call
-// replayed an earlier delivery.
+// replayed an earlier delivery. Season names the purchase book the
+// buyer was paid in.
 type SettlePurchaseResult struct {
 	IntentID     string
 	SettlementID string
 	InkMilli     int64
 	Replayed     bool
+	Season       domain.SeasonKey
 }
 
 // PurchaseSettlementRepository settles paid provider events with the

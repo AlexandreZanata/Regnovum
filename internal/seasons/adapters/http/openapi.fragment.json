@@ -1,0 +1,50 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Regnovum seasons staged API",
+    "version": "0.1.0",
+    "description": "Staged season lifecycle surface (P46-T11): current season, one season and history. Unmounted until the P44 gate and the separate holder authorization; not part of the published contract."
+  },
+  "paths": {
+    "/api/v1/me/seasons/current": {
+      "get": {
+        "operationId": "readCurrentSeason",
+        "summary": "Read the current active season with dates and state",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": { "description": "Current season document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "409": { "description": "No active season: closing suspension or archived predecessor" }
+        }
+      }
+    },
+    "/api/v1/me/seasons/history": {
+      "get": {
+        "operationId": "readSeasonHistory",
+        "summary": "Read the allowlisted season history with dates and states",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": { "description": "History document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" }
+        }
+      }
+    },
+    "/api/v1/me/seasons/{season_key}": {
+      "get": {
+        "operationId": "readSeason",
+        "summary": "Read one allowlisted season with dates and state",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          { "name": "season_key", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Season document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "403": { "description": "Inactive namespace requested as live" },
+          "404": { "description": "Unknown season for this account" },
+          "409": { "description": "No active season or archived predecessor" }
+        }
+      }
+    }
+  }
+}

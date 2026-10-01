@@ -9,15 +9,18 @@ import (
 
 	"github.com/AlexandreZanata/Regnovum/internal/economy/application"
 	"github.com/AlexandreZanata/Regnovum/internal/economy/domain"
+	seasondomain "github.com/AlexandreZanata/Regnovum/internal/seasons/domain"
 )
 
 var _ application.HoldsRepository = (*Repository)(nil)
 
-// holdRow is one locked hold with everything its settlement needs.
+// holdRow is one locked hold with everything its settlement needs,
+// including the book every leg and destination must stay inside.
 type holdRow struct {
 	id          string
 	ownerID     string
 	holdCustody string
+	season      string
 	millis      int64
 	status      string
 	expiresAt   time.Time
@@ -27,28 +30,40 @@ type holdRow struct {
 func lockHold(ctx context.Context, tx pgx.Tx, holdID string) (holdRow, error) {
 	var hold holdRow
 	err := tx.QueryRow(ctx,
-		`SELECT id::text, owner_custody_id::text, hold_custody_id::text, amount_milli, status, expires_at
+		`SELECT id::text, owner_custody_id::text, hold_custody_id::text, season_key, amount_milli, status, expires_at
 		 FROM app.economy_holds WHERE id = $1::uuid FOR UPDATE`,
-		holdID).Scan(&hold.id, &hold.ownerID, &hold.holdCustody, &hold.millis, &hold.status, &hold.expiresAt)
+		holdID).Scan(&hold.id, &hold.ownerID, &hold.holdCustody, &hold.season, &hold.millis, &hold.status, &hold.expiresAt)
 	if err != nil {
 		return holdRow{}, domain.ErrHoldNotFound
 	}
 	return hold, nil
 }
 
-// moveLegs writes one debit/credit pair inside the caller transaction.
-func moveLegs(ctx context.Context, tx pgx.Tx, transferID, fromID, toID string, millis int64) error {
+// legMove is one debit/credit pair of one book: the transfer, the
+// endpoints, the amount and the season every leg stays inside.
+type legMove struct {
+	transferID string
+	fromID     string
+	toID       string
+	millis     int64
+	season     string
+}
+
+// moveLegs writes one debit/credit pair of one book inside the caller
+// transaction. Legs never cross books: the composite key refuses a
+// custody of another book.
+func moveLegs(ctx context.Context, tx pgx.Tx, move legMove) error {
 	for _, leg := range []struct {
 		custody   string
 		direction string
 	}{
-		{fromID, "debit"},
-		{toID, "credit"},
+		{move.fromID, "debit"},
+		{move.toID, "credit"},
 	} {
 		if _, err := tx.Exec(ctx,
-			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-			 VALUES ($1::uuid, $2::uuid, $3, $4)`,
-			transferID, leg.custody, leg.direction, millis); err != nil {
+			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+			 VALUES ($1::uuid, $2::uuid, $3, $4, $5)`,
+			move.transferID, leg.custody, leg.direction, move.millis, move.season); err != nil {
 			return fmt.Errorf("record %s leg: %w", leg.direction, err)
 		}
 	}
@@ -69,10 +84,13 @@ func holdView(hold holdRow, status string) (*application.HoldView, error) {
 }
 
 // Reserve locks value out of the owner custody into a dedicated hold
-// custody, recording purpose and deadline in the same transaction. The
-// legs leave the journal at once, so whatever stays behind is spendable
-// and whatever moved can only return by release or capture.
-func (r *Repository) Reserve(ctx context.Context, ownerKind domain.CustodyKind, ownerLabel string, purpose domain.HoldPurpose, amount domain.MilliInk, expiresAt time.Time) (*application.HoldView, error) {
+// custody of one book, recording purpose and deadline in the same
+// transaction. The legs leave the journal at once, so whatever stays
+// behind is spendable and whatever moved can only return by release
+// or capture inside the same book.
+func (r *Repository) Reserve(ctx context.Context, reservation application.HoldReservation) (*application.HoldView, error) {
+	ownerKind, ownerLabel, purpose, amount := reservation.OwnerKind, reservation.OwnerLabel, reservation.Purpose, reservation.Amount
+	season, expiresAt := reservation.Season, reservation.ExpiresAt
 	if !ownerKind.CanSpend() {
 		return nil, domain.ErrUnauthorizedCustody
 	}
@@ -87,7 +105,13 @@ func (r *Repository) Reserve(ctx context.Context, ownerKind domain.CustodyKind, 
 		return nil, err
 	}
 
-	ownerID, err := resolveCustody(ctx, tx, ownerKind.String(), ownerLabel)
+	// Sealed books open no holds either, judged in this same
+	// transaction.
+	if err := requireActiveTx(ctx, tx, season); err != nil {
+		return nil, err
+	}
+
+	ownerID, err := resolveCustody(ctx, tx, ownerKind.String(), ownerLabel, season.String())
 	if err != nil {
 		return nil, err
 	}
@@ -108,21 +132,21 @@ func (r *Repository) Reserve(ctx context.Context, ownerKind domain.CustodyKind, 
 	}
 	var holdCustody string
 	if err := tx.QueryRow(ctx,
-		`INSERT INTO app.economy_custodies (kind, label) VALUES ('escrow', $1) RETURNING id::text`,
-		"hold-"+holdID).Scan(&holdCustody); err != nil {
+		`INSERT INTO app.economy_custodies (kind, label, season_key) VALUES ('escrow', $1, $2) RETURNING id::text`,
+		"hold-"+holdID, season.String()).Scan(&holdCustody); err != nil {
 		return nil, fmt.Errorf("create hold custody: %w", err)
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_holds (id, owner_custody_id, hold_custody_id, amount_milli, purpose, expires_at)
-		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6)`,
-		holdID, ownerID, holdCustody, amount.Millis(), purpose.String(), expiresAt); err != nil {
+		`INSERT INTO app.economy_holds (id, owner_custody_id, hold_custody_id, amount_milli, purpose, expires_at, season_key)
+		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7)`,
+		holdID, ownerID, holdCustody, amount.Millis(), purpose.String(), expiresAt, season.String()); err != nil {
 		return nil, fmt.Errorf("record hold: %w", err)
 	}
 	var transferID string
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return nil, fmt.Errorf("generate transfer id: %w", err)
 	}
-	if err := moveLegs(ctx, tx, transferID, ownerID, holdCustody, amount.Millis()); err != nil {
+	if err := moveLegs(ctx, tx, legMove{transferID: transferID, fromID: ownerID, toID: holdCustody, millis: amount.Millis(), season: season.String()}); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(ctx); err != nil {
@@ -156,11 +180,16 @@ func (r *Repository) settleHold(ctx context.Context, holdID, toCustodyID, status
 	if hold.status != "active" && hold.status != "expired" {
 		return nil, domain.ErrHoldState
 	}
+	if closed, err := bookHasStage(ctx, tx, domain.SeasonKey(hold.season), terminalStages); err != nil {
+		return nil, err
+	} else if closed {
+		return nil, domain.ErrBookSealed
+	}
 	var transferID string
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return nil, fmt.Errorf("generate transfer id: %w", err)
 	}
-	if err := moveLegs(ctx, tx, transferID, hold.holdCustody, toCustodyID, hold.millis); err != nil {
+	if err := moveLegs(ctx, tx, legMove{transferID: transferID, fromID: hold.holdCustody, toID: toCustodyID, millis: hold.millis, season: hold.season}); err != nil {
 		return nil, err
 	}
 	if _, err := tx.Exec(ctx,
@@ -183,9 +212,84 @@ func (r *Repository) Release(ctx context.Context, holdID string) (*application.H
 	return r.settleHold(ctx, holdID, owner, "released")
 }
 
-// Capture pays a hold in full to a beneficiary custody. Two capturers
-// never both win: the row lock serializes them, and the loser finds a
-// settled hold.
+// ReleaseForClose settles one hold back to its owner under a fenced
+// seasonal drain token. Normal admission refuses closing books; the
+// closer is the authorized post-cutoff writer, fenced by generation
+// and owner verified against the stored run in the same transaction.
+// Already settled holds replay as settled without new legs, so crash
+// resume and concurrent closers never double-pay. Frozen books still
+// refuse, and cross-book drains never happen.
+func (r *Repository) ReleaseForClose(ctx context.Context, holdID string, drain seasondomain.CloseDrain) (bool, error) {
+	if err := drain.Valid(); err != nil {
+		return false, err
+	}
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return false, fmt.Errorf("begin close release transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := requireUnfrozen(ctx, tx); err != nil {
+		return false, err
+	}
+	hold, err := lockHold(ctx, tx, holdID)
+	if err != nil {
+		return false, err
+	}
+	if hold.status == "released" || hold.status == "captured" {
+		return false, nil
+	}
+	if hold.status != "active" && hold.status != "expired" {
+		return false, domain.ErrHoldState
+	}
+	if hold.season != drain.Season {
+		return false, domain.ErrCrossSeason
+	}
+	if err := verifyCloseDrain(ctx, tx, drain); err != nil {
+		return false, err
+	}
+	var transferID string
+	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
+		return false, fmt.Errorf("generate transfer id: %w", err)
+	}
+	if err := moveLegs(ctx, tx, legMove{transferID: transferID, fromID: hold.holdCustody, toID: hold.ownerID, millis: hold.millis, season: hold.season}); err != nil {
+		return false, err
+	}
+	if _, err := tx.Exec(ctx,
+		`UPDATE app.economy_holds SET status = 'released', closed_at = now() WHERE id = $1::uuid`,
+		holdID); err != nil {
+		return false, fmt.Errorf("close hold: %w", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return false, fmt.Errorf("commit close release: %w", err)
+	}
+	return true, nil
+}
+
+// verifyCloseDrain judges one drain token against the stored run
+// inside the caller transaction: same generation, same owner. Older
+// generations stand down and foreign owners wait for the lease.
+func verifyCloseDrain(ctx context.Context, tx pgx.Tx, drain seasondomain.CloseDrain) error {
+	var generation int64
+	var owner string
+	if err := tx.QueryRow(ctx,
+		`SELECT generation, lease_owner FROM app.season_close_runs WHERE season_key = $1`,
+		drain.Season).Scan(&generation, &owner); err != nil {
+		return seasondomain.ErrInvalidSeason
+	}
+	if generation != drain.Generation {
+		return seasondomain.ErrStaleGeneration
+	}
+	if owner != drain.Owner {
+		return seasondomain.ErrLeaseHeld
+	}
+	return nil
+}
+
+// Capture pays a hold in full to a beneficiary custody of the hold's
+// own book: the beneficiary resolves inside the hold's season, so a
+// capture never pays across books. Two capturers never both win: the
+// row lock serializes them, and the loser finds a settled hold.
 func (r *Repository) Capture(ctx context.Context, holdID, toKind, toLabel string) (*application.HoldView, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -193,7 +297,13 @@ func (r *Repository) Capture(ctx context.Context, holdID, toKind, toLabel string
 	}
 	defer tx.Rollback(ctx)
 
-	toID, err := resolveCustody(ctx, tx, toKind, toLabel)
+	var season string
+	if err := tx.QueryRow(ctx,
+		`SELECT season_key FROM app.economy_holds WHERE id = $1::uuid`,
+		holdID).Scan(&season); err != nil {
+		return nil, domain.ErrHoldNotFound
+	}
+	toID, err := resolveCustody(ctx, tx, toKind, toLabel, season)
 	if err != nil {
 		return nil, err
 	}
@@ -234,15 +344,20 @@ func (r *Repository) Expire(ctx context.Context, holdID string) (*application.Ho
 	var hold holdRow
 	var lapsed bool
 	err = tx.QueryRow(ctx,
-		`SELECT id::text, owner_custody_id::text, hold_custody_id::text, amount_milli, status,
+		`SELECT id::text, owner_custody_id::text, hold_custody_id::text, season_key, amount_milli, status,
 		        expires_at, now() >= expires_at
 		 FROM app.economy_holds WHERE id = $1::uuid FOR UPDATE`,
-		holdID).Scan(&hold.id, &hold.ownerID, &hold.holdCustody, &hold.millis, &hold.status, &hold.expiresAt, &lapsed)
+		holdID).Scan(&hold.id, &hold.ownerID, &hold.holdCustody, &hold.season, &hold.millis, &hold.status, &hold.expiresAt, &lapsed)
 	if err != nil {
 		return nil, domain.ErrHoldNotFound
 	}
 	if hold.status != "active" {
 		return nil, domain.ErrHoldState
+	}
+	if closed, err := bookHasStage(ctx, tx, domain.SeasonKey(hold.season), terminalStages); err != nil {
+		return nil, err
+	} else if closed {
+		return nil, domain.ErrBookSealed
 	}
 	if !lapsed {
 		return nil, domain.ErrHoldNotExpired

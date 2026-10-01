@@ -209,6 +209,11 @@ var (
 	// one ticket and settled on another.
 	ErrPurchaseSettlementMismatch = errors.New("application: purchase event does not match the sealed intent")
 
+	// ErrPurchaseAfterCutoff indicates a paid event arrived after the
+	// book end: it registers a provider refund/reconciliation case,
+	// never a credit in the new book nor a spend in the sealed book.
+	ErrPurchaseAfterCutoff = errors.New("application: purchase event arrived after the season cutoff")
+
 	// INK purchase chargeback error vocabulary (P35-T08).
 
 	// ErrSettlementNotFound indicates no liquidation carries the intent:

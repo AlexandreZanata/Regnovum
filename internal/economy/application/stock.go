@@ -23,23 +23,25 @@ type StockReport struct {
 // StockRepository reads one vault position without moving value. Both
 // reads are side-effect free.
 type StockRepository interface {
-	// ReadStock resolves the journal balance of one Treasury vault and
-	// the amount its active commitments still lock. Vaults never
-	// opened read zero.
-	ReadStock(ctx context.Context, vault domain.TreasuryVault) (balance, committed int64, err error)
+	// ReadStock resolves the journal balance of one Treasury vault
+	// of one book and the amount its active commitments still lock.
+	// Vaults never opened read zero.
+	ReadStock(ctx context.Context, vault domain.TreasuryVault, season domain.SeasonKey) (balance, committed int64, err error)
 }
 
-// SellableStockCommand names the vault whose sellable funds are
-// displayed.
+// SellableStockCommand names the vault and the season book whose
+// sellable funds are displayed.
 type SellableStockCommand struct {
-	Vault string
+	Vault  string
+	Season string
 }
 
-// SaleCheckCommand names the vault and the exact sale quantity probed
-// against it. The check moves nothing: it only answers whether the
-// quantity fits the conservative available.
+// SaleCheckCommand names the vault, the season book and the exact
+// sale quantity probed against it. The check moves nothing: it only
+// answers whether the quantity fits the conservative available.
 type SaleCheckCommand struct {
 	Vault  string
+	Season string
 	Millis int64
 }
 
@@ -54,14 +56,18 @@ func NewSellableStockUseCase(stock StockRepository) *SellableStockUseCase {
 	return &SellableStockUseCase{stock: stock}
 }
 
-// Execute reads the conservative report. Vaults outside the closed
-// vocabulary never reach the journal.
+// Execute reads the conservative report of one season book. Vaults
+// outside the closed vocabulary never reach the journal.
 func (uc *SellableStockUseCase) Execute(ctx context.Context, cmd SellableStockCommand) (*StockReport, error) {
 	vault, err := domain.ParseTreasuryVault(cmd.Vault)
 	if err != nil {
 		return nil, err
 	}
-	return readStockReport(ctx, uc.stock, vault)
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
+	return readStockReport(ctx, uc.stock, vault, season)
 }
 
 // SaleCheckUseCase probes one sale quantity against the conservative
@@ -84,6 +90,10 @@ func (uc *SaleCheckUseCase) Execute(ctx context.Context, cmd SaleCheckCommand) (
 	if err != nil {
 		return nil, err
 	}
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
 	requested, err := domain.NewMilliInk(cmd.Millis)
 	if err != nil {
 		return nil, err
@@ -91,7 +101,7 @@ func (uc *SaleCheckUseCase) Execute(ctx context.Context, cmd SaleCheckCommand) (
 	if requested.IsZero() {
 		return nil, domain.ErrInvalidGrant
 	}
-	report, err := readStockReport(ctx, uc.stock, vault)
+	report, err := readStockReport(ctx, uc.stock, vault, season)
 	if err != nil {
 		return nil, err
 	}
@@ -105,8 +115,8 @@ func (uc *SaleCheckUseCase) Execute(ctx context.Context, cmd SaleCheckCommand) (
 // identity available = balance: committed funds left the vault legs at
 // commit time, so whatever the journal still holds is spendable and
 // the display can never promise locked or third-party units.
-func readStockReport(ctx context.Context, stock StockRepository, vault domain.TreasuryVault) (*StockReport, error) {
-	balance, committed, err := stock.ReadStock(ctx, vault)
+func readStockReport(ctx context.Context, stock StockRepository, vault domain.TreasuryVault, season domain.SeasonKey) (*StockReport, error) {
+	balance, committed, err := stock.ReadStock(ctx, vault, season)
 	if err != nil {
 		return nil, err
 	}

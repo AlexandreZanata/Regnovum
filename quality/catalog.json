@@ -4396,6 +4396,234 @@
         "docs/REQUIREMENTS.md"
       ],
       "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-SEASON-05",
+      "source": "docs/reino/TEMPORADAS_SUCESSAO.md",
+      "description": "Um Genesis por temporada; soma S individual, zero transferencia entre temporadas e zero carry-over.",
+      "risk": "Q0",
+      "modules": [
+        "internal/seasons",
+        "internal/economy"
+      ],
+      "actors": [
+        "treasury",
+        "account"
+      ],
+      "states": [
+        "prepared",
+        "active",
+        "sealed",
+        "archived"
+      ],
+      "tests": {
+        "positive": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleThreeBooksConserveSupply",
+          "internal/seasons/adapters/postgres/open_test.go::TestOpenCreatesOneGenesisActive",
+          "internal/economy/adapters/postgres/season_scope_test.go::TestSeasonBooksConserveSupplySeparately"
+        ],
+        "negative": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleKillsFourMutants",
+          "internal/seasons/adapters/postgres/open_test.go::TestOpenRefusesTamperedAndDiverged",
+          "internal/economy/adapters/postgres/season_scope_test.go::TestSeasonRefusalsBeforeAnyLeg"
+        ],
+        "limit": [
+          "internal/seasons/domain/season_test.go::TestWindowTicksBeforeAtAfterEnd",
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleFixedFixtures"
+        ],
+        "authorization": [
+          "internal/seasons/adapters/http/journey_test.go::TestSeasonAPIRequiresAuthentication"
+        ],
+        "concurrency": [
+          "internal/seasons/adapters/postgres/close_test.go::TestCloseAcceptCancelRaceSettlesOnce",
+          "internal/economy/adapters/postgres/season_scope_test.go::TestSeasonConcurrentGenesesFoundOnce"
+        ],
+        "idempotency": [
+          "internal/seasons/application/open_test.go::TestOpenerOpensOnceAndReplays",
+          "internal/economy/adapters/postgres/season_scope_test.go::TestSeasonReplayNeverRedirectsBooks"
+        ],
+        "failure": []
+      },
+      "authorization": "Somente o livro nomeado move: origem e destino pertencem a mesma temporada e outra conta resolve ausencia.",
+      "concurrency": "Duas Genesiss concorrentes criam uma: UNIQUE por livro com re-lookup e replay.",
+      "idempotency": "Mesma chave em outro livro nao redireciona replay; recibo original permanece no livro original.",
+      "security": "Segunda Genesis, temporada omitida e cross-season recusam antes de qualquer escrita.",
+      "privacy": "Somas e recibos carregam season e inteiros, sem saldo pessoal exato ou PII.",
+      "evidence": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "docs/REQUIREMENTS.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-SEASON-06",
+      "source": "docs/reino/TEMPORADAS_SUCESSAO.md",
+      "description": "Corte inicio-fim, barreira de transacoes, fechamento recuperavel e no maximo uma temporada ativa.",
+      "risk": "Q0",
+      "modules": [
+        "internal/seasons"
+      ],
+      "actors": [
+        "worker",
+        "account"
+      ],
+      "states": [
+        "active",
+        "closing",
+        "sealed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleThreeBooksConserveSupply",
+          "internal/seasons/adapters/postgres/close_test.go::TestCloseSealCleanBook",
+          "internal/seasons/application/close_test.go::TestWorkerSealsEmptyBook"
+        ],
+        "negative": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleTardyAndRecovery",
+          "internal/seasons/adapters/postgres/close_test.go::TestCloseSealBlockedPreservesCustody",
+          "internal/seasons/application/close_test.go::TestWorkerSealRefusesBlocked"
+        ],
+        "limit": [
+          "internal/seasons/domain/close_test.go::TestBeginCloseNeedsCutoff",
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleFixedFixtures"
+        ],
+        "authorization": [
+          "internal/seasons/adapters/http/journey_test.go::TestSeasonAPIRequiresAuthentication"
+        ],
+        "concurrency": [
+          "internal/seasons/adapters/postgres/close_test.go::TestCloseBarrierAdmitsOneRun",
+          "internal/seasons/adapters/postgres/close_test.go::TestCloseAcceptCancelRaceSettlesOnce"
+        ],
+        "idempotency": [
+          "internal/seasons/application/open_test.go::TestOpenerOpensOnceAndReplays",
+          "internal/seasons/adapters/postgres/close_test.go::TestCloseDrainCrashResumeReleasesOnce"
+        ],
+        "failure": []
+      },
+      "authorization": "Somente a geracao corrente com lease valido move o livro; geracao velha ou dono estranho recusa.",
+      "concurrency": "Dois closers e dois liberadores liquidam uma vez: lock e unicidade terminal por escrow e temporada.",
+      "idempotency": "Crash antes do commit deixa zero efeito; depois recupera por replay do cursor sem duplicar.",
+      "security": "Barreira antecipada, selo com obrigacao aberta e snapshot divergente recusam com custodia preservada.",
+      "privacy": "Barreira e selo carregam chaves e contadores, sem dado pessoal ou saldo individual.",
+      "evidence": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "docs/REQUIREMENTS.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-SEASON-07",
+      "source": "docs/reino/TEMPORADAS_SUCESSAO.md",
+      "description": "Expiracao aceita antes da aquisicao; legados e obrigacoes externas preservados; evento tardio nao concede INK atual.",
+      "risk": "Q0",
+      "modules": [
+        "internal/billing",
+        "internal/seasons"
+      ],
+      "actors": [
+        "buyer",
+        "account"
+      ],
+      "states": [
+        "quoted",
+        "pending",
+        "refunded"
+      ],
+      "tests": {
+        "positive": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleThreeBooksConserveSupply",
+          "internal/billing/adapters/postgres/season_purchase_test.go::TestSeasonalQuoteCapsExpiryAtTick",
+          "internal/billing/adapters/postgres/season_purchase_test.go::TestSeasonalWebhookDuplicateAndOutOfOrder"
+        ],
+        "negative": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleTardyAndRecovery",
+          "internal/billing/adapters/postgres/season_purchase_test.go::TestSeasonalLateRefundRegistersReviewWithoutCredit",
+          "internal/economy/adapters/postgres/season_convert_test.go::TestSeasonalConversionRefusesWithoutReset"
+        ],
+        "limit": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleFixedFixtures",
+          "internal/billing/adapters/postgres/season_purchase_test.go::TestSeasonalQuoteCapsExpiryAtTick"
+        ],
+        "authorization": [
+          "internal/seasons/adapters/http/journey_test.go::TestSeasonAPIRequiresAuthentication"
+        ],
+        "concurrency": [
+          "internal/seasons/adapters/postgres/close_test.go::TestCloseAcceptCancelRaceSettlesOnce",
+          "internal/billing/adapters/postgres/purchase_intent_test.go::TestPurchaseIntentRacesCollapseToOne"
+        ],
+        "idempotency": [
+          "internal/billing/adapters/postgres/season_purchase_test.go::TestSeasonalWebhookDuplicateAndOutOfOrder",
+          "internal/seasons/application/open_test.go::TestOpenerOpensOnceAndReplays"
+        ],
+        "failure": []
+      },
+      "authorization": "Compra e conversao exigem titular e aceite previo; sem reset ou sem termos, recusa sem efeito.",
+      "concurrency": "Webhook duplicado ou fora de ordem resolve o registro; corrida colapsa por UNIQUE com re-lookup.",
+      "idempotency": "Replay identico retorna o mesmo recibo; divergencia conflita em vez de redirecionar livro.",
+      "security": "Expiracao capada pelo fim; webhook apos cutoff vira revisao sem credito em livro novo ou gasto no selado.",
+      "privacy": "Quote, intencao e recibo carregam temporada e inteiros, sem PII alem do necessario.",
+      "evidence": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "docs/REQUIREMENTS.md"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-SEASON-12",
+      "source": "docs/reino/TEMPORADAS_SUCESSAO.md",
+      "description": "Nova temporada nao remove sancao de seguranca, fraude, direito de defesa ou produto desativado.",
+      "risk": "Q0",
+      "modules": [
+        "internal/crumbs",
+        "internal/seasons"
+      ],
+      "actors": [
+        "account",
+        "moderator"
+      ],
+      "states": [
+        "admitted",
+        "blocked",
+        "sealed"
+      ],
+      "tests": {
+        "positive": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleThreeBooksConserveSupply",
+          "internal/crumbs/domain/season_test.go::TestSeasonalOldAccountIngressOncePerBook",
+          "internal/crumbs/adapters/postgres/season_crumbs_test.go::TestSeasonalRefluxIsolatesBooks"
+        ],
+        "negative": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleKillsFourMutants",
+          "internal/crumbs/domain/season_test.go::TestSeasonalDuplicatePersonBlockedInSameBook",
+          "internal/crumbs/domain/season_test.go::TestSeasonalContainedWeeksOnly"
+        ],
+        "limit": [
+          "internal/seasons/domain/oracle_test.go::TestSeasonOracleFixedFixtures",
+          "internal/crumbs/domain/season_test.go::TestSeasonalContainedWeeksOnly"
+        ],
+        "authorization": [
+          "internal/seasons/adapters/http/journey_test.go::TestSeasonAPIRequiresAuthentication"
+        ],
+        "concurrency": [
+          "internal/seasons/adapters/postgres/close_test.go::TestCloseAcceptCancelRaceSettlesOnce",
+          "internal/economy/adapters/postgres/season_scope_test.go::TestSeasonConcurrentGenesesFoundOnce"
+        ],
+        "idempotency": [
+          "internal/seasons/application/open_test.go::TestOpenerOpensOnceAndReplays",
+          "internal/economy/adapters/postgres/season_scope_test.go::TestSeasonReplayNeverRedirectsBooks"
+        ],
+        "failure": []
+      },
+      "authorization": "Elegibilidade e antifraude sao globais: trocar livro ou criar conta nao limpa impedimento.",
+      "concurrency": "Admissao concorrente da mesma pessoa no mesmo livro bloqueia a segunda; livros distintos isolam.",
+      "idempotency": "Replay na mesma temporada nao duplica; passagem de temporada nao renova passe nem apaga periodo pago.",
+      "security": "Banimento e sancao atravessam reset; conta antiga ingressa uma vez por temporada se aprovada.",
+      "privacy": "Elegibilidade carrega digest e epoca, sem PII; saldos pessoais exatos dependem de politica aceita.",
+      "evidence": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "docs/REQUIREMENTS.md"
+      ],
+      "not_applicable": {}
     }
   ]
 }

@@ -18,14 +18,15 @@ type commitCaptureStub struct {
 	label string
 }
 
-func (s *commitCaptureStub) Reserve(_ context.Context, kind domain.CustodyKind, label string, _ domain.HoldPurpose, _ domain.MilliInk, _ time.Time) (*application.HoldView, error) {
-	s.kind, s.label = kind, label
+func (s *commitCaptureStub) Reserve(_ context.Context, reservation application.HoldReservation) (*application.HoldView, error) {
+	s.kind, s.label = reservation.OwnerKind, reservation.OwnerLabel
 	return &application.HoldView{}, nil
 }
 
 func commitFundsCommand() application.CommitFundsCommand {
 	return application.CommitFundsCommand{
-		Vault: "commercial_stock", Purpose: "accepted sale #1",
+		Season: domain.CompatSeasonKey,
+		Vault:  "commercial_stock", Purpose: "accepted sale #1",
 		Millis: 1000, ExpiresAt: holdNow.Add(time.Hour),
 	}
 }
@@ -43,7 +44,8 @@ func TestCommitFundsUseCaseRefusesNonTreasuryOwners(t *testing.T) {
 
 			stub := &stubHoldsRepository{}
 			if _, err := commitUseCase(stub).Execute(context.Background(), application.CommitFundsCommand{
-				Vault: vault, Purpose: "due payment",
+				Season: domain.CompatSeasonKey,
+				Vault:  vault, Purpose: "due payment",
 				Millis: 100, ExpiresAt: holdNow.Add(time.Hour),
 			}); !errors.Is(err, domain.ErrUnknownCustody) {
 				t.Errorf("Execute(%q) = %v, want ErrUnknownCustody", vault, err)

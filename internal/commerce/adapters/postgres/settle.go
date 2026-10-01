@@ -24,7 +24,7 @@ func (r *EscrowRepository) AcceptDelivery(ctx context.Context, key, buyer string
 	}
 	defer tx.Rollback(ctx)
 
-	row, err := scanEscrowRow(ctx, tx, buyer, key)
+	row, err := lockedEscrowRow(ctx, tx, buyer, key)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (r *EscrowRepository) ExpireContract(ctx context.Context, key, buyer string
 	}
 	defer tx.Rollback(ctx)
 
-	row, err := scanEscrowRow(ctx, tx, buyer, key)
+	row, err := lockedEscrowRow(ctx, tx, buyer, key)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +146,38 @@ type settleOrder struct {
 	toProvider bool
 }
 
+// lockedEscrowRow scans one buyer contract, pins its row and
+// re-reads it: the waiter authorizes on the fresh state. Lifecycle
+// steps serialize per contract because legless steps (accept,
+// expire) move nothing to lock on otherwise, and without this lock a
+// concurrent refund could commit beside them and leave a mixed
+// status over moved funds.
+func lockedEscrowRow(ctx context.Context, tx pgx.Tx, buyer, key string) (*escrowRow, error) {
+	row, err := scanEscrowRow(ctx, tx, buyer, key)
+	if err != nil {
+		return nil, err
+	}
+	if row == nil {
+		return nil, nil
+	}
+	if err := lockEscrowRow(ctx, tx, row.view.ID); err != nil {
+		return nil, err
+	}
+	return scanEscrowRow(ctx, tx, buyer, key)
+}
+
+// lockEscrowRow pins one contract row for the lifecycle step: all
+// steps of one escrow serialize here, so a legless step can never
+// commit beside a money-moving one. Locking reads are allowed by the
+// contract immutability trigger, which forbids rewrites, not locks.
+func lockEscrowRow(ctx context.Context, tx pgx.Tx, contractID string) error {
+	if _, err := tx.Exec(ctx,
+		`SELECT id FROM app.commerce_contracts WHERE id = $1::uuid FOR UPDATE`, contractID); err != nil {
+		return fmt.Errorf("lock escrow: %w", err)
+	}
+	return nil
+}
+
 // moveEscrow runs one money-moving lifecycle step in a single
 // transaction: the domain machine authorizes from the current
 // status, the escrow balance is rechecked exact, the legs move
@@ -162,6 +194,20 @@ func (r *EscrowRepository) moveEscrow(ctx context.Context, order settleOrder, au
 	row, replay, err := r.loadAuthorizedEscrow(ctx, tx, order, authorize)
 	if err != nil || replay != nil {
 		return replay, err
+	}
+	// Serialize money-moving steps per contract before re-reading:
+	// custody locks alone cannot stop a legless step (accept, expire)
+	// from committing beside this one and leaving a mixed status over
+	// moved funds. The loser re-authorizes on the fresh row.
+	if err := lockEscrowRow(ctx, tx, row.view.ID); err != nil {
+		return nil, err
+	}
+	row, replay, err = r.loadAuthorizedEscrow(ctx, tx, order, authorize)
+	if err != nil || replay != nil {
+		return replay, err
+	}
+	if err := requireCommerceBookActiveTx(ctx, tx, row.view.Season); err != nil {
+		return nil, err
 	}
 	if order.toProvider {
 		return r.settleProvider(ctx, tx, row, order)
@@ -192,22 +238,25 @@ func (r *EscrowRepository) loadAuthorizedEscrow(ctx context.Context, tx pgx.Tx, 
 }
 
 // resolveProviderPayout computes the tithe split and resolves the
-// provider and Treasury custodies before any lock is taken.
+// provider and Treasury custodies in the original book before any
+// lock is taken. The tithe parks in the genesis home of the same
+// book the escrow locked in.
 func resolveProviderPayout(ctx context.Context, tx pgx.Tx, row *escrowRow) (payoutPlan, error) {
 	tithe, net, err := commercedomain.SplitTithe(row.view.AmountMill)
 	if err != nil {
 		return payoutPlan{}, err
 	}
-	toID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", row.providerID)
-	if err != nil || !found {
-		if err == nil {
-			return payoutPlan{}, commercedomain.ErrUnknownAccount
-		}
+	season := row.view.Season.String()
+	if season == "" {
+		season = commercedomain.CompatSeasonKey
+	}
+	toID, err := resolveSeasonCommerceCustody(ctx, tx, "user", row.providerID, row.view.Season)
+	if err != nil {
 		return payoutPlan{}, err
 	}
 	plan := payoutPlan{toID: toID, tithe: tithe, net: net}
 	if tithe > 0 {
-		treasuryID, err := resolveTitheTreasury(ctx, tx)
+		treasuryID, err := resolveTitheTreasury(ctx, tx, season)
 		if err != nil {
 			return payoutPlan{}, err
 		}
@@ -216,14 +265,11 @@ func resolveProviderPayout(ctx context.Context, tx pgx.Tx, row *escrowRow) (payo
 	return plan, nil
 }
 
-// resolveBuyerPayout resolves the buyer custody for a whole refund:
-// refunds never bear tithe.
+// resolveBuyerPayout resolves the buyer custody in the original
+// book for a whole refund: refunds never bear tithe.
 func resolveBuyerPayout(ctx context.Context, tx pgx.Tx, row *escrowRow) (payoutPlan, error) {
-	toID, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "user", row.view.Buyer)
-	if err != nil || !found {
-		if err == nil {
-			return payoutPlan{}, commercedomain.ErrUnknownAccount
-		}
+	toID, err := resolveSeasonCommerceCustody(ctx, tx, "user", row.view.Buyer, row.view.Season)
+	if err != nil {
 		return payoutPlan{}, err
 	}
 	return payoutPlan{toID: toID}, nil
@@ -268,7 +314,8 @@ func (r *EscrowRepository) commitPayoutSettlement(ctx context.Context, tx pgx.Tx
 }
 
 // settleProvider pays an accepted escrow to the provider with the
-// floor(10%) tithe split in the same transaction.
+// floor(10%) tithe split in the same transaction. The tithe parks
+// in the genesis home of the original book.
 func (r *EscrowRepository) settleProvider(ctx context.Context, tx pgx.Tx, row *escrowRow, order settleOrder) (*application.ContractView, error) {
 	plan, err := resolveProviderPayout(ctx, tx, row)
 	if err != nil {
@@ -287,7 +334,7 @@ func (r *EscrowRepository) settleProvider(ctx context.Context, tx pgx.Tx, row *e
 	legs := PayoutLegs{
 		TransferID: transferID, EscrowID: row.escrowID, ToID: plan.toID,
 		TreasuryID: plan.treasuryID, Amount: row.view.AmountMill,
-		Tithe: plan.tithe, Net: plan.net,
+		Tithe: plan.tithe, Net: plan.net, Season: row.view.Season.String(),
 	}
 	if err := recordPayoutLegs(ctx, tx, legs); err != nil {
 		return nil, err
@@ -296,7 +343,7 @@ func (r *EscrowRepository) settleProvider(ctx context.Context, tx pgx.Tx, row *e
 }
 
 // settleBuyer refunds one escrow whole to the buyer: refunds never
-// bear tithe.
+// bear tithe. The return carries the original book.
 func (r *EscrowRepository) settleBuyer(ctx context.Context, tx pgx.Tx, row *escrowRow, order settleOrder) (*application.ContractView, error) {
 	plan, err := resolveBuyerPayout(ctx, tx, row)
 	if err != nil {
@@ -314,7 +361,7 @@ func (r *EscrowRepository) settleBuyer(ctx context.Context, tx pgx.Tx, row *escr
 	}
 	legs := PayoutLegs{
 		TransferID: transferID, EscrowID: row.escrowID, ToID: plan.toID,
-		Amount: row.view.AmountMill,
+		Amount: row.view.AmountMill, Season: row.view.Season.String(),
 	}
 	if err := recordPayoutLegs(ctx, tx, legs); err != nil {
 		return nil, err

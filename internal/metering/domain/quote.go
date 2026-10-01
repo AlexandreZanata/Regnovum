@@ -44,7 +44,10 @@ func parseQuoteAccount(raw string) (string, error) {
 // The quote binds one account to one content hash: another account
 // or edited bytes never reuse it. The client clock never enters the
 // seal: acceptance and expiry are server instants, and a forged
-// client instant changes nothing stored.
+// client instant changes nothing stored. Season names the
+// publication book and travels beside the seal: the seal covers
+// price and instants, the book check matches seasons before any
+// intention opens.
 type PublicationQuote struct {
 	Account     string
 	Service     ServiceID
@@ -56,6 +59,7 @@ type PublicationQuote struct {
 	AcceptedAt  time.Time
 	ExpiresAt   time.Time
 	Hash        string
+	Season      SeasonKey
 }
 
 // QuoteRequest carries the fields of one publication acceptance.
@@ -112,6 +116,7 @@ func AcceptPublicationQuote(req QuoteRequest) (PublicationQuote, error) {
 		ContentHash: req.Content.Hash(),
 		AcceptedAt:  accepted,
 		ExpiresAt:   expires,
+		Season:      SeasonKey(CompatSeasonKey),
 	}
 	quote.Hash = sealPublicationQuote(quote)
 	return quote, nil
@@ -181,4 +186,56 @@ func (q PublicationQuote) VerifyAcceptance(account string, content MeasuredConte
 		return ErrQuoteExpired
 	}
 	return nil
+}
+
+// SeasonalQuoteRequest carries one seasonal publication quotation
+// attempt: the measured content, the covering price, the acceptance
+// instant and lifetime, the publication book with its exclusive end,
+// and the reset acknowledgement shown before acceptance.
+type SeasonalQuoteRequest struct {
+	Account           string
+	Content           MeasuredContent
+	Price             PriceEntry
+	AcceptedAt        time.Time
+	TTL               time.Duration
+	Season            SeasonKey
+	SeasonEndsAt      time.Time
+	ResetAcknowledged bool
+}
+
+// AcceptSeasonalPublicationQuote seals one quotation in one
+// publication book: the reset disclosure is required outside
+// compat-legacy, and the expiry is capped by the book end before
+// sealing, so the settlement deadline never passes ends_at. The seal
+// still covers price and the capped instants; the book travels
+// beside it and is matched before any intention opens.
+func AcceptSeasonalPublicationQuote(request SeasonalQuoteRequest) (PublicationQuote, error) {
+	if err := RequireSeasonalReset(request.Season, request.ResetAcknowledged); err != nil {
+		return PublicationQuote{}, err
+	}
+	quote, err := AcceptPublicationQuote(QuoteRequest{
+		Account: request.Account, Content: request.Content,
+		Price: request.Price, AcceptedAt: request.AcceptedAt, TTL: request.TTL,
+	})
+	if err != nil {
+		return PublicationQuote{}, err
+	}
+	capped := CapExpiryBySeasonEnd(quote.ExpiresAt, request.Season, request.SeasonEndsAt)
+	if !capped.Equal(quote.ExpiresAt) {
+		quote.ExpiresAt = capped
+		quote.Hash = sealPublicationQuote(quote)
+	}
+	quote.Season = request.Season
+	return quote, nil
+}
+
+// VerifySeasonalAcceptance refuses any use outside the accepted
+// seasonal terms: the book must match before liveness is judged, so
+// a stale preview from another book never prices this settlement.
+// The receipt stays pinned to its original book.
+func (q PublicationQuote) VerifySeasonalAcceptance(account string, content MeasuredContent, at time.Time, season SeasonKey) error {
+	if err := CheckSeasonMatch(q.Season, season); err != nil {
+		return err
+	}
+	return q.VerifyAcceptance(account, content, at)
 }

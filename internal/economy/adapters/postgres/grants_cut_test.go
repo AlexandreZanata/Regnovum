@@ -111,7 +111,7 @@ func TestUnbackedGrantsDoNotIncreaseSupply(t *testing.T) {
 		t.Fatalf("legacy = %d/%d, want %d/%d (old contracts honored in the legacy book)",
 			free, purchased, freeBefore+35000, purchasedBefore)
 	}
-	report, err := repo.Reconcile(ctx)
+	report, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}

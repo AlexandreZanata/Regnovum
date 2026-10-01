@@ -21,7 +21,7 @@ type stubTotalsRepository struct {
 	err     error
 }
 
-func (s *stubTotalsRepository) ReadCustodyTotals(_ context.Context) (*application.CustodyTotalsReading, error) {
+func (s *stubTotalsRepository) ReadCustodyTotals(_ context.Context, _ domain.SeasonKey) (*application.CustodyTotalsReading, error) {
 	s.calls++
 	if s.err != nil {
 		return nil, s.err
@@ -72,7 +72,7 @@ func TestCustodyTotalsMatchAuditedReading(t *testing.T) {
 
 	stub := &stubTotalsRepository{reading: richTotalsReading()}
 	clock := &totalsClock{now: totalsInstant()}
-	snapshot, err := mustTotalsUseCase(stub, clock).Totals(context.Background(), "pt")
+	snapshot, err := mustTotalsUseCase(stub, clock).Totals(context.Background(), "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("Totals: %v", err)
 	}
@@ -122,7 +122,7 @@ func TestCustodyTotalsSuppressSmallCells(t *testing.T) {
 		LockedMillis:         600,
 		LockedHolds:          1,
 	}}
-	snapshot, err := mustTotalsUseCase(stub, &totalsClock{now: totalsInstant()}).Totals(context.Background(), "en")
+	snapshot, err := mustTotalsUseCase(stub, &totalsClock{now: totalsInstant()}).Totals(context.Background(), "en", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("Totals: %v", err)
 	}
@@ -144,7 +144,7 @@ func TestCustodyTotalsRefuseUnknownLocale(t *testing.T) {
 	t.Parallel()
 
 	stub := &stubTotalsRepository{reading: richTotalsReading()}
-	if _, err := mustTotalsUseCase(stub, &totalsClock{now: totalsInstant()}).Totals(context.Background(), "fr"); !errors.Is(err, domain.ErrInvalidTotals) {
+	if _, err := mustTotalsUseCase(stub, &totalsClock{now: totalsInstant()}).Totals(context.Background(), "fr", domain.CompatSeasonKey); !errors.Is(err, domain.ErrInvalidTotals) {
 		t.Fatalf("Totals(fr) = %v, want ErrInvalidTotals", err)
 	}
 	if stub.calls != 0 {
@@ -171,11 +171,11 @@ func TestCustodyTotalsCacheSharesOneDerivation(t *testing.T) {
 	clock := &totalsClock{now: totalsInstant()}
 	uc := mustTotalsUseCase(stub, clock)
 
-	first, err := uc.Totals(context.Background(), "pt")
+	first, err := uc.Totals(context.Background(), "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("first Totals: %v", err)
 	}
-	second, err := uc.Totals(context.Background(), "pt")
+	second, err := uc.Totals(context.Background(), "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("second Totals: %v", err)
 	}
@@ -186,7 +186,7 @@ func TestCustodyTotalsCacheSharesOneDerivation(t *testing.T) {
 		t.Fatalf("cached instant moved: %+v vs %+v", second.GeneratedAt, first.GeneratedAt)
 	}
 	clock.now = totalsInstant().Add((domain.TotalsCacheSeconds + 1) * time.Second)
-	third, err := uc.Totals(context.Background(), "pt")
+	third, err := uc.Totals(context.Background(), "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("expired Totals: %v", err)
 	}
@@ -196,7 +196,7 @@ func TestCustodyTotalsCacheSharesOneDerivation(t *testing.T) {
 	if !third.GeneratedAt.Equal(clock.now) {
 		t.Fatalf("re-derivation did not carry the clock: %+v", third.GeneratedAt)
 	}
-	if _, err := uc.Totals(context.Background(), "en"); err != nil {
+	if _, err := uc.Totals(context.Background(), "en", domain.CompatSeasonKey); err != nil {
 		t.Fatalf("other locale Totals: %v", err)
 	}
 	if stub.calls != 3 {

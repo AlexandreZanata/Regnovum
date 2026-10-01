@@ -28,12 +28,18 @@ type SightingInput struct {
 // price, the judged sightings, and the approved lifetime with its
 // freshness windows. The lifetime counts from acceptance: a later
 // webhook judges the persisted expiry, never a recomputed one.
+// Season names the purchase book (empty binds compat-legacy for the
+// legacy path); seasonal books need an explicit reset acknowledgement
+// and cap the expiry by SeasonEndsAt before sealing.
 type AcceptQuoteCommand struct {
-	PriceMinor int64
-	Sightings  []SightingInput
-	TTL        time.Duration
-	MaxSkew    time.Duration
-	MaxAge     time.Duration
+	PriceMinor        int64
+	Sightings         []SightingInput
+	TTL               time.Duration
+	MaxSkew           time.Duration
+	MaxAge            time.Duration
+	Season            string
+	ResetAcknowledged bool
+	SeasonEndsAt      time.Time
 }
 
 // QuoteRepository persists accepted quotation snapshots without ever
@@ -77,9 +83,21 @@ func (uc *AcceptQuoteUseCase) Execute(ctx context.Context, cmd AcceptQuoteComman
 	if err != nil {
 		return domain.Quote{}, err
 	}
+	season := domain.SeasonKey(domain.CompatSeasonKey)
+	if cmd.Season != "" {
+		season, err = domain.ParseSeasonKey(cmd.Season)
+		if err != nil {
+			return domain.Quote{}, err
+		}
+	}
 	accepted := uc.clock.Now().UTC()
-	quote, err := domain.AcceptQuote(price, sightings, accepted, cmd.TTL,
-		domain.ObservationLimits{MaxFutureSkew: cmd.MaxSkew, MaxAge: cmd.MaxAge})
+	quote, err := domain.AcceptSeasonalQuote(domain.SeasonalQuoteRequest{
+		Price: price, Sightings: sightings, AcceptedAt: accepted, TTL: cmd.TTL,
+		Freshness:         domain.ObservationLimits{MaxFutureSkew: cmd.MaxSkew, MaxAge: cmd.MaxAge},
+		Season:            season,
+		SeasonEndsAt:      cmd.SeasonEndsAt.UTC(),
+		ResetAcknowledged: cmd.ResetAcknowledged,
+	})
 	if err != nil {
 		return domain.Quote{}, err
 	}

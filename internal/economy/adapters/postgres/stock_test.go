@@ -30,7 +30,7 @@ func stockCtx() (context.Context, context.CancelFunc) {
 
 func stockReport(t *testing.T, ctx context.Context, repo *postgres.Repository, vault string) *application.StockReport {
 	t.Helper()
-	report, err := application.NewSellableStockUseCase(repo).Execute(ctx, application.SellableStockCommand{Vault: vault})
+	report, err := application.NewSellableStockUseCase(repo).Execute(ctx, application.SellableStockCommand{Vault: vault, Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("stock report: %v", err)
 	}
@@ -39,14 +39,15 @@ func stockReport(t *testing.T, ctx context.Context, repo *postgres.Repository, v
 
 func checkSale(t *testing.T, ctx context.Context, repo *postgres.Repository, vault string, millis int64) (*application.StockReport, error) {
 	t.Helper()
-	return application.NewSaleCheckUseCase(repo).Execute(ctx, application.SaleCheckCommand{Vault: vault, Millis: millis})
+	return application.NewSaleCheckUseCase(repo).Execute(ctx, application.SaleCheckCommand{Vault: vault, Season: domain.CompatSeasonKey, Millis: millis})
 }
 
 func commitForStock(t *testing.T, ctx context.Context, repo *postgres.Repository, vault, purpose string, millis int64) {
 	t.Helper()
 	useCase := application.NewCommitFundsUseCase(repo, fixedHoldClock{now: time.Now().UTC()})
 	if _, err := useCase.Execute(ctx, application.CommitFundsCommand{
-		Vault: vault, Purpose: purpose, Millis: millis, ExpiresAt: time.Now().UTC().Add(time.Hour),
+		Season: domain.CompatSeasonKey,
+		Vault:  vault, Purpose: purpose, Millis: millis, ExpiresAt: time.Now().UTC().Add(time.Hour),
 	}); err != nil {
 		t.Fatalf("commit %s %d: %v", purpose, millis, err)
 	}
@@ -157,7 +158,8 @@ func TestSaleRaceAcrossObligationClasses(t *testing.T) {
 			defer wg.Done()
 			useCase := application.NewCommitFundsUseCase(repo, fixedHoldClock{now: time.Now().UTC()})
 			_, errs[i] = useCase.Execute(ctx, application.CommitFundsCommand{
-				Vault: "commercial_stock", Purpose: purposes[i], Millis: 400, ExpiresAt: time.Now().UTC().Add(time.Hour),
+				Season: domain.CompatSeasonKey,
+				Vault:  "commercial_stock", Purpose: purposes[i], Millis: 400, ExpiresAt: time.Now().UTC().Add(time.Hour),
 			})
 		}(i)
 	}

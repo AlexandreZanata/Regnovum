@@ -75,7 +75,7 @@ func fundCommerceCitizen(t *testing.T, ctx context.Context, db *dbtest.TestDB, f
 	if err != nil {
 		t.Fatalf("ParseGenesisKey: %v", err)
 	}
-	if _, err := repo.RunGenesis(ctx, economyapp.GenesisRequest{Key: key}); err != nil {
+	if _, err := repo.RunGenesis(ctx, economyapp.GenesisRequest{Key: key, Season: economydomain.SeasonKey(economydomain.CompatSeasonKey)}); err != nil {
 		if !errors.Is(err, economydomain.ErrGenesisAlreadyExists) {
 			t.Fatalf("seed Genesis: %v", err)
 		}
@@ -87,7 +87,10 @@ func fundCommerceCitizen(t *testing.T, ctx context.Context, db *dbtest.TestDB, f
 	fromKind, _ := economydomain.ParseCustodyKind("treasury")
 	toKind, _ := economydomain.ParseCustodyKind("user")
 	if _, err := repo.Transfer(ctx, economyapp.TransferRequest{
-		FromKind: fromKind, FromLabel: "main", ToKind: toKind, ToLabel: citizen, Amount: amount,
+		FromSeason: economydomain.SeasonKey(economydomain.CompatSeasonKey),
+		FromKind:   fromKind, FromLabel: "main",
+		ToSeason: economydomain.SeasonKey(economydomain.CompatSeasonKey),
+		ToKind:   toKind, ToLabel: citizen, Amount: amount,
 	}); err != nil {
 		t.Fatalf("fund citizen: %v", err)
 	}

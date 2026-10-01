@@ -31,15 +31,15 @@ func moveToVault(t *testing.T, ctx context.Context, pool *pgxpool.Pool, vault st
 	t.Helper()
 	var treasury, target string
 	if err := pool.QueryRow(ctx,
-		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main'`).Scan(&treasury); err != nil {
+		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main' AND season_key = $1`, domain.CompatSeasonKey).Scan(&treasury); err != nil {
 		t.Fatalf("resolve treasury home: %v", err)
 	}
 	if _, err := pool.Exec(ctx,
-		`INSERT INTO app.economy_custodies (kind, label) VALUES ('treasury', $1) ON CONFLICT DO NOTHING`, vault); err != nil {
+		`INSERT INTO app.economy_custodies (kind, label, season_key) VALUES ('treasury', $1, $2) ON CONFLICT DO NOTHING`, vault, domain.CompatSeasonKey); err != nil {
 		t.Fatalf("open vault %s: %v", vault, err)
 	}
 	if err := pool.QueryRow(ctx,
-		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = $1`, vault).Scan(&target); err != nil {
+		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = $1 AND season_key = $2`, vault, domain.CompatSeasonKey).Scan(&target); err != nil {
 		t.Fatalf("resolve vault %s: %v", vault, err)
 	}
 	var transfer string
@@ -80,7 +80,7 @@ func TestTreasuryVaultsSumToTreasury(t *testing.T) {
 	moveToVault(t, ctx, pool, "commercial_stock", 2000)
 	moveToVault(t, ctx, pool, "operating_cash", 500)
 
-	report, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx)
+	report, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx, application.TreasuryCommand{Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestObligationsStayInIdentifiedCustody(t *testing.T) {
 		t.Fatalf("carve escrow: %v", err)
 	}
 
-	report, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx)
+	report, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx, application.TreasuryCommand{Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}

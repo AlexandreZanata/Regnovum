@@ -13,10 +13,11 @@ import (
 
 var _ application.StatementRepository = (*Repository)(nil)
 
-// authorizeStatement resolves the custody and proves the caller owns it
-// right now: unknown pairs, system custodies without a holder, other
-// holders and inactive owners are all refused before any leg is read.
-func authorizeStatement(ctx context.Context, q rowQuerier, kind, label, caller string) (string, error) {
+// authorizeStatement resolves the custody of one book and proves the
+// caller owns it right now: unknown triples, system custodies without
+// a holder, other holders and inactive owners are all refused before
+// any leg is read.
+func authorizeStatement(ctx context.Context, q rowQuerier, kind, label, caller, season string) (string, error) {
 	var id string
 	var ownerID *string
 	var status *string
@@ -24,8 +25,8 @@ func authorizeStatement(ctx context.Context, q rowQuerier, kind, label, caller s
 		`SELECT c.id::text, c.owner_account_id::text, a.status
 		 FROM app.economy_custodies c
 		 LEFT JOIN app.accounts a ON a.id = c.owner_account_id
-		 WHERE c.kind = $1 AND c.label = $2`,
-		kind, label).Scan(&id, &ownerID, &status)
+		 WHERE c.kind = $1 AND c.label = $2 AND c.season_key = $3`,
+		kind, label, season).Scan(&id, &ownerID, &status)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", domain.ErrUnknownCustody
@@ -97,7 +98,7 @@ func (r *Repository) readStatementPage(ctx context.Context, custodyID string, cu
 // balance derived from the whole journal. Reading one extra leg tells
 // whether the journal continues, without ever duplicating an entry.
 func (r *Repository) ReadStatement(ctx context.Context, request application.StatementRequest) (*application.StatementPage, error) {
-	custodyID, err := authorizeStatement(ctx, r.pool, request.Kind.String(), request.Label, request.CallerAccountID)
+	custodyID, err := authorizeStatement(ctx, r.pool, request.Kind.String(), request.Label, request.CallerAccountID, request.Season.String())
 	if err != nil {
 		return nil, err
 	}
@@ -134,17 +135,19 @@ func (r *Repository) custodyStatementBalance(ctx context.Context, custodyID stri
 	return domain.NewMilliInk(balance)
 }
 
-// RebuildAll re-derives every custody projection from the journal in one
-// pass, sealing each with its digest. The journal is only read.
-func (r *Repository) RebuildAll(ctx context.Context) ([]application.CustodyProjection, error) {
+// RebuildAll re-derives every custody projection of one book from the
+// journal in one pass, sealing each with its digest. The journal is
+// only read.
+func (r *Repository) RebuildAll(ctx context.Context, season domain.SeasonKey) ([]application.CustodyProjection, error) {
 	rows, err := r.pool.Query(ctx,
 		`SELECT c.id::text, c.kind, c.label,
 		        COALESCE(SUM(CASE e.direction WHEN 'credit' THEN e.amount_milli ELSE -e.amount_milli END), 0),
 		        COUNT(e.id), COALESCE(MAX(e.id::text), '')
 		 FROM app.economy_custodies c
 		 LEFT JOIN app.economy_entries e ON e.custody_id = c.id
+		 WHERE c.season_key = $1
 		 GROUP BY c.id, c.kind, c.label
-		 ORDER BY c.kind, c.label`)
+		 ORDER BY c.kind, c.label`, season.String())
 	if err != nil {
 		return nil, fmt.Errorf("rebuild projections: %w", err)
 	}

@@ -23,7 +23,8 @@ import (
 
 // PayoutLegs is one payout under a single transfer: the escrow
 // debit of the full amount with the beneficiary credit, plus the
-// Treasury credit when a positive tithe exists.
+// Treasury credit when a positive tithe exists. Season pins the
+// original book: the payout never leaves it.
 type PayoutLegs struct {
 	TransferID string
 	EscrowID   string
@@ -32,6 +33,7 @@ type PayoutLegs struct {
 	Amount     int64
 	Tithe      int64
 	Net        int64
+	Season     string
 }
 
 // payoutPlan is the resolved beneficiary of one settlement with
@@ -43,15 +45,16 @@ type payoutPlan struct {
 	net        int64
 }
 
-// resolveTitheTreasury maps the structural Treasury home custody.
-// Absence fails before any lock is taken or leg written.
-func resolveTitheTreasury(ctx context.Context, tx pgx.Tx) (string, error) {
-	id, found, err := platformpg.ResolveLedgerCustody(ctx, tx, "treasury", "main")
+// resolveTitheTreasury maps the structural Treasury home custody in
+// one commerce book. Absence fails before any lock is taken or leg
+// written.
+func resolveTitheTreasury(ctx context.Context, tx pgx.Tx, season string) (string, error) {
+	var id string
+	err := tx.QueryRow(ctx,
+		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main' AND season_key = $1`,
+		season).Scan(&id)
 	if err != nil {
-		return "", err
-	}
-	if !found {
-		return "", fmt.Errorf("resolve tithe treasury: custody treasury/main missing")
+		return "", fmt.Errorf("resolve tithe treasury: custody treasury/main missing in book %q", season)
 	}
 	return id, nil
 }
@@ -79,21 +82,25 @@ func lockPayoutCustodies(ctx context.Context, tx pgx.Tx, escrowID, toID, treasur
 // recordPayoutLegs writes the payout legs under one transfer. The
 // two outputs always sum to the paid value, so S never moves. A
 // zero tithe writes exactly the historical pair, never a zero leg
-// (the journal CHECK refuses 0).
+// (the journal CHECK refuses 0). The legs carry the original book.
 func recordPayoutLegs(ctx context.Context, tx pgx.Tx, legs PayoutLegs) error {
+	season := legs.Season
+	if season == "" {
+		season = "compat-legacy"
+	}
 	if legs.Tithe <= 0 {
 		if _, err := tx.Exec(ctx,
-			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-			 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $4)`,
-			legs.TransferID, legs.EscrowID, legs.ToID, legs.Amount); err != nil {
+			`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+			 VALUES ($1::uuid, $2::uuid, 'debit', $4, $5), ($1::uuid, $3::uuid, 'credit', $4, $5)`,
+			legs.TransferID, legs.EscrowID, legs.ToID, legs.Amount, season); err != nil {
 			return fmt.Errorf("record escrow legs: %w", err)
 		}
 		return nil
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $5), ($1::uuid, $6::uuid, 'credit', $7)`,
-		legs.TransferID, legs.EscrowID, legs.ToID, legs.Amount, legs.Net, legs.TreasuryID, legs.Tithe); err != nil {
+		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+		 VALUES ($1::uuid, $2::uuid, 'debit', $4, $8), ($1::uuid, $3::uuid, 'credit', $5, $8), ($1::uuid, $6::uuid, 'credit', $7, $8)`,
+		legs.TransferID, legs.EscrowID, legs.ToID, legs.Amount, legs.Net, legs.TreasuryID, legs.Tithe, season); err != nil {
 		return fmt.Errorf("record tithe legs: %w", err)
 	}
 	return nil

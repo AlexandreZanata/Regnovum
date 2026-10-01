@@ -32,7 +32,7 @@ func holdsCtx() (context.Context, context.CancelFunc) {
 
 func fundHolder(t *testing.T, ctx context.Context, repo *postgres.Repository, pool *pgxpool.Pool, label string, millis int64) {
 	t.Helper()
-	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-holds")}); err != nil {
+	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-holds"), Season: domain.SeasonKey(domain.CompatSeasonKey)}); err != nil {
 		t.Fatalf("seed Genesis: %v", err)
 	}
 	makeCustody(t, ctx, pool, "user", label)
@@ -41,8 +41,10 @@ func fundHolder(t *testing.T, ctx context.Context, repo *postgres.Repository, po
 		t.Fatalf("NewMilliInk(%d): %v", millis, err)
 	}
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyUser, ToLabel: label,
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: label,
 		Amount: amount,
 	}); err != nil {
 		t.Fatalf("fund %s: %v", label, err)
@@ -51,8 +53,9 @@ func fundHolder(t *testing.T, ctx context.Context, repo *postgres.Repository, po
 
 func reserveFor(t *testing.T, ctx context.Context, repo *postgres.Repository, owner string, millis int64, expiresAt time.Time) *application.HoldView {
 	t.Helper()
-	useCase := application.NewReserveUseCase(repo, fixedHoldClock{now: expiresAt.Add(-time.Hour)})
+	useCase := application.NewReserveUseCase(repo, fixedHoldClock{now: expiresAt.Add(-time.Hour)}, repo)
 	view, err := useCase.Execute(ctx, application.ReserveCommand{
+		Season:    domain.CompatSeasonKey,
 		OwnerKind: "user", OwnerLabel: owner, Purpose: "hold for test",
 		Millis: millis, ExpiresAt: expiresAt,
 	})
@@ -119,8 +122,10 @@ func TestReserveLocksFundsOutOfSpendable(t *testing.T) {
 	amount, _ := domain.NewMilliInk(4000)
 	makeCustody(t, ctx, pool, "user", "bia")
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyUser, FromLabel: "ana",
-		ToKind: domain.CustodyUser, ToLabel: "bia",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyUser, FromLabel: "ana",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "bia",
 		Amount: amount,
 	}); !errors.Is(err, domain.ErrInsufficientMilliInk) {
 		t.Fatalf("overspending reserved funds = %v, want ErrInsufficientMilliInk", err)
@@ -137,8 +142,10 @@ func settleForHold(t *testing.T, ctx context.Context, repo *postgres.Repository,
 		t.Fatalf("NewMilliInk(%d): %v", millis, err)
 	}
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyUser, FromLabel: from,
-		ToKind: domain.CustodyUser, ToLabel: to,
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyUser, FromLabel: from,
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: to,
 		Amount: amount,
 	}); err != nil {
 		t.Fatalf("transfer %s -> %s %d: %v", from, to, millis, err)
@@ -272,9 +279,10 @@ func TestHoldRetryAndCancelConserveSupply(t *testing.T) {
 	repo := postgres.NewRepository(pool)
 	fundHolder(t, ctx, repo, pool, "ana", 3000)
 	clock := fixedHoldClock{now: time.Now().UTC()}
-	reserve := application.NewReserveUseCase(repo, clock)
+	reserve := application.NewReserveUseCase(repo, clock, repo)
 
 	first, err := reserve.Execute(ctx, application.ReserveCommand{
+		Season:    domain.CompatSeasonKey,
 		OwnerKind: "user", OwnerLabel: "ana", Purpose: "retry",
 		Millis: 1000, ExpiresAt: clock.now.Add(time.Hour),
 	})
@@ -282,6 +290,7 @@ func TestHoldRetryAndCancelConserveSupply(t *testing.T) {
 		t.Fatalf("reserve: %v", err)
 	}
 	second, err := reserve.Execute(ctx, application.ReserveCommand{
+		Season:    domain.CompatSeasonKey,
 		OwnerKind: "user", OwnerLabel: "ana", Purpose: "retry",
 		Millis: 1000, ExpiresAt: clock.now.Add(time.Hour),
 	})
@@ -293,6 +302,7 @@ func TestHoldRetryAndCancelConserveSupply(t *testing.T) {
 	}
 	// Two holds lock 2000; a third over the remainder is refused.
 	if _, err := reserve.Execute(ctx, application.ReserveCommand{
+		Season:    domain.CompatSeasonKey,
 		OwnerKind: "user", OwnerLabel: "ana", Purpose: "retry",
 		Millis: 1001, ExpiresAt: clock.now.Add(time.Hour),
 	}); !errors.Is(err, domain.ErrInsufficientMilliInk) {
@@ -302,6 +312,7 @@ func TestHoldRetryAndCancelConserveSupply(t *testing.T) {
 	cancelled, stop := context.WithCancel(context.Background())
 	stop()
 	if _, err := reserve.Execute(cancelled, application.ReserveCommand{
+		Season:    domain.CompatSeasonKey,
 		OwnerKind: "user", OwnerLabel: "ana", Purpose: "cancelled",
 		Millis: 100, ExpiresAt: clock.now.Add(time.Hour),
 	}); err == nil {
@@ -337,7 +348,8 @@ func TestHoldRaceOnLimitedFunds(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			_, errs[i] = application.NewReserveUseCase(repo, clock).Execute(ctx, application.ReserveCommand{
+			_, errs[i] = application.NewReserveUseCase(repo, clock, repo).Execute(ctx, application.ReserveCommand{
+				Season:    domain.CompatSeasonKey,
 				OwnerKind: "user", OwnerLabel: "ana", Purpose: fmt.Sprintf("race-%d", i),
 				Millis: 1000, ExpiresAt: clock.now.Add(time.Hour),
 			})

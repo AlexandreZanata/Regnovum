@@ -16,7 +16,7 @@ type stubTreasuryRepository struct {
 	err    error
 }
 
-func (s *stubTreasuryRepository) ReadTreasuryVaults(_ context.Context) ([]application.TreasuryVaultsView, int64, error) {
+func (s *stubTreasuryRepository) ReadTreasuryVaults(_ context.Context, _ domain.SeasonKey) ([]application.TreasuryVaultsView, int64, error) {
 	return s.vaults, s.total, s.err
 }
 
@@ -35,7 +35,7 @@ func TestTreasuryVaultsUseCaseSumsToTreasury(t *testing.T) {
 
 	stub := &stubTreasuryRepository{vaults: balancedVaults(), total: 200}
 	useCase := application.NewTreasuryVaultsUseCase(stub)
-	report, err := useCase.Execute(context.Background())
+	report, err := useCase.Execute(context.Background(), application.TreasuryCommand{Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -54,7 +54,7 @@ func TestTreasuryVaultsUseCaseRecordsEveryBreak(t *testing.T) {
 		t.Parallel()
 
 		stub := &stubTreasuryRepository{vaults: balancedVaults(), total: 199}
-		report, err := application.NewTreasuryVaultsUseCase(stub).Execute(context.Background())
+		report, err := application.NewTreasuryVaultsUseCase(stub).Execute(context.Background(), application.TreasuryCommand{Season: domain.CompatSeasonKey})
 		if err != nil {
 			t.Fatalf("Execute: %v", err)
 		}
@@ -66,7 +66,7 @@ func TestTreasuryVaultsUseCaseRecordsEveryBreak(t *testing.T) {
 		t.Parallel()
 
 		stub := &stubTreasuryRepository{vaults: balancedVaults()[:4], total: 190}
-		report, err := application.NewTreasuryVaultsUseCase(stub).Execute(context.Background())
+		report, err := application.NewTreasuryVaultsUseCase(stub).Execute(context.Background(), application.TreasuryCommand{Season: domain.CompatSeasonKey})
 		if err != nil {
 			t.Fatalf("Execute: %v", err)
 		}
@@ -79,7 +79,7 @@ func TestTreasuryVaultsUseCaseRecordsEveryBreak(t *testing.T) {
 
 		doubled := append(balancedVaults(), application.TreasuryVaultsView{Vault: domain.TreasuryVaultFree, Millis: 10})
 		stub := &stubTreasuryRepository{vaults: doubled, total: 210}
-		report, err := application.NewTreasuryVaultsUseCase(stub).Execute(context.Background())
+		report, err := application.NewTreasuryVaultsUseCase(stub).Execute(context.Background(), application.TreasuryCommand{Season: domain.CompatSeasonKey})
 		if err != nil {
 			t.Fatalf("Execute: %v", err)
 		}
@@ -93,7 +93,7 @@ func TestTreasuryVaultsUseCaseRecordsEveryBreak(t *testing.T) {
 		views := balancedVaults()
 		views[0].Vault = "slush"
 		stub := &stubTreasuryRepository{vaults: views, total: 200}
-		report, err := application.NewTreasuryVaultsUseCase(stub).Execute(context.Background())
+		report, err := application.NewTreasuryVaultsUseCase(stub).Execute(context.Background(), application.TreasuryCommand{Season: domain.CompatSeasonKey})
 		if err != nil {
 			t.Fatalf("Execute: %v", err)
 		}

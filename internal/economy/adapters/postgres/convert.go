@@ -35,11 +35,14 @@ func conversionHash(optInID, account string, converted, rateNum, rateDen int64) 
 }
 
 // Convert settles one recorded opt-in across both books in a single
-// transaction: the legacy debit extinguishes the right while the
-// Treasury credit pays it in converted milliINK. Genesis supply never
-// grows: every converted subunit leaves Treasury stock first. A unique
+// transaction: the legacy debit extinguishes the right globally once
+// while the Treasury credit pays it in converted milliINK from the
+// requested season book. Genesis supply never grows: every converted
+// subunit leaves Treasury stock of that book first. A unique
 // collision retries once through re-lookup, so concurrent runs of one
 // opt-in resolve the single settlement instead of duplicating it.
+// The legacy intent is consumed globally once: a replay in another
+// book resolves the original receipt untouched, never a second grant.
 func (r *Repository) Convert(ctx context.Context, request application.ConversionRequest) (*application.ConversionResult, error) {
 	if replayed, err := r.lookupConversion(ctx, request); err != nil || replayed != nil {
 		return replayed, err
@@ -63,7 +66,9 @@ func (r *Repository) Convert(ctx context.Context, request application.Conversion
 
 // lookupConversion resolves a settled conversion without writing: the
 // post-commit retry path that makes crash recovery exactly-once. Terms
-// that settle nothing resolve to absence, never to a guess.
+// that settle nothing resolve to absence, never to a guess. The lookup
+// is global: the same opt-in in another book resolves the original
+// receipt with its original season, never a second grant.
 func (r *Repository) lookupConversion(ctx context.Context, request application.ConversionRequest) (*application.ConversionResult, error) {
 	terms, err := r.readOptInTerms(ctx, request.AccountID, request.Charter.String())
 	if err != nil || terms == nil {
@@ -72,10 +77,11 @@ func (r *Repository) lookupConversion(ctx context.Context, request application.C
 	var transferID string
 	var millis int64
 	var hash string
+	var seasonKey string
 	err = r.pool.QueryRow(ctx,
-		`SELECT transfer_id::text, amount_milli, payload_hash FROM app.economy_intentions
+		`SELECT transfer_id::text, amount_milli, payload_hash, season_key FROM app.economy_intentions
 		 WHERE intention_key = $1 AND actor = $2 AND operation = 'convert'`,
-		terms.optInID, request.AccountID).Scan(&transferID, &millis, &hash)
+		terms.optInID, request.AccountID).Scan(&transferID, &millis, &hash, &seasonKey)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -90,7 +96,15 @@ func (r *Repository) lookupConversion(ctx context.Context, request application.C
 	if hash != expected {
 		return nil, domain.ErrIntentionConflict
 	}
-	return &application.ConversionResult{TransferID: transferID, Converted: amount, Replayed: true}, nil
+	season, err := domain.ParseSeasonKey(seasonKey)
+	if err != nil {
+		return nil, fmt.Errorf("stored conversion book %q: %w", seasonKey, err)
+	}
+	endsAt, err := r.seasonEndsAt(ctx, season)
+	if err != nil {
+		return nil, err
+	}
+	return &application.ConversionResult{TransferID: transferID, Converted: amount, Replayed: true, Season: season, SeasonEndsAt: endsAt}, nil
 }
 
 // readOptInTerms resolves the recorded intent without locking: absence
@@ -137,6 +151,9 @@ func (r *Repository) FindTerms(ctx context.Context, accountID string, charter do
 
 // createConversion attempts the settlement once: revalidated terms,
 // both journals, and the idempotent intention share one transaction.
+// The paying book is the requested season: custodies, legs and the
+// intention all carry it, and the receipt identifies it with its
+// exclusive end.
 func (r *Repository) createConversion(ctx context.Context, request application.ConversionRequest) (*application.ConversionResult, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -145,6 +162,12 @@ func (r *Repository) createConversion(ctx context.Context, request application.C
 	defer tx.Rollback(ctx)
 
 	if err := requireUnfrozen(ctx, tx); err != nil {
+		return nil, err
+	}
+	if err := requireActiveTx(ctx, tx, request.Season); err != nil {
+		return nil, err
+	}
+	if err := domain.RequireSeasonalReset(request.Season, request.ResetAcknowledged); err != nil {
 		return nil, err
 	}
 	terms, err := r.lockConversionTerms(ctx, tx, request)
@@ -162,21 +185,36 @@ func (r *Repository) createConversion(ctx context.Context, request application.C
 	if err := r.extinguishLegacy(ctx, tx, request.AccountID, terms.optInID, units); err != nil {
 		return nil, err
 	}
-	transferID, err := r.payFromTreasury(ctx, tx, request.AccountID, converted)
+	transferID, err := r.payFromTreasury(ctx, tx, request.AccountID, converted, request.Season)
 	if err != nil {
 		return nil, err
 	}
 	hash := conversionHash(terms.optInID, request.AccountID, converted.Millis(), terms.rate.Num, terms.rate.Den)
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_intentions (intention_key, actor, operation, payload_hash, transfer_id, amount_milli)
-		 VALUES ($1, $2, 'convert', $3, $4::uuid, $5)`,
-		terms.optInID, request.AccountID, hash, transferID, converted.Millis()); err != nil {
+		`INSERT INTO app.economy_intentions (intention_key, actor, operation, payload_hash, transfer_id, amount_milli, season_key)
+		 VALUES ($1, $2, 'convert', $3, $4::uuid, $5, $6)`,
+		terms.optInID, request.AccountID, hash, transferID, converted.Millis(), request.Season.String()); err != nil {
 		return nil, fmt.Errorf("record conversion: %w", err)
 	}
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("commit conversion: %w", err)
 	}
-	return &application.ConversionResult{TransferID: transferID, Converted: converted}, nil
+	endsAt, err := r.seasonEndsAt(ctx, request.Season)
+	if err != nil {
+		return nil, err
+	}
+	return &application.ConversionResult{TransferID: transferID, Converted: converted, Season: request.Season, SeasonEndsAt: endsAt}, nil
+}
+
+// seasonEndsAt resolves the exclusive end of one book for receipts:
+// the receipt identifies its season and when its utility ends.
+func (r *Repository) seasonEndsAt(ctx context.Context, season domain.SeasonKey) (time.Time, error) {
+	var endsAt time.Time
+	if err := r.pool.QueryRow(ctx,
+		`SELECT ends_at FROM app.seasons WHERE season_key = $1`, season.String()).Scan(&endsAt); err != nil {
+		return time.Time{}, fmt.Errorf("read season end: %w", err)
+	}
+	return endsAt.UTC(), nil
 }
 
 // lockConversionTerms re-reads the opt-in under lock and matches the
@@ -265,23 +303,26 @@ func (r *Repository) extinguishLegacy(ctx context.Context, tx pgx.Tx, accountID,
 	return nil
 }
 
-// payFromTreasury moves converted milliINK from Treasury stock to a
-// holder custody created for the account. Stock is rechecked inside the
-// row locks: an empty Treasury refuses instead of minting.
-func (r *Repository) payFromTreasury(ctx context.Context, tx pgx.Tx, accountID string, converted domain.MilliInk) (string, error) {
+// payFromTreasury moves converted milliINK from Treasury stock of one
+// book to a holder custody created for the account in the same book.
+// Stock is rechecked inside the row locks: an empty Treasury refuses
+// instead of minting. Member never mints S: every benefit leaves
+// existing stock of the current book.
+func (r *Repository) payFromTreasury(ctx context.Context, tx pgx.Tx, accountID string, converted domain.MilliInk, season domain.SeasonKey) (string, error) {
 	var treasury string
 	if err := tx.QueryRow(ctx,
-		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main'`).Scan(&treasury); err != nil {
+		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main' AND season_key = $1`,
+		season.String()).Scan(&treasury); err != nil {
 		return "", fmt.Errorf("resolve treasury: %w", err)
 	}
 	var holder string
 	if err := tx.QueryRow(ctx,
-		`INSERT INTO app.economy_custodies (kind, label) VALUES ('user', $1)
-		 ON CONFLICT (kind, label) DO NOTHING RETURNING id::text`,
-		accountID).Scan(&holder); err != nil {
+		`INSERT INTO app.economy_custodies (kind, label, season_key) VALUES ('user', $1, $2)
+		 ON CONFLICT (kind, label, season_key) DO NOTHING RETURNING id::text`,
+		accountID, season.String()).Scan(&holder); err != nil {
 		if err := tx.QueryRow(ctx,
-			`SELECT id::text FROM app.economy_custodies WHERE kind = 'user' AND label = $1`,
-			accountID).Scan(&holder); err != nil {
+			`SELECT id::text FROM app.economy_custodies WHERE kind = 'user' AND label = $1 AND season_key = $2`,
+			accountID, season.String()).Scan(&holder); err != nil {
 			return "", fmt.Errorf("resolve holder custody: %w", err)
 		}
 	}
@@ -299,7 +340,7 @@ func (r *Repository) payFromTreasury(ctx context.Context, tx pgx.Tx, accountID s
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return "", fmt.Errorf("generate transfer id: %w", err)
 	}
-	if err := moveLegs(ctx, tx, transferID, treasury, holder, converted.Millis()); err != nil {
+	if err := moveLegs(ctx, tx, legMove{transferID: transferID, fromID: treasury, toID: holder, millis: converted.Millis(), season: season.String()}); err != nil {
 		return "", err
 	}
 	return transferID, nil

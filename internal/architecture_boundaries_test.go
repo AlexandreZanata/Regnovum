@@ -91,6 +91,7 @@ var declaredModules = map[string][]string{
 	"pricing":         {layerDomain, layerApplication, layerAdapters},
 	"profiles":        {layerDomain, layerApplication, layerAdapters},
 	"search":          {layerApplication, layerAdapters},
+	"seasons":         {layerDomain, layerApplication, layerAdapters},
 	"statprojections": {layerApplication, layerAdapters},
 	"transparency":    {layerDomain, layerApplication, layerAdapters},
 	"wallet":          {layerDomain, layerApplication, layerAdapters},

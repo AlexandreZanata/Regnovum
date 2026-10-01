@@ -7,13 +7,15 @@ import (
 	"github.com/AlexandreZanata/Regnovum/internal/economy/domain"
 )
 
-// CommitFundsCommand earmarks Treasury vault funds for one named
-// obligation: the vault, the obligation purpose in free text, the exact
-// amount and the deadline after which the commitment may expire.
-// Future phases name their classes here — accepted sales, approved
-// Crumbs, compensations, due payments — but no class is inferred: the
-// purpose travels verbatim and every amount stays explicit.
+// CommitFundsCommand earmarks Treasury vault funds of one season book
+// for one named obligation: the vault, the obligation purpose in free
+// text, the exact amount and the deadline after which the commitment
+// may expire. Future phases name their classes here — accepted sales,
+// approved Crumbs, compensations, due payments — but no class is
+// inferred: the purpose travels verbatim and every amount stays
+// explicit.
 type CommitFundsCommand struct {
+	Season    string
 	Vault     string
 	Purpose   string
 	Millis    int64
@@ -40,6 +42,10 @@ func NewCommitFundsUseCase(holds HoldsRepository, clock Clock) *CommitFundsUseCa
 // holder account, an escrow label or a sixth spelling never reaches
 // the journal.
 func (uc *CommitFundsUseCase) Execute(ctx context.Context, cmd CommitFundsCommand) (*HoldView, error) {
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
 	vault, err := domain.ParseTreasuryVault(cmd.Vault)
 	if err != nil {
 		return nil, err
@@ -58,5 +64,8 @@ func (uc *CommitFundsUseCase) Execute(ctx context.Context, cmd CommitFundsComman
 	if cmd.ExpiresAt.IsZero() || !cmd.ExpiresAt.After(uc.clock.Now()) {
 		return nil, domain.ErrInvalidHold
 	}
-	return uc.holds.Reserve(ctx, domain.CustodyTreasury, vault.String(), purpose, amount, cmd.ExpiresAt.UTC())
+	return uc.holds.Reserve(ctx, HoldReservation{
+		Season: season, OwnerKind: domain.CustodyTreasury, OwnerLabel: vault.String(),
+		Purpose: purpose, Amount: amount, ExpiresAt: cmd.ExpiresAt.UTC(),
+	})
 }

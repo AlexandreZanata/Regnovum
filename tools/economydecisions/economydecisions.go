@@ -1,9 +1,12 @@
-// Package main is the P31-T08 gate: it reads only versioned documents
-// and refuses any financial implementation while a critical business
-// decision is unresolved. Five rules, all static, no environment input:
-// critical-pending, price-unapproved, ambiguous-time,
-// threat-without-control and prohibited-offer. A pending critical
-// decision blocks P32; it is never resolved by inference.
+// Package main is the P31-T08 gate, extended in P46-T01 to recognize
+// the seasonal addendum: it reads only versioned documents and
+// refuses any financial implementation while a critical business
+// decision is unresolved. Six rules, all static, no environment
+// input: critical-pending, price-unapproved, ambiguous-time,
+// threat-without-control, prohibited-offer and addendum-bypass. A
+// pending critical decision blocks P32; it is never resolved by
+// inference, and a seasonal addendum never ratifies one by
+// implication.
 package main
 
 import (
@@ -27,6 +30,7 @@ const (
 	pricingPath   = "docs/reino/PRECIFICACAO.md"
 	tempoPath     = "docs/reino/TEMPO_ECONOMICO.md"
 	threatPath    = "docs/THREAT_MODEL.md"
+	addendumPath  = "docs/reino/TEMPORADAS_SUCESSAO.md"
 )
 
 // criticalQs are the decisions P32 needs before any financial code:
@@ -55,6 +59,7 @@ func Audit(root string) []Finding {
 	pricing, pricingErr := readDoc(root, pricingPath)
 	tempo, tempoErr := readDoc(root, tempoPath)
 	threat, threatErr := readDoc(root, threatPath)
+	addendum, addendumErr := readDoc(root, addendumPath)
 
 	var findings []Finding
 	findings = append(findings, checkCritical(decisions, decisionsErr)...)
@@ -62,6 +67,7 @@ func Audit(root string) []Finding {
 	findings = append(findings, checkTime(tempo, tempoErr)...)
 	findings = append(findings, checkThreat(threat, threatErr)...)
 	findings = append(findings, checkOffer(decisions, decisionsErr)...)
+	findings = append(findings, checkAddendum(decisions, decisionsErr, pricing, pricingErr, addendum, addendumErr)...)
 	return findings
 }
 
@@ -176,6 +182,47 @@ func checkThreat(document string, readErr error) []Finding {
 				Detail: fmt.Sprintf("%s lacks control, detector, breaking test or runbook", match[1]),
 			})
 		}
+	}
+	sort.Slice(findings, func(i, j int) bool { return findings[i].Detail < findings[j].Detail })
+	return findings
+}
+
+// checkAddendum recognizes the seasonal addendum without letting it
+// bypass a pending decision: an approval claim on the same line as a
+// critical Q whose register block is not approved, or an approved
+// price table the pricing register denies, refuses as
+// addendum-bypass. Intent statements without ratification language
+// pass: the addendum is read, never obeyed by implication.
+func checkAddendum(decisions string, decisionsErr error, pricing string, pricingErr error, addendum string, addendumErr error) []Finding {
+	if addendumErr != nil {
+		return []Finding{{Rule: "addendum-bypass", Detail: addendumPath + " is unreadable"}}
+	}
+	if decisionsErr != nil {
+		return []Finding{{Rule: "addendum-bypass", Detail: decisionsPath + " is unreadable"}}
+	}
+	var findings []Finding
+	for _, line := range strings.Split(addendum, "\n") {
+		if !strings.Contains(line, "APROVADA") {
+			continue
+		}
+		for _, q := range criticalQs {
+			if strings.Contains(line, q) && stateOf(blockOf(decisions, q)) != "APROVADA" {
+				findings = append(findings, Finding{
+					Rule:   "addendum-bypass",
+					Detail: q + " approved by addendum while register pending",
+				})
+			}
+		}
+	}
+	if pricingErr != nil {
+		return append(findings, Finding{Rule: "addendum-bypass", Detail: pricingPath + " is unreadable"})
+	}
+	if strings.Contains(addendum, "**Tabela aprovada:**") && strings.Contains(addendum, "APROVADA") &&
+		!(strings.Contains(pricing, "**Tabela aprovada:**") && strings.Contains(pricing, "tabela v") && strings.Contains(pricing, "APROVADA")) {
+		findings = append(findings, Finding{
+			Rule:   "addendum-bypass",
+			Detail: "approved price table claimed by addendum while register pending",
+		})
 	}
 	sort.Slice(findings, func(i, j int) bool { return findings[i].Detail < findings[j].Detail })
 	return findings

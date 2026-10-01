@@ -27,7 +27,7 @@ type stubHoldsRepository struct {
 	err    error
 }
 
-func (s *stubHoldsRepository) Reserve(_ context.Context, _ domain.CustodyKind, _ string, _ domain.HoldPurpose, _ domain.MilliInk, _ time.Time) (*application.HoldView, error) {
+func (s *stubHoldsRepository) Reserve(_ context.Context, _ application.HoldReservation) (*application.HoldView, error) {
 	s.called++
 	return s.view, s.err
 }
@@ -51,6 +51,7 @@ var holdNow = time.Date(2026, 9, 28, 12, 0, 0, 0, time.UTC)
 
 func reserveCommand() application.ReserveCommand {
 	return application.ReserveCommand{
+		Season:    domain.CompatSeasonKey,
 		OwnerKind: "user", OwnerLabel: "ana", Purpose: "escrow for deal",
 		Millis: 1000, ExpiresAt: holdNow.Add(time.Hour),
 	}
@@ -79,7 +80,7 @@ func TestReserveUseCaseRefusesInvalidReservations(t *testing.T) {
 			t.Parallel()
 
 			stub := &stubHoldsRepository{}
-			useCase := application.NewReserveUseCase(stub, fixedClock{now: holdNow})
+			useCase := application.NewReserveUseCase(stub, fixedClock{now: holdNow}, stubSeasonBooks{})
 			cmd := reserveCommand()
 			test.mutate(&cmd)
 			if _, err := useCase.Execute(context.Background(), cmd); !errors.Is(err, test.err) {

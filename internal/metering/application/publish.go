@@ -13,25 +13,30 @@ import (
 // content, the price entry covering acceptance, the sealed quote and
 // the ledger endpoints. Cost, version and hash resolve from the
 // sealed quote, never from caller text: edited bytes or another
-// account need a new acceptance.
+// account need a new acceptance. Season names the publication book
+// (empty binds compat-legacy for the legacy path); seasonal books
+// need an explicit reset acknowledgement shown before acceptance.
 type PublishCommand struct {
-	Key       string
-	Account   string
-	Content   domain.MeasuredContent
-	Price     domain.PriceEntry
-	Quote     domain.PublicationQuote
-	FromKind  string
-	FromLabel string
-	ToKind    string
-	ToLabel   string
-	Now       time.Time
+	Key               string
+	Account           string
+	Content           domain.MeasuredContent
+	Price             domain.PriceEntry
+	Quote             domain.PublicationQuote
+	FromKind          string
+	FromLabel         string
+	ToKind            string
+	ToLabel           string
+	Now               time.Time
+	Season            string
+	ResetAcknowledged bool
 }
 
 // PublishRequest is the validated publication for the repository
 // port: the token, the bound account, the sealed terms, the opaque
 // ledger endpoints and the payload seal telling a replay from a
 // conflict. Custody kinds travel opaque here; the adapter judges
-// them against the ledger vocabulary inside the transaction.
+// them against the ledger vocabulary inside the transaction. Season
+// names the publication book the legs settle in.
 type PublishRequest struct {
 	Key         domain.PublishKey
 	Account     string
@@ -44,18 +49,21 @@ type PublishRequest struct {
 	ToLabel     string
 	At          time.Time
 	PayloadHash string
+	Season      domain.SeasonKey
 }
 
 // PublishResult is the settled publication: the stored row, the
 // journal transfer moving the exact quoted cost, the database
 // posted instant and whether the call replayed the original
-// settlement.
+// settlement. Season names the publication book the receipt stays
+// pinned to.
 type PublishResult struct {
 	PublicationID string
 	TransferID    string
 	TotalMilli    int64
 	PostedAt      time.Time
 	Replayed      bool
+	Season        domain.SeasonKey
 }
 
 // PublishRepository settles publications with their INK charge in
@@ -88,7 +96,9 @@ func NewPublishUseCase(publications PublishRepository) (*PublishUseCase, error) 
 // token, the account bound to the quote, the unedited content, the
 // live quote, the covering price and the coherent total stop
 // malformed calls before any store is touched; every ledger fact
-// resolves inside the repository transaction.
+// resolves inside the repository transaction. The book travels
+// beside the seal: a stale or cross-book preview conflicts instead
+// of charging another book.
 func (uc *PublishUseCase) Execute(ctx context.Context, cmd PublishCommand) (*PublishResult, error) {
 	key, err := domain.ParsePublishKey(cmd.Key)
 	if err != nil {
@@ -97,7 +107,20 @@ func (uc *PublishUseCase) Execute(ctx context.Context, cmd PublishCommand) (*Pub
 	if cmd.Content.IsZero() {
 		return nil, domain.ErrInvalidQuote
 	}
-	if err := cmd.Quote.VerifyAcceptance(cmd.Account, cmd.Content, cmd.Now); err != nil {
+	season := domain.SeasonKey(domain.CompatSeasonKey)
+	if cmd.Season != "" {
+		season, err = domain.ParseSeasonKey(cmd.Season)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if cmd.Quote.Season.String() == "" {
+		cmd.Quote.Season = domain.SeasonKey(domain.CompatSeasonKey)
+	}
+	if err := domain.RequireSeasonalReset(season, cmd.ResetAcknowledged); err != nil {
+		return nil, err
+	}
+	if err := cmd.Quote.VerifySeasonalAcceptance(cmd.Account, cmd.Content, cmd.Now, season); err != nil {
 		return nil, err
 	}
 	// The accepted version protects a valid intention across later
@@ -133,6 +156,7 @@ func (uc *PublishUseCase) Execute(ctx context.Context, cmd PublishCommand) (*Pub
 		ToKind:    strings.TrimSpace(cmd.ToKind),
 		ToLabel:   strings.TrimSpace(cmd.ToLabel),
 		At:        cmd.Now.UTC(),
+		Season:    season,
 		PayloadHash: domain.PublishPayloadHash(domain.PublishPayload{
 			Account: cmd.Account, Service: cmd.Quote.Service.String(),
 			Version: cmd.Quote.Version, Units: cmd.Quote.Units,

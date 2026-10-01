@@ -2004,6 +2004,13 @@
           "nullable": false,
           "default": "",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this purchase: vault, hold and legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -2051,6 +2058,11 @@
           "name": "billing_ink_intents_quote_id_fkey",
           "kind": "f",
           "definition": "FOREIGN KEY (quote_id) REFERENCES app.pricing_quotes(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "billing_ink_intents_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "billing_ink_intents_status_check",
@@ -2146,6 +2158,13 @@
           "nullable": false,
           "default": "",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this liquidation: the receipt never leaves its book; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -2183,6 +2202,11 @@
           "name": "billing_ink_settlements_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "billing_ink_settlements_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         }
       ],
       "indexes": [
@@ -3148,6 +3172,41 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this escrow: the locked legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace"
+        },
+        {
+          "name": "terminal_policy_ref",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Terminal clause reference of section 5.1: versioned policy accepted by both parties before funding; empty on legacy contracts without the clause"
+        },
+        {
+          "name": "terminal_policy_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Digest of the terminal clause (64 lowercase hex) bound at funding; empty on legacy contracts without the clause"
+        },
+        {
+          "name": "buyer_accept_ref",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Buyer accept evidence recorded before funding; empty on legacy contracts without the clause"
+        },
+        {
+          "name": "provider_accept_ref",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Provider accept evidence recorded before funding; empty on legacy contracts without the clause"
         }
       ],
       "constraints": [
@@ -3200,6 +3259,11 @@
           "name": "commerce_contracts_provider_id_fkey",
           "kind": "f",
           "definition": "FOREIGN KEY (provider_id) REFERENCES app.accounts(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "commerce_contracts_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         }
       ],
       "indexes": [
@@ -4097,6 +4161,13 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this transfer: the legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -4144,6 +4215,11 @@
           "name": "commerce_transfers_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commerce_transfers_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "commerce_transfers_transfer_unique",
@@ -4807,18 +4883,30 @@
           "nullable": true,
           "default": "",
           "comment": "Holder account of this custody, set once at creation; NULL marks a system custody no private statement may read"
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this custody: the same label in another book is another custody; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
         {
+          "name": "economy_custodies_book_unique",
+          "kind": "u",
+          "definition": "UNIQUE (kind, label, season_key)"
+        },
+        {
+          "name": "economy_custodies_identity_unique",
+          "kind": "u",
+          "definition": "UNIQUE (id, season_key)"
+        },
+        {
           "name": "economy_custodies_kind_check",
           "kind": "c",
           "definition": "CHECK (kind = ANY (ARRAY['treasury'::text, 'user'::text, 'escrow'::text, 'contract'::text, 'title'::text]))"
-        },
-        {
-          "name": "economy_custodies_kind_label_unique",
-          "kind": "u",
-          "definition": "UNIQUE (kind, label)"
         },
         {
           "name": "economy_custodies_label_check",
@@ -4836,6 +4924,11 @@
           "definition": "PRIMARY KEY (id)"
         },
         {
+          "name": "economy_custodies_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        },
+        {
           "name": "economy_treasury_label_check",
           "kind": "c",
           "definition": "CHECK (kind \u003c\u003e 'treasury'::text OR (label = ANY (ARRAY['main'::text, 'sovereign_reserve'::text, 'commercial_stock'::text, 'operating_cash'::text, 'free_treasury'::text])))"
@@ -4843,8 +4936,13 @@
       ],
       "indexes": [
         {
-          "name": "economy_custodies_kind_label_unique",
-          "definition": "CREATE UNIQUE INDEX economy_custodies_kind_label_unique ON app.economy_custodies USING btree (kind, label)",
+          "name": "economy_custodies_book_unique",
+          "definition": "CREATE UNIQUE INDEX economy_custodies_book_unique ON app.economy_custodies USING btree (kind, label, season_key)",
+          "valid": true
+        },
+        {
+          "name": "economy_custodies_identity_unique",
+          "definition": "CREATE UNIQUE INDEX economy_custodies_identity_unique ON app.economy_custodies USING btree (id, season_key)",
           "valid": true
         },
         {
@@ -4929,6 +5027,13 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book of this leg: the composite key refuses legs mixing a custody of another book"
         }
       ],
       "constraints": [
@@ -4936,6 +5041,11 @@
           "name": "economy_entries_amount_range_check",
           "kind": "c",
           "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_entries_book_custody_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (custody_id, season_key) REFERENCES app.economy_custodies(id, season_key) ON DELETE RESTRICT"
         },
         {
           "name": "economy_entries_custody_id_fkey",
@@ -4951,6 +5061,11 @@
           "name": "economy_entries_pkey",
           "kind": "p",
           "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "economy_entries_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "economy_entries_transfer_leg_unique",
@@ -5044,6 +5159,13 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this Genesis: one Genesis per season, never twice in one book"
         }
       ],
       "constraints": [
@@ -5063,14 +5185,19 @@
           "definition": "PRIMARY KEY (genesis_key)"
         },
         {
+          "name": "economy_genesis_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_genesis_season_unique",
+          "kind": "u",
+          "definition": "UNIQUE (season_key)"
+        },
+        {
           "name": "economy_genesis_singleton_check",
           "kind": "c",
           "definition": "CHECK (singleton)"
-        },
-        {
-          "name": "economy_genesis_singleton_unique",
-          "kind": "u",
-          "definition": "UNIQUE (singleton)"
         },
         {
           "name": "economy_genesis_treasury_custody_id_fkey",
@@ -5085,8 +5212,8 @@
           "valid": true
         },
         {
-          "name": "economy_genesis_singleton_unique",
-          "definition": "CREATE UNIQUE INDEX economy_genesis_singleton_unique ON app.economy_genesis USING btree (singleton)",
+          "name": "economy_genesis_season_unique",
+          "definition": "CREATE UNIQUE INDEX economy_genesis_season_unique ON app.economy_genesis USING btree (season_key)",
           "valid": true
         }
       ],
@@ -5181,6 +5308,13 @@
           "nullable": true,
           "default": "",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book of this hold: owner and hold custodies must live in the same book"
         }
       ],
       "constraints": [
@@ -5188,6 +5322,16 @@
           "name": "economy_holds_amount_range_check",
           "kind": "c",
           "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_holds_book_hold_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (hold_custody_id, season_key) REFERENCES app.economy_custodies(id, season_key) ON DELETE RESTRICT"
+        },
+        {
+          "name": "economy_holds_book_owner_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (owner_custody_id, season_key) REFERENCES app.economy_custodies(id, season_key) ON DELETE RESTRICT"
         },
         {
           "name": "economy_holds_closed_check",
@@ -5218,6 +5362,11 @@
           "name": "economy_holds_purpose_check",
           "kind": "c",
           "definition": "CHECK (TRIM(BOTH FROM purpose) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "economy_holds_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "economy_holds_status_check",
@@ -5416,6 +5565,13 @@
           "nullable": false,
           "default": "now()",
           "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book of this intention: replays resolve per book, never redirecting another book outcome"
         }
       ],
       "constraints": [
@@ -5428,6 +5584,16 @@
           "name": "economy_intentions_amount_range_check",
           "kind": "c",
           "definition": "CHECK (amount_milli \u003e= 1 AND amount_milli \u003c= '2100000000000'::bigint)"
+        },
+        {
+          "name": "economy_intentions_book_transfer_unique",
+          "kind": "u",
+          "definition": "UNIQUE (transfer_id, season_key)"
+        },
+        {
+          "name": "economy_intentions_book_triple_unique",
+          "kind": "u",
+          "definition": "UNIQUE (intention_key, actor, operation, season_key)"
         },
         {
           "name": "economy_intentions_key_check",
@@ -5445,14 +5611,9 @@
           "definition": "CHECK (payload_hash ~ '^[0-9a-f]{64}$'::text)"
         },
         {
-          "name": "economy_intentions_transfer_unique",
-          "kind": "u",
-          "definition": "UNIQUE (transfer_id)"
-        },
-        {
-          "name": "economy_intentions_triple_unique",
-          "kind": "u",
-          "definition": "UNIQUE (intention_key, actor, operation)"
+          "name": "economy_intentions_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         }
       ],
       "indexes": [
@@ -5462,13 +5623,13 @@
           "valid": true
         },
         {
-          "name": "economy_intentions_transfer_unique",
-          "definition": "CREATE UNIQUE INDEX economy_intentions_transfer_unique ON app.economy_intentions USING btree (transfer_id)",
+          "name": "economy_intentions_book_transfer_unique",
+          "definition": "CREATE UNIQUE INDEX economy_intentions_book_transfer_unique ON app.economy_intentions USING btree (transfer_id, season_key)",
           "valid": true
         },
         {
-          "name": "economy_intentions_triple_unique",
-          "definition": "CREATE UNIQUE INDEX economy_intentions_triple_unique ON app.economy_intentions USING btree (intention_key, actor, operation)",
+          "name": "economy_intentions_book_triple_unique",
+          "definition": "CREATE UNIQUE INDEX economy_intentions_book_triple_unique ON app.economy_intentions USING btree (intention_key, actor, operation, season_key)",
           "valid": true
         }
       ],
@@ -6253,6 +6414,13 @@
           "nullable": false,
           "default": "now()",
           "comment": "Database clock at write, visible only after commit: never a request or browser instant"
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this publication: the legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -6295,6 +6463,11 @@
           "name": "metering_publications_quote_check",
           "kind": "c",
           "definition": "CHECK (TRIM(BOTH FROM quote_hash) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "metering_publications_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         },
         {
           "name": "metering_publications_service_check",
@@ -7976,6 +8149,13 @@
           "nullable": false,
           "default": "",
           "comment": "Canonical hash binding price, ordered sources and instants: tampering is detectable by recomputation"
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "'compat-legacy'::text",
+          "comment": "Book identity of this quotation: expiry is capped by the book end at acceptance; pre-season rows bind the explicitly inactive compat-legacy namespace"
         }
       ],
       "constraints": [
@@ -7998,6 +8178,11 @@
           "name": "pricing_quotes_price_check",
           "kind": "c",
           "definition": "CHECK (price_minor \u003e= 1 AND price_minor \u003c= '9223372036854775807'::bigint)"
+        },
+        {
+          "name": "pricing_quotes_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
         }
       ],
       "indexes": [
@@ -8491,6 +8676,595 @@
         {
           "name": "schema_metadata_pkey",
           "definition": "CREATE UNIQUE INDEX schema_metadata_pkey ON app.schema_metadata USING btree (id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.season_archives",
+      "owner": "arena_owner",
+      "comment": "Sealed book receipts: cutoff, seal instant, Genesis S, leg and intention counts and manifesto digest; one row per archived book, never rewritten",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Archived book: one receipt per sealed book, so two openers archive exactly once"
+        },
+        {
+          "name": "cutoff_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": "Barrier instant on the database clock carried from the close run"
+        },
+        {
+          "name": "sealed_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": "Seal instant from the lifecycle sealed stage"
+        },
+        {
+          "name": "snapshot_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "Book Genesis S at the seal: opening requires it byte-equal, so nothing mints and nothing crosses"
+        },
+        {
+          "name": "snapshot_legs",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "snapshot_intentions",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "manifest_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Sealed manifesto digest (64 lowercase hex): adulterated manifests never open a successor"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "season_archives_cutoff_check",
+          "kind": "c",
+          "definition": "CHECK (cutoff_at \u003c= sealed_at)"
+        },
+        {
+          "name": "season_archives_manifest_check",
+          "kind": "c",
+          "definition": "CHECK (manifest_hash ~ '^[0-9a-f]{64}$'::text)"
+        },
+        {
+          "name": "season_archives_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (season_key)"
+        },
+        {
+          "name": "season_archives_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        },
+        {
+          "name": "season_archives_snapshot_check",
+          "kind": "c",
+          "definition": "CHECK (snapshot_milli \u003e= 0 AND snapshot_legs \u003e= 0 AND snapshot_intentions \u003e= 0)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "season_archives_pkey",
+          "definition": "CREATE UNIQUE INDEX season_archives_pkey ON app.season_archives USING btree (season_key)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.season_close_runs",
+      "owner": "arena_owner",
+      "comment": "Seasonal closing barrier runs: one fenced run per book with generation, lease, checkpoint cursors and the cutoff conservation snapshot; money never moves here",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Book under closing: one run per book, so two closers open exactly one barrier"
+        },
+        {
+          "name": "generation",
+          "type": "bigint",
+          "nullable": false,
+          "default": "1",
+          "comment": "Monotonic fence: every drain write carries it, stale workers move nothing, takeover bumps it by one past an expired lease"
+        },
+        {
+          "name": "lease_owner",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Opaque worker holding the book until leased_until on the database clock"
+        },
+        {
+          "name": "leased_until",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "state",
+          "type": "text",
+          "nullable": false,
+          "default": "'closing'::text",
+          "comment": ""
+        },
+        {
+          "name": "cutoff_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": "Barrier instant on the database clock: admissions checked after it refuse, admitted in-flight work still completes once"
+        },
+        {
+          "name": "last_hold_key",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Checkpoint cursor over economy holds in key order: crash before commit replays, crash after resumes past it"
+        },
+        {
+          "name": "last_escrow_key",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": "Checkpoint cursor over commerce escrows in key order, with the same replay promise"
+        },
+        {
+          "name": "drained",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "blocked",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "snapshot_milli",
+          "type": "bigint",
+          "nullable": false,
+          "default": "",
+          "comment": "Book Genesis S at the barrier: Seal requires it byte-equal, so nothing mints and nothing crosses"
+        },
+        {
+          "name": "snapshot_legs",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "snapshot_intentions",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "error_code",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": ""
+        },
+        {
+          "name": "error_detail",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "season_close_runs_counters_check",
+          "kind": "c",
+          "definition": "CHECK (drained \u003e= 0 AND blocked \u003e= 0)"
+        },
+        {
+          "name": "season_close_runs_generation_check",
+          "kind": "c",
+          "definition": "CHECK (generation \u003e= 1)"
+        },
+        {
+          "name": "season_close_runs_owner_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM lease_owner) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "season_close_runs_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (season_key)"
+        },
+        {
+          "name": "season_close_runs_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        },
+        {
+          "name": "season_close_runs_snapshot_check",
+          "kind": "c",
+          "definition": "CHECK (snapshot_milli \u003e= 0 AND snapshot_legs \u003e= 0 AND snapshot_intentions \u003e= 0)"
+        },
+        {
+          "name": "season_close_runs_state_check",
+          "kind": "c",
+          "definition": "CHECK (state = ANY (ARRAY['closing'::text, 'sealed'::text, 'failed'::text]))"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "season_close_runs_pkey",
+          "definition": "CREATE UNIQUE INDEX season_close_runs_pkey ON app.season_close_runs USING btree (season_key)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT",
+            "UPDATE"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.season_lifecycle",
+      "owner": "arena_owner",
+      "comment": "Append-only season stage events: state derives from the latest event, never by rewriting; at most one active season exists",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "from_state",
+          "type": "text",
+          "nullable": true,
+          "default": "",
+          "comment": "Previous stage, NULL on the opening prepared event"
+        },
+        {
+          "name": "to_state",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "New stage: a second active season dies on the partial unique index"
+        },
+        {
+          "name": "decided_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "season_lifecycle_from_check",
+          "kind": "c",
+          "definition": "CHECK (from_state IS NULL OR (from_state = ANY (ARRAY['prepared'::text, 'active'::text, 'closing'::text, 'sealed'::text, 'archived'::text])))"
+        },
+        {
+          "name": "season_lifecycle_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "season_lifecycle_season_key_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_key) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        },
+        {
+          "name": "season_lifecycle_stage_unique",
+          "kind": "u",
+          "definition": "UNIQUE (season_key, to_state)"
+        },
+        {
+          "name": "season_lifecycle_to_check",
+          "kind": "c",
+          "definition": "CHECK (to_state = ANY (ARRAY['prepared'::text, 'active'::text, 'closing'::text, 'sealed'::text, 'archived'::text]))"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "season_lifecycle_pkey",
+          "definition": "CREATE UNIQUE INDEX season_lifecycle_pkey ON app.season_lifecycle USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "season_lifecycle_season_idx",
+          "definition": "CREATE INDEX season_lifecycle_season_idx ON app.season_lifecycle USING btree (season_key, recorded_at)",
+          "valid": true
+        },
+        {
+          "name": "season_lifecycle_stage_unique",
+          "definition": "CREATE UNIQUE INDEX season_lifecycle_stage_unique ON app.season_lifecycle USING btree (season_key, to_state)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "SELECT"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.seasons",
+      "owner": "arena_owner",
+      "comment": "Immutable season plan registry: key, ordinal, exact ninety-day UTC window, charter, policy, initial holder data and sealed manifesto; never activated here",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "season_key",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Immutable book identity (INK@season_id): pre-season technical data uses the explicitly inactive compat-legacy namespace"
+        },
+        {
+          "name": "ordinal",
+          "type": "integer",
+          "nullable": false,
+          "default": "",
+          "comment": "Calendar order from 1; 0 is reserved for the explicitly inactive pre-season compatibility namespace"
+        },
+        {
+          "name": "starts_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "ends_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "",
+          "comment": "Exclusive end, always starts_at plus 7776000 seconds: civil months and DST never enter the calendar"
+        },
+        {
+          "name": "charter_version",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "policy_ref",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "initial_monarch",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "regent",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "manifest_hash",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Sealed manifesto digest (64 lowercase hex): altered manifests never open a season"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "seasons_charter_check",
+          "kind": "c",
+          "definition": "CHECK (charter_version ~ '^v[0-9]+$'::text)"
+        },
+        {
+          "name": "seasons_key_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM season_key) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "seasons_manifest_check",
+          "kind": "c",
+          "definition": "CHECK (manifest_hash ~ '^[0-9a-f]{64}$'::text)"
+        },
+        {
+          "name": "seasons_monarch_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM initial_monarch) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "seasons_ordinal_check",
+          "kind": "c",
+          "definition": "CHECK (ordinal \u003e= 0)"
+        },
+        {
+          "name": "seasons_ordinal_unique",
+          "kind": "u",
+          "definition": "UNIQUE (ordinal)"
+        },
+        {
+          "name": "seasons_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (season_key)"
+        },
+        {
+          "name": "seasons_policy_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM policy_ref) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "seasons_regent_check",
+          "kind": "c",
+          "definition": "CHECK (TRIM(BOTH FROM regent) \u003c\u003e ''::text)"
+        },
+        {
+          "name": "seasons_window_check",
+          "kind": "c",
+          "definition": "CHECK (ends_at = (starts_at + make_interval(secs =\u003e 7776000::double precision)))"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "seasons_ordinal_unique",
+          "definition": "CREATE UNIQUE INDEX seasons_ordinal_unique ON app.seasons USING btree (ordinal)",
+          "valid": true
+        },
+        {
+          "name": "seasons_pkey",
+          "definition": "CREATE UNIQUE INDEX seasons_pkey ON app.seasons USING btree (season_key)",
           "valid": true
         }
       ],
@@ -14272,6 +15046,42 @@
     },
     {
       "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_intents",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_intents",
       "column": "status",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -14519,6 +15329,42 @@
     {
       "table": "app.billing_ink_settlements",
       "column": "intent_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.billing_ink_settlements",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -16702,6 +17548,42 @@
     },
     {
       "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "buyer_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
       "column": "buyer_id",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -16990,6 +17872,42 @@
     },
     {
       "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "provider_accept_ref",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
       "column": "provider_id",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -17021,6 +17939,114 @@
     {
       "table": "app.commerce_contracts",
       "column": "provider_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_contracts",
+      "column": "terminal_policy_ref",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -18808,6 +19834,42 @@
     },
     {
       "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.commerce_transfers",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.commerce_transfers",
       "column": "transfer_id",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -20343,6 +21405,42 @@
       "privilege": "UPDATE"
     },
     {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_custodies",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
       "table": "app.economy_entries",
       "column": "amount_milli",
       "grantee": "arena_app",
@@ -20519,6 +21617,42 @@
     {
       "table": "app.economy_entries",
       "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_entries",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -20645,6 +21779,36 @@
     {
       "table": "app.economy_genesis",
       "column": "genesis_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_genesis",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -21046,6 +22210,48 @@
     },
     {
       "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_holds",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_holds",
       "column": "status",
       "grantee": "arena_app",
       "privilege": "INSERT"
@@ -21479,6 +22685,42 @@
     {
       "table": "app.economy_intentions",
       "column": "payload_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.economy_intentions",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -23321,6 +24563,42 @@
     {
       "table": "app.metering_publications",
       "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.metering_publications",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -27035,6 +28313,42 @@
     {
       "table": "app.pricing_quotes",
       "column": "quote_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.pricing_quotes",
+      "column": "season_key",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },
@@ -28073,6 +29387,1446 @@
     {
       "table": "app.schema_metadata",
       "column": "version_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "cutoff_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "cutoff_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "cutoff_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "cutoff_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "cutoff_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "cutoff_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "manifest_hash",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "manifest_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "manifest_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "manifest_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "manifest_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "manifest_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "sealed_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "sealed_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "sealed_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "sealed_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "sealed_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "sealed_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_intentions",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_intentions",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_intentions",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_intentions",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_intentions",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_intentions",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_legs",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_legs",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_legs",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_legs",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_legs",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_legs",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_archives",
+      "column": "snapshot_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "blocked",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "blocked",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "blocked",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "blocked",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "blocked",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "blocked",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "blocked",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "cutoff_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "cutoff_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "cutoff_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "cutoff_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "cutoff_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "cutoff_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "cutoff_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "drained",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "drained",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "drained",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "drained",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "drained",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "drained",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "drained",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_code",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_code",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_code",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_code",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_code",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_code",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_code",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_detail",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_detail",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_detail",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_detail",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_detail",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_detail",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "error_detail",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "generation",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "generation",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "generation",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "generation",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "generation",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "generation",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "generation",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_escrow_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_escrow_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_escrow_key",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_escrow_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_escrow_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_escrow_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_escrow_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_hold_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_hold_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_hold_key",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_hold_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_hold_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_hold_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "last_hold_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "lease_owner",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "lease_owner",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "lease_owner",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "lease_owner",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "lease_owner",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "lease_owner",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "lease_owner",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "leased_until",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "leased_until",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "leased_until",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "leased_until",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "leased_until",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "leased_until",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "leased_until",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_intentions",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_intentions",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_intentions",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_intentions",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_intentions",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_intentions",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_intentions",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_legs",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_legs",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_legs",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_legs",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_legs",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_legs",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_legs",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_milli",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_milli",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_milli",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_milli",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_milli",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_milli",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "snapshot_milli",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "state",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "state",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "state",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "state",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "state",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "state",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "state",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_close_runs",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "decided_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "decided_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "from_state",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "from_state",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "from_state",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "from_state",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "from_state",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "recorded_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "recorded_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "recorded_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "recorded_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "recorded_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "to_state",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "to_state",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "to_state",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "to_state",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.season_lifecycle",
+      "column": "to_state",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "charter_version",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "charter_version",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ends_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ends_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ends_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ends_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ends_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "initial_monarch",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "initial_monarch",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "initial_monarch",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "initial_monarch",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "initial_monarch",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "manifest_hash",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "manifest_hash",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "manifest_hash",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "manifest_hash",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "manifest_hash",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ordinal",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ordinal",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ordinal",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ordinal",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "ordinal",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "policy_ref",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "policy_ref",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "regent",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "regent",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "regent",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "regent",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "regent",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "season_key",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "season_key",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasons",
+      "column": "starts_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "starts_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "starts_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasons",
+      "column": "starts_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasons",
+      "column": "starts_at",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

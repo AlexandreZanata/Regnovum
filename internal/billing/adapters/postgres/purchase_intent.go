@@ -52,7 +52,9 @@ func NewPurchaseIntentRepository(pool *pgxpool.Pool, clock ports.Clock, schedule
 // vault covers the derived INK, and intent row plus hold legs commit
 // together. Replays resolve the original acceptance untouched,
 // divergent terms under one key conflict, and uncovered stock refuses
-// without writing.
+// without writing. The quote and the intent share one purchase book:
+// a cross-book acceptance conflicts instead of crediting another
+// book, and a sealed book admits nothing new.
 func (r *PurchaseIntentRepository) AcceptPurchase(ctx context.Context, request application.AcceptPurchaseRequest) (*application.PurchaseIntentResult, error) {
 	account, err := pgUUIDFromAccountID(request.Account)
 	if err != nil {
@@ -63,9 +65,15 @@ func (r *PurchaseIntentRepository) AcceptPurchase(ctx context.Context, request a
 	if err != nil {
 		return nil, err
 	}
+	if string(quote.Season) != request.Season.String() {
+		return nil, application.ErrPurchaseIntentConflict
+	}
 	now := r.clock.Now().UTC()
 	if !quote.Live(now) {
 		return nil, application.ErrPurchaseQuoteExpired
+	}
+	if err := requirePurchaseBookActive(ctx, r.pool, request.Season.String()); err != nil {
+		return nil, err
 	}
 	terms, err := pricingdomain.QuoteTerms(request.Fiat.MinorUnits(), quote.Price, r.schedule)
 	if err != nil {
@@ -97,10 +105,11 @@ func (r *PurchaseIntentRepository) AcceptPurchase(ctx context.Context, request a
 func (r *PurchaseIntentRepository) readQuote(ctx context.Context, quoteID string) (*pricingdomain.Quote, error) {
 	var quote pricingdomain.Quote
 	var price int64
+	var seasonKey string
 	err := r.pool.QueryRow(ctx,
-		`SELECT price_minor, observed_at, accepted_at, expires_at, quote_hash
+		`SELECT price_minor, observed_at, accepted_at, expires_at, quote_hash, season_key
 		 FROM app.pricing_quotes WHERE id = $1::uuid`,
-		quoteID).Scan(&price, &quote.ObservedAt, &quote.AcceptedAt, &quote.ExpiresAt, &quote.Hash)
+		quoteID).Scan(&price, &quote.ObservedAt, &quote.AcceptedAt, &quote.ExpiresAt, &quote.Hash, &seasonKey)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, application.ErrPurchaseQuoteNotFound
@@ -117,6 +126,11 @@ func (r *PurchaseIntentRepository) readQuote(ctx context.Context, quoteID string
 	}
 	quote.ID = quoteID
 	quote.Price = amount
+	season, err := pricingdomain.ParseSeasonKey(seasonKey)
+	if err != nil {
+		return nil, fmt.Errorf("stored quote book %q: %w", seasonKey, err)
+	}
+	quote.Season = season
 	rows, err := r.pool.Query(ctx,
 		`SELECT source, price_minor, observed_at, payload_hash
 		 FROM app.pricing_quote_sources WHERE quote_id = $1::uuid ORDER BY source`,
@@ -160,17 +174,19 @@ func (r *PurchaseIntentRepository) readQuote(ctx context.Context, quoteID string
 // lookupIntent resolves a settled acceptance without writing: the
 // post-commit retry path that makes crash recovery exactly-once.
 // Terms that settle nothing resolve to absence, and divergent terms
-// under one key are a conflict, never a replay.
+// under one key are a conflict, never a replay. The book travels
+// with the receipt: a cross-book reuse conflicts instead of
+// redirecting another book outcome.
 func (r *PurchaseIntentRepository) lookupIntent(ctx context.Context, account string, request application.AcceptPurchaseRequest, terms pricingdomain.Terms) (*application.PurchaseIntentResult, error) {
 	var result application.PurchaseIntentResult
 	var quoteID, holdID string
 	var fiat, ink int64
-	var hash string
+	var hash, seasonKey string
 	err := r.pool.QueryRow(ctx,
-		`SELECT id::text, quote_id::text, fiat_minor, ink_milli, terms_hash, hold_id::text
+		`SELECT id::text, quote_id::text, fiat_minor, ink_milli, terms_hash, hold_id::text, season_key
 		 FROM app.billing_ink_intents WHERE account_id = $1::uuid AND intent_key = $2`,
 		account, request.Key.String()).Scan(
-		&result.IntentID, &quoteID, &fiat, &ink, &hash, &holdID)
+		&result.IntentID, &quoteID, &fiat, &ink, &hash, &holdID, &seasonKey)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -178,18 +194,23 @@ func (r *PurchaseIntentRepository) lookupIntent(ctx context.Context, account str
 		return nil, fmt.Errorf("lookup purchase intent: %w", err)
 	}
 	if quoteID != request.QuoteID || fiat != request.Fiat.MinorUnits() ||
-		ink != terms.InkMilli || hash != terms.Hash {
+		ink != terms.InkMilli || hash != terms.Hash || seasonKey != request.Season.String() {
 		return nil, application.ErrPurchaseIntentConflict
 	}
 	money, err := domain.NewMoney(fiat, domain.CurrencyBRL)
 	if err != nil {
 		return nil, fmt.Errorf("stored intent holds %d minor: %w", fiat, err)
 	}
+	season, err := domain.ParseSeasonKey(seasonKey)
+	if err != nil {
+		return nil, fmt.Errorf("stored intent book %q: %w", seasonKey, err)
+	}
 	result.QuoteID = quoteID
 	result.Fiat = money
 	result.InkMilli = ink
 	result.HoldID = holdID
 	result.Replayed = true
+	result.Season = season
 	return &result, nil
 }
 
@@ -200,6 +221,9 @@ func (r *PurchaseIntentRepository) lookupIntent(ctx context.Context, account str
 // accounts resolve to absence instead of a guess, and a unique
 // collision retries once through re-lookup, so concurrent runs of one
 // key resolve the single acceptance instead of provisioning twice.
+// Vault, hold, legs and intent all carry the purchase book; a seal
+// landing between the check and the write still refuses inside the
+// same transaction, and no HTTP is awaited under the book lock.
 func (r *PurchaseIntentRepository) createIntent(ctx context.Context, account string, request application.AcceptPurchaseRequest, quote *pricingdomain.Quote, terms pricingdomain.Terms) (*application.PurchaseIntentResult, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -207,10 +231,13 @@ func (r *PurchaseIntentRepository) createIntent(ctx context.Context, account str
 	}
 	defer tx.Rollback(ctx)
 
+	if err := requirePurchaseBookActiveTx(ctx, tx, request.Season.String()); err != nil {
+		return nil, err
+	}
 	var vault string
 	err = tx.QueryRow(ctx,
 		`SELECT id::text FROM app.economy_custodies
-		 WHERE kind = 'treasury' AND label = 'commercial_stock' FOR UPDATE`).Scan(&vault)
+		 WHERE kind = 'treasury' AND label = 'commercial_stock' AND season_key = $1 FOR UPDATE`, request.Season.String()).Scan(&vault)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, application.ErrInsufficientCommercialStock
@@ -243,15 +270,15 @@ func (r *PurchaseIntentRepository) createIntent(ctx context.Context, account str
 	}
 	var holdCustody string
 	if err := tx.QueryRow(ctx,
-		`INSERT INTO app.economy_custodies (kind, label) VALUES ('escrow', $1) RETURNING id::text`,
-		"hold-"+holdID).Scan(&holdCustody); err != nil {
+		`INSERT INTO app.economy_custodies (kind, label, season_key) VALUES ('escrow', $1, $2) RETURNING id::text`,
+		"hold-"+holdID, request.Season.String()).Scan(&holdCustody); err != nil {
 		return nil, fmt.Errorf("create hold custody: %w", err)
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_holds (id, owner_custody_id, hold_custody_id, amount_milli, purpose, expires_at)
-		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6)`,
+		`INSERT INTO app.economy_holds (id, owner_custody_id, hold_custody_id, amount_milli, purpose, expires_at, season_key)
+		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7)`,
 		holdID, vault, holdCustody, terms.InkMilli,
-		"ink-intent "+request.Key.String(), quote.ExpiresAt); err != nil {
+		"ink-intent "+request.Key.String(), quote.ExpiresAt, request.Season.String()); err != nil {
 		return nil, fmt.Errorf("record hold: %w", err)
 	}
 	var transfer string
@@ -259,19 +286,19 @@ func (r *PurchaseIntentRepository) createIntent(ctx context.Context, account str
 		return nil, fmt.Errorf("generate transfer id: %w", err)
 	}
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli)
-		 VALUES ($1::uuid, $2::uuid, 'debit', $4), ($1::uuid, $3::uuid, 'credit', $4)`,
-		transfer, vault, holdCustody, terms.InkMilli); err != nil {
+		`INSERT INTO app.economy_entries (transfer_id, custody_id, direction, amount_milli, season_key)
+		 VALUES ($1::uuid, $2::uuid, 'debit', $4, $5), ($1::uuid, $3::uuid, 'credit', $4, $5)`,
+		transfer, vault, holdCustody, terms.InkMilli, request.Season.String()); err != nil {
 		return nil, fmt.Errorf("record hold legs: %w", err)
 	}
 	var intentID string
 	now := r.clock.Now().UTC()
 	if _, err := tx.Exec(ctx,
 		`INSERT INTO app.billing_ink_intents
-		 (intent_key, account_id, quote_id, fiat_minor, ink_milli, terms_hash, status, hold_id, decided_at)
-		 VALUES ($1, $2::uuid, $3::uuid, $4, $5, $6, 'pending', $7::uuid, $8)`,
+		 (intent_key, account_id, quote_id, fiat_minor, ink_milli, terms_hash, status, hold_id, decided_at, season_key)
+		 VALUES ($1, $2::uuid, $3::uuid, $4, $5, $6, 'pending', $7::uuid, $8, $9)`,
 		request.Key.String(), account, request.QuoteID,
-		request.Fiat.MinorUnits(), terms.InkMilli, terms.Hash, holdID, now); err != nil {
+		request.Fiat.MinorUnits(), terms.InkMilli, terms.Hash, holdID, now, request.Season.String()); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
 			return nil, application.ErrPurchaserNotFound
@@ -287,7 +314,7 @@ func (r *PurchaseIntentRepository) createIntent(ctx context.Context, account str
 	}
 	return &application.PurchaseIntentResult{
 		IntentID: intentID, QuoteID: request.QuoteID, Fiat: request.Fiat,
-		InkMilli: terms.InkMilli, HoldID: holdID,
+		InkMilli: terms.InkMilli, HoldID: holdID, Season: request.Season,
 	}, nil
 }
 

@@ -107,7 +107,7 @@ func (r *Repository) createReserveAllocation(ctx context.Context, request applic
 	if err != nil {
 		return nil, err
 	}
-	vault, err := ensureCustody(ctx, tx, string(domain.CustodyTreasury), domain.TreasuryVaultSovereignReserve.String())
+	vault, err := ensureCustody(ctx, tx, string(domain.CustodyTreasury), domain.TreasuryVaultSovereignReserve.String(), domain.CompatSeasonKey)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (r *Repository) createReserveAllocation(ctx context.Context, request applic
 	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
 		return nil, fmt.Errorf("generate transfer id: %w", err)
 	}
-	if err := moveLegs(ctx, tx, transferID, home, vault, request.Amount.Millis()); err != nil {
+	if err := moveLegs(ctx, tx, legMove{transferID: transferID, fromID: home, toID: vault, millis: request.Amount.Millis(), season: domain.CompatSeasonKey}); err != nil {
 		return nil, err
 	}
 	hash := reserveHash(string(request.Act), request.Amount.Millis())
@@ -141,12 +141,15 @@ func (r *Repository) createReserveAllocation(ctx context.Context, request applic
 	return &application.AllocateReserveResult{TransferID: transferID, Allocated: request.Amount}, nil
 }
 
-// resolveTreasuryHome pins the Genesis home custody the reserve draws
-// from: allocations leave existing stock, never obligations.
+// resolveTreasuryHome pins the Genesis home custody of the compat
+// book the reserve draws from: allocations leave existing stock,
+// never obligations. Per-family season references land in P46-T05
+// with their own tests.
 func resolveTreasuryHome(ctx context.Context, tx pgx.Tx) (string, error) {
 	var home string
 	if err := tx.QueryRow(ctx,
-		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main'`).Scan(&home); err != nil {
+		`SELECT id::text FROM app.economy_custodies WHERE kind = 'treasury' AND label = 'main' AND season_key = $1`,
+		domain.CompatSeasonKey).Scan(&home); err != nil {
 		return "", fmt.Errorf("resolve treasury home: %w", err)
 	}
 	return home, nil

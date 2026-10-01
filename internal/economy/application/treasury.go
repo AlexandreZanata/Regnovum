@@ -35,14 +35,21 @@ type TreasuryVaultsView struct {
 	Legs   int64
 }
 
+// TreasuryCommand names the season book one Treasury reading
+// judges. Vaults exist per book: the same label in another book is
+// another vault.
+type TreasuryCommand struct {
+	Season string
+}
+
 // TreasuryRepository reads Treasury vault positions without moving
 // value. Both reads are side-effect free.
 type TreasuryRepository interface {
-	// ReadTreasuryVaults resolves one position per Treasury vault and
-	// the Treasury total recomputed independently of the per-vault
-	// sums. Callers receive the closed vault list, never another
-	// holder's custody.
-	ReadTreasuryVaults(ctx context.Context) (vaults []TreasuryVaultsView, total int64, err error)
+	// ReadTreasuryVaults resolves one position per Treasury vault of
+	// one book and the Treasury total recomputed independently of
+	// the per-vault sums. Callers receive the closed vault list,
+	// never another holder's custody.
+	ReadTreasuryVaults(ctx context.Context, season domain.SeasonKey) (vaults []TreasuryVaultsView, total int64, err error)
 }
 
 // TreasuryVaultsUseCase reads the exclusive Treasury vaults and proves
@@ -57,11 +64,16 @@ func NewTreasuryVaultsUseCase(treasury TreasuryRepository) *TreasuryVaultsUseCas
 	return &TreasuryVaultsUseCase{treasury: treasury}
 }
 
-// Execute reads one exclusive Treasury report, recording every break
-// instead of failing silent: unknown or duplicated vaults, missing
-// vaults and a total the vaults do not add up to.
-func (uc *TreasuryVaultsUseCase) Execute(ctx context.Context) (*TreasuryReport, error) {
-	views, total, err := uc.treasury.ReadTreasuryVaults(ctx)
+// Execute reads one exclusive Treasury report of one season book,
+// recording every break instead of failing silent: unknown or
+// duplicated vaults, missing vaults and a total the vaults do not
+// add up to.
+func (uc *TreasuryVaultsUseCase) Execute(ctx context.Context, cmd TreasuryCommand) (*TreasuryReport, error) {
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
+	views, total, err := uc.treasury.ReadTreasuryVaults(ctx, season)
 	if err != nil {
 		return nil, err
 	}

@@ -12,27 +12,34 @@ import (
 // fiat ticket in minor units. Price, INK quantity, stock and schedule
 // are deliberately absent: the server resolves them from the stored
 // quotation and its own fee schedule, so the buyer can never propose
-// a price, a quantity or a vault.
+// a price, a quantity or a vault. Season names the purchase book
+// (empty binds compat-legacy for the legacy path); seasonal books
+// need an explicit reset acknowledgement shown before acceptance.
 type AcceptPurchaseCommand struct {
-	IntentKey string
-	AccountID string
-	QuoteID   string
-	FiatMinor int64
+	IntentKey         string
+	AccountID         string
+	QuoteID           string
+	FiatMinor         int64
+	Season            string
+	ResetAcknowledged bool
 }
 
 // AcceptPurchaseRequest is the validated acceptance for the
 // repository port: the token, the account, the quotation and the BRL
 // ticket, all resolved server-side from here on.
 type AcceptPurchaseRequest struct {
-	Key     domain.IdempotencyKey
-	Account domain.AccountID
-	QuoteID string
-	Fiat    domain.Money
+	Key               domain.IdempotencyKey
+	Account           domain.AccountID
+	QuoteID           string
+	Fiat              domain.Money
+	Season            domain.SeasonKey
+	ResetAcknowledged bool
 }
 
 // PurchaseIntentResult is the settled acceptance: the stored intent,
 // the server-derived amounts, the backing hold and whether the call
-// replayed the original acceptance.
+// replayed the original acceptance. Season names the purchase book
+// the hold settles in.
 type PurchaseIntentResult struct {
 	IntentID string
 	QuoteID  string
@@ -40,6 +47,7 @@ type PurchaseIntentResult struct {
 	InkMilli int64
 	HoldID   string
 	Replayed bool
+	Season   domain.SeasonKey
 }
 
 // PurchaseIntentRepository accepts INK purchases with the commercial
@@ -89,7 +97,18 @@ func (uc *AcceptPurchaseUseCase) Execute(ctx context.Context, cmd AcceptPurchase
 	if err != nil || fiat.IsZero() {
 		return nil, domain.ErrInvalidMoney
 	}
+	season := domain.SeasonKey(domain.CompatSeasonKey)
+	if cmd.Season != "" {
+		season, err = domain.ParseSeasonKey(cmd.Season)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := domain.RequireSeasonalReset(season, cmd.ResetAcknowledged); err != nil {
+		return nil, err
+	}
 	return uc.intents.AcceptPurchase(ctx, AcceptPurchaseRequest{
 		Key: key, Account: account, QuoteID: strings.TrimSpace(cmd.QuoteID), Fiat: fiat,
+		Season: season, ResetAcknowledged: cmd.ResetAcknowledged,
 	})
 }

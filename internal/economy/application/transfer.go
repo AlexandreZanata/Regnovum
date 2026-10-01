@@ -8,21 +8,27 @@ import (
 
 // TransferCommand moves existing INK between two custodies. Labels name
 // the custodies inside their kinds; the amount travels in milliINK.
+// Both books are mandatory and must match: origin and destination
+// resolve inside one book, and cross-book moves never happen.
 type TransferCommand struct {
-	FromKind  string
-	FromLabel string
-	ToKind    string
-	ToLabel   string
-	Millis    int64
+	FromSeason string
+	FromKind   string
+	FromLabel  string
+	ToSeason   string
+	ToKind     string
+	ToLabel    string
+	Millis     int64
 }
 
 // TransferRequest is a validated transfer for the repository port.
 type TransferRequest struct {
-	FromKind  domain.CustodyKind
-	FromLabel string
-	ToKind    domain.CustodyKind
-	ToLabel   string
-	Amount    domain.MilliInk
+	FromSeason domain.SeasonKey
+	FromKind   domain.CustodyKind
+	FromLabel  string
+	ToSeason   domain.SeasonKey
+	ToKind     domain.CustodyKind
+	ToLabel    string
+	Amount     domain.MilliInk
 }
 
 // TransferResult is the outcome of a transfer: the business intention
@@ -43,28 +49,47 @@ type TransferRepository interface {
 	Transfer(ctx context.Context, request TransferRequest) (*TransferResult, error)
 }
 
-// TransferUseCase validates and moves existing INK between custodies. It
-// is an internal operation: no public surface calls it.
+// TransferUseCase validates and moves existing INK between custodies
+// of one season book. It is an internal operation: no public surface
+// calls it.
 type TransferUseCase struct {
 	transfers TransferRepository
+	books     SeasonBooks
 }
 
 // NewTransferUseCase creates an instance of TransferUseCase.
-func NewTransferUseCase(transfers TransferRepository) *TransferUseCase {
-	return &TransferUseCase{transfers: transfers}
+func NewTransferUseCase(transfers TransferRepository, books SeasonBooks) *TransferUseCase {
+	return &TransferUseCase{transfers: transfers, books: books}
 }
 
-// Execute validates the transfer and moves the amount atomically.
+// Execute validates the transfer and moves the amount atomically
+// inside one book, refusing cross-book moves before anything is read.
 func (uc *TransferUseCase) Execute(ctx context.Context, cmd TransferCommand) (*TransferResult, error) {
+	fromSeason, err := domain.ParseSeasonKey(cmd.FromSeason)
+	if err != nil {
+		return nil, err
+	}
+	toSeason, err := domain.ParseSeasonKey(cmd.ToSeason)
+	if err != nil {
+		return nil, err
+	}
+	if fromSeason != toSeason {
+		return nil, domain.ErrCrossSeason
+	}
 	ends, err := validateTransferEnds(cmd.FromKind, cmd.FromLabel, cmd.ToKind, cmd.ToLabel, cmd.Millis)
 	if err != nil {
 		return nil, err
 	}
+	if err := uc.books.RequireActive(ctx, fromSeason); err != nil {
+		return nil, err
+	}
 	return uc.transfers.Transfer(ctx, TransferRequest{
-		FromKind:  ends.fromKind,
-		FromLabel: ends.fromLabel,
-		ToKind:    ends.toKind,
-		ToLabel:   ends.toLabel,
-		Amount:    ends.amount,
+		FromSeason: fromSeason,
+		FromKind:   ends.fromKind,
+		FromLabel:  ends.fromLabel,
+		ToSeason:   toSeason,
+		ToKind:     ends.toKind,
+		ToLabel:    ends.toLabel,
+		Amount:     ends.amount,
 	})
 }

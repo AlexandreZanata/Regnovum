@@ -38,6 +38,10 @@ const (
 	CodeInvalidRefund        ErrorCode = "ECONOMY_INVALID_REFUND"
 	CodeInvalidDisbursement  ErrorCode = "ECONOMY_INVALID_DISBURSEMENT"
 	CodeInvalidTotals        ErrorCode = "ECONOMY_INVALID_TOTALS"
+	CodeMissingSeason        ErrorCode = "ECONOMY_MISSING_SEASON"
+	CodeCrossSeason          ErrorCode = "ECONOMY_CROSS_SEASON"
+	CodeBookSealed           ErrorCode = "ECONOMY_BOOK_SEALED"
+	CodeBookNotPrepared      ErrorCode = "ECONOMY_BOOK_NOT_PREPARED"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -186,5 +190,21 @@ var (
 	ErrInvalidTotals = DomainError{
 		Code:    CodeInvalidTotals,
 		Message: "treasury totals need a supported locale and complete composition",
+	}
+	ErrMissingSeason = DomainError{
+		Code:    CodeMissingSeason,
+		Message: "mutation without a season book is refused: every genesis, transfer, intention and hold names its book",
+	}
+	ErrCrossSeason = DomainError{
+		Code:    CodeCrossSeason,
+		Message: "origin and destination must belong to the same season book: cross-season moves never happen",
+	}
+	ErrBookSealed = DomainError{
+		Code:    CodeBookSealed,
+		Message: "sealed books admit no mutation: the archive is readable history, never a live ledger",
+	}
+	ErrBookNotPrepared = DomainError{
+		Code:    CodeBookNotPrepared,
+		Message: "genesis needs a prepared book: activation is a separate step, never implied by creation",
 	}
 )

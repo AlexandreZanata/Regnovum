@@ -79,6 +79,7 @@ const (
 	// correction.
 	CodeInvalidReconciliationKind   ErrorCode = "BILLING_INVALID_RECONCILIATION_KIND"
 	CodeInvalidReconciliationWindow ErrorCode = "BILLING_INVALID_RECONCILIATION_WINDOW"
+	CodeInvalidSeason               ErrorCode = "BILLING_INVALID_SEASON"
 )
 
 // DomainError represents an invariant or rule failure in the billing domain.
@@ -163,4 +164,5 @@ var (
 
 	ErrInvalidReconciliationKind   = DomainError{Code: CodeInvalidReconciliationKind, Message: "reconciliation kind is outside the supported vocabulary"}
 	ErrInvalidReconciliationWindow = DomainError{Code: CodeInvalidReconciliationWindow, Message: "reconciliation window must be a complete interval with the end after the start"}
+	ErrInvalidSeason               = DomainError{Code: CodeInvalidSeason, Message: "purchase book needs a non-blank key without control characters"}
 )

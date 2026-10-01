@@ -174,7 +174,7 @@ func TestCustodyTotalsMatchAuditedSnapshot(t *testing.T) {
 	repo := postgres.NewRepository(pool)
 	fixture := totalsRichSetup(t, ctx, pool, repo)
 	clock := &totalsTestClock{now: totalsNow()}
-	snapshot, err := totalsUseCase(t, repo, clock).Totals(ctx, "pt")
+	snapshot, err := totalsUseCase(t, repo, clock).Totals(ctx, "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("Totals: %v", err)
 	}
@@ -183,7 +183,7 @@ func TestCustodyTotalsMatchAuditedSnapshot(t *testing.T) {
 		t.Fatalf("supply = %d, want S", snapshot.SupplyMillis)
 	}
 	economySupply(t, ctx, pool)
-	vaults, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx)
+	vaults, err := application.NewTreasuryVaultsUseCase(repo).Execute(ctx, application.TreasuryCommand{Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("vault partitions: %v", err)
 	}
@@ -257,7 +257,7 @@ func TestCustodyTotalsRebuildsAfterWindow(t *testing.T) {
 	clock := &totalsTestClock{now: totalsNow()}
 	uc := totalsUseCase(t, repo, clock)
 
-	first, err := uc.Totals(ctx, "pt")
+	first, err := uc.Totals(ctx, "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("first Totals: %v", err)
 	}
@@ -267,7 +267,7 @@ func TestCustodyTotalsRebuildsAfterWindow(t *testing.T) {
 		t.Fatalf("settle extra: %v", err)
 	}
 	_ = extra
-	second, err := uc.Totals(ctx, "pt")
+	second, err := uc.Totals(ctx, "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("cached Totals: %v", err)
 	}
@@ -275,7 +275,7 @@ func TestCustodyTotalsRebuildsAfterWindow(t *testing.T) {
 		t.Fatalf("window shared nothing: %+v vs %+v", second, first)
 	}
 	clock.now = totalsNow().Add((domain.TotalsCacheSeconds + 1) * time.Second)
-	third, err := uc.Totals(ctx, "pt")
+	third, err := uc.Totals(ctx, "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("rebuilt Totals: %v", err)
 	}
@@ -291,7 +291,7 @@ func TestCustodyTotalsRebuildsAfterWindow(t *testing.T) {
 	if third.TreasuryMillis != first.TreasuryMillis-50 {
 		t.Fatalf("treasury = %d, want 50 below the sealed window", third.TreasuryMillis)
 	}
-	english, err := uc.Totals(ctx, "en")
+	english, err := uc.Totals(ctx, "en", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("en Totals: %v", err)
 	}
@@ -326,7 +326,7 @@ func TestCustodyTotalsSuppressSmallCells(t *testing.T) {
 		}
 	}
 
-	snapshot, err := totalsUseCase(t, repo, &totalsTestClock{now: totalsNow()}).Totals(ctx, "pt")
+	snapshot, err := totalsUseCase(t, repo, &totalsTestClock{now: totalsNow()}).Totals(ctx, "pt", domain.CompatSeasonKey)
 	if err != nil {
 		t.Fatalf("Totals: %v", err)
 	}

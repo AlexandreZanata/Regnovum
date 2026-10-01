@@ -61,8 +61,9 @@ type CustodyTotalsSnapshot struct {
 // rows on every call: no derived table is ever read.
 type CustodyTotalsRepository interface {
 	// ReadCustodyTotals resolves one exact reading of every custody
-	// aggregate. Reads never mint, freeze or move anything.
-	ReadCustodyTotals(ctx context.Context) (*CustodyTotalsReading, error)
+	// aggregate of one season book. Reads never mint, freeze or
+	// move anything.
+	ReadCustodyTotals(ctx context.Context, season domain.SeasonKey) (*CustodyTotalsReading, error)
 }
 
 // CustodyTotalsUseCase publishes one privacy-safe custody totals
@@ -87,21 +88,26 @@ func NewCustodyTotalsUseCase(totals CustodyTotalsRepository, clock Clock) (*Cust
 	return &CustodyTotalsUseCase{totals: totals, clock: clock}, nil
 }
 
-// Totals serves the document in one locale: the cached derivation
-// while the window holds, a fresh re-derivation afterwards. Unknown
-// locales refuse before any reading happens; the frozen flag travels
-// as information, never as a refusal to render.
-func (uc *CustodyTotalsUseCase) Totals(ctx context.Context, locale string) (CustodyTotalsSnapshot, error) {
+// Totals serves the document in one locale for one season book: the
+// cached derivation while the window holds, a fresh re-derivation
+// afterwards. Unknown locales and missing books refuse before any
+// reading happens; the frozen flag travels as information, never as
+// a refusal to render.
+func (uc *CustodyTotalsUseCase) Totals(ctx context.Context, locale, season string) (CustodyTotalsSnapshot, error) {
 	parsed, err := domain.ParseTotalsLocale(locale)
 	if err != nil {
 		return CustodyTotalsSnapshot{}, err
 	}
+	book, err := domain.ParseSeasonKey(season)
+	if err != nil {
+		return CustodyTotalsSnapshot{}, err
+	}
 	now := uc.clock.Now().UTC()
-	if uc.cached != nil && uc.cachedOf == parsed.String() &&
+	if uc.cached != nil && uc.cachedOf == parsed.String()+"\x00"+book.String() &&
 		now.Before(uc.cachedAt.Add(domain.TotalsCacheSeconds*time.Second)) {
 		return *uc.cached, nil
 	}
-	reading, err := uc.totals.ReadCustodyTotals(ctx)
+	reading, err := uc.totals.ReadCustodyTotals(ctx, book)
 	if err != nil {
 		return CustodyTotalsSnapshot{}, err
 	}
@@ -111,7 +117,7 @@ func (uc *CustodyTotalsUseCase) Totals(ctx context.Context, locale string) (Cust
 	snapshot := assembleTotals(parsed, reading, now)
 	uc.cached = &snapshot
 	uc.cachedAt = now
-	uc.cachedOf = parsed.String()
+	uc.cachedOf = parsed.String() + "\x00" + book.String()
 	return snapshot, nil
 }
 

@@ -32,7 +32,7 @@ func reconcileCtx() (context.Context, context.CancelFunc) {
 
 func settleTreasuryGrant(t *testing.T, ctx context.Context, repo *postgres.Repository, pool *pgxpool.Pool, label string, millis int64) {
 	t.Helper()
-	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-reconcile")}); err != nil {
+	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-reconcile"), Season: domain.SeasonKey(domain.CompatSeasonKey)}); err != nil {
 		t.Fatalf("seed Genesis: %v", err)
 	}
 	makeCustody(t, ctx, pool, "user", label)
@@ -41,8 +41,10 @@ func settleTreasuryGrant(t *testing.T, ctx context.Context, repo *postgres.Repos
 		t.Fatalf("NewMilliInk(%d): %v", millis, err)
 	}
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyUser, ToLabel: label,
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: label,
 		Amount: amount,
 	}); err != nil {
 		t.Fatalf("fund %s: %v", label, err)
@@ -76,7 +78,7 @@ func TestReconcileCleanBookStaysOpen(t *testing.T) {
 	repo := postgres.NewRepository(pool)
 	settleTreasuryGrant(t, ctx, repo, pool, "ana", 1000)
 
-	report, err := repo.Reconcile(ctx)
+	report, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
@@ -109,7 +111,7 @@ func TestReconcileFreezesOnOrphanLeg(t *testing.T) {
 
 	repo := postgres.NewRepository(pool)
 	settleTreasuryGrant(t, ctx, repo, pool, "ana", 1000)
-	sealed, err := repo.RebuildAll(ctx)
+	sealed, err := repo.RebuildAll(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("RebuildAll: %v", err)
 	}
@@ -121,7 +123,7 @@ func TestReconcileFreezesOnOrphanLeg(t *testing.T) {
 	}
 
 	orphan := freezeWithOrphan(t, ctx, pool, "ana")
-	report, err := repo.Reconcile(ctx)
+	report, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
@@ -137,7 +139,7 @@ func TestReconcileFreezesOnOrphanLeg(t *testing.T) {
 	if !found {
 		t.Fatalf("report does not name the orphan transfer: %+v", report.Unpaired)
 	}
-	rebuilt, err := repo.RebuildAll(ctx)
+	rebuilt, err := repo.RebuildAll(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("RebuildAll: %v", err)
 	}
@@ -149,23 +151,31 @@ func TestReconcileFreezesOnOrphanLeg(t *testing.T) {
 
 	amount, _ := domain.NewMilliInk(10)
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyUser, ToLabel: "ana",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "ana",
 		Amount: amount,
 	}); !errors.Is(err, domain.ErrEconomyFrozen) {
 		t.Fatalf("transfer while frozen = %v, want ErrEconomyFrozen", err)
 	}
-	if _, err := repo.Reserve(ctx, domain.CustodyTreasury, "main", mustHoldPurpose(t, "frozen probe"), amount, time.Now().UTC().Add(time.Hour)); !errors.Is(err, domain.ErrEconomyFrozen) {
+	if _, err := repo.Reserve(ctx, application.HoldReservation{
+		Season:    domain.SeasonKey(domain.CompatSeasonKey),
+		OwnerKind: domain.CustodyTreasury, OwnerLabel: "main",
+		Purpose: mustHoldPurpose(t, "frozen probe"), Amount: amount,
+		ExpiresAt: time.Now().UTC().Add(time.Hour),
+	}); !errors.Is(err, domain.ErrEconomyFrozen) {
 		t.Fatalf("reserve while frozen = %v, want ErrEconomyFrozen", err)
 	}
 	if _, err := repo.ReadStatement(ctx, application.StatementRequest{
-		Kind: domain.CustodyUser, Label: "ana", CallerAccountID: "nobody", Limit: 10,
+		Season: domain.SeasonKey(domain.CompatSeasonKey),
+		Kind:   domain.CustodyUser, Label: "ana", CallerAccountID: "nobody", Limit: 10,
 	}); err == nil {
 		t.Fatalf("statement read failed while frozen: reads must continue serving")
 	} else if errors.Is(err, domain.ErrEconomyFrozen) {
 		t.Fatalf("statement read refused as frozen: reads must continue serving")
 	}
-	if _, err := repo.RebuildAll(ctx); err != nil {
+	if _, err := repo.RebuildAll(ctx, domain.SeasonKey(domain.CompatSeasonKey)); err != nil {
 		t.Fatalf("rebuild while frozen: %v (reads must continue serving)", err)
 	}
 }
@@ -187,7 +197,7 @@ func TestReconcileFreezesOnNegativeBalance(t *testing.T) {
 		 WHERE kind = 'user' AND label = 'mallory'`); err != nil {
 		t.Fatalf("inject oversized debit: %v", err)
 	}
-	report, err := repo.Reconcile(ctx)
+	report, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
@@ -218,7 +228,7 @@ func TestResolveRequiresAuditedCompensation(t *testing.T) {
 	repo := postgres.NewRepository(pool)
 	settleTreasuryGrant(t, ctx, repo, pool, "ana", 1000)
 	freezeWithOrphan(t, ctx, pool, "ana")
-	report, err := repo.Reconcile(ctx)
+	report, err := repo.Reconcile(ctx, domain.SeasonKey(domain.CompatSeasonKey))
 	if err != nil {
 		t.Fatalf("Reconcile: %v", err)
 	}
@@ -243,8 +253,10 @@ func TestResolveRequiresAuditedCompensation(t *testing.T) {
 	}
 	amount, _ := domain.NewMilliInk(10)
 	if _, err := repo.Transfer(ctx, application.TransferRequest{
-		FromKind: domain.CustodyTreasury, FromLabel: "main",
-		ToKind: domain.CustodyUser, ToLabel: "ana",
+		FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		FromKind:   domain.CustodyTreasury, FromLabel: "main",
+		ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+		ToKind:   domain.CustodyUser, ToLabel: "ana",
 		Amount: amount,
 	}); err != nil {
 		t.Fatalf("transfer after resolution: %v", err)

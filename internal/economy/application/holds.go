@@ -15,9 +15,11 @@ type Clock interface {
 }
 
 // ReserveCommand locks value of one owner custody inside a new hold:
-// owner, purpose, amount and the deadline after which the hold may be
-// marked expired.
+// book, owner, purpose, amount and the deadline after which the hold
+// may be marked expired. The season is mandatory: the hold lives in
+// its book.
 type ReserveCommand struct {
+	Season     string
 	OwnerKind  string
 	OwnerLabel string
 	Purpose    string
@@ -54,9 +56,10 @@ type HoldView struct {
 // from the journal.
 type HoldsRepository interface {
 	// Reserve locks the amount out of the owner custody into a new
-	// dedicated hold custody. Reserved funds leave the spendable
-	// balance until an explicit release or capture.
-	Reserve(ctx context.Context, ownerKind domain.CustodyKind, ownerLabel string, purpose domain.HoldPurpose, amount domain.MilliInk, expiresAt time.Time) (*HoldView, error)
+	// dedicated hold custody in one season book. Reserved funds
+	// leave the spendable balance until an explicit release or
+	// capture.
+	Reserve(ctx context.Context, reservation HoldReservation) (*HoldView, error)
 	// Release settles a hold back to its owner in full. Settled holds
 	// never reopen.
 	Release(ctx context.Context, holdID string) (*HoldView, error)
@@ -68,20 +71,37 @@ type HoldsRepository interface {
 	Expire(ctx context.Context, holdID string) (*HoldView, error)
 }
 
-// ReserveUseCase validates and opens one value hold. It is an internal
-// operation: no public surface calls it.
+// HoldReservation is a validated hold opening for the repository
+// port: the book, the owner, the purpose, the amount and the
+// deadline after which the hold may be marked expired.
+type HoldReservation struct {
+	Season     domain.SeasonKey
+	OwnerKind  domain.CustodyKind
+	OwnerLabel string
+	Purpose    domain.HoldPurpose
+	Amount     domain.MilliInk
+	ExpiresAt  time.Time
+}
+
+// ReserveUseCase validates and opens one value hold in one season
+// book. It is an internal operation: no public surface calls it.
 type ReserveUseCase struct {
 	holds HoldsRepository
 	clock Clock
+	books SeasonBooks
 }
 
 // NewReserveUseCase creates an instance of ReserveUseCase.
-func NewReserveUseCase(holds HoldsRepository, clock Clock) *ReserveUseCase {
-	return &ReserveUseCase{holds: holds, clock: clock}
+func NewReserveUseCase(holds HoldsRepository, clock Clock, books SeasonBooks) *ReserveUseCase {
+	return &ReserveUseCase{holds: holds, clock: clock, books: books}
 }
 
 // Execute validates the reservation and locks the amount.
 func (uc *ReserveUseCase) Execute(ctx context.Context, cmd ReserveCommand) (*HoldView, error) {
+	season, err := domain.ParseSeasonKey(cmd.Season)
+	if err != nil {
+		return nil, err
+	}
 	ownerKind, err := domain.ParseCustodyKind(cmd.OwnerKind)
 	if err != nil {
 		return nil, err
@@ -106,7 +126,13 @@ func (uc *ReserveUseCase) Execute(ctx context.Context, cmd ReserveCommand) (*Hol
 	if cmd.ExpiresAt.IsZero() || !cmd.ExpiresAt.After(uc.clock.Now()) {
 		return nil, domain.ErrInvalidHold
 	}
-	return uc.holds.Reserve(ctx, ownerKind, cmd.OwnerLabel, purpose, amount, cmd.ExpiresAt.UTC())
+	if err := uc.books.RequireActive(ctx, season); err != nil {
+		return nil, err
+	}
+	return uc.holds.Reserve(ctx, HoldReservation{
+		Season: season, OwnerKind: ownerKind, OwnerLabel: cmd.OwnerLabel,
+		Purpose: purpose, Amount: amount, ExpiresAt: cmd.ExpiresAt.UTC(),
+	})
 }
 
 // ReleaseUseCase settles one hold back to its owner in full.

@@ -10,18 +10,23 @@ import (
 
 // ContractView is the stored escrow contract: the sealed terms with
 // the lifecycle status. Funds move only through the adapter
-// transaction behind these transitions.
+// transaction behind these transitions. Season names the commerce
+// book the escrow locks in; the receipt stays pinned to it.
 type ContractView struct {
-	ID         string
-	Key        string
-	Object     string
-	Buyer      string
-	Provider   string
-	AmountMill int64
-	ExpiresAt  time.Time
-	Status     domain.ContractStatus
-	Hash       string
-	PostedAt   time.Time
+	ID             string
+	Key            string
+	Object         string
+	Buyer          string
+	Provider       string
+	AmountMill     int64
+	ExpiresAt      time.Time
+	Status         domain.ContractStatus
+	Hash           string
+	PostedAt       time.Time
+	Season         domain.SeasonKey
+	PolicyRef      string
+	BuyerAccept    string
+	ProviderAccept string
 }
 
 // EscrowRepository funds trade contracts and settles their escrows:
@@ -49,14 +54,23 @@ type EscrowRepository interface {
 }
 
 // FundRequest is the validated funding for the repository port.
+// Season names the commerce book the escrow locks in; the terminal
+// policy with both accepts travels beside the seal for seasonal
+// books and is matched before any escrow opens.
 type FundRequest struct {
-	Key        string
-	Object     string
-	Buyer      string
-	Provider   string
-	AmountMill int64
-	ExpiresAt  time.Time
-	Now        time.Time
+	Key            string
+	Object         string
+	Buyer          string
+	Provider       string
+	AmountMill     int64
+	ExpiresAt      time.Time
+	Now            time.Time
+	Season         domain.SeasonKey
+	PolicyRef      string
+	PolicyHash     string
+	BuyerAccept    string
+	ProviderAccept string
+	SeasonEndsAt   time.Time
 }
 
 // FundContractUseCase funds one formal trade in exclusive escrow.
@@ -77,20 +91,74 @@ func NewFundContractUseCase(escrows EscrowRepository) (*FundContractUseCase, err
 
 // Execute validates the funding envelope and locks the amount. The
 // object, both parties, a positive amount and a future expiry stop
-// malformed calls before any store is touched.
+// malformed calls before any store is touched. Seasonal books
+// additionally bind the terminal clause of section 5.1 before any
+// lock: absence or divergence refuses new funding, and the deadline
+// never passes the book end.
 func (uc *FundContractUseCase) Execute(ctx context.Context, cmd FundCommand) (*ContractView, error) {
-	if _, err := domain.FundContract(domain.ContractRequest(cmd)); err != nil {
+	season := domain.SeasonKey(domain.CompatSeasonKey)
+	if cmd.Season != "" {
+		parsed, err := domain.ParseSeasonKey(cmd.Season)
+		if err != nil {
+			return nil, err
+		}
+		season = parsed
+	}
+	if err := domain.RequireSeasonalReset(season, cmd.ResetAcknowledged); err != nil {
 		return nil, err
 	}
-	request := FundRequest(cmd)
-	request.Now = cmd.Now.UTC()
+	base := domain.ContractRequest{
+		Key: cmd.Key, Object: cmd.Object, Buyer: cmd.Buyer,
+		Provider: cmd.Provider, AmountMill: cmd.AmountMill,
+		ExpiresAt: cmd.ExpiresAt, Now: cmd.Now,
+	}
+	if season == domain.SeasonKey(domain.CompatSeasonKey) {
+		if _, err := domain.FundContract(base); err != nil {
+			return nil, err
+		}
+	} else {
+		if _, err := domain.FundSeasonalContract(domain.SeasonalContractRequest{
+			ContractRequest: base, Season: season,
+			PolicyRef: cmd.PolicyRef, PolicyHash: cmd.PolicyHash,
+			BuyerAccept: cmd.BuyerAccept, ProviderAccept: cmd.ProviderAccept,
+			SeasonEndsAt: cmd.SeasonEndsAt.UTC(), ResetAcknowledged: cmd.ResetAcknowledged,
+		}); err != nil {
+			return nil, err
+		}
+	}
+	request := FundRequest{
+		Key: cmd.Key, Object: cmd.Object, Buyer: cmd.Buyer,
+		Provider: cmd.Provider, AmountMill: cmd.AmountMill,
+		ExpiresAt: cmd.ExpiresAt, Now: cmd.Now.UTC(),
+		Season: season, PolicyRef: cmd.PolicyRef, PolicyHash: cmd.PolicyHash,
+		BuyerAccept: cmd.BuyerAccept, ProviderAccept: cmd.ProviderAccept,
+		SeasonEndsAt: cmd.SeasonEndsAt.UTC(),
+	}
 	return uc.escrows.FundContract(ctx, request)
 }
 
 // FundCommand names one trade funding: the caller operation token,
 // the service object, both parties, the exact amount and the
-// expiry. Only formal trade enters escrow.
-type FundCommand domain.ContractRequest
+// expiry. Only formal trade enters escrow. Season names the
+// commerce book (empty binds compat-legacy for the legacy path);
+// seasonal books additionally carry the terminal policy with both
+// accepts and the exclusive book end bounding the deadline.
+type FundCommand struct {
+	Key               string
+	Object            string
+	Buyer             string
+	Provider          string
+	AmountMill        int64
+	ExpiresAt         time.Time
+	Now               time.Time
+	Season            string
+	PolicyRef         string
+	PolicyHash        string
+	BuyerAccept       string
+	ProviderAccept    string
+	SeasonEndsAt      time.Time
+	ResetAcknowledged bool
+}
 
 // AcceptDeliveryUseCase records one buyer delivery acceptance.
 type AcceptDeliveryUseCase struct {

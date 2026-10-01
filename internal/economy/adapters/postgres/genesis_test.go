@@ -31,7 +31,7 @@ func genesisCtx() (context.Context, context.CancelFunc) {
 
 func runGenesis(t *testing.T, repo *postgres.Repository, ctx context.Context, key string) *application.GenesisResult {
 	t.Helper()
-	result, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustGenesisKey(t, key)})
+	result, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustGenesisKey(t, key), Season: domain.SeasonKey(domain.CompatSeasonKey)})
 	if err != nil {
 		t.Fatalf("RunGenesis(%q): %v", key, err)
 	}
@@ -139,7 +139,7 @@ func TestGenesisConcurrentSameKeyCreatesOne(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			results[i], errs[i] = repo.RunGenesis(ctx, application.GenesisRequest{Key: mustGenesisKey(t, "genesis-race")})
+			results[i], errs[i] = repo.RunGenesis(ctx, application.GenesisRequest{Key: mustGenesisKey(t, "genesis-race"), Season: domain.SeasonKey(domain.CompatSeasonKey)})
 		}(i)
 	}
 	wg.Wait()
@@ -181,7 +181,7 @@ func TestGenesisConcurrentDistinctKeysRefusesSecond(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 			_, errs[i] = repo.RunGenesis(ctx, application.GenesisRequest{
-				Key: mustGenesisKey(t, fmt.Sprintf("genesis-key-%d", i)),
+				Key: mustGenesisKey(t, fmt.Sprintf("genesis-key-%d", i)), Season: domain.SeasonKey(domain.CompatSeasonKey),
 			})
 			founded[i] = errs[i] == nil
 		}(i)
@@ -259,7 +259,7 @@ func TestGenesisSecondKeyRefused(t *testing.T) {
 
 	repo := postgres.NewRepository(pool)
 	runGenesis(t, repo, ctx, "genesis-original")
-	_, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustGenesisKey(t, "genesis-second")})
+	_, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustGenesisKey(t, "genesis-second"), Season: domain.SeasonKey(domain.CompatSeasonKey)})
 	if !errors.Is(err, domain.ErrGenesisAlreadyExists) {
 		t.Fatalf("second Genesis key = %v, want ErrGenesisAlreadyExists", err)
 	}

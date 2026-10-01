@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/AlexandreZanata/Regnovum/internal/economy/application"
+	"github.com/AlexandreZanata/Regnovum/internal/economy/domain"
 )
 
 var _ application.CustodyTotalsRepository = (*Repository)(nil)
@@ -18,20 +19,20 @@ var _ application.CustodyTotalsRepository = (*Repository)(nil)
 // the use-case cache bounds how often readers pay for it. Obligation
 // custodies never enter any Treasury number, and no identifier beside
 // the closed vault labels leaves this function.
-func (r *Repository) ReadCustodyTotals(ctx context.Context) (*application.CustodyTotalsReading, error) {
-	vaults, total, err := r.ReadTreasuryVaults(ctx)
+func (r *Repository) ReadCustodyTotals(ctx context.Context, season domain.SeasonKey) (*application.CustodyTotalsReading, error) {
+	vaults, total, err := r.ReadTreasuryVaults(ctx, season)
 	if err != nil {
 		return nil, err
 	}
-	supply, err := r.readTotalsSupply(ctx)
+	supply, err := r.readTotalsSupply(ctx, season)
 	if err != nil {
 		return nil, err
 	}
-	circulation, holders, err := r.readTotalsCirculation(ctx)
+	circulation, holders, err := r.readTotalsCirculation(ctx, season)
 	if err != nil {
 		return nil, err
 	}
-	locked, holds, err := r.readTotalsLocked(ctx)
+	locked, holds, err := r.readTotalsLocked(ctx, season)
 	if err != nil {
 		return nil, err
 	}
@@ -61,14 +62,15 @@ func (r *Repository) ReadCustodyTotals(ctx context.Context) (*application.Custod
 	return reading, nil
 }
 
-// readTotalsSupply recomputes the supply as credits minus debits over
-// the whole journal: the Genesis credit is the single lawful excess.
-func (r *Repository) readTotalsSupply(ctx context.Context) (int64, error) {
+// readTotalsSupply recomputes the supply of one book as credits minus
+// debits over its journal: the Genesis credit is the single lawful
+// excess.
+func (r *Repository) readTotalsSupply(ctx context.Context, season domain.SeasonKey) (int64, error) {
 	var credits, debits int64
 	err := r.pool.QueryRow(ctx,
 		`SELECT COALESCE(SUM(amount_milli) FILTER (WHERE direction = 'credit'), 0),
 		        COALESCE(SUM(amount_milli) FILTER (WHERE direction = 'debit'), 0)
-		 FROM app.economy_entries`).Scan(&credits, &debits)
+		 FROM app.economy_entries WHERE season_key = $1`, season.String()).Scan(&credits, &debits)
 	if err != nil {
 		return 0, fmt.Errorf("sum totals supply: %w", err)
 	}
@@ -78,13 +80,13 @@ func (r *Repository) readTotalsSupply(ctx context.Context) (int64, error) {
 // readTotalsCirculation sums holder custodies with their distinct
 // count for the low-count rule. Holder labels never leave: only the
 // amount and the count travel.
-func (r *Repository) readTotalsCirculation(ctx context.Context) (millis, holders int64, err error) {
+func (r *Repository) readTotalsCirculation(ctx context.Context, season domain.SeasonKey) (millis, holders int64, err error) {
 	err = r.pool.QueryRow(ctx,
 		`SELECT COALESCE(SUM(CASE e.direction WHEN 'credit' THEN e.amount_milli ELSE -e.amount_milli END), 0),
 		        COUNT(DISTINCT c.id)
 		 FROM app.economy_custodies c
 		 LEFT JOIN app.economy_entries e ON e.custody_id = c.id
-		 WHERE c.kind = 'user'`).Scan(&millis, &holders)
+		 WHERE c.kind = 'user' AND c.season_key = $1`, season.String()).Scan(&millis, &holders)
 	if err != nil {
 		return 0, 0, fmt.Errorf("sum totals circulation: %w", err)
 	}
@@ -94,10 +96,10 @@ func (r *Repository) readTotalsCirculation(ctx context.Context) (millis, holders
 // readTotalsLocked sums active holds with their count for the
 // low-count rule. Purposes and owners never leave: only the amount
 // and the count travel.
-func (r *Repository) readTotalsLocked(ctx context.Context) (millis, holds int64, err error) {
+func (r *Repository) readTotalsLocked(ctx context.Context, season domain.SeasonKey) (millis, holds int64, err error) {
 	err = r.pool.QueryRow(ctx,
 		`SELECT COALESCE(SUM(amount_milli), 0), COUNT(*)
-		 FROM app.economy_holds WHERE status = 'active'`).Scan(&millis, &holds)
+		 FROM app.economy_holds WHERE status = 'active' AND season_key = $1`, season.String()).Scan(&millis, &holds)
 	if err != nil {
 		return 0, 0, fmt.Errorf("sum totals locks: %w", err)
 	}

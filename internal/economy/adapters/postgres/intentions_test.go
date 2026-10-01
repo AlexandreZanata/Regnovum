@@ -32,7 +32,7 @@ func intentionCtx() (context.Context, context.CancelFunc) {
 func settleGenesisForIntentions(t *testing.T, ctx context.Context, pool *pgxpool.Pool) *postgres.Repository {
 	t.Helper()
 	repo := postgres.NewRepository(pool)
-	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-intentions")}); err != nil {
+	if _, err := repo.RunGenesis(ctx, application.GenesisRequest{Key: mustTransferKey(t, "genesis-intentions"), Season: domain.SeasonKey(domain.CompatSeasonKey)}); err != nil {
 		t.Fatalf("seed Genesis: %v", err)
 	}
 	return repo
@@ -40,11 +40,13 @@ func settleGenesisForIntentions(t *testing.T, ctx context.Context, pool *pgxpool
 
 func settle(t *testing.T, ctx context.Context, repo *postgres.Repository, key, actor, operation, toLabel string, millis int64) (*application.IdempotentTransferResult, error) {
 	t.Helper()
-	useCase := application.NewIdempotentTransferUseCase(repo)
+	useCase := application.NewIdempotentTransferUseCase(repo, repo)
 	return useCase.Execute(ctx, application.IdempotentTransferCommand{
 		Key: key, Actor: actor, Operation: operation,
-		FromKind: "treasury", FromLabel: "main",
-		ToKind: "user", ToLabel: toLabel,
+		FromSeason: domain.CompatSeasonKey,
+		FromKind:   "treasury", FromLabel: "main",
+		ToSeason: domain.CompatSeasonKey,
+		ToKind:   "user", ToLabel: toLabel,
 		Millis: millis,
 	})
 }
@@ -150,11 +152,13 @@ func TestIntentionSimultaneousDuplicatesCollapse(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			useCase := application.NewIdempotentTransferUseCase(repo)
+			useCase := application.NewIdempotentTransferUseCase(repo, repo)
 			results[i], errs[i] = useCase.Execute(ctx, application.IdempotentTransferCommand{
 				Key: "order-race", Actor: "ophelia", Operation: "sale",
-				FromKind: "treasury", FromLabel: "main",
-				ToKind: "user", ToLabel: "ana",
+				FromSeason: domain.CompatSeasonKey,
+				FromKind:   "treasury", FromLabel: "main",
+				ToSeason: domain.CompatSeasonKey,
+				ToKind:   "user", ToLabel: "ana",
 				Millis: 1000,
 			})
 		}(i)
@@ -204,11 +208,13 @@ func TestIntentionCrashFrontiersSettleZeroOrOne(t *testing.T) {
 	// Frontier 1: crash before any write (cancelled command).
 	cancelled, stop := context.WithCancel(context.Background())
 	stop()
-	useCase := application.NewIdempotentTransferUseCase(repo)
+	useCase := application.NewIdempotentTransferUseCase(repo, repo)
 	if _, err := useCase.Execute(cancelled, application.IdempotentTransferCommand{
 		Key: "order-cancelled", Actor: "ophelia", Operation: "sale",
-		FromKind: "treasury", FromLabel: "main",
-		ToKind: "user", ToLabel: "ana",
+		FromSeason: domain.CompatSeasonKey,
+		FromKind:   "treasury", FromLabel: "main",
+		ToSeason: domain.CompatSeasonKey,
+		ToKind:   "user", ToLabel: "ana",
 		Millis: 100,
 	}); err == nil {
 		t.Fatalf("cancelled intention succeeded")

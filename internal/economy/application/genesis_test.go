@@ -24,13 +24,20 @@ func (s *stubGenesisRepository) RunGenesis(_ context.Context, _ application.Gene
 	return s.result, s.err
 }
 
+// stubSeasonBooks permits every book: book gating itself is proven
+// against PostgreSQL, where lifecycle rows exist.
+type stubSeasonBooks struct{}
+
+func (stubSeasonBooks) RequirePrepared(context.Context, domain.SeasonKey) error { return nil }
+func (stubSeasonBooks) RequireActive(context.Context, domain.SeasonKey) error   { return nil }
+
 func TestGenesisUseCaseRefusesInvalidKeys(t *testing.T) {
 	t.Parallel()
 
 	for _, key := range []string{"", "   ", strings.Repeat("k", 129), "gen\x00esis", "gen\tes\u200bis"} {
 		stub := &stubGenesisRepository{}
-		useCase := application.NewGenesisUseCase(stub)
-		if _, err := useCase.Execute(context.Background(), application.GenesisCommand{Key: key}); !errors.Is(err, domain.ErrInvalidGenesisKey) {
+		useCase := application.NewGenesisUseCase(stub, stubSeasonBooks{})
+		if _, err := useCase.Execute(context.Background(), application.GenesisCommand{Key: key, Season: domain.CompatSeasonKey}); !errors.Is(err, domain.ErrInvalidGenesisKey) {
 			t.Errorf("Execute(%q) = %v, want ErrInvalidGenesisKey", key, err)
 		}
 		if stub.called != 0 {
@@ -39,13 +46,26 @@ func TestGenesisUseCaseRefusesInvalidKeys(t *testing.T) {
 	}
 }
 
+func TestGenesisUseCaseRefusesMissingSeason(t *testing.T) {
+	t.Parallel()
+
+	stub := &stubGenesisRepository{}
+	useCase := application.NewGenesisUseCase(stub, stubSeasonBooks{})
+	if _, err := useCase.Execute(context.Background(), application.GenesisCommand{Key: "genesis-key"}); !errors.Is(err, domain.ErrMissingSeason) {
+		t.Errorf("Execute without season = %v, want ErrMissingSeason", err)
+	}
+	if stub.called != 0 {
+		t.Errorf("seasonless command reached the repository: missing books never touch storage")
+	}
+}
+
 func TestGenesisUseCaseMapsRepositoryOutcome(t *testing.T) {
 	t.Parallel()
 
 	want := &application.GenesisResult{TreasuryCustodyID: "treasury-id", Amount: domain.GenesisSupply()}
 	stub := &stubGenesisRepository{result: want}
-	useCase := application.NewGenesisUseCase(stub)
-	got, err := useCase.Execute(context.Background(), application.GenesisCommand{Key: "genesis-key"})
+	useCase := application.NewGenesisUseCase(stub, stubSeasonBooks{})
+	got, err := useCase.Execute(context.Background(), application.GenesisCommand{Key: "genesis-key", Season: domain.CompatSeasonKey})
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -54,8 +74,8 @@ func TestGenesisUseCaseMapsRepositoryOutcome(t *testing.T) {
 	}
 
 	stub = &stubGenesisRepository{err: domain.ErrGenesisAlreadyExists}
-	useCase = application.NewGenesisUseCase(stub)
-	if _, err := useCase.Execute(context.Background(), application.GenesisCommand{Key: "other-key"}); !errors.Is(err, domain.ErrGenesisAlreadyExists) {
+	useCase = application.NewGenesisUseCase(stub, stubSeasonBooks{})
+	if _, err := useCase.Execute(context.Background(), application.GenesisCommand{Key: "other-key", Season: domain.CompatSeasonKey}); !errors.Is(err, domain.ErrGenesisAlreadyExists) {
 		t.Fatalf("Execute with a second key = %v, want ErrGenesisAlreadyExists", err)
 	}
 }

@@ -320,7 +320,7 @@ func newOracleHarness(tb testing.TB, ctx context.Context, pool *pgxpool.Pool) *o
 // in the model so both sides start equal.
 func (h *oracleHarness) fund() {
 	h.tb.Helper()
-	if _, err := h.repo.RunGenesis(h.ctx, application.GenesisRequest{Key: mustTransferKey(h.tb, "genesis-oracle")}); err != nil {
+	if _, err := h.repo.RunGenesis(h.ctx, application.GenesisRequest{Key: mustTransferKey(h.tb, "genesis-oracle"), Season: domain.SeasonKey(domain.CompatSeasonKey)}); err != nil {
 		h.tb.Fatalf("seed Genesis: %v", err)
 	}
 	for i := 1; i < len(oracleCustodies); i++ {
@@ -334,8 +334,10 @@ func (h *oracleHarness) fund() {
 			h.tb.Fatalf("ParseCustodyKind: %v", err)
 		}
 		if _, err := h.repo.Transfer(h.ctx, application.TransferRequest{
-			FromKind: domain.CustodyTreasury, FromLabel: "main",
-			ToKind: kind, ToLabel: oracleCustodies[i].label,
+			FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+			FromKind:   domain.CustodyTreasury, FromLabel: "main",
+			ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+			ToKind:   kind, ToLabel: oracleCustodies[i].label,
 			Amount: amount,
 		}); err != nil {
 			h.tb.Fatalf("fund %s: %v", oracleCustodies[i].label, err)
@@ -399,8 +401,10 @@ func (h *oracleHarness) applyPG(op oracleOp) string {
 			millis = 0
 		}
 		_, err := h.repo.Transfer(h.ctx, application.TransferRequest{
-			FromKind: domain.CustodyKind(fromKind), FromLabel: fromLabel,
-			ToKind: domain.CustodyKind(toKind), ToLabel: toLabel,
+			FromSeason: domain.SeasonKey(domain.CompatSeasonKey),
+			FromKind:   domain.CustodyKind(fromKind), FromLabel: fromLabel,
+			ToSeason: domain.SeasonKey(domain.CompatSeasonKey),
+			ToKind:   domain.CustodyKind(toKind), ToLabel: toLabel,
 			Amount: scriptAmount(millis),
 		})
 		return pgOutcomeCode(err)
@@ -410,9 +414,11 @@ func (h *oracleHarness) applyPG(op oracleOp) string {
 			expiresAt = h.clock.Add(-2 * time.Hour)
 		}
 		purpose, _ := domain.ParseHoldPurpose(fmt.Sprintf("script-%d", op.key))
-		view, err := h.repo.Reserve(h.ctx,
-			domain.CustodyKind(oracleCustodies[from].kind), oracleCustodies[from].label,
-			purpose, scriptAmount(op.amount), expiresAt)
+		view, err := h.repo.Reserve(h.ctx, application.HoldReservation{
+			Season:    domain.SeasonKey(domain.CompatSeasonKey),
+			OwnerKind: domain.CustodyKind(oracleCustodies[from].kind), OwnerLabel: oracleCustodies[from].label,
+			Purpose: purpose, Amount: scriptAmount(op.amount), ExpiresAt: expiresAt,
+		})
 		code := pgOutcomeCode(err)
 		if code == "ok" {
 			h.holds = append(h.holds, view.HoldID)
@@ -428,11 +434,13 @@ func (h *oracleHarness) applyPG(op oracleOp) string {
 		_, err := h.repo.Expire(h.ctx, h.holdIDAt(op.hold))
 		return pgOutcomeCode(err)
 	case opIntention:
-		useCase := application.NewIdempotentTransferUseCase(h.repo)
+		useCase := application.NewIdempotentTransferUseCase(h.repo, h.repo)
 		_, err := useCase.Execute(h.ctx, application.IdempotentTransferCommand{
 			Key: scriptKey(op.key), Actor: scriptActor(op.actor), Operation: "script-op",
-			FromKind: "treasury", FromLabel: "main",
-			ToKind: oracleCustodies[to].kind, ToLabel: oracleCustodies[to].label,
+			FromSeason: domain.CompatSeasonKey,
+			FromKind:   "treasury", FromLabel: "main",
+			ToSeason: domain.CompatSeasonKey,
+			ToKind:   oracleCustodies[to].kind, ToLabel: oracleCustodies[to].label,
 			Millis: max(op.amount, 1),
 		})
 		code := pgOutcomeCode(err)
@@ -441,7 +449,7 @@ func (h *oracleHarness) applyPG(op oracleOp) string {
 		}
 		return code
 	default:
-		_, err := h.repo.RunGenesis(h.ctx, application.GenesisRequest{Key: mustTransferKey(h.tb, "genesis-oracle")})
+		_, err := h.repo.RunGenesis(h.ctx, application.GenesisRequest{Key: mustTransferKey(h.tb, "genesis-oracle"), Season: domain.SeasonKey(domain.CompatSeasonKey)})
 		if err == nil {
 			return "replayed"
 		}

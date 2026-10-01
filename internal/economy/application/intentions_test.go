@@ -29,8 +29,10 @@ func (s *stubIntentionRepository) TransferIdempotent(_ context.Context, request 
 func intentionCommand(key, actor, operation string) application.IdempotentTransferCommand {
 	return application.IdempotentTransferCommand{
 		Key: key, Actor: actor, Operation: operation,
-		FromKind: "treasury", FromLabel: "main",
-		ToKind: "user", ToLabel: "ana",
+		FromSeason: domain.CompatSeasonKey,
+		FromKind:   "treasury", FromLabel: "main",
+		ToSeason: domain.CompatSeasonKey,
+		ToKind:   "user", ToLabel: "ana",
 		Millis: 250,
 	}
 }
@@ -59,7 +61,7 @@ func TestIdempotentUseCaseRefusesInvalidCommands(t *testing.T) {
 			t.Parallel()
 
 			stub := &stubIntentionRepository{}
-			useCase := application.NewIdempotentTransferUseCase(stub)
+			useCase := application.NewIdempotentTransferUseCase(stub, stubSeasonBooks{})
 			cmd := intentionCommand("key-1", "ophelia", "sale")
 			test.mutate(&cmd)
 			if _, err := useCase.Execute(context.Background(), cmd); !errors.Is(err, test.err) {
@@ -76,7 +78,7 @@ func TestIdempotentUseCaseBindsHashToPayload(t *testing.T) {
 	t.Parallel()
 
 	stub := &stubIntentionRepository{result: &application.IdempotentTransferResult{}}
-	useCase := application.NewIdempotentTransferUseCase(stub)
+	useCase := application.NewIdempotentTransferUseCase(stub, stubSeasonBooks{})
 	first := intentionCommand("key-1", "ophelia", "sale")
 	if _, err := useCase.Execute(context.Background(), first); err != nil {
 		t.Fatalf("Execute: %v", err)
@@ -112,7 +114,7 @@ func TestIdempotentUseCaseMapsRepositoryOutcome(t *testing.T) {
 	}
 	want := &application.IdempotentTransferResult{TransferID: "transfer-id", Debited: debited, Credited: debited}
 	stub := &stubIntentionRepository{result: want}
-	useCase := application.NewIdempotentTransferUseCase(stub)
+	useCase := application.NewIdempotentTransferUseCase(stub, stubSeasonBooks{})
 	got, err := useCase.Execute(context.Background(), intentionCommand("key-1", "ophelia", "sale"))
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
@@ -122,7 +124,7 @@ func TestIdempotentUseCaseMapsRepositoryOutcome(t *testing.T) {
 	}
 
 	stub = &stubIntentionRepository{err: domain.ErrIntentionConflict}
-	useCase = application.NewIdempotentTransferUseCase(stub)
+	useCase = application.NewIdempotentTransferUseCase(stub, stubSeasonBooks{})
 	if _, err := useCase.Execute(context.Background(), intentionCommand("key-1", "ophelia", "sale")); !errors.Is(err, domain.ErrIntentionConflict) {
 		t.Fatalf("Execute with a conflicting payload = %v, want ErrIntentionConflict", err)
 	}

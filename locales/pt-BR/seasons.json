@@ -1,0 +1,19 @@
+{
+  "seasons": {
+    "current": {
+      "title": "Temporada atual"
+    },
+    "history": {
+      "title": "Histórico de temporadas",
+      "empty": "Nenhuma temporada ainda"
+    },
+    "detail": {
+      "title": "Temporada",
+      "state": "Estado do ciclo"
+    },
+    "failure": {
+      "title": "Temporada indisponível",
+      "detail": "Confira os dados e tente novamente."
+    }
+  }
+}

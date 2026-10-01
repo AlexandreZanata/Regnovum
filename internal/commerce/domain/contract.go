@@ -100,15 +100,24 @@ func (d ResolveDecision) String() string { return string(d) }
 // parties, the exact amount, the expiry and the sealed terms. Only
 // trade kind enters escrow: gifts never lock, refunds flow through
 // their own linked entries and treasury movements are not payments.
+// Season names the commerce book and the terminal policy with both
+// accepts travel beside the seal: the seal covers object, parties,
+// amount and expiry, the book and clause checks match seasons and
+// terms before any intention opens.
 type TradeContract struct {
-	Key        string
-	Object     string
-	Buyer      string
-	Provider   string
-	AmountMill int64
-	ExpiresAt  time.Time
-	Status     ContractStatus
-	Hash       string
+	Key            string
+	Object         string
+	Buyer          string
+	Provider       string
+	AmountMill     int64
+	ExpiresAt      time.Time
+	Status         ContractStatus
+	Hash           string
+	Season         SeasonKey
+	PolicyRef      string
+	PolicyHash     string
+	BuyerAccept    string
+	ProviderAccept string
 }
 
 // ContractRequest carries the fields of one funding. Every value
@@ -126,7 +135,8 @@ type ContractRequest struct {
 
 // FundContract seals one trade contract in funded state. Blank
 // objects, unknown parties, non-positive amounts and past expiries
-// refuse before anything locks.
+// refuse before anything locks. The legacy path binds the
+// explicitly inactive compat-legacy book with no terminal clause.
 func FundContract(req ContractRequest) (TradeContract, error) {
 	key, err := parseContractToken(req.Key)
 	if err != nil {
@@ -156,9 +166,51 @@ func FundContract(req ContractRequest) (TradeContract, error) {
 	contract := TradeContract{
 		Key: key, Object: object, Buyer: buyer, Provider: provider,
 		AmountMill: req.AmountMill, ExpiresAt: req.ExpiresAt.UTC(),
-		Status: ContractFunded,
+		Status: ContractFunded, Season: SeasonKey(CompatSeasonKey),
 	}
 	contract.Hash = sealContract(contract)
+	return contract, nil
+}
+
+// SeasonalContractRequest carries one seasonal funding beside the
+// formal terms: the book with its exclusive end, the terminal
+// policy with its hash, the accept evidence of both parties and
+// the reset acknowledgement shown before funding.
+type SeasonalContractRequest struct {
+	ContractRequest
+	Season            SeasonKey
+	PolicyRef         string
+	PolicyHash        string
+	BuyerAccept       string
+	ProviderAccept    string
+	SeasonEndsAt      time.Time
+	ResetAcknowledged bool
+}
+
+// FundSeasonalContract seals one trade contract in one commerce
+// book: the terminal clause of section 5.1 is required outside
+// compat-legacy, and the deadline never passes the book end. The
+// seal still covers object, parties, amount and expiry; the book
+// and clause travel beside it and are matched before any escrow
+// opens. Absence or divergence refuses new seasonal funding.
+func FundSeasonalContract(req SeasonalContractRequest) (TradeContract, error) {
+	contract, err := FundContract(req.ContractRequest)
+	if err != nil {
+		return TradeContract{}, err
+	}
+	terms := SeasonalTradeTerms{
+		Season: req.Season, PolicyRef: req.PolicyRef, PolicyHash: req.PolicyHash,
+		BuyerAccept: req.BuyerAccept, ProviderAccept: req.ProviderAccept,
+		SeasonEndsAt: req.SeasonEndsAt, ResetAcknowledged: req.ResetAcknowledged,
+	}
+	if err := ValidateSeasonalTradeTerms(terms, contract.ExpiresAt); err != nil {
+		return TradeContract{}, err
+	}
+	contract.Season = req.Season
+	contract.PolicyRef = req.PolicyRef
+	contract.PolicyHash = req.PolicyHash
+	contract.BuyerAccept = req.BuyerAccept
+	contract.ProviderAccept = req.ProviderAccept
 	return contract, nil
 }
 
