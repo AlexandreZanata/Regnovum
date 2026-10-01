@@ -62,6 +62,28 @@ const (
 	// stated text and the deadline arrives after the opening
 	// inside the allowed cap.
 	CodeUnpublishedProceeding ErrorCode = "INQUISITION_UNPUBLISHED_PROCEEDING"
+	// CodeTamperedEvidence names a disclosure whose digest no
+	// longer matches the seal: evidence swapped after sealing
+	// discloses nothing.
+	CodeTamperedEvidence ErrorCode = "INQUISITION_TAMPERED_EVIDENCE"
+	// CodeUnnotifiedDefense names a disclosure without a prior
+	// notice to the defense: nobody meets sealed evidence
+	// without being notified first, and waivers without a
+	// stated motive open no unsealed phase.
+	CodeUnnotifiedDefense ErrorCode = "INQUISITION_UNNOTIFIED_DEFENSE"
+	// CodeUnsafeEvidence names a dangerous file offered as
+	// evidence: executables and scripts never circulate as
+	// proof, even sealed.
+	CodeUnsafeEvidence ErrorCode = "INQUISITION_UNSAFE_EVIDENCE"
+	// CodeExposedVictim names a disclosure leaking victim or
+	// minor identity: evidence carrying victim or minor data
+	// discloses only redacted, and the disclosed view never
+	// carries the raw payload.
+	CodeExposedVictim ErrorCode = "INQUISITION_EXPOSED_VICTIM"
+	// CodeUnsealedPhase names a severe case without its
+	// mandatory sealed phase: the case carries a sealed
+	// envelope or a motivated waiver, never neither.
+	CodeUnsealedPhase ErrorCode = "INQUISITION_UNSEALED_PHASE"
 )
 
 // DomainError represents an invariant or rule failure in the
@@ -154,5 +176,34 @@ var (
 	ErrUnpublishedProceeding = DomainError{
 		Code:    CodeUnpublishedProceeding,
 		Message: "the proceeding is unpublished: competence arrives as stated text and the deadline arrives after the opening inside the allowed cap",
+	}
+	// ErrTamperedEvidence refuses a disclosure whose digest no
+	// longer matches the seal.
+	ErrTamperedEvidence = DomainError{
+		Code:    CodeTamperedEvidence,
+		Message: "the evidence was swapped after the seal: disclosure binds the sealed digest or discloses nothing",
+	}
+	// ErrUnnotifiedDefense refuses a disclosure without prior
+	// notice to the defense.
+	ErrUnnotifiedDefense = DomainError{
+		Code:    CodeUnnotifiedDefense,
+		Message: "the defense was not notified: sealed evidence discloses only to the notified holder after the notice",
+	}
+	// ErrUnsafeEvidence refuses a dangerous file as evidence.
+	ErrUnsafeEvidence = DomainError{
+		Code:    CodeUnsafeEvidence,
+		Message: "the file is unsafe: executables and scripts never circulate as evidence, even sealed",
+	}
+	// ErrExposedVictim refuses a disclosure leaking victim or
+	// minor identity.
+	ErrExposedVictim = DomainError{
+		Code:    CodeExposedVictim,
+		Message: "the disclosure leaks the victim: evidence carrying victim or minor data discloses only redacted and never carries the raw payload",
+	}
+	// ErrUnsealedPhase refuses a severe case without a sealed
+	// envelope or a motivated waiver.
+	ErrUnsealedPhase = DomainError{
+		Code:    CodeUnsealedPhase,
+		Message: "the sealed phase is missing: a severe case carries a sealed envelope bound to the case or a motivated waiver, never neither",
 	}
 )
