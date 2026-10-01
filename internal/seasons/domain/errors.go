@@ -18,6 +18,22 @@ const (
 	// clock never runs backwards, and downtime never fills lapsed
 	// seasons by itself.
 	CodeStaleClock ErrorCode = "SEASONS_STALE_CLOCK"
+	// CodeCloseNotDue names a closing barrier recorded before the
+	// book end: the cutoff is the database clock at or past ends_at,
+	// never anticipated.
+	CodeCloseNotDue ErrorCode = "SEASONS_CLOSE_NOT_DUE"
+	// CodeCloseBlocked names a seal refused by open obligations: an
+	// indecisive contract, an active hold or a diverged snapshot
+	// preserves custody instead of choosing a destination.
+	CodeCloseBlocked ErrorCode = "SEASONS_CLOSE_BLOCKED"
+	// CodeStaleGeneration names a write from an older closing
+	// generation: after a takeover only the new generation moves the
+	// book.
+	CodeStaleGeneration ErrorCode = "SEASONS_STALE_GENERATION"
+	// CodeLeaseHeld names a takeover while another worker holds the
+	// lease: the book changes hands only past leased_until on the
+	// database clock.
+	CodeLeaseHeld ErrorCode = "SEASONS_LEASE_HELD"
 )
 
 // DomainError represents an invariant or rule failure in the seasons domain.
@@ -58,5 +74,34 @@ var (
 	ErrStaleClock = DomainError{
 		Code:    CodeStaleClock,
 		Message: "season instants never run backwards: transitions carry a live instant at or past the record",
+	}
+	// ErrCloseNotDue refuses a closing barrier before the book end:
+	// the cutoff is observed on the database clock, never
+	// anticipated.
+	ErrCloseNotDue = DomainError{
+		Code:    CodeCloseNotDue,
+		Message: "closing starts at or past the book end: early barriers admit nothing and drain nothing",
+	}
+	// ErrCloseBlocked refuses a seal while obligations stay open: an
+	// indecisive escrow, an active hold or a diverged snapshot keeps
+	// custody instead of choosing a destination. Absence of data never
+	// proves absence of litigation.
+	ErrCloseBlocked = DomainError{
+		Code:    CodeCloseBlocked,
+		Message: "open obligations block the seal: custody is preserved, nothing is confiscated and no successor opens",
+	}
+	// ErrStaleGeneration refuses a write from an older closing
+	// generation: after a takeover only the new generation moves the
+	// book, and replays carry the current generation.
+	ErrStaleGeneration = DomainError{
+		Code:    CodeStaleGeneration,
+		Message: "only the current closing generation moves the book: stale workers replays with the new generation or stand down",
+	}
+	// ErrLeaseHeld refuses a takeover while another worker holds the
+	// lease: the book changes hands only past leased_until, never by
+	// wall-clock guessing.
+	ErrLeaseHeld = DomainError{
+		Code:    CodeLeaseHeld,
+		Message: "the book is already held: takeover waits for the lease to lapse on the database clock",
 	}
 )

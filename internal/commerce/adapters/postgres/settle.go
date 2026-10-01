@@ -24,7 +24,7 @@ func (r *EscrowRepository) AcceptDelivery(ctx context.Context, key, buyer string
 	}
 	defer tx.Rollback(ctx)
 
-	row, err := scanEscrowRow(ctx, tx, buyer, key)
+	row, err := lockedEscrowRow(ctx, tx, buyer, key)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (r *EscrowRepository) ExpireContract(ctx context.Context, key, buyer string
 	}
 	defer tx.Rollback(ctx)
 
-	row, err := scanEscrowRow(ctx, tx, buyer, key)
+	row, err := lockedEscrowRow(ctx, tx, buyer, key)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +146,38 @@ type settleOrder struct {
 	toProvider bool
 }
 
+// lockedEscrowRow scans one buyer contract, pins its row and
+// re-reads it: the waiter authorizes on the fresh state. Lifecycle
+// steps serialize per contract because legless steps (accept,
+// expire) move nothing to lock on otherwise, and without this lock a
+// concurrent refund could commit beside them and leave a mixed
+// status over moved funds.
+func lockedEscrowRow(ctx context.Context, tx pgx.Tx, buyer, key string) (*escrowRow, error) {
+	row, err := scanEscrowRow(ctx, tx, buyer, key)
+	if err != nil {
+		return nil, err
+	}
+	if row == nil {
+		return nil, nil
+	}
+	if err := lockEscrowRow(ctx, tx, row.view.ID); err != nil {
+		return nil, err
+	}
+	return scanEscrowRow(ctx, tx, buyer, key)
+}
+
+// lockEscrowRow pins one contract row for the lifecycle step: all
+// steps of one escrow serialize here, so a legless step can never
+// commit beside a money-moving one. Locking reads are allowed by the
+// contract immutability trigger, which forbids rewrites, not locks.
+func lockEscrowRow(ctx context.Context, tx pgx.Tx, contractID string) error {
+	if _, err := tx.Exec(ctx,
+		`SELECT id FROM app.commerce_contracts WHERE id = $1::uuid FOR UPDATE`, contractID); err != nil {
+		return fmt.Errorf("lock escrow: %w", err)
+	}
+	return nil
+}
+
 // moveEscrow runs one money-moving lifecycle step in a single
 // transaction: the domain machine authorizes from the current
 // status, the escrow balance is rechecked exact, the legs move
@@ -160,6 +192,17 @@ func (r *EscrowRepository) moveEscrow(ctx context.Context, order settleOrder, au
 	defer tx.Rollback(ctx)
 
 	row, replay, err := r.loadAuthorizedEscrow(ctx, tx, order, authorize)
+	if err != nil || replay != nil {
+		return replay, err
+	}
+	// Serialize money-moving steps per contract before re-reading:
+	// custody locks alone cannot stop a legless step (accept, expire)
+	// from committing beside this one and leaving a mixed status over
+	// moved funds. The loser re-authorizes on the fresh row.
+	if err := lockEscrowRow(ctx, tx, row.view.ID); err != nil {
+		return nil, err
+	}
+	row, replay, err = r.loadAuthorizedEscrow(ctx, tx, order, authorize)
 	if err != nil || replay != nil {
 		return replay, err
 	}

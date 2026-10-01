@@ -9,6 +9,7 @@ import (
 
 	"github.com/AlexandreZanata/Regnovum/internal/economy/application"
 	"github.com/AlexandreZanata/Regnovum/internal/economy/domain"
+	seasondomain "github.com/AlexandreZanata/Regnovum/internal/seasons/domain"
 )
 
 var _ application.HoldsRepository = (*Repository)(nil)
@@ -209,6 +210,80 @@ func (r *Repository) Release(ctx context.Context, holdID string) (*application.H
 		return nil, err
 	}
 	return r.settleHold(ctx, holdID, owner, "released")
+}
+
+// ReleaseForClose settles one hold back to its owner under a fenced
+// seasonal drain token. Normal admission refuses closing books; the
+// closer is the authorized post-cutoff writer, fenced by generation
+// and owner verified against the stored run in the same transaction.
+// Already settled holds replay as settled without new legs, so crash
+// resume and concurrent closers never double-pay. Frozen books still
+// refuse, and cross-book drains never happen.
+func (r *Repository) ReleaseForClose(ctx context.Context, holdID string, drain seasondomain.CloseDrain) (bool, error) {
+	if err := drain.Valid(); err != nil {
+		return false, err
+	}
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return false, fmt.Errorf("begin close release transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	if err := requireUnfrozen(ctx, tx); err != nil {
+		return false, err
+	}
+	hold, err := lockHold(ctx, tx, holdID)
+	if err != nil {
+		return false, err
+	}
+	if hold.status == "released" || hold.status == "captured" {
+		return false, nil
+	}
+	if hold.status != "active" && hold.status != "expired" {
+		return false, domain.ErrHoldState
+	}
+	if hold.season != drain.Season {
+		return false, domain.ErrCrossSeason
+	}
+	if err := verifyCloseDrain(ctx, tx, drain); err != nil {
+		return false, err
+	}
+	var transferID string
+	if err := tx.QueryRow(ctx, `SELECT gen_random_uuid()::text`).Scan(&transferID); err != nil {
+		return false, fmt.Errorf("generate transfer id: %w", err)
+	}
+	if err := moveLegs(ctx, tx, legMove{transferID: transferID, fromID: hold.holdCustody, toID: hold.ownerID, millis: hold.millis, season: hold.season}); err != nil {
+		return false, err
+	}
+	if _, err := tx.Exec(ctx,
+		`UPDATE app.economy_holds SET status = 'released', closed_at = now() WHERE id = $1::uuid`,
+		holdID); err != nil {
+		return false, fmt.Errorf("close hold: %w", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return false, fmt.Errorf("commit close release: %w", err)
+	}
+	return true, nil
+}
+
+// verifyCloseDrain judges one drain token against the stored run
+// inside the caller transaction: same generation, same owner. Older
+// generations stand down and foreign owners wait for the lease.
+func verifyCloseDrain(ctx context.Context, tx pgx.Tx, drain seasondomain.CloseDrain) error {
+	var generation int64
+	var owner string
+	if err := tx.QueryRow(ctx,
+		`SELECT generation, lease_owner FROM app.season_close_runs WHERE season_key = $1`,
+		drain.Season).Scan(&generation, &owner); err != nil {
+		return seasondomain.ErrInvalidSeason
+	}
+	if generation != drain.Generation {
+		return seasondomain.ErrStaleGeneration
+	}
+	if owner != drain.Owner {
+		return seasondomain.ErrLeaseHeld
+	}
+	return nil
 }
 
 // Capture pays a hold in full to a beneficiary custody of the hold's
