@@ -6,42 +6,46 @@ import "fmt"
 type ErrorCode string
 
 const (
-	CodeNegativeMilliInk     ErrorCode = "ECONOMY_NEGATIVE_MILLIINK"
-	CodeInvalidMilliInk      ErrorCode = "ECONOMY_INVALID_MILLIINK"
-	CodeMilliInkOverflow     ErrorCode = "ECONOMY_MILLIINK_OVERFLOW"
-	CodeInsufficientMilliInk ErrorCode = "ECONOMY_INSUFFICIENT_MILLIINK"
-	CodeMilliInkPrecision    ErrorCode = "ECONOMY_MILLIINK_PRECISION"
-	CodeUnknownLocale        ErrorCode = "ECONOMY_UNKNOWN_LOCALE"
-	CodeInvalidGenesisKey    ErrorCode = "ECONOMY_INVALID_GENESIS_KEY"
-	CodeGenesisAlreadyExists ErrorCode = "ECONOMY_GENESIS_ALREADY_EXISTS"
-	CodeUnknownCustody       ErrorCode = "ECONOMY_UNKNOWN_CUSTODY"
-	CodeUnauthorizedCustody  ErrorCode = "ECONOMY_UNAUTHORIZED_CUSTODY"
-	CodeSameCustody          ErrorCode = "ECONOMY_SAME_CUSTODY"
-	CodeInvalidIntention     ErrorCode = "ECONOMY_INVALID_INTENTION"
-	CodeIntentionConflict    ErrorCode = "ECONOMY_INTENTION_CONFLICT"
-	CodeInvalidStatement     ErrorCode = "ECONOMY_INVALID_STATEMENT"
-	CodeStatementForbidden   ErrorCode = "ECONOMY_STATEMENT_FORBIDDEN"
-	CodeStatementSuspended   ErrorCode = "ECONOMY_STATEMENT_SUSPENDED"
-	CodeInvalidHold          ErrorCode = "ECONOMY_INVALID_HOLD"
-	CodeHoldState            ErrorCode = "ECONOMY_HOLD_STATE"
-	CodeHoldNotFound         ErrorCode = "ECONOMY_HOLD_NOT_FOUND"
-	CodeHoldNotExpired       ErrorCode = "ECONOMY_HOLD_NOT_EXPIRED"
-	CodeEconomyFrozen        ErrorCode = "ECONOMY_FROZEN"
-	CodeIncidentNotFound     ErrorCode = "ECONOMY_INCIDENT_NOT_FOUND"
-	CodeInvalidCharter       ErrorCode = "ECONOMY_INVALID_CHARTER"
-	CodeConsentRequired      ErrorCode = "ECONOMY_CONSENT_REQUIRED"
-	CodeConsentConflict      ErrorCode = "ECONOMY_CONSENT_CONFLICT"
-	CodeRateMismatch         ErrorCode = "ECONOMY_RATE_MISMATCH"
-	CodeOptInExpired         ErrorCode = "ECONOMY_OPTIN_EXPIRED"
-	CodeOptInMissing         ErrorCode = "ECONOMY_OPTIN_MISSING"
-	CodeInvalidGrant         ErrorCode = "ECONOMY_INVALID_GRANT"
-	CodeInvalidRefund        ErrorCode = "ECONOMY_INVALID_REFUND"
-	CodeInvalidDisbursement  ErrorCode = "ECONOMY_INVALID_DISBURSEMENT"
-	CodeInvalidTotals        ErrorCode = "ECONOMY_INVALID_TOTALS"
-	CodeMissingSeason        ErrorCode = "ECONOMY_MISSING_SEASON"
-	CodeCrossSeason          ErrorCode = "ECONOMY_CROSS_SEASON"
-	CodeBookSealed           ErrorCode = "ECONOMY_BOOK_SEALED"
-	CodeBookNotPrepared      ErrorCode = "ECONOMY_BOOK_NOT_PREPARED"
+	CodeNegativeMilliInk      ErrorCode = "ECONOMY_NEGATIVE_MILLIINK"
+	CodeInvalidMilliInk       ErrorCode = "ECONOMY_INVALID_MILLIINK"
+	CodeMilliInkOverflow      ErrorCode = "ECONOMY_MILLIINK_OVERFLOW"
+	CodeInsufficientMilliInk  ErrorCode = "ECONOMY_INSUFFICIENT_MILLIINK"
+	CodeMilliInkPrecision     ErrorCode = "ECONOMY_MILLIINK_PRECISION"
+	CodeUnknownLocale         ErrorCode = "ECONOMY_UNKNOWN_LOCALE"
+	CodeInvalidGenesisKey     ErrorCode = "ECONOMY_INVALID_GENESIS_KEY"
+	CodeGenesisAlreadyExists  ErrorCode = "ECONOMY_GENESIS_ALREADY_EXISTS"
+	CodeUnknownCustody        ErrorCode = "ECONOMY_UNKNOWN_CUSTODY"
+	CodeUnauthorizedCustody   ErrorCode = "ECONOMY_UNAUTHORIZED_CUSTODY"
+	CodeSameCustody           ErrorCode = "ECONOMY_SAME_CUSTODY"
+	CodeInvalidIntention      ErrorCode = "ECONOMY_INVALID_INTENTION"
+	CodeIntentionConflict     ErrorCode = "ECONOMY_INTENTION_CONFLICT"
+	CodeInvalidStatement      ErrorCode = "ECONOMY_INVALID_STATEMENT"
+	CodeStatementForbidden    ErrorCode = "ECONOMY_STATEMENT_FORBIDDEN"
+	CodeStatementSuspended    ErrorCode = "ECONOMY_STATEMENT_SUSPENDED"
+	CodeInvalidHold           ErrorCode = "ECONOMY_INVALID_HOLD"
+	CodeHoldState             ErrorCode = "ECONOMY_HOLD_STATE"
+	CodeHoldNotFound          ErrorCode = "ECONOMY_HOLD_NOT_FOUND"
+	CodeHoldNotExpired        ErrorCode = "ECONOMY_HOLD_NOT_EXPIRED"
+	CodeEconomyFrozen         ErrorCode = "ECONOMY_FROZEN"
+	CodeIncidentNotFound      ErrorCode = "ECONOMY_INCIDENT_NOT_FOUND"
+	CodeInvalidCharter        ErrorCode = "ECONOMY_INVALID_CHARTER"
+	CodeConsentRequired       ErrorCode = "ECONOMY_CONSENT_REQUIRED"
+	CodeConsentConflict       ErrorCode = "ECONOMY_CONSENT_CONFLICT"
+	CodeRateMismatch          ErrorCode = "ECONOMY_RATE_MISMATCH"
+	CodeOptInExpired          ErrorCode = "ECONOMY_OPTIN_EXPIRED"
+	CodeOptInMissing          ErrorCode = "ECONOMY_OPTIN_MISSING"
+	CodeInvalidGrant          ErrorCode = "ECONOMY_INVALID_GRANT"
+	CodeInvalidRefund         ErrorCode = "ECONOMY_INVALID_REFUND"
+	CodeInvalidDisbursement   ErrorCode = "ECONOMY_INVALID_DISBURSEMENT"
+	CodeInvalidTotals         ErrorCode = "ECONOMY_INVALID_TOTALS"
+	CodeMissingSeason         ErrorCode = "ECONOMY_MISSING_SEASON"
+	CodeCrossSeason           ErrorCode = "ECONOMY_CROSS_SEASON"
+	CodeBookSealed            ErrorCode = "ECONOMY_BOOK_SEALED"
+	CodeBookNotPrepared       ErrorCode = "ECONOMY_BOOK_NOT_PREPARED"
+	CodeInvalidDeadSettlement ErrorCode = "ECONOMY_INVALID_DEAD_SETTLEMENT"
+	CodeDeadOutOfOrder        ErrorCode = "ECONOMY_DEAD_OUT_OF_ORDER"
+	CodeDeadResidualBlocked   ErrorCode = "ECONOMY_DEAD_RESIDUAL_BLOCKED"
+	CodeDeadConflict          ErrorCode = "ECONOMY_DEAD_CONFLICT"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -206,5 +210,21 @@ var (
 	ErrBookNotPrepared = DomainError{
 		Code:    CodeBookNotPrepared,
 		Message: "genesis needs a prepared book: activation is a separate step, never implied by creation",
+	}
+	ErrInvalidDeadSettlement = DomainError{
+		Code:    CodeInvalidDeadSettlement,
+		Message: "dead settlement is malformed, confiscates by default or mints: bought stays, third never reaches the treasury",
+	}
+	ErrDeadOutOfOrder = DomainError{
+		Code:    CodeDeadOutOfOrder,
+		Message: "dead effect outside its ordered sequence: preserve, third, refunds, obligations, principal and residual run once in order",
+	}
+	ErrDeadResidualBlocked = DomainError{
+		Code:    CodeDeadResidualBlocked,
+		Message: "residual without contrato/lei basis, notice and lapsed appeal is blocked: no inference moves the remainder",
+	}
+	ErrDeadConflict = DomainError{
+		Code:    CodeDeadConflict,
+		Message: "effect key already recorded with different terms: replay returns the same state, divergence conflicts",
 	}
 )
