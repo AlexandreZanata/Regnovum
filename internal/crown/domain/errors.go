@@ -150,6 +150,15 @@ const (
 	// CodeOutcomePay names a fee conditioned on conviction: game
 	// offices are paid per service, never per result.
 	CodeOutcomePay ErrorCode = "CROWN_OUTCOME_PAY"
+	// CodeInvalidBlessing names a blessing without a new act, for a
+	// third party, by the beneficiary, with the sanction erased, or
+	// without the required charter acceptance: reset alone removes
+	// no sanction and a new act reopens only authentication.
+	CodeInvalidBlessing ErrorCode = "CROWN_INVALID_BLESSING"
+	// CodeMintedBlessing names a return carrying value or sealed
+	// wealth: revival never mints, never restores balance, office,
+	// contract or patent, and sealed-season wealth never reappears.
+	CodeMintedBlessing ErrorCode = "CROWN_MINTED_BLESSING"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -373,5 +382,16 @@ var (
 	ErrOutcomePay = DomainError{
 		Code:    CodeOutcomePay,
 		Message: "the fee follows the result: game offices are paid per service, never per conviction",
+	}
+	// ErrInvalidBlessing refuses a blessing without a new act for
+	// the account itself.
+	ErrInvalidBlessing = DomainError{
+		Code:    CodeInvalidBlessing,
+		Message: "the blessing is invalid: a new blessing act for the account, sanction kept visible, no third party, no self-blessing and charter acceptance when the version changes",
+	}
+	// ErrMintedBlessing refuses a return carrying value.
+	ErrMintedBlessing = DomainError{
+		Code:    CodeMintedBlessing,
+		Message: "the return mints: revival never recreates balance, office, contract or patent and sealed-season wealth never reappears",
 	}
 )
