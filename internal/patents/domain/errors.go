@@ -29,6 +29,27 @@ const (
 	// historic fact, and the new cycle needs a new grant with new
 	// acceptance.
 	CodeNewGrantRequired ErrorCode = "PATENT_NEW_GRANT_REQUIRED"
+	// CodeConsentRequired names an acquisition without explicit
+	// voluntary acceptance: entry into the patent contract is
+	// voluntary, so a missing acceptance blocks the sale.
+	CodeConsentRequired ErrorCode = "PATENT_CONSENT_REQUIRED"
+	// CodeDuplicateHold names a second distinct purchase by the
+	// same holder in the same season book: one holder holds one
+	// patent per book, so a divergent replay conflicts instead of
+	// duplicating the patent or its price.
+	CodeDuplicateHold ErrorCode = "PATENT_DUPLICATE_HOLD"
+	// CodeRevoked names life after revocation: a revoked patent
+	// stays visible with its rule and reason, but its use ends.
+	CodeRevoked ErrorCode = "PATENT_REVOKED"
+	// CodeDeathClosed names life after the account died: the use
+	// ends with the account, and a blessing restores
+	// participation without recreating the patent.
+	CodeDeathClosed ErrorCode = "PATENT_DEATH_CLOSED"
+	// CodeRefundClosed names life after a service-failure refund
+	// and any second or foreign-book refund: restitution happens
+	// once, in the origin book, with a treasury receipt, and never
+	// duplicates the patent or its price.
+	CodeRefundClosed ErrorCode = "PATENT_REFUND_CLOSED"
 )
 
 // DomainError represents an invariant or rule failure in the patents domain.
@@ -74,5 +95,30 @@ var (
 	ErrNewGrantRequired = DomainError{
 		Code:    CodeNewGrantRequired,
 		Message: "the new season needs a new grant: past honor is history, never a discount or an automatic power",
+	}
+	// ErrConsentRequired refuses an acquisition without voluntary acceptance.
+	ErrConsentRequired = DomainError{
+		Code:    CodeConsentRequired,
+		Message: "the acceptance is missing: entry into the patent contract is voluntary, silence never binds",
+	}
+	// ErrDuplicateHold refuses a second distinct purchase in the same book.
+	ErrDuplicateHold = DomainError{
+		Code:    CodeDuplicateHold,
+		Message: "the holder already holds this book: an identical replay returns the same holding, a different purchase conflicts",
+	}
+	// ErrRevoked refuses life after revocation.
+	ErrRevoked = DomainError{
+		Code:    CodeRevoked,
+		Message: "the patent was revoked: the fact stays visible with its rule and reason, but its use ended",
+	}
+	// ErrDeathClosed refuses life after the account died.
+	ErrDeathClosed = DomainError{
+		Code:    CodeDeathClosed,
+		Message: "the account died with its use: a blessing restores participation without recreating the patent",
+	}
+	// ErrRefundClosed refuses life after restitution and any second refund.
+	ErrRefundClosed = DomainError{
+		Code:    CodeRefundClosed,
+		Message: "the price was restituted: restitution happens once, in the origin book, with a treasury receipt, and never duplicates",
 	}
 )
