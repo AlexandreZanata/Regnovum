@@ -50,6 +50,26 @@ const (
 	// once, in the origin book, with a treasury receipt, and never
 	// duplicates the patent or its price.
 	CodeRefundClosed ErrorCode = "PATENT_REFUND_CLOSED"
+	// CodeCapExceeded names a sale past the ratified seat cap: the
+	// oversubscribed claim never lands, so neither patent nor
+	// price duplicates beyond the approved supply.
+	CodeCapExceeded ErrorCode = "PATENT_CAP_EXCEEDED"
+	// CodeFrozenSale names a sale while the book is frozen: the
+	// frozen book sells nothing, and publishing a new table over
+	// it never thaws it by side effect.
+	CodeFrozenSale ErrorCode = "PATENT_FROZEN_SALE"
+	// CodeRetroactiveChange names any rewrite of the past: a
+	// published version never changes content, and a granted
+	// patent never reprices under a newer table.
+	CodeRetroactiveChange ErrorCode = "PATENT_RETROACTIVE_CHANGE"
+	// CodeAuctionUnavailable names any auction path: the auction
+	// stays without endpoint, rule or execution, so an auction
+	// bid refuses instead of opening a sale.
+	CodeAuctionUnavailable ErrorCode = "PATENT_AUCTION_UNAVAILABLE"
+	// CodeIneligibleBuyer names a buyer outside the ratified
+	// eligible population: the table sells only to whom the
+	// approval names, never by inference.
+	CodeIneligibleBuyer ErrorCode = "PATENT_INELIGIBLE_BUYER"
 )
 
 // DomainError represents an invariant or rule failure in the patents domain.
@@ -120,5 +140,30 @@ var (
 	ErrRefundClosed = DomainError{
 		Code:    CodeRefundClosed,
 		Message: "the price was restituted: restitution happens once, in the origin book, with a treasury receipt, and never duplicates",
+	}
+	// ErrCapExceeded refuses a sale past the ratified seat cap.
+	ErrCapExceeded = DomainError{
+		Code:    CodeCapExceeded,
+		Message: "the seat cap is reached: the approved supply ends here, an oversubscribed claim never lands",
+	}
+	// ErrFrozenSale refuses a sale while the book is frozen.
+	ErrFrozenSale = DomainError{
+		Code:    CodeFrozenSale,
+		Message: "the book is frozen: a frozen supply sells nothing, and a new table never thaws it by side effect",
+	}
+	// ErrRetroactiveChange refuses any rewrite of the past.
+	ErrRetroactiveChange = DomainError{
+		Code:    CodeRetroactiveChange,
+		Message: "the past does not reprice: a published version never changes content, and a grant keeps its sale terms",
+	}
+	// ErrAuctionUnavailable refuses any auction path.
+	ErrAuctionUnavailable = DomainError{
+		Code:    CodeAuctionUnavailable,
+		Message: "the auction has no endpoint: bidding refuses instead of opening a sale, until a separate rule exists",
+	}
+	// ErrIneligibleBuyer refuses a buyer outside the eligible population.
+	ErrIneligibleBuyer = DomainError{
+		Code:    CodeIneligibleBuyer,
+		Message: "the buyer is not named by the approval: the table sells only to its eligible population, never by inference",
 	}
 )
