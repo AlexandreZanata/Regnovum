@@ -110,6 +110,26 @@ const (
 	// same ground and proof: twenty repeated pleas open no
 	// twenty cases, replay decides nothing new.
 	CodeRepeatedPetition ErrorCode = "INQUISITION_REPEATED_PETITION"
+	// CodeMissingExecutioner names an execution without a named
+	// carrasco: only the carrasco office executes, inside the
+	// authorized window; without it the penalty lapses and
+	// other sanctions stand.
+	CodeMissingExecutioner ErrorCode = "INQUISITION_MISSING_EXECUTIONER"
+	// CodeUntimelyExecution names an execution outside its
+	// authorized window: the act arrives at or after the
+	// authorization and strictly before the deadline, never at
+	// the exact tick and never past it.
+	CodeUntimelyExecution ErrorCode = "INQUISITION_UNTIMELY_EXECUTION"
+	// CodeDuplicateExecution names a second execution over the
+	// same order: one order executes at most once, a retry with
+	// the same executor and instant returns the same state and
+	// a divergent executor refuses.
+	CodeDuplicateExecution ErrorCode = "INQUISITION_DUPLICATE_EXECUTION"
+	// CodePardonedExecution names an execution blocked by a
+	// royal pardon before the act: the pardon stops only the
+	// execution, never the other sanctions, and a pardon after
+	// the act arrives too late.
+	CodePardonedExecution ErrorCode = "INQUISITION_PARDONED_EXECUTION"
 )
 
 // DomainError represents an invariant or rule failure in the
@@ -266,5 +286,29 @@ var (
 	ErrRepeatedPetition = DomainError{
 		Code:    CodeRepeatedPetition,
 		Message: "the plea repeats a denied one: the same ground and proof decide once, replay opens no new case",
+	}
+	// ErrMissingExecutioner refuses an execution without a named
+	// carrasco holder.
+	ErrMissingExecutioner = DomainError{
+		Code:    CodeMissingExecutioner,
+		Message: "the execution has no carrasco: only the carrasco office executes inside the authorized window, never by inference",
+	}
+	// ErrUntimelyExecution refuses an execution outside its
+	// authorized window.
+	ErrUntimelyExecution = DomainError{
+		Code:    CodeUntimelyExecution,
+		Message: "the execution is untimely: the act arrives at or after the authorization and strictly before the deadline",
+	}
+	// ErrDuplicateExecution refuses a second execution over the
+	// same order.
+	ErrDuplicateExecution = DomainError{
+		Code:    CodeDuplicateExecution,
+		Message: "the order already executed: one order executes at most once, retry returns the same state and a divergent executor refuses",
+	}
+	// ErrPardonedExecution refuses an execution blocked by a
+	// royal pardon before the act.
+	ErrPardonedExecution = DomainError{
+		Code:    CodePardonedExecution,
+		Message: "the execution is pardoned: a royal pardon before the act stops only the execution, never the other sanctions",
 	}
 )
