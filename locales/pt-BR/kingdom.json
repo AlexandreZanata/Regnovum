@@ -1,0 +1,62 @@
+{
+  "kingdom": {
+    "charter": {
+      "title": "Carta",
+      "version": "Carta {version}"
+    },
+    "quote": {
+      "title": "Cotação",
+      "expires": "Cotação válida até {date}"
+    },
+    "purchase": {
+      "title": "Compra",
+      "confirmed": "Compra {id} confirmada"
+    },
+    "ink": {
+      "title": "Tinta",
+      "balance": "Saldo {amount} milliINK"
+    },
+    "receipt": {
+      "title": "Recibo",
+      "issued": "Recibo {id} emitido em {date}"
+    },
+    "dispute": {
+      "title": "Disputa",
+      "opened": "Disputa {id} aberta"
+    },
+    "decree": {
+      "title": "Decreto",
+      "issued": "Decreto {id} publicado"
+    },
+    "inquisition": {
+      "title": "Inquisição",
+      "case": "Caso severo {id}"
+    },
+    "appeal": {
+      "title": "Recurso",
+      "due": "Recurso até {date}"
+    },
+    "death": {
+      "title": "Morte digital",
+      "notice": "Conta em morte digital desde {date}"
+    },
+    "season": {
+      "title": "Temporada",
+      "cutoff": "Corte da temporada {season} em {date}"
+    },
+    "historic_wealth": {
+      "title": "Riqueza histórica",
+      "sealed": "Riqueza histórica selada da temporada {season}"
+    },
+    "game_king": {
+      "title": "Rei de jogo",
+      "notice": "Rei de jogo: {alias}"
+    },
+    "expiry": {
+      "current_balance": "Saldo atual: {amount}",
+      "archived_balance": "Saldo arquivado: {amount}",
+      "operator_notice": "Aviso do operador: {detail}",
+      "season_king_notice": "Aviso do Rei de jogo: {detail}"
+    }
+  }
+}
