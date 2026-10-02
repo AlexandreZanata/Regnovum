@@ -236,6 +236,38 @@ export const messageKeys = {
     "errors.validation.detail",
     "errors.validation.title",
   ] as const,
+  kingdom: [
+    "kingdom.appeal.due",
+    "kingdom.appeal.title",
+    "kingdom.charter.title",
+    "kingdom.charter.version",
+    "kingdom.death.notice",
+    "kingdom.death.title",
+    "kingdom.decree.issued",
+    "kingdom.decree.title",
+    "kingdom.dispute.opened",
+    "kingdom.dispute.title",
+    "kingdom.expiry.archived_balance",
+    "kingdom.expiry.current_balance",
+    "kingdom.expiry.operator_notice",
+    "kingdom.expiry.season_king_notice",
+    "kingdom.game_king.notice",
+    "kingdom.game_king.title",
+    "kingdom.historic_wealth.sealed",
+    "kingdom.historic_wealth.title",
+    "kingdom.ink.balance",
+    "kingdom.ink.title",
+    "kingdom.inquisition.case",
+    "kingdom.inquisition.title",
+    "kingdom.purchase.confirmed",
+    "kingdom.purchase.title",
+    "kingdom.quote.expires",
+    "kingdom.quote.title",
+    "kingdom.receipt.issued",
+    "kingdom.receipt.title",
+    "kingdom.season.cutoff",
+    "kingdom.season.title",
+  ] as const,
   metering: [
     "metering.failure.detail",
     "metering.failure.title",
@@ -505,6 +537,36 @@ export type MessageKey =
   | "errors.unauthorized.title"
   | "errors.validation.detail"
   | "errors.validation.title"
+  | "kingdom.appeal.due"
+  | "kingdom.appeal.title"
+  | "kingdom.charter.title"
+  | "kingdom.charter.version"
+  | "kingdom.death.notice"
+  | "kingdom.death.title"
+  | "kingdom.decree.issued"
+  | "kingdom.decree.title"
+  | "kingdom.dispute.opened"
+  | "kingdom.dispute.title"
+  | "kingdom.expiry.archived_balance"
+  | "kingdom.expiry.current_balance"
+  | "kingdom.expiry.operator_notice"
+  | "kingdom.expiry.season_king_notice"
+  | "kingdom.game_king.notice"
+  | "kingdom.game_king.title"
+  | "kingdom.historic_wealth.sealed"
+  | "kingdom.historic_wealth.title"
+  | "kingdom.ink.balance"
+  | "kingdom.ink.title"
+  | "kingdom.inquisition.case"
+  | "kingdom.inquisition.title"
+  | "kingdom.purchase.confirmed"
+  | "kingdom.purchase.title"
+  | "kingdom.quote.expires"
+  | "kingdom.quote.title"
+  | "kingdom.receipt.issued"
+  | "kingdom.receipt.title"
+  | "kingdom.season.cutoff"
+  | "kingdom.season.title"
   | "metering.failure.detail"
   | "metering.failure.title"
   | "metering.quote.confirm"
@@ -768,6 +830,36 @@ export const messagePlaceholders = Object.freeze({
   "errors.unauthorized.title": [],
   "errors.validation.detail": [],
   "errors.validation.title": [],
+  "kingdom.appeal.due": ["date"],
+  "kingdom.appeal.title": [],
+  "kingdom.charter.title": [],
+  "kingdom.charter.version": ["version"],
+  "kingdom.death.notice": ["date"],
+  "kingdom.death.title": [],
+  "kingdom.decree.issued": ["id"],
+  "kingdom.decree.title": [],
+  "kingdom.dispute.opened": ["id"],
+  "kingdom.dispute.title": [],
+  "kingdom.expiry.archived_balance": ["amount"],
+  "kingdom.expiry.current_balance": ["amount"],
+  "kingdom.expiry.operator_notice": ["detail"],
+  "kingdom.expiry.season_king_notice": ["detail"],
+  "kingdom.game_king.notice": ["alias"],
+  "kingdom.game_king.title": [],
+  "kingdom.historic_wealth.sealed": ["season"],
+  "kingdom.historic_wealth.title": [],
+  "kingdom.ink.balance": ["amount"],
+  "kingdom.ink.title": [],
+  "kingdom.inquisition.case": ["id"],
+  "kingdom.inquisition.title": [],
+  "kingdom.purchase.confirmed": ["id"],
+  "kingdom.purchase.title": [],
+  "kingdom.quote.expires": ["date"],
+  "kingdom.quote.title": [],
+  "kingdom.receipt.issued": ["date", "id"],
+  "kingdom.receipt.title": [],
+  "kingdom.season.cutoff": ["date", "season"],
+  "kingdom.season.title": [],
   "metering.failure.detail": [],
   "metering.failure.title": [],
   "metering.quote.confirm": [],
@@ -1032,6 +1124,36 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "errors.unauthorized.title": "Authentication is required",
     "errors.validation.detail": "Check the submitted data and try again.",
     "errors.validation.title": "The request is invalid",
+    "kingdom.appeal.due": "Appeal due {date}",
+    "kingdom.appeal.title": "Appeal",
+    "kingdom.charter.title": "Charter",
+    "kingdom.charter.version": "Charter {version}",
+    "kingdom.death.notice": "Account in digital death since {date}",
+    "kingdom.death.title": "Digital death",
+    "kingdom.decree.issued": "Decree {id} published",
+    "kingdom.decree.title": "Decree",
+    "kingdom.dispute.opened": "Dispute {id} opened",
+    "kingdom.dispute.title": "Dispute",
+    "kingdom.expiry.archived_balance": "Archived balance: {amount}",
+    "kingdom.expiry.current_balance": "Current balance: {amount}",
+    "kingdom.expiry.operator_notice": "Operator notice: {detail}",
+    "kingdom.expiry.season_king_notice": "Game King notice: {detail}",
+    "kingdom.game_king.notice": "Game King: {alias}",
+    "kingdom.game_king.title": "Game King",
+    "kingdom.historic_wealth.sealed": "Sealed historic wealth of season {season}",
+    "kingdom.historic_wealth.title": "Historic wealth",
+    "kingdom.ink.balance": "Balance {amount} milliINK",
+    "kingdom.ink.title": "Ink",
+    "kingdom.inquisition.case": "Severe case {id}",
+    "kingdom.inquisition.title": "Inquisition",
+    "kingdom.purchase.confirmed": "Purchase {id} confirmed",
+    "kingdom.purchase.title": "Purchase",
+    "kingdom.quote.expires": "Quote valid until {date}",
+    "kingdom.quote.title": "Quote",
+    "kingdom.receipt.issued": "Receipt {id} issued on {date}",
+    "kingdom.receipt.title": "Receipt",
+    "kingdom.season.cutoff": "Season {season} cutoff on {date}",
+    "kingdom.season.title": "Season",
     "metering.failure.detail": "Check the data and request a new quote.",
     "metering.failure.title": "Charge unavailable",
     "metering.quote.confirm": "Confirm publication",
@@ -1293,6 +1415,36 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "errors.unauthorized.title": "Autenticação é necessária",
     "errors.validation.detail": "Verifique os dados enviados e tente novamente.",
     "errors.validation.title": "A requisição é inválida",
+    "kingdom.appeal.due": "Recurso até {date}",
+    "kingdom.appeal.title": "Recurso",
+    "kingdom.charter.title": "Carta",
+    "kingdom.charter.version": "Carta {version}",
+    "kingdom.death.notice": "Conta em morte digital desde {date}",
+    "kingdom.death.title": "Morte digital",
+    "kingdom.decree.issued": "Decreto {id} publicado",
+    "kingdom.decree.title": "Decreto",
+    "kingdom.dispute.opened": "Disputa {id} aberta",
+    "kingdom.dispute.title": "Disputa",
+    "kingdom.expiry.archived_balance": "Saldo arquivado: {amount}",
+    "kingdom.expiry.current_balance": "Saldo atual: {amount}",
+    "kingdom.expiry.operator_notice": "Aviso do operador: {detail}",
+    "kingdom.expiry.season_king_notice": "Aviso do Rei de jogo: {detail}",
+    "kingdom.game_king.notice": "Rei de jogo: {alias}",
+    "kingdom.game_king.title": "Rei de jogo",
+    "kingdom.historic_wealth.sealed": "Riqueza histórica selada da temporada {season}",
+    "kingdom.historic_wealth.title": "Riqueza histórica",
+    "kingdom.ink.balance": "Saldo {amount} milliINK",
+    "kingdom.ink.title": "Tinta",
+    "kingdom.inquisition.case": "Caso severo {id}",
+    "kingdom.inquisition.title": "Inquisição",
+    "kingdom.purchase.confirmed": "Compra {id} confirmada",
+    "kingdom.purchase.title": "Compra",
+    "kingdom.quote.expires": "Cotação válida até {date}",
+    "kingdom.quote.title": "Cotação",
+    "kingdom.receipt.issued": "Recibo {id} emitido em {date}",
+    "kingdom.receipt.title": "Recibo",
+    "kingdom.season.cutoff": "Corte da temporada {season} em {date}",
+    "kingdom.season.title": "Temporada",
     "metering.failure.detail": "Confira os dados e peça uma nova cotação.",
     "metering.failure.title": "Cobrança indisponível",
     "metering.quote.confirm": "Confirmar publicação",

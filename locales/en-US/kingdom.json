@@ -1,0 +1,62 @@
+{
+  "kingdom": {
+    "charter": {
+      "title": "Charter",
+      "version": "Charter {version}"
+    },
+    "quote": {
+      "title": "Quote",
+      "expires": "Quote valid until {date}"
+    },
+    "purchase": {
+      "title": "Purchase",
+      "confirmed": "Purchase {id} confirmed"
+    },
+    "ink": {
+      "title": "Ink",
+      "balance": "Balance {amount} milliINK"
+    },
+    "receipt": {
+      "title": "Receipt",
+      "issued": "Receipt {id} issued on {date}"
+    },
+    "dispute": {
+      "title": "Dispute",
+      "opened": "Dispute {id} opened"
+    },
+    "decree": {
+      "title": "Decree",
+      "issued": "Decree {id} published"
+    },
+    "inquisition": {
+      "title": "Inquisition",
+      "case": "Severe case {id}"
+    },
+    "appeal": {
+      "title": "Appeal",
+      "due": "Appeal due {date}"
+    },
+    "death": {
+      "title": "Digital death",
+      "notice": "Account in digital death since {date}"
+    },
+    "season": {
+      "title": "Season",
+      "cutoff": "Season {season} cutoff on {date}"
+    },
+    "historic_wealth": {
+      "title": "Historic wealth",
+      "sealed": "Sealed historic wealth of season {season}"
+    },
+    "game_king": {
+      "title": "Game King",
+      "notice": "Game King: {alias}"
+    },
+    "expiry": {
+      "current_balance": "Current balance: {amount}",
+      "archived_balance": "Archived balance: {amount}",
+      "operator_notice": "Operator notice: {detail}",
+      "season_king_notice": "Game King notice: {detail}"
+    }
+  }
+}
