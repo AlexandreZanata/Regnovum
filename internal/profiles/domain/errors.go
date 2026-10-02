@@ -27,6 +27,11 @@ const (
 	CodeUnknownKingdomClass     ErrorCode = "PROFILE_UNKNOWN_KINGDOM_CLASS"
 	CodeMissingCollectionBasis  ErrorCode = "PROFILE_MISSING_COLLECTION_BASIS"
 	CodeNoJurisdictionWindow    ErrorCode = "PROFILE_NO_JURISDICTION_WINDOW"
+	CodeInvalidKingdomExport    ErrorCode = "PROFILE_INVALID_KINGDOM_EXPORT"
+	CodeUnknownExportSection    ErrorCode = "PROFILE_UNKNOWN_EXPORT_SECTION"
+	CodeConsentRefused          ErrorCode = "PROFILE_CONSENT_REFUSED"
+	CodeCrossAccountExport      ErrorCode = "PROFILE_CROSS_ACCOUNT_EXPORT"
+	CodeDeadAccountAccess       ErrorCode = "PROFILE_DEAD_ACCOUNT_ACCESS"
 )
 
 // DomainError represents an invariant or rule failure in the profiles domain.
@@ -69,4 +74,9 @@ var (
 	ErrUnknownKingdomClass      = DomainError{Code: CodeUnknownKingdomClass, Message: "kingdom retention class is not governed"}
 	ErrMissingCollectionBasis   = DomainError{Code: CodeMissingCollectionBasis, Message: "collection needs a stated legal basis"}
 	ErrNoJurisdictionWindow     = DomainError{Code: CodeNoJurisdictionWindow, Message: "the jurisdiction carries no disposal horizon for this class"}
+	ErrInvalidKingdomExport     = DomainError{Code: CodeInvalidKingdomExport, Message: "kingdom export request is incoherent"}
+	ErrUnknownExportSection     = DomainError{Code: CodeUnknownExportSection, Message: "export section is outside the allowlist"}
+	ErrConsentRefused           = DomainError{Code: CodeConsentRefused, Message: "the holder refused consent: nothing is exported"}
+	ErrCrossAccountExport       = DomainError{Code: CodeCrossAccountExport, Message: "the export mixes holders or leaks foreign proof"}
+	ErrDeadAccountAccess        = DomainError{Code: CodeDeadAccountAccess, Message: "a dead account answers only to its heir"}
 )
