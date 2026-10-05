@@ -187,6 +187,14 @@ const (
 	CodeDuplicateCustody ErrorCode = "CROWN_DUPLICATE_CUSTODY"
 	// CodeDuplicateObligation names the same obligation evaluated twice.
 	CodeDuplicateObligation ErrorCode = "CROWN_DUPLICATE_OBLIGATION"
+	// CodeStaleRevision names an evaluation against a superseded revision.
+	CodeStaleRevision ErrorCode = "CROWN_STALE_REVISION"
+	// CodeRevisionGap names a detected gap in linearizable revisions.
+	CodeRevisionGap ErrorCode = "CROWN_REVISION_GAP"
+	// CodeProjectionFrozen names a frozen wealth projection.
+	CodeProjectionFrozen ErrorCode = "CROWN_PROJECTION_FROZEN"
+	// CodeProjectionMismatch names a divergence between projection and journal oracle.
+	CodeProjectionMismatch ErrorCode = "CROWN_PROJECTION_MISMATCH"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -472,5 +480,25 @@ var (
 	ErrDuplicateObligation = DomainError{
 		Code:    CodeDuplicateObligation,
 		Message: "duplicate obligation entry: each obligation must be uniquely mapped per evaluation",
+	}
+	// ErrStaleRevision refuses an operation based on a superseded revision.
+	ErrStaleRevision = DomainError{
+		Code:    CodeStaleRevision,
+		Message: "stale revision: wealth projection is behind current committed checkpoint",
+	}
+	// ErrRevisionGap refuses an operation when a revision gap is detected.
+	ErrRevisionGap = DomainError{
+		Code:    CodeRevisionGap,
+		Message: "revision gap: expected continuous monotonic revision without gaps",
+	}
+	// ErrProjectionFrozen refuses acts when the wealth projection is frozen.
+	ErrProjectionFrozen = DomainError{
+		Code:    CodeProjectionFrozen,
+		Message: "wealth projection is frozen: no sovereign decisions can be derived while frozen",
+	}
+	// ErrProjectionMismatch refuses when incremental projection drifts from the rebuild oracle.
+	ErrProjectionMismatch = DomainError{
+		Code:    CodeProjectionMismatch,
+		Message: "projection mismatch: incremental index diverged from authoritative journal",
 	}
 )
