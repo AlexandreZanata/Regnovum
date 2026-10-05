@@ -483,3 +483,78 @@ func RevalidateGrant(grant Grant, current CurrentReign, now time.Time) error {
 	}
 	return nil
 }
+
+// EffectFence carries the authority, delegation, and currency parameters
+// verified at the moment any royal decree or operational effect takes place.
+type EffectFence struct {
+	Season               SeasonID
+	Reign                ReignVersion
+	Competence           Competence
+	Author               HolderSubject
+	Delegation           *Delegation
+	CurrentReign         CurrentReign
+	EconomicBacklogClean bool
+	Now                  time.Time
+}
+
+// ValidateEffectFence fences royal effects by (season_id, reign_version, competência),
+// active reign currency, delegation currency and economic checkpoint backlog.
+//
+// Invariants (P47-T06 / docs/reino/TEMPORADAS_SUCESSAO.md §8):
+// 1. Season mismatch: effect outside the current season book refuses.
+// 2. Stale reign: acts or permissions from an ex-monarch refuse with ErrStaleReign.
+// 3. Stale delegation: delegations from the previous reign refuse with ErrInvalidDelegation.
+// 4. Competence: delegation competence cannot widen or differ from the required competence.
+// 5. Backlog: unevaluated confirmed economic backlog blocks royal effects with ErrBacklogUnevaluated.
+func ValidateEffectFence(f EffectFence) error {
+	if err := f.CurrentReign.validShape(); err != nil {
+		return err
+	}
+	if f.Now.IsZero() {
+		return ErrInvalidAuthority
+	}
+	if _, err := ParseCompetence(string(f.Competence)); err != nil {
+		return err
+	}
+	if f.Season != f.CurrentReign.Season {
+		return ErrSeasonMismatch
+	}
+	moment := f.Now.UTC()
+	if !f.CurrentReign.Open || !f.CurrentReign.contains(moment) {
+		return ErrSeasonClosed
+	}
+	switch {
+	case f.Reign == f.CurrentReign.Reign:
+	case f.Reign < f.CurrentReign.Reign:
+		return ErrStaleReign
+	default:
+		return ErrFutureReign
+	}
+	if !f.EconomicBacklogClean {
+		return ErrBacklogUnevaluated
+	}
+
+	if f.Delegation == nil {
+		if f.Author != f.CurrentReign.Holder {
+			return ErrNotHolder
+		}
+		return nil
+	}
+
+	if err := f.Delegation.validShape(); err != nil {
+		return err
+	}
+	if f.Delegation.Delegator != f.CurrentReign.Holder || f.Delegation.Delegate != f.Author {
+		return ErrInvalidDelegation
+	}
+	if f.Delegation.Season != f.CurrentReign.Season || f.Delegation.Reign != f.CurrentReign.Reign {
+		return ErrInvalidDelegation
+	}
+	if f.Delegation.Competence != f.Competence {
+		return ErrInvalidDelegation
+	}
+	if !moment.Before(f.Delegation.ExpiresAt.UTC()) {
+		return ErrDelegationExpired
+	}
+	return nil
+}

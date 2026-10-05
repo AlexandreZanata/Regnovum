@@ -225,6 +225,8 @@ const (
 	CodeOfficeConsentRefused ErrorCode = "CROWN_OFFICE_CONSENT_REFUSED"
 	// CodePrivateDisclosureUnauthorized names an unauthorized party attempting to read private pending requirements.
 	CodePrivateDisclosureUnauthorized ErrorCode = "CROWN_PRIVATE_DISCLOSURE_UNAUTHORIZED"
+	// CodeProhibitedAlteration names an act attempting to alter season duration, supply, wealth criteria or succession rules.
+	CodeProhibitedAlteration ErrorCode = "CROWN_PROHIBITED_ALTERATION"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -605,5 +607,10 @@ var (
 	ErrPrivateDisclosureUnauthorized = DomainError{
 		Code:    CodePrivateDisclosureUnauthorized,
 		Message: "pending requirements status is private to the titular account holder",
+	}
+	// ErrProhibitedAlteration refuses royal acts that attempt to alter season duration, supply, wealth criteria or succession rules.
+	ErrProhibitedAlteration = DomainError{
+		Code:    CodeProhibitedAlteration,
+		Message: "royal act cannot alter season duration, supply, wealth criteria, or succession rules",
 	}
 )

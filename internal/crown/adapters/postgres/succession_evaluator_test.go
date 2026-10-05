@@ -1,10 +1,13 @@
 package postgres_test
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 
 	crownadapter "github.com/AlexandreZanata/Regnovum/internal/crown/adapters/postgres"
 	crowndomain "github.com/AlexandreZanata/Regnovum/internal/crown/domain"
@@ -615,4 +618,259 @@ func TestSuccessionEvaluatorBacklogHaltsRoyalActs(t *testing.T) {
 	if current.Reign != 2 {
 		t.Fatalf("expected reign 2, got %d", current.Reign)
 	}
+}
+
+func recordAliceAssetsAndDebt(
+	t *testing.T,
+	ctx context.Context,
+	pool crownadapter.DBQuerier,
+	wealthAdapter *crownadapter.WealthProjectionAdapter,
+	seasonKey, aliceID string,
+) {
+	t.Helper()
+	p, ok := pool.(interface {
+		Begin(context.Context) (pgx.Tx, error)
+	})
+	if !ok {
+		t.Fatalf("expected tx pool")
+	}
+
+	tx, err := p.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin alice assets tx: %v", err)
+	}
+	defer tx.Rollback(ctx)
+	_, err = wealthAdapter.RecordOutboxEventTx(ctx, tx, crownadapter.WealthEvent{
+		SeasonID:        seasonKey,
+		SubjectID:       aliceID,
+		BeneficiaryKind: string(crowndomain.BeneficiaryKindParticipant),
+		EventKind:       "transfer",
+		DeltaAssets:     7000000000,
+	})
+	if err != nil {
+		t.Fatalf("record alice assets: %v", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatalf("commit alice assets: %v", err)
+	}
+
+	tx2, err := p.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin alice debt tx: %v", err)
+	}
+	defer tx2.Rollback(ctx)
+	_, err = wealthAdapter.RegisterObligationTx(ctx, tx2, crownadapter.RegisterObligationParams{
+		SeasonID:        seasonKey,
+		Debtor:          aliceID,
+		Kind:            string(crowndomain.ObligationKindRegisteredLoan),
+		Amount:          500000000,
+		AlreadyDeducted: false,
+		SourceRef:       "notarial-alice-debt-1",
+	})
+	if err != nil {
+		t.Fatalf("record alice debt: %v", err)
+	}
+	if err := tx2.Commit(ctx); err != nil {
+		t.Fatalf("commit alice debt: %v", err)
+	}
+}
+
+func recordBobWealth(
+	t *testing.T,
+	ctx context.Context,
+	pool crownadapter.DBQuerier,
+	wealthAdapter *crownadapter.WealthProjectionAdapter,
+	seasonKey, bobID string,
+) {
+	t.Helper()
+	p, ok := pool.(interface {
+		Begin(context.Context) (pgx.Tx, error)
+	})
+	if !ok {
+		t.Fatalf("expected tx pool")
+	}
+
+	tx, err := p.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin bob tx: %v", err)
+	}
+	defer tx.Rollback(ctx)
+	_, err = wealthAdapter.RecordOutboxEventTx(ctx, tx, crownadapter.WealthEvent{
+		SeasonID:        seasonKey,
+		SubjectID:       bobID,
+		BeneficiaryKind: string(crowndomain.BeneficiaryKindParticipant),
+		EventKind:       "transfer",
+		DeltaAssets:     8000000000,
+	})
+	if err != nil {
+		t.Fatalf("record bob wealth: %v", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatalf("commit bob wealth: %v", err)
+	}
+}
+
+func evalStep(
+	t *testing.T,
+	ctx context.Context,
+	pool crownadapter.DBQuerier,
+	evalAdapter *crownadapter.SuccessionEvaluatorAdapter,
+	seasonKey, workerID, wantHolder string,
+	wantReign int,
+) {
+	t.Helper()
+	p, ok := pool.(interface {
+		Begin(context.Context) (pgx.Tx, error)
+	})
+	if !ok {
+		t.Fatalf("expected tx pool")
+	}
+
+	tx, err := p.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin eval tx: %v", err)
+	}
+	defer tx.Rollback(ctx)
+
+	res, hasWork, err := evalAdapter.EvaluateNextRevisionTx(ctx, tx, seasonKey, workerID)
+	if err != nil || !hasWork {
+		t.Fatalf("eval step: hasWork=%v, err=%v", hasWork, err)
+	}
+	if res.HolderSubject != wantHolder || res.ReignVersion != wantReign {
+		t.Fatalf("eval result = %+v, want holder=%s reign=%d", res, wantHolder, wantReign)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatalf("commit eval step: %v", err)
+	}
+}
+
+func verifyAlicePreserved(
+	t *testing.T,
+	ctx context.Context,
+	pool crownadapter.DBQuerier,
+	wealthAdapter *crownadapter.WealthProjectionAdapter,
+	seasonKey, aliceID string,
+) {
+	t.Helper()
+	proj, found, err := wealthAdapter.GetProjection(ctx, pool, seasonKey, aliceID)
+	if err != nil || !found {
+		t.Fatalf("get alice projection: %v", err)
+	}
+	if proj.AssetsMilli != 7000000000 || proj.LiabilitiesMilli != 500000000 || proj.Wealth != 6500000000 {
+		t.Fatalf("alice wealth not preserved: %+v", proj)
+	}
+
+	var oblCount int
+	var oblSum int64
+	err = pool.QueryRow(ctx, `
+		SELECT count(*), COALESCE(sum(amount_milli), 0)
+		FROM app.seasonal_wealth_obligations
+		WHERE season_id = $1 AND debtor_subject = $2
+	`, seasonKey, aliceID).Scan(&oblCount, &oblSum)
+	if err != nil || oblCount != 1 || oblSum != 500000000 {
+		t.Fatalf("alice obligations: err=%v, count=%d, sum=%d", err, oblCount, oblSum)
+	}
+}
+
+func verifyReignTransitionAndFencing(
+	t *testing.T,
+	ctx context.Context,
+	pool crownadapter.DBQuerier,
+	evalAdapter *crownadapter.SuccessionEvaluatorAdapter,
+	seasonKey, aliceID, bobID string,
+) {
+	t.Helper()
+	reignRec, found, err := evalAdapter.GetActiveReign(ctx, pool, seasonKey)
+	if err != nil || !found || reignRec.HolderSubject != bobID || reignRec.ReignVersion != 2 || !reignRec.IsActive {
+		t.Fatalf("active reign record: %+v, found=%v, err=%v", reignRec, found, err)
+	}
+
+	var aliceActive bool
+	var aliceEnded *time.Time
+	err = pool.QueryRow(ctx, `
+		SELECT is_active, ended_at
+		FROM app.seasonal_reigns
+		WHERE season_id = $1 AND reign_version = 1
+	`, seasonKey).Scan(&aliceActive, &aliceEnded)
+	if err != nil || aliceActive || aliceEnded == nil {
+		t.Fatalf("reign 1 active=%v, ended=%v, err=%v", aliceActive, aliceEnded, err)
+	}
+
+	current, err := evalAdapter.Current(ctx, crowndomain.SeasonID(seasonKey))
+	if err != nil || current.Holder != crowndomain.HolderSubject(bobID) || current.Reign != 2 {
+		t.Fatalf("current reign: %+v, err=%v", current, err)
+	}
+
+	openCurrent := current
+	openCurrent.Open = true
+	openCurrent.StartsAt = time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
+	openCurrent.EndsAt = openCurrent.StartsAt.Add(7776000 * time.Second)
+	testNow := openCurrent.StartsAt.Add(time.Hour)
+
+	fenceAlice := crowndomain.EffectFence{
+		Season:               crowndomain.SeasonID(seasonKey),
+		Reign:                2,
+		Competence:           "patrimonial",
+		Author:               crowndomain.HolderSubject(aliceID),
+		CurrentReign:         openCurrent,
+		EconomicBacklogClean: true,
+		Now:                  testNow,
+	}
+	if err := crowndomain.ValidateEffectFence(fenceAlice); !errors.Is(err, crowndomain.ErrNotHolder) {
+		t.Fatalf("fence alice err = %v, want ErrNotHolder", err)
+	}
+
+	fenceStale := crowndomain.EffectFence{
+		Season:               crowndomain.SeasonID(seasonKey),
+		Reign:                1,
+		Competence:           "patrimonial",
+		Author:               crowndomain.HolderSubject(aliceID),
+		CurrentReign:         openCurrent,
+		EconomicBacklogClean: true,
+		Now:                  testNow,
+	}
+	if err := crowndomain.ValidateEffectFence(fenceStale); !errors.Is(err, crowndomain.ErrStaleReign) {
+		t.Fatalf("fence stale err = %v, want ErrStaleReign", err)
+	}
+}
+
+func TestExKingWealthAndObligationsPreservedAfterSuccession(t *testing.T) {
+	db := newTestDB(t)
+	ctx, cancel := testContext()
+	defer cancel()
+
+	seasonKey := "temporada-sucessao-preserve"
+	aliceID, bobID, _ := setupSeasonAndAccounts(t, ctx, db, seasonKey)
+	pool := db.Pool.Pool()
+	evalAdapter := crownadapter.NewSuccessionEvaluatorAdapter(pool)
+	wealthAdapter := crownadapter.NewWealthProjectionAdapter()
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin tx: %v", err)
+	}
+	defer tx.Rollback(ctx)
+	if err := evalAdapter.InitSeasonEvaluatorTx(ctx, tx, seasonKey, aliceID, 1); err != nil {
+		t.Fatalf("init evaluator: %v", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatalf("commit init: %v", err)
+	}
+
+	if acq, err := evalAdapter.AcquireLease(ctx, pool, seasonKey, "worker-preserve", 10*time.Second); err != nil || !acq {
+		t.Fatalf("acquire lease: %v", err)
+	}
+
+	// 1. Alice earns assets (rev 2) and incurs debt (rev 3):
+	recordAliceAssetsAndDebt(t, ctx, pool, wealthAdapter, seasonKey, aliceID)
+	evalStep(t, ctx, pool, evalAdapter, seasonKey, "worker-preserve", aliceID, 1)
+	evalStep(t, ctx, pool, evalAdapter, seasonKey, "worker-preserve", aliceID, 1)
+
+	// 2. Bob earns assets (rev 4) and conquers throne:
+	recordBobWealth(t, ctx, pool, wealthAdapter, seasonKey, bobID)
+	evalStep(t, ctx, pool, evalAdapter, seasonKey, "worker-preserve", bobID, 2)
+
+	// 3. Verify Alice's balance/debts preserved and royal effects fenced:
+	verifyAlicePreserved(t, ctx, pool, wealthAdapter, seasonKey, aliceID)
+	verifyReignTransitionAndFencing(t, ctx, pool, evalAdapter, seasonKey, aliceID, bobID)
 }
