@@ -63,7 +63,6 @@ type crownModel struct {
 	banned      map[string]bool
 	reigns      []crownReignStep
 	revision    int64
-	mutated     string
 }
 
 // crownReignStep is one evaluated revision in the model's own

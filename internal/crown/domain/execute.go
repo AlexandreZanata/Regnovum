@@ -115,34 +115,6 @@ func checkExecutionClearance(sealed RoyalAct, digest string, clearance Clearance
 	return nil
 }
 
-// checkExecutionAuthority revalidates authority at the effect,
-// not only at the approval: the same book still invests the same
-// reign and holder, the book is open, and the effect instant
-// falls inside both the season window and the decree vigour.
-func checkExecutionAuthority(sealed RoyalAct, current CurrentReign, now time.Time) error {
-	fence := EffectFence{
-		Season:               sealed.Season,
-		Reign:                sealed.Reign,
-		Competence:           sealed.Competence,
-		Author:               sealed.Author,
-		Delegation:           nil,
-		CurrentReign:         current,
-		EconomicBacklogClean: true,
-		Now:                  now,
-	}
-	if err := ValidateEffectFence(fence); err != nil {
-		return err
-	}
-	moment := now.UTC()
-	if moment.Before(sealed.Effective.UTC()) {
-		return ErrSeasonClosed
-	}
-	if !sealed.EndsAt.IsZero() && !moment.Before(sealed.EndsAt.UTC()) {
-		return ErrSeasonClosed
-	}
-	return nil
-}
-
 // checkExecutionCustody judges custody, destination and conflict:
 // frozen books move nothing, only the free treasury funds,
 // beneficiary and vault never mix, the author never pays itself,

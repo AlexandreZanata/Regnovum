@@ -33,10 +33,6 @@ func testContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), 30*time.Second)
 }
 
-type execer interface {
-	Exec(ctx context.Context, sql string, args ...any) (pgx.Row, error) // or pgconn.CommandTag
-}
-
 func mustExec(t testing.TB, ctx context.Context, ex crownadapter.DBQuerier, sql string, args ...any) {
 	t.Helper()
 	if _, err := ex.Exec(ctx, sql, args...); err != nil {
