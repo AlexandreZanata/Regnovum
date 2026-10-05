@@ -145,11 +145,12 @@
       ],
       "contracts": "cada valor contado uma vez por propriedade econômica; dívidas e terceiros não dão trono; bolsas institucionais não mudam o limiar por reclassificação (planejado)",
       "modules": "seasons com fórmula wealth-v1 A/L/W (planejado); sem número vigente",
-      "tests": "terceiro excluído de A sem subtrair de L; reclassificação de cofre não move C; mutante carry-over morto (planejado P46-T12)",
+      "tests": "empréstimo registrado deduzido e terceiro/escrow fora de A sem subtrair de L; reclassificação de cofre não move C; mutantes ignore-debt, count-third-party e carry-over mortos (internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleKillsFourMutants; P47-T10)",
       "owner": "coroa",
       "refs": [
         "docs/reino/TEMPORADAS_SUCESSAO.md",
-        "internal/economy"
+        "internal/economy",
+        "docs/quality/SEASON_BALANCE.md"
       ],
       "note": "BLOQUEADO: critérios de riqueza e desempate (wealth-v1) dependem de aceite do titular; fórmula do adendo não é parâmetro vigente"
     },
@@ -162,11 +163,12 @@
       ],
       "contracts": "sucessão determinística P maior que C; empate conservador; uma autoridade vigente; nenhum veto do perdedor (planejado)",
       "modules": "seasons com reign_version no efeito (planejado); cargos e atos em P40",
-      "tests": "empate conserva incumbente; sem incumbente vence o alcance confirmado mais antigo; ex-Rei não bypassa (planejado P46-T12)",
+      "tests": "sucessão determinística P>C com vitória lícita rara; empate conserva incumbente sem mudança de versão; ex-Rei obsoleto recusado com ErrStaleReign; uma autoridade por revisão (internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleThreeSeasonsConserveSupply + ::TestCrownOracleZeroThroneFromTieAndThirdPartyCustody + ::TestCrownOracleKillsFourMutants; P47-T10)",
       "owner": "coroa",
       "refs": [
         "docs/reino/TEMPORADAS_SUCESSAO.md",
-        "internal/economy"
+        "internal/economy",
+        "docs/quality/SEASON_BALANCE.md"
       ],
       "note": "BLOQUEADO: titular inicial e regência dependem de aceite do titular; sem incumbente publicado, nenhuma coroação é avaliada"
     },
@@ -179,11 +181,12 @@
       ],
       "contracts": "versão de reinado e temporada no efeito; ex-Rei, worker atrasado e decreto não bypassam os controles (planejado)",
       "modules": "seasons com (season_id, reign_version, competência) por ato (planejado); worker interno em P46-T09",
-      "tests": "ato com snapshot stale recusado; aprovação de outro reinado revalidada (planejado P46-T09/P46-T12)",
+      "tests": "versão de reinado/temporada no efeito; ato fora da janela e reinado obsoleto recusados; backlog drenado a lag 0 com contenção serializada (internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleKillsFourMutants; internal/crown/adapters/postgres/season_balance_budget_test.go::TestCrownBudgetOutboxDrainLag + ::TestCrownBudgetLeaseContention; P47-T10)",
       "owner": "tesouro",
       "refs": [
         "docs/reino/TEMPORADAS_SUCESSAO.md",
-        "internal/economy"
+        "internal/economy",
+        "docs/quality/SEASON_BALANCE.md"
       ],
       "note": "mecânica sem parâmetro aprovado; nenhum poder técnico entregue antes de P40"
     },
@@ -196,11 +199,12 @@
       ],
       "contracts": "ranking de corte e histórico corrigível sem apagar fatos; sem saldo ou poder herdado e sem vazamento pessoal (planejado)",
       "modules": "seasons com snapshot, cutoff_revision e recibos (planejado P46-T10)",
-      "tests": "ranking provisório não certificado antes da reconciliação; alias não identificável retido (planejado P46-T10)",
+      "tests": "ranking de corte derivado do snapshot com co-líderes; correção vinculada preserva o original; refund tardio sem riqueza nova; campeão distinto do último Rei; reset sem carry-over (internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleThreeSeasonsConserveSupply; P47-T10)",
       "owner": "arquivo",
       "refs": [
         "docs/reino/TEMPORADAS_SUCESSAO.md",
-        "internal/economy"
+        "internal/economy",
+        "docs/quality/SEASON_BALANCE.md"
       ],
       "note": "mecânica sem parâmetro aprovado; saldos pessoais exatos dependem de política de publicação aceita"
     },

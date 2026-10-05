@@ -4743,6 +4743,61 @@
         "concurrency": "Funções puras sem escrita compartilhada: não há corrida a resolver nesta regra",
         "idempotency": "Recusas não produzem efeito, então não há chave de idempotência nesta regra"
       }
+    },
+    {
+      "id": "QUAL-THR-CROWN-02",
+      "source": "docs/quality/SEASON_BALANCE.md",
+      "description": "Sucessão e reset verificados contra modelo independente de três temporadas (TEMP-08–11): soma S por livro, zero trono por empate ou custódia alheia, zero transferência cruzada, uma autoridade por revisão, vitória lícita possível sem baixar reserva, budgets medidos com tetos de regressão; findings de balanceamento não alteram a economia sozinhos.",
+      "risk": "Q0",
+      "modules": [
+        "internal/seasons",
+        "internal/crown"
+      ],
+      "actors": [
+        "king",
+        "worker",
+        "operator"
+      ],
+      "states": [
+        "verified",
+        "blocked",
+        "refused"
+      ],
+      "tests": {
+        "positive": [
+          "internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleThreeSeasonsConserveSupply",
+          "internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleGoodFaithOperationStaysPermitted"
+        ],
+        "negative": [
+          "internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleZeroThroneFromTieAndThirdPartyCustody",
+          "internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleKillsFourMutants"
+        ],
+        "limit": [
+          "internal/crown/adapters/postgres/season_balance_budget_test.go::TestCrownBudgetTopIndexCost",
+          "internal/crown/adapters/postgres/season_balance_budget_test.go::TestCrownBudgetIncrementalUpdateCost",
+          "internal/crown/adapters/postgres/season_balance_budget_test.go::TestCrownBudgetOutboxDrainLag"
+        ],
+        "authorization": [
+          "internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleKillsFourMutants"
+        ],
+        "concurrency": [
+          "internal/crown/adapters/postgres/season_balance_budget_test.go::TestCrownBudgetLeaseContention"
+        ],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "O modelo independente cruza cada decisão do domínio: trono só por P>C estrito lícito, ex-Rei e worker obsoleto recusados, repetição drenada sem duplicar.",
+      "concurrency": "Quatro workers disputam um lease e colapsam em exatamente um vencedor com uma avaliação por revisão.",
+      "idempotency": "Drenagem repetida não reavalia: sem trabalho restante, o avaliador retorna sem efeito.",
+      "security": "Empate, custódia alheia, transferência cruzada e carry-over dão zero trono; mutantes dos quatro controles morrem no oráculo.",
+      "privacy": "Oráculo sintético com titulares fictícios; saldos exatos só em histórico redigido por permissão.",
+      "evidence": [
+        "docs/quality/SEASON_BALANCE.md",
+        "docs/reino/TEMPORADAS_SUCESSAO.md"
+      ],
+      "not_applicable": {
+        "idempotency": "A drenagem converge por revisão linearizável: não há chave de idempotência além da revisão nesta regra"
+      }
     }
   ]
 }
