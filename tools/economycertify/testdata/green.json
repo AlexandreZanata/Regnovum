@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "commit": "0123456789abcdef0123456789abcdef01234567",
+  "treeClean": true,
+  "requiredDecisions": ["Q19", "Q20", "Q21", "Q22", "Q23", "Q24", "Q25", "Q26", "Q27", "Q28", "Q29", "Q30", "Q31"],
+  "decisions": {
+    "Q19": "APROVADA",
+    "Q20": "APROVADA",
+    "Q21": "APROVADA",
+    "Q22": "APROVADA",
+    "Q23": "APROVADA",
+    "Q24": "APROVADA",
+    "Q25": "APROVADA",
+    "Q26": "APROVADA",
+    "Q27": "APROVADA",
+    "Q28": "APROVADA",
+    "Q29": "APROVADA",
+    "Q30": "APROVADA",
+    "Q31": "APROVADA"
+  },
+  "seasonDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "expectedSeason": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "toolchain": {
+    "go": "1.27.1",
+    "postgres": "18.4",
+    "typescript": "7.0.2",
+    "staticcheck": "v0.8.1"
+  },
+  "expectedToolchain": {
+    "go": "1.27.1",
+    "postgres": "18.4",
+    "typescript": "7.0.2",
+    "staticcheck": "v0.8.1"
+  },
+  "axesCovered": 11,
+  "axesRequired": 11,
+  "mutationSurvivors": 0,
+  "capacityRegression": false,
+  "criticalFindings": 0,
+  "highFindings": 0,
+  "pendingCountries": [],
+  "books": [
+    {"book": "S-2077-A", "driftMilli": 0},
+    {"book": "S-2077-B", "driftMilli": 0}
+  ],
+  "mergeP46": true,
+  "mergeP47": true,
+  "realCredentialDays": 10,
+  "maxCredentialDays": 90,
+  "prohibitedActive": false
+}

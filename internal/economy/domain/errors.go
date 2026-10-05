@@ -51,6 +51,19 @@ const (
 	CodeBettingMarketsUnavailable  ErrorCode = "ECONOMY_BETTING_MARKETS_UNAVAILABLE"
 	CodeRealHarmProhibited         ErrorCode = "ECONOMY_REAL_HARM_PROHIBITED"
 	CodeBettingPreconditionMissing ErrorCode = "ECONOMY_BETTING_PRECONDITION_MISSING"
+	CodeUnknownMonitorObservable   ErrorCode = "ECONOMY_UNKNOWN_MONITOR_OBSERVABLE"
+	CodeUnknownMonitorFinding      ErrorCode = "ECONOMY_UNKNOWN_MONITOR_FINDING"
+	CodeAlertWithoutAction         ErrorCode = "ECONOMY_ALERT_WITHOUT_ACTION"
+	CodeInvalidMonitorBudget       ErrorCode = "ECONOMY_INVALID_MONITOR_BUDGET"
+	CodeDuplicateMonitorObservable ErrorCode = "ECONOMY_DUPLICATE_MONITOR_OBSERVABLE"
+	CodeInvalidMonitorAmount       ErrorCode = "ECONOMY_INVALID_MONITOR_AMOUNT"
+	CodeUnknownRestoreDivergence   ErrorCode = "ECONOMY_UNKNOWN_RESTORE_DIVERGENCE"
+	CodeInvalidRestoreSnapshot     ErrorCode = "ECONOMY_INVALID_RESTORE_SNAPSHOT"
+	CodeUnknownActivationCohort    ErrorCode = "ECONOMY_UNKNOWN_ACTIVATION_COHORT"
+	CodeCohortNotAuthorized        ErrorCode = "ECONOMY_COHORT_NOT_AUTHORIZED"
+	CodeActivationHealthNotGreen   ErrorCode = "ECONOMY_ACTIVATION_HEALTH_NOT_GREEN"
+	CodeActivationFrozen           ErrorCode = "ECONOMY_ACTIVATION_FROZEN"
+	CodeActivationWithoutReversal  ErrorCode = "ECONOMY_ACTIVATION_WITHOUT_REVERSAL"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -251,5 +264,57 @@ var (
 	ErrBettingPreconditionMissing = DomainError{
 		Code:    CodeBettingPreconditionMissing,
 		Message: "mandatory betting preconditions are missing: legal review, regulatory license, age/location verification, AML, objective event, independent oracle and conflict isolation must all be satisfied",
+	}
+	ErrUnknownMonitorObservable = DomainError{
+		Code:    CodeUnknownMonitorObservable,
+		Message: "monitor signal outside the closed vocabulary is refused: the pass judges only named observables",
+	}
+	ErrUnknownMonitorFinding = DomainError{
+		Code:    CodeUnknownMonitorFinding,
+		Message: "finding code without a registry row is refused: every alert needs severity, owner, runbook and action",
+	}
+	ErrAlertWithoutAction = DomainError{
+		Code:    CodeAlertWithoutAction,
+		Message: "an alert without an action is a failure: detection that names nobody to act is refused",
+	}
+	ErrInvalidMonitorBudget = DomainError{
+		Code:    CodeInvalidMonitorBudget,
+		Message: "monitor budgets are explicit operator decisions: lag needs a positive budget and counts never go negative",
+	}
+	ErrDuplicateMonitorObservable = DomainError{
+		Code:    CodeDuplicateMonitorObservable,
+		Message: "one signal judged twice in one pass is refused: each observable appears exactly once",
+	}
+	ErrInvalidMonitorAmount = DomainError{
+		Code:    CodeInvalidMonitorAmount,
+		Message: "negative money in a monitor observation is refused: books hold zero or more, never less",
+	}
+	ErrUnknownRestoreDivergence = DomainError{
+		Code:    CodeUnknownRestoreDivergence,
+		Message: "divergence code without a registry row is refused: every block names severity, owner, runbook and action",
+	}
+	ErrInvalidRestoreSnapshot = DomainError{
+		Code:    CodeInvalidRestoreSnapshot,
+		Message: "restore snapshot the comparison cannot judge is refused: unnamed books and negative counts never compare",
+	}
+	ErrUnknownActivationCohort = DomainError{
+		Code:    CodeUnknownActivationCohort,
+		Message: "activation cohort outside the closed vocabulary is refused: only named cohorts are judged",
+	}
+	ErrCohortNotAuthorized = DomainError{
+		Code:    CodeCohortNotAuthorized,
+		Message: "cohort is not authorized for activation: only the synthetic canary opens first",
+	}
+	ErrActivationHealthNotGreen = DomainError{
+		Code:    CodeActivationHealthNotGreen,
+		Message: "activation needs a green health pass: drift or open findings refuse the canary",
+	}
+	ErrActivationFrozen = DomainError{
+		Code:    CodeActivationFrozen,
+		Message: "activation while frozen is refused: the break resolves first, reads continue meanwhile",
+	}
+	ErrActivationWithoutReversal = DomainError{
+		Code:    CodeActivationWithoutReversal,
+		Message: "activation without a reversal plan is refused: journal and rights are preserved by compensation only",
 	}
 )

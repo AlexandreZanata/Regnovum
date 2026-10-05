@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "note": "Mapa executável da cobertura financeira (P44-T01): cada eixo econômico aponta decisões Q19–Q31, intenções TEMP-01–12, ameaças THR-ECON, regras QUAL-* quando a regressão existe em árvore, testes executáveis adjacentes ou de quebra planejada, owner, runbook e dimensão de season. Nada aqui autoriza lançamento: decisão PENDENTE aparece como pendente, nunca como parâmetro vigente; o produto econômico segue desativado até P44 e a matriz integral fica para P45.",
+  "owners": ["economia", "tesouro", "coroa", "legado", "disputas", "arquivo", "produto", "livros"],
+  "statuses": ["covered", "planned", "blocked", "deferred"],
+  "entries": [
+    {
+      "axis": "supply-per-season",
+      "q": ["Q20"],
+      "temp": ["TEMP-02", "TEMP-05"],
+      "threats": ["THR-ECON-20"],
+      "rules": ["QUAL-REQ-SEASON-05", "QUAL-THR-CROWN-02"],
+      "tests": [
+        "internal/seasons/domain/oracle_test.go::TestSeasonOracleThreeBooksConserveSupply",
+        "internal/seasons/domain/crown_succession_oracle_test.go::TestCrownOracleThreeSeasonsConserveSupply"
+      ],
+      "planned": [],
+      "owner": "tesouro",
+      "runbook": "docs/RUNBOOKS.md R4",
+      "seasons": "um Genesis por season_id; soma S por livro sem carry-over entre seasons",
+      "status": "covered",
+      "note": "oráculos independentes provam conservação sobre o parâmetro declarado; S=2,1B depende de Q20 PENDENTE e não é valor vigente"
+    },
+    {
+      "axis": "custody",
+      "q": ["Q20", "Q21", "Q23"],
+      "temp": ["TEMP-05", "TEMP-08"],
+      "threats": ["THR-ECON-23", "THR-ECON-21"],
+      "rules": [],
+      "tests": [
+        "internal/crown/domain/manipulation_test.go::TestManipulation_TreasuryReclassificationKeepsThreshold",
+        "internal/crown/domain/manipulation_test.go::TestManipulation_LentEscrowExcluded"
+      ],
+      "planned": ["quebra P34: unidade em duas partições recusa o snapshot; subconta somada ao total recusa a soma"],
+      "owner": "tesouro",
+      "runbook": "docs/RUNBOOKS.md R3",
+      "seasons": "cada unidade em uma única partição disponível dentro do season_id do livro",
+      "status": "planned",
+      "note": "partições exclusivas planejadas para P34; Q20/Q21/Q23 PENDENTES e sem movimento até ratificação"
+    },
+    {
+      "axis": "idempotency",
+      "q": ["Q30"],
+      "temp": ["TEMP-06"],
+      "threats": ["THR-ECON-30"],
+      "rules": ["QUAL-THR-ECON-30"],
+      "tests": [
+        "internal/billing/adapters/postgres/purchase_settle_test.go::TestSettlePurchaseLiquidatesOnce",
+        "internal/billing/adapters/postgres/purchase_intent_test.go::TestPurchaseIntentReplaysWithoutDuplicating"
+      ],
+      "planned": [],
+      "owner": "economia",
+      "runbook": "docs/RUNBOOKS.md R5",
+      "seasons": "event_id único por transação dentro do season_id; replay não remuta nem cruza livro",
+      "status": "covered",
+      "note": "regressão prova efeito único por intenção no produto atual; Q30 PENDENTE e liquidação financeira segue sem ativação"
+    },
+    {
+      "axis": "legacy-rights",
+      "q": ["Q19", "Q28"],
+      "temp": ["TEMP-02", "TEMP-07"],
+      "threats": ["THR-ECON-28", "THR-ECON-19"],
+      "rules": [],
+      "tests": [
+        "tools/legacyinventory/inventory_test.go::TestClassifyRefusesAmbiguity"
+      ],
+      "planned": ["quebra P32: conversão automática de legado recusada; opt-in explícito ou manutenção conciliada"],
+      "owner": "legado",
+      "runbook": "docs/RUNBOOKS.md R4",
+      "seasons": "direito legado nunca migra de livro por vigência; ingresso em livro novo só por opt-in",
+      "status": "blocked",
+      "note": "TEMP-07 BLOQUEADO e Q19/Q28 PENDENTES; nenhum mapeamento automático existe e nenhum é inferido"
+    },
+    {
+      "axis": "time",
+      "q": ["Q22", "Q25", "Q31"],
+      "temp": ["TEMP-01", "TEMP-06"],
+      "threats": ["THR-ECON-22"],
+      "rules": [],
+      "tests": [
+        "internal/seasons/adapters/postgres/close_test.go::TestCloseSealCleanBook"
+      ],
+      "planned": ["quebra P32: tick antes/no/depois do fim, evento tardio sem reabertura, validade checada na aceitação"],
+      "owner": "economia",
+      "runbook": "docs/RUNBOOKS.md R6",
+      "seasons": "janela [início,fim) em UTC por season_id; evento tardio não reabre livro selado",
+      "status": "planned",
+      "note": "convenção de tempo proposta em TEMPO_ECONOMICO sem ratificação; Q22/Q25/Q31 PENDENTES"
+    },
+    {
+      "axis": "price",
+      "q": ["Q22"],
+      "temp": ["TEMP-05"],
+      "threats": ["THR-ECON-22"],
+      "rules": [],
+      "tests": [
+        "internal/billing/adapters/postgres/purchase_intent_test.go::TestPurchaseIntentRefusesExpiredQuote"
+      ],
+      "planned": ["quebra P35: venda sem cotação válida suspensa; intenção expirada exige nova cotação"],
+      "owner": "economia",
+      "runbook": "docs/RUNBOOKS.md R5",
+      "seasons": "tabela de preço versionada por season_id; intenção aceita preserva termos do livro vigente",
+      "status": "planned",
+      "note": "sem tabela de preço aprovada, provado por economy-decisions-check; Q22 PENDENTE"
+    },
+    {
+      "axis": "tithe",
+      "q": ["Q24"],
+      "temp": ["TEMP-05"],
+      "threats": ["THR-ECON-24"],
+      "rules": [],
+      "tests": [
+        "internal/commerce/domain/tithe_test.go::TestSplitTitheCoversZeroToTwentyAndThousand"
+      ],
+      "planned": ["quebra P37: presente disfarçado tributado como comércio; reembolso sem reversão recusado"],
+      "owner": "economia",
+      "runbook": "docs/RUNBOOKS.md R5",
+      "seasons": "dízimo apurado por livro de season_id; reembolso reverte na mesma trilha do livro",
+      "status": "planned",
+      "note": "incidência só sobre liquidado é proposta; Q24 PENDENTE e sem cobrança ativa"
+    },
+    {
+      "axis": "crumbs",
+      "q": ["Q25", "Q31"],
+      "temp": ["TEMP-05"],
+      "threats": ["THR-ECON-25"],
+      "rules": [],
+      "tests": [
+        "internal/crumbs/domain/budget_test.go::TestBoundWeeklyBudgetCapsToFreeTreasury",
+        "internal/crumbs/domain/irr_test.go::TestRealRefluxIndexEmptyPeriodReportsNA"
+      ],
+      "planned": ["quebra P38: Sybil em massa, N=0 com pagamento e fração sub-unidade recusadas"],
+      "owner": "economia",
+      "runbook": "docs/RUNBOOKS.md R6",
+      "seasons": "época semanal só sobre semanas ISO seladas do season_id; sem herança de fluxo entre livros",
+      "status": "planned",
+      "note": "mecânica testada em domínio, política R4 pendente; Q25/Q31 PENDENTES e sem distribuição ativa"
+    },
+    {
+      "axis": "decree",
+      "q": ["Q11"],
+      "temp": ["TEMP-04", "TEMP-09", "TEMP-10"],
+      "threats": ["THR-ECON-11", "THR-ECON-32"],
+      "rules": ["QUAL-THR-CROWN-01"],
+      "tests": [
+        "internal/crown/domain/manipulation_test.go::TestManipulation_SelfDealingRefused",
+        "internal/crown/domain/manipulation_test.go::TestManipulation_RoyalVetoImpossible"
+      ],
+      "planned": [],
+      "owner": "coroa",
+      "runbook": "docs/RUNBOOKS.md R1",
+      "seasons": "ato real carrega season_id e reign_version; troca de season ou reinado revoga competência",
+      "status": "covered",
+      "note": "regressão prova recusa de self-dealing e veto; Q11 PENDENTE e decreto financeiro segue sem execução"
+    },
+    {
+      "axis": "privacy",
+      "q": ["Q34", "Q35"],
+      "temp": ["TEMP-03", "TEMP-11"],
+      "threats": ["THR-ECON-34", "THR-ECON-35"],
+      "rules": ["QUAL-REQ-PRIV-01"],
+      "tests": [
+        "internal/profiles/adapters/postgres/export_test.go::TestPersonalExportDownloadIsSingleUseOwnerScopedAndExpiring"
+      ],
+      "planned": [],
+      "owner": "livros",
+      "runbook": "docs/RUNBOOKS.md R1",
+      "seasons": "exportação e anonimização por titular dentro do season_id; ranking sem saldo exato",
+      "status": "covered",
+      "note": "regressão prova isolamento do titular no produto atual; Q34/Q35 PENDENTES para o livro financeiro"
+    },
+    {
+      "axis": "deactivated-products",
+      "q": ["Q26", "Q27", "Q29"],
+      "temp": ["TEMP-12"],
+      "threats": ["THR-ECON-26", "THR-ECON-29"],
+      "rules": ["QUAL-REQ-DEFERRED-01"],
+      "tests": [
+        "internal/economy/bypass_test.go::TestAPIBypassRejectsUnapprovedProducts"
+      ],
+      "planned": [],
+      "owner": "economia",
+      "runbook": "docs/RUNBOOKS.md R1",
+      "seasons": "bloqueio vale em todo season_id; temporada nova não reativa produto sem nova autorização",
+      "status": "deferred",
+      "note": "cobertura é da recusa em todos os canais; Títulos e mercados seguem não ofertados por decisão atual"
+    }
+  ]
+}
