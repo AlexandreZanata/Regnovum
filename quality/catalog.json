@@ -4624,6 +4624,67 @@
         "docs/REQUIREMENTS.md"
       ],
       "not_applicable": {}
+    },
+    {
+      "id": "QUAL-REQ-DEFERRED-01",
+      "source": "docs/reino/DIVULGACAO_HONESTA.md",
+      "description": "Produtos financeiros hipoteticos ou nao ratificados (Titulos da Coroa, mercados de apostas/predicao e Patentes sem termos ratificados) permanecem estritamente bloqueados em todos os canais de concessao sem alterar o ledger.",
+      "risk": "Q0",
+      "modules": [
+        "internal/economy",
+        "internal/patents",
+        "internal/crown"
+      ],
+      "actors": [
+        "buyer",
+        "worker",
+        "operator",
+        "king"
+      ],
+      "states": [
+        "unapproved",
+        "blocked",
+        "refused"
+      ],
+      "tests": {
+        "positive": [
+          "internal/economy/bypass_test.go::TestRefusedBypassLeavesLedgerCompletelyUntouched",
+          "internal/patents/domain/supply_test.go::TestRatifiedTableSellsUpToItsCap",
+          "internal/economy/domain/bonds_test.go::TestAreBondsAvailableIsFalse"
+        ],
+        "negative": [
+          "internal/economy/bypass_test.go::TestAPIBypassRejectsUnapprovedProducts",
+          "internal/economy/bypass_test.go::TestWorkerBypassRejectsUnapprovedProducts",
+          "internal/economy/bypass_test.go::TestAdminBypassRejectsUnapprovedProducts",
+          "internal/economy/bypass_test.go::TestWebhookBypassRejectsUnapprovedProducts",
+          "internal/economy/bypass_test.go::TestRoyalDecreeBypassRejectsUnapprovedProducts"
+        ],
+        "limit": [
+          "internal/economy/bypass_test.go::TestUnapprovedProductFixtureFailsGate",
+          "internal/patents/domain/supply_test.go::TestFreezeEndsSalesWithoutThaw"
+        ],
+        "authorization": [
+          "internal/economy/bypass_test.go::TestAPIBypassRejectsUnapprovedProducts",
+          "internal/patents/domain/status_test.go::TestPatentNeverTransfersOrRenews"
+        ],
+        "concurrency": [
+          "internal/economy/bypass_test.go::TestConcurrentBypassAttemptsAllFail"
+        ],
+        "idempotency": [
+          "internal/economy/bypass_test.go::TestRepeatedBypassAttemptsAreIdempotentlyRefused"
+        ],
+        "failure": []
+      },
+      "authorization": "Nenhum ator (comprador, worker, operador ou Rei) possui autorizacao para ativar produto nao aprovado ou sem contrato ratificado.",
+      "concurrency": "Tentativas concorrentes de bypass em todos os canais falham fechadas simultaneamente sem degradar consistencia.",
+      "idempotency": "Replays ou tentativas repetidas de bypass sao recusados identicamente sem alterar o ledger.",
+      "security": "Todas as 5 vias de concessao (API, worker, admin, webhook, decreto) rejeitam produtos nao aprovados; ledger permanece intacto.",
+      "privacy": "Tentativas de bypass rejeitadas nao vazam dados protegidos ou chaves internas.",
+      "evidence": [
+        "docs/reino/DIVULGACAO_HONESTA.md",
+        "docs/reino/DECISOES_VIGENTES.md"
+      ],
+      "not_applicable": {}
     }
   ]
 }
