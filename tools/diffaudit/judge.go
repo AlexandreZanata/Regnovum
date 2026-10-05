@@ -478,17 +478,22 @@ func declaredFunctions(st state, path string) map[string]bool {
 
 // judgeQ0 is the demand the phase states for critical rules: a change to the
 // rule table that adds a Q0 rule or moves its evidence owes the nominal and the
-// adversarial regression in the same change.
+// adversarial regression in the same change. Each commit is judged against its
+// own two sides of the table — the change that writes the rule — and not
+// against the range-global table, so two commits that each bring one rule with
+// its regression both pass while a commit that moves a rule without its
+// regression still refuses.
 func judgeQ0(commit commitRecord, classes []classification, st state, result *measured, findings *[]auditkit.Finding) error {
+	before, after := q0Sides(commit, st)
 	baseByID := map[string]catalogRule{}
-	for _, rule := range st.base.Rules {
+	for _, rule := range before.Rules {
 		baseByID[rule.ID] = rule
 	}
 	nominal := map[string]bool{}
 	for _, kind := range st.pol.Kinds.Nominal {
 		nominal[kind] = true
 	}
-	for _, rule := range st.head.Rules {
+	for _, rule := range after.Rules {
 		if rule.Risk != "Q0" {
 			continue
 		}
@@ -515,6 +520,38 @@ func judgeQ0(commit commitRecord, classes []classification, st state, result *me
 		})
 	}
 	return nil
+}
+
+// q0Sides answers the two rule tables one commit is judged against: the two
+// sides the commit itself carries for the catalog, which is what "the change
+// that writes the rule" means. The builder loads both sides for every catalog
+// a commit touches, so a commit built from git always carries them; a change
+// document without them — the hand-written fixtures — falls back to the range
+// sides, so the fixtures keep judging what they always judged. A side the
+// commit does not carry reads as the empty table, which is the fail-closed
+// direction: a rule nobody can compare is a rule the commit owes evidence for.
+func q0Sides(commit commitRecord, st state) (catalog, catalog) {
+	record := recordOf(commit, catalogPath)
+	if record.Before == "" && record.After == "" {
+		return st.base, st.head
+	}
+	before := st.base
+	after := st.head
+	if record.Before != "" {
+		if table, err := readCatalog("o catálogo antes da mudança", record.Before); err == nil {
+			before = table
+		}
+	} else {
+		before = catalog{}
+	}
+	if record.After != "" {
+		if table, err := readCatalog("o catálogo depois da mudança", record.After); err == nil {
+			after = table
+		}
+	} else {
+		after = catalog{}
+	}
+	return before, after
 }
 
 // ruleDeclaresIn answers whether the change brings the files of the rule's
