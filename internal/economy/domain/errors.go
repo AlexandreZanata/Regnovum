@@ -59,6 +59,11 @@ const (
 	CodeInvalidMonitorAmount       ErrorCode = "ECONOMY_INVALID_MONITOR_AMOUNT"
 	CodeUnknownRestoreDivergence   ErrorCode = "ECONOMY_UNKNOWN_RESTORE_DIVERGENCE"
 	CodeInvalidRestoreSnapshot     ErrorCode = "ECONOMY_INVALID_RESTORE_SNAPSHOT"
+	CodeUnknownActivationCohort    ErrorCode = "ECONOMY_UNKNOWN_ACTIVATION_COHORT"
+	CodeCohortNotAuthorized        ErrorCode = "ECONOMY_COHORT_NOT_AUTHORIZED"
+	CodeActivationHealthNotGreen   ErrorCode = "ECONOMY_ACTIVATION_HEALTH_NOT_GREEN"
+	CodeActivationFrozen           ErrorCode = "ECONOMY_ACTIVATION_FROZEN"
+	CodeActivationWithoutReversal  ErrorCode = "ECONOMY_ACTIVATION_WITHOUT_REVERSAL"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -291,5 +296,25 @@ var (
 	ErrInvalidRestoreSnapshot = DomainError{
 		Code:    CodeInvalidRestoreSnapshot,
 		Message: "restore snapshot the comparison cannot judge is refused: unnamed books and negative counts never compare",
+	}
+	ErrUnknownActivationCohort = DomainError{
+		Code:    CodeUnknownActivationCohort,
+		Message: "activation cohort outside the closed vocabulary is refused: only named cohorts are judged",
+	}
+	ErrCohortNotAuthorized = DomainError{
+		Code:    CodeCohortNotAuthorized,
+		Message: "cohort is not authorized for activation: only the synthetic canary opens first",
+	}
+	ErrActivationHealthNotGreen = DomainError{
+		Code:    CodeActivationHealthNotGreen,
+		Message: "activation needs a green health pass: drift or open findings refuse the canary",
+	}
+	ErrActivationFrozen = DomainError{
+		Code:    CodeActivationFrozen,
+		Message: "activation while frozen is refused: the break resolves first, reads continue meanwhile",
+	}
+	ErrActivationWithoutReversal = DomainError{
+		Code:    CodeActivationWithoutReversal,
+		Message: "activation without a reversal plan is refused: journal and rights are preserved by compensation only",
 	}
 )
