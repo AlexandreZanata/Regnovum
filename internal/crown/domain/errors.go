@@ -159,6 +159,34 @@ const (
 	// wealth: revival never mints, never restores balance, office,
 	// contract or patent, and sealed-season wealth never reappears.
 	CodeMintedBlessing ErrorCode = "CROWN_MINTED_BLESSING"
+	// CodeUnknownWealthPolicy names an unratified wealth policy version:
+	// only ratified versions qualify.
+	CodeUnknownWealthPolicy ErrorCode = "CROWN_UNKNOWN_WEALTH_POLICY"
+	// CodeAmbiguousFixture names a wealth fixture missing required
+	// mappings, carrying contradictory tags or mixing domains.
+	CodeAmbiguousFixture ErrorCode = "CROWN_AMBIGUOUS_FIXTURE"
+	// CodeUnmappedBeneficiary names an asset holding without an explicit
+	// owner: every custody must name an explicit beneficiary.
+	CodeUnmappedBeneficiary ErrorCode = "CROWN_UNMAPPED_BENEFICIARY"
+	// CodeUnmappedObligation names a liability without a responsible
+	// debtor: every obligation must name an explicit debtor.
+	CodeUnmappedObligation ErrorCode = "CROWN_UNMAPPED_OBLIGATION"
+	// CodeInvalidWealthAmount names a negative or malformed wealth amount.
+	CodeInvalidWealthAmount ErrorCode = "CROWN_INVALID_WEALTH_AMOUNT"
+	// CodeWealthOverflow names an amount or sum exceeding supply bounds
+	// or integer arithmetic limits.
+	CodeWealthOverflow ErrorCode = "CROWN_WEALTH_OVERFLOW"
+	// CodeUnknownAssetKind names an asset classification outside the
+	// closed vocabulary of seasonal holdings.
+	CodeUnknownAssetKind ErrorCode = "CROWN_UNKNOWN_ASSET_KIND"
+	// CodeUnknownObligationKind names an obligation outside the closed
+	// vocabulary of seasonal liabilities.
+	CodeUnknownObligationKind ErrorCode = "CROWN_UNKNOWN_OBLIGATION_KIND"
+	// CodeDuplicateCustody names the same custody evaluated twice for
+	// a beneficiary.
+	CodeDuplicateCustody ErrorCode = "CROWN_DUPLICATE_CUSTODY"
+	// CodeDuplicateObligation names the same obligation evaluated twice.
+	CodeDuplicateObligation ErrorCode = "CROWN_DUPLICATE_OBLIGATION"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -393,5 +421,56 @@ var (
 	ErrMintedBlessing = DomainError{
 		Code:    CodeMintedBlessing,
 		Message: "the return mints: revival never recreates balance, office, contract or patent and sealed-season wealth never reappears",
+	}
+	// ErrUnknownWealthPolicy refuses an unratified wealth policy.
+	ErrUnknownWealthPolicy = DomainError{
+		Code:    CodeUnknownWealthPolicy,
+		Message: "unknown wealth policy: only ratified versions qualify",
+	}
+	// ErrAmbiguousFixture refuses a fixture with contradictory tags,
+	// missing fields or cross-domain violations.
+	ErrAmbiguousFixture = DomainError{
+		Code:    CodeAmbiguousFixture,
+		Message: "ambiguous wealth fixture: inputs must be uniquely and completely mapped",
+	}
+	// ErrUnmappedBeneficiary refuses an asset holding without an explicit owner.
+	ErrUnmappedBeneficiary = DomainError{
+		Code:    CodeUnmappedBeneficiary,
+		Message: "unmapped asset beneficiary: every custody must name an explicit owner",
+	}
+	// ErrUnmappedObligation refuses an obligation without an explicit debtor.
+	ErrUnmappedObligation = DomainError{
+		Code:    CodeUnmappedObligation,
+		Message: "unmapped obligation debtor: every liability must name an explicit responsible debtor",
+	}
+	// ErrInvalidWealthAmount refuses a negative or malformed amount.
+	ErrInvalidWealthAmount = DomainError{
+		Code:    CodeInvalidWealthAmount,
+		Message: "invalid wealth amount: amounts must be non-negative integers within bounds",
+	}
+	// ErrWealthOverflow refuses an amount or sum beyond limits.
+	ErrWealthOverflow = DomainError{
+		Code:    CodeWealthOverflow,
+		Message: "wealth amount overflows fixed limits or integer bounds",
+	}
+	// ErrUnknownAssetKind refuses an asset kind outside the closed vocabulary.
+	ErrUnknownAssetKind = DomainError{
+		Code:    CodeUnknownAssetKind,
+		Message: "unknown asset kind: classification must belong to the closed vocabulary",
+	}
+	// ErrUnknownObligationKind refuses an obligation kind outside the closed vocabulary.
+	ErrUnknownObligationKind = DomainError{
+		Code:    CodeUnknownObligationKind,
+		Message: "unknown obligation kind: obligation must belong to the closed vocabulary",
+	}
+	// ErrDuplicateCustody refuses duplicate custody in an evaluation.
+	ErrDuplicateCustody = DomainError{
+		Code:    CodeDuplicateCustody,
+		Message: "duplicate custody entry: each custody must be uniquely mapped per evaluation",
+	}
+	// ErrDuplicateObligation refuses duplicate obligation in an evaluation.
+	ErrDuplicateObligation = DomainError{
+		Code:    CodeDuplicateObligation,
+		Message: "duplicate obligation entry: each obligation must be uniquely mapped per evaluation",
 	}
 )
