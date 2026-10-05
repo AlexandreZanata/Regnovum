@@ -239,12 +239,21 @@ export const messageKeys = {
   kingdom: [
     "kingdom.appeal.due",
     "kingdom.appeal.title",
+    "kingdom.betting.no_wagers",
+    "kingdom.betting.title",
+    "kingdom.betting.unavailable_notice",
+    "kingdom.bonds.no_yield",
+    "kingdom.bonds.title",
+    "kingdom.bonds.unavailable_notice",
     "kingdom.charter.title",
     "kingdom.charter.version",
     "kingdom.death.notice",
     "kingdom.death.title",
     "kingdom.decree.issued",
     "kingdom.decree.title",
+    "kingdom.disclosures.honest_limits",
+    "kingdom.disclosures.no_financial_return",
+    "kingdom.disclosures.seo_summary",
     "kingdom.dispute.opened",
     "kingdom.dispute.title",
     "kingdom.expiry.archived_balance",
@@ -259,6 +268,10 @@ export const messageKeys = {
     "kingdom.ink.title",
     "kingdom.inquisition.case",
     "kingdom.inquisition.title",
+    "kingdom.patent.honorary_notice",
+    "kingdom.patent.no_power",
+    "kingdom.patent.season_bounded",
+    "kingdom.patent.title",
     "kingdom.purchase.confirmed",
     "kingdom.purchase.title",
     "kingdom.quote.expires",
@@ -539,12 +552,21 @@ export type MessageKey =
   | "errors.validation.title"
   | "kingdom.appeal.due"
   | "kingdom.appeal.title"
+  | "kingdom.betting.no_wagers"
+  | "kingdom.betting.title"
+  | "kingdom.betting.unavailable_notice"
+  | "kingdom.bonds.no_yield"
+  | "kingdom.bonds.title"
+  | "kingdom.bonds.unavailable_notice"
   | "kingdom.charter.title"
   | "kingdom.charter.version"
   | "kingdom.death.notice"
   | "kingdom.death.title"
   | "kingdom.decree.issued"
   | "kingdom.decree.title"
+  | "kingdom.disclosures.honest_limits"
+  | "kingdom.disclosures.no_financial_return"
+  | "kingdom.disclosures.seo_summary"
   | "kingdom.dispute.opened"
   | "kingdom.dispute.title"
   | "kingdom.expiry.archived_balance"
@@ -559,6 +581,10 @@ export type MessageKey =
   | "kingdom.ink.title"
   | "kingdom.inquisition.case"
   | "kingdom.inquisition.title"
+  | "kingdom.patent.honorary_notice"
+  | "kingdom.patent.no_power"
+  | "kingdom.patent.season_bounded"
+  | "kingdom.patent.title"
   | "kingdom.purchase.confirmed"
   | "kingdom.purchase.title"
   | "kingdom.quote.expires"
@@ -832,12 +858,21 @@ export const messagePlaceholders = Object.freeze({
   "errors.validation.title": [],
   "kingdom.appeal.due": ["date"],
   "kingdom.appeal.title": [],
+  "kingdom.betting.no_wagers": [],
+  "kingdom.betting.title": [],
+  "kingdom.betting.unavailable_notice": [],
+  "kingdom.bonds.no_yield": [],
+  "kingdom.bonds.title": [],
+  "kingdom.bonds.unavailable_notice": [],
   "kingdom.charter.title": [],
   "kingdom.charter.version": ["version"],
   "kingdom.death.notice": ["date"],
   "kingdom.death.title": [],
   "kingdom.decree.issued": ["id"],
   "kingdom.decree.title": [],
+  "kingdom.disclosures.honest_limits": [],
+  "kingdom.disclosures.no_financial_return": [],
+  "kingdom.disclosures.seo_summary": [],
   "kingdom.dispute.opened": ["id"],
   "kingdom.dispute.title": [],
   "kingdom.expiry.archived_balance": ["amount"],
@@ -852,6 +887,10 @@ export const messagePlaceholders = Object.freeze({
   "kingdom.ink.title": [],
   "kingdom.inquisition.case": ["id"],
   "kingdom.inquisition.title": [],
+  "kingdom.patent.honorary_notice": [],
+  "kingdom.patent.no_power": [],
+  "kingdom.patent.season_bounded": [],
+  "kingdom.patent.title": [],
   "kingdom.purchase.confirmed": ["id"],
   "kingdom.purchase.title": [],
   "kingdom.quote.expires": ["date"],
@@ -1126,12 +1165,21 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "errors.validation.title": "The request is invalid",
     "kingdom.appeal.due": "Appeal due {date}",
     "kingdom.appeal.title": "Appeal",
+    "kingdom.betting.no_wagers": "The platform offers no active wagers with INK, legal tender, or any asset.",
+    "kingdom.betting.title": "Prediction markets and betting",
+    "kingdom.betting.unavailable_notice": "Prediction markets and betting are strictly unavailable.",
+    "kingdom.bonds.no_yield": "There is no promise of return, guaranteed yield, or financial backing issued by the Kingdom.",
+    "kingdom.bonds.title": "Crown Bonds",
+    "kingdom.bonds.unavailable_notice": "Crown Bonds are unavailable; purchasing is disabled by institutional policy.",
     "kingdom.charter.title": "Charter",
     "kingdom.charter.version": "Charter {version}",
     "kingdom.death.notice": "Account in digital death since {date}",
     "kingdom.death.title": "Digital death",
     "kingdom.decree.issued": "Decree {id} published",
     "kingdom.decree.title": "Decree",
+    "kingdom.disclosures.honest_limits": "Kingdom products are strictly cosmetic and civic participation tools, with no promise of financial return.",
+    "kingdom.disclosures.no_financial_return": "The platform does not promise capital appreciation, return on capital, or guaranteed yield.",
+    "kingdom.disclosures.seo_summary": "Regnovum — the Kingdom: civic debate platform with game economy and no financial products.",
     "kingdom.dispute.opened": "Dispute {id} opened",
     "kingdom.dispute.title": "Dispute",
     "kingdom.expiry.archived_balance": "Archived balance: {amount}",
@@ -1146,6 +1194,10 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "kingdom.ink.title": "Ink",
     "kingdom.inquisition.case": "Severe case {id}",
     "kingdom.inquisition.title": "Inquisition",
+    "kingdom.patent.honorary_notice": "Patent is an honorary cosmetic title; it grants no power, office, authority, vote, truth, or reputation.",
+    "kingdom.patent.no_power": "Patents do not buy civic, judicial, or ecclesiastical authority in the Kingdom.",
+    "kingdom.patent.season_bounded": "Patent validity is bounded to the season and expires upon cycle closure.",
+    "kingdom.patent.title": "Patent",
     "kingdom.purchase.confirmed": "Purchase {id} confirmed",
     "kingdom.purchase.title": "Purchase",
     "kingdom.quote.expires": "Quote valid until {date}",
@@ -1417,12 +1469,21 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "errors.validation.title": "A requisição é inválida",
     "kingdom.appeal.due": "Recurso até {date}",
     "kingdom.appeal.title": "Recurso",
+    "kingdom.betting.no_wagers": "A plataforma não oferece apostas ativas com INK, moeda corrente ou qualquer valor.",
+    "kingdom.betting.title": "Mercados de previsão e apostas",
+    "kingdom.betting.unavailable_notice": "Mercados de previsão e apostas estão estritamente indisponíveis.",
+    "kingdom.bonds.no_yield": "Não há promessa de retorno, rendimento garantido ou lastro emitido pelo Reino.",
+    "kingdom.bonds.title": "Títulos da Coroa",
+    "kingdom.bonds.unavailable_notice": "Títulos da Coroa não estão disponíveis; contratação desativada por política institucional.",
     "kingdom.charter.title": "Carta",
     "kingdom.charter.version": "Carta {version}",
     "kingdom.death.notice": "Conta em morte digital desde {date}",
     "kingdom.death.title": "Morte digital",
     "kingdom.decree.issued": "Decreto {id} publicado",
     "kingdom.decree.title": "Decreto",
+    "kingdom.disclosures.honest_limits": "Produtos do Reino são estritamente cosméticos e de participação cívica, sem promessa de retorno financeiro.",
+    "kingdom.disclosures.no_financial_return": "A plataforma não promete valorização patrimonial, retorno sobre capital ou rendimento garantido.",
+    "kingdom.disclosures.seo_summary": "Regnovum — o Reino: plataforma cívica de debates com economia de jogo e sem produtos financeiros.",
     "kingdom.dispute.opened": "Disputa {id} aberta",
     "kingdom.dispute.title": "Disputa",
     "kingdom.expiry.archived_balance": "Saldo arquivado: {amount}",
@@ -1437,6 +1498,10 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "kingdom.ink.title": "Tinta",
     "kingdom.inquisition.case": "Caso severo {id}",
     "kingdom.inquisition.title": "Inquisição",
+    "kingdom.patent.honorary_notice": "Patente é um título honorífico e cosmético; não concede poder, cargo, autoridade, voto, verdade ou reputação.",
+    "kingdom.patent.no_power": "Patentes não compram autoridade cívica, judicial ou eclesiástica no Reino.",
+    "kingdom.patent.season_bounded": "A vigência da Patente é limitada à temporada e expira com o encerramento do ciclo.",
+    "kingdom.patent.title": "Patente",
     "kingdom.purchase.confirmed": "Compra {id} confirmada",
     "kingdom.purchase.title": "Compra",
     "kingdom.quote.expires": "Cotação válida até {date}",

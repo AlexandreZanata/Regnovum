@@ -57,6 +57,27 @@
       "archived_balance": "Archived balance: {amount}",
       "operator_notice": "Operator notice: {detail}",
       "season_king_notice": "Game King notice: {detail}"
+    },
+    "patent": {
+      "title": "Patent",
+      "honorary_notice": "Patent is an honorary cosmetic title; it grants no power, office, authority, vote, truth, or reputation.",
+      "no_power": "Patents do not buy civic, judicial, or ecclesiastical authority in the Kingdom.",
+      "season_bounded": "Patent validity is bounded to the season and expires upon cycle closure."
+    },
+    "bonds": {
+      "title": "Crown Bonds",
+      "unavailable_notice": "Crown Bonds are unavailable; purchasing is disabled by institutional policy.",
+      "no_yield": "There is no promise of return, guaranteed yield, or financial backing issued by the Kingdom."
+    },
+    "betting": {
+      "title": "Prediction markets and betting",
+      "unavailable_notice": "Prediction markets and betting are strictly unavailable.",
+      "no_wagers": "The platform offers no active wagers with INK, legal tender, or any asset."
+    },
+    "disclosures": {
+      "honest_limits": "Kingdom products are strictly cosmetic and civic participation tools, with no promise of financial return.",
+      "no_financial_return": "The platform does not promise capital appreciation, return on capital, or guaranteed yield.",
+      "seo_summary": "Regnovum — the Kingdom: civic debate platform with game economy and no financial products."
     }
   }
 }

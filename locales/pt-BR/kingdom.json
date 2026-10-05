@@ -57,6 +57,27 @@
       "archived_balance": "Saldo arquivado: {amount}",
       "operator_notice": "Aviso do operador: {detail}",
       "season_king_notice": "Aviso do Rei de jogo: {detail}"
+    },
+    "patent": {
+      "title": "Patente",
+      "honorary_notice": "Patente é um título honorífico e cosmético; não concede poder, cargo, autoridade, voto, verdade ou reputação.",
+      "no_power": "Patentes não compram autoridade cívica, judicial ou eclesiástica no Reino.",
+      "season_bounded": "A vigência da Patente é limitada à temporada e expira com o encerramento do ciclo."
+    },
+    "bonds": {
+      "title": "Títulos da Coroa",
+      "unavailable_notice": "Títulos da Coroa não estão disponíveis; contratação desativada por política institucional.",
+      "no_yield": "Não há promessa de retorno, rendimento garantido ou lastro emitido pelo Reino."
+    },
+    "betting": {
+      "title": "Mercados de previsão e apostas",
+      "unavailable_notice": "Mercados de previsão e apostas estão estritamente indisponíveis.",
+      "no_wagers": "A plataforma não oferece apostas ativas com INK, moeda corrente ou qualquer valor."
+    },
+    "disclosures": {
+      "honest_limits": "Produtos do Reino são estritamente cosméticos e de participação cívica, sem promessa de retorno financeiro.",
+      "no_financial_return": "A plataforma não promete valorização patrimonial, retorno sobre capital ou rendimento garantido.",
+      "seo_summary": "Regnovum — o Reino: plataforma cívica de debates com economia de jogo e sem produtos financeiros."
     }
   }
 }
