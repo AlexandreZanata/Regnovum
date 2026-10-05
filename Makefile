@@ -48,7 +48,7 @@ CAPACITYRATCHET := $(GO) run ./tools/capacityratchet
 IMAGE ?= goyim-arena:local
 TRIVY ?= trivy
 
-.PHONY: fmt fmt-check lint audit-complexity audit-deadcode audit-errors audit-provenance audit-tests audit-diff audit-deps audit-mutations audit-coverage test-unit test-integration test-race test-migration test-security dast flake-detect regression-pack test-web typecheck build-web audit-web audit-i18n i18n-audit audit-ci quality-catalog quality-waivers quality-taxonomy quality-inventory quality-inventory-write testenv-verify release-gate security-audit privacy-audit release-verify handoff-check handoff-walkthrough test-contract test-e2e test-load-smoke image-build image-verify image-scan caddy-verify compose-verify migration-audit backup-verify deploy-verify vuln generate generate-check verify quick-verify economy-decisions-check economy-certify
+.PHONY: fmt fmt-check lint audit-complexity audit-deadcode audit-errors audit-provenance audit-tests audit-diff audit-deps audit-mutations audit-coverage test-unit test-integration test-race test-migration test-security dast flake-detect regression-pack test-web typecheck build-web audit-web audit-i18n i18n-audit audit-ci quality-catalog quality-waivers quality-taxonomy quality-inventory quality-inventory-write testenv-verify release-gate security-audit privacy-audit release-verify handoff-check handoff-walkthrough test-contract test-e2e test-load-smoke image-build image-verify image-scan caddy-verify compose-verify migration-audit backup-verify deploy-verify vuln generate generate-check verify quick-verify economy-decisions-check economy-certify release-matrix
 
 # Gerador i18n (P02-T07): fontes em locales/, artefatos versionados em
 # web/src/i18n/generated.ts e internal/i18n/generated.go (nunca editados).
@@ -582,6 +582,17 @@ ECONOMY_BUNDLE ?= tools/economycertify/testdata/green.json
 economy-certify:
 	$(GO) run ./tools/economycertify -bundle $(ECONOMY_BUNDLE)
 	@echo "economy-certify: ok"
+
+# release-matrix é o portão da matriz de evidências (P45-T02): julga o
+# manifesto versionado quality/release-matrix.json contra os alvos
+# reais do Makefile e, com -results/-commit, um diretório de
+# artefatos por portão contra o SHA congelado. Portão ausente,
+# comando sem alvo, área descoberta, artefato sem SHA ou resultado
+# ausente/SKIPPED/falso-verde reprova. Alvo standalone, fora do
+# quick-verify; a matriz integral roda uma vez no SHA final de P45.
+release-matrix:
+	$(GO) run ./tools/releasematrix -root .
+	@echo "release-matrix: ok"
 
 # audit-toolchain julga os pinos de produção contra quality/toolchain.json
 # (P29-T08): qualquer versão fora do pin falha. Alvo standalone, fora do

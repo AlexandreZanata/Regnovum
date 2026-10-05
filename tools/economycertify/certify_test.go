@@ -62,7 +62,7 @@ func TestDecisorPassesGreenFixture(t *testing.T) {
 // TestDecisorRefusesEachAxis breaks exactly one axis per case and
 // proves the reason names it: missing file, malformed SHA, dirty
 // tree, pending decision, open finding, pending country, milli
-// drift and active product all FAIL.
+// drift, active product and every final-decision axis all FAIL.
 func TestDecisorRefusesEachAxis(t *testing.T) {
 	green := greenBundle(t)
 	cases := []struct {
@@ -84,6 +84,16 @@ func TestDecisorRefusesEachAxis(t *testing.T) {
 		{"merge-missing", func(b *Bundle) { b.MergeP47 = false }, ReasonMergeMissing + ":P47"},
 		{"stale-credential", func(b *Bundle) { b.RealCredentialDays = 91 }, ReasonStaleCredential},
 		{"product-active", func(b *Bundle) { b.ProhibitedActive = true }, ReasonProductActive},
+		{"oracle-short", func(b *Bundle) { b.Oracle.Sequences = 7 }, ReasonOracleScale},
+		{"resets-short", func(b *Bundle) { b.SeasonResets.Count = 2 }, ReasonResetsShort},
+		{"webhook-unproven", func(b *Bundle) { b.LateWebhook.Proven = false }, ReasonWebhookUnproven},
+		{"ties-unjudged", func(b *Bundle) { b.TiedTakes.Proven = false }, ReasonTiesUnjudged},
+		{"exking-unrefused", func(b *Bundle) { b.ExKing.Proven = false }, ReasonExKingUnrefused},
+		{"purchase-no-term", func(b *Bundle) { b.Purchase.TermDays = 0 }, ReasonPurchaseExpiry},
+		{"archive-unkept", func(b *Bundle) { b.Archive.Retained = false }, ReasonArchiveUnkept},
+		{"opinion-missing", func(b *Bundle) { b.IndependentOpinion.Reference = "" }, ReasonOpinionMissing},
+		{"opinion-open", func(b *Bundle) { b.IndependentOpinion.Critical = 1 }, ReasonOpinionOpen},
+		{"legal-pending", func(b *Bundle) { b.Legal.Approvals = map[string]bool{} }, ReasonLegalPending + ":BR"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -143,6 +153,25 @@ func TestDecisorFailsClosedOnUnreadable(t *testing.T) {
 	malformed := Decide(bad, "")
 	if malformed.Decision != DecisionFail {
 		t.Fatalf("malformed bundle passed: %+v", malformed)
+	}
+}
+
+// TestTemplateCarriesNoCertificate proves the unfilled final
+// template FAILs: shape without measured data grants nothing, and
+// the post-merge execution must fill every field on the frozen SHA.
+func TestTemplateCarriesNoCertificate(t *testing.T) {
+	decision := Decide(filepath.Join("testdata", "final-template.json"), "")
+	if decision.Decision != DecisionFail {
+		t.Fatalf("unfilled template passed: %+v", decision)
+	}
+	found := false
+	for _, reason := range decision.Reasons {
+		if reason == ReasonOpinionMissing {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("template reasons = %v, want opinion-missing", decision.Reasons)
 	}
 }
 
