@@ -51,6 +51,12 @@ const (
 	CodeBettingMarketsUnavailable  ErrorCode = "ECONOMY_BETTING_MARKETS_UNAVAILABLE"
 	CodeRealHarmProhibited         ErrorCode = "ECONOMY_REAL_HARM_PROHIBITED"
 	CodeBettingPreconditionMissing ErrorCode = "ECONOMY_BETTING_PRECONDITION_MISSING"
+	CodeUnknownMonitorObservable   ErrorCode = "ECONOMY_UNKNOWN_MONITOR_OBSERVABLE"
+	CodeUnknownMonitorFinding      ErrorCode = "ECONOMY_UNKNOWN_MONITOR_FINDING"
+	CodeAlertWithoutAction         ErrorCode = "ECONOMY_ALERT_WITHOUT_ACTION"
+	CodeInvalidMonitorBudget       ErrorCode = "ECONOMY_INVALID_MONITOR_BUDGET"
+	CodeDuplicateMonitorObservable ErrorCode = "ECONOMY_DUPLICATE_MONITOR_OBSERVABLE"
+	CodeInvalidMonitorAmount       ErrorCode = "ECONOMY_INVALID_MONITOR_AMOUNT"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -251,5 +257,29 @@ var (
 	ErrBettingPreconditionMissing = DomainError{
 		Code:    CodeBettingPreconditionMissing,
 		Message: "mandatory betting preconditions are missing: legal review, regulatory license, age/location verification, AML, objective event, independent oracle and conflict isolation must all be satisfied",
+	}
+	ErrUnknownMonitorObservable = DomainError{
+		Code:    CodeUnknownMonitorObservable,
+		Message: "monitor signal outside the closed vocabulary is refused: the pass judges only named observables",
+	}
+	ErrUnknownMonitorFinding = DomainError{
+		Code:    CodeUnknownMonitorFinding,
+		Message: "finding code without a registry row is refused: every alert needs severity, owner, runbook and action",
+	}
+	ErrAlertWithoutAction = DomainError{
+		Code:    CodeAlertWithoutAction,
+		Message: "an alert without an action is a failure: detection that names nobody to act is refused",
+	}
+	ErrInvalidMonitorBudget = DomainError{
+		Code:    CodeInvalidMonitorBudget,
+		Message: "monitor budgets are explicit operator decisions: lag needs a positive budget and counts never go negative",
+	}
+	ErrDuplicateMonitorObservable = DomainError{
+		Code:    CodeDuplicateMonitorObservable,
+		Message: "one signal judged twice in one pass is refused: each observable appears exactly once",
+	}
+	ErrInvalidMonitorAmount = DomainError{
+		Code:    CodeInvalidMonitorAmount,
+		Message: "negative money in a monitor observation is refused: books hold zero or more, never less",
 	}
 )
