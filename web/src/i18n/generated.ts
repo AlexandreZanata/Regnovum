@@ -298,6 +298,10 @@ export const messageKeys = {
     "metering.statement.title",
   ] as const,
   seasons: [
+    "seasons.champions.empty",
+    "seasons.champions.last_king",
+    "seasons.champions.richest",
+    "seasons.champions.title",
     "seasons.current.title",
     "seasons.detail.state",
     "seasons.detail.title",
@@ -607,6 +611,10 @@ export type MessageKey =
   | "metering.statement.balance"
   | "metering.statement.empty"
   | "metering.statement.title"
+  | "seasons.champions.empty"
+  | "seasons.champions.last_king"
+  | "seasons.champions.richest"
+  | "seasons.champions.title"
   | "seasons.current.title"
   | "seasons.detail.state"
   | "seasons.detail.title"
@@ -913,6 +921,10 @@ export const messagePlaceholders = Object.freeze({
   "metering.statement.balance": ["total"],
   "metering.statement.empty": [],
   "metering.statement.title": [],
+  "seasons.champions.empty": [],
+  "seasons.champions.last_king": [],
+  "seasons.champions.richest": [],
+  "seasons.champions.title": [],
   "seasons.current.title": [],
   "seasons.detail.state": [],
   "seasons.detail.title": [],
@@ -1220,6 +1232,10 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "metering.statement.balance": "Balance: {total} thousandths of INK",
     "metering.statement.empty": "No publications yet",
     "metering.statement.title": "INK statement",
+    "seasons.champions.empty": "No champions yet",
+    "seasons.champions.last_king": "Last King",
+    "seasons.champions.richest": "Richest at cutoff",
+    "seasons.champions.title": "Season champions",
     "seasons.current.title": "Current season",
     "seasons.detail.state": "Lifecycle state",
     "seasons.detail.title": "Season",
@@ -1524,6 +1540,10 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "metering.statement.balance": "Saldo: {total} milésimos de INK",
     "metering.statement.empty": "Nenhuma publicação ainda",
     "metering.statement.title": "Extrato de INK",
+    "seasons.champions.empty": "Nenhum campeão ainda",
+    "seasons.champions.last_king": "Último Rei",
+    "seasons.champions.richest": "Mais rico no corte",
+    "seasons.champions.title": "Campeões da temporada",
     "seasons.current.title": "Temporada atual",
     "seasons.detail.state": "Estado do ciclo",
     "seasons.detail.title": "Temporada",

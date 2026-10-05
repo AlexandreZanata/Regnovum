@@ -568,3 +568,68 @@ func mutateFirstClass(document map[string]any, mutate func(map[string]any)) {
 	classes := document["classes"].([]any)
 	mutate(classes[0].(map[string]any))
 }
+
+// TestQ0IsJudgedPerCommitNotPerRange pins the false positive this gate produced
+// on the delivered range: two commits that each write one critical rule with
+// its nominal and adversarial regression in the same commit are exactly what
+// the policy demands ("in the change that writes the rule"). Judging each of
+// them against the range-global table refuses both for the rule the other one
+// wrote; judging each against its own two sides accepts both, while a commit
+// that writes a rule without its regression still refuses — and names only the
+// rule that commit wrote.
+func TestQ0IsJudgedPerCommitNotPerRange(t *testing.T) {
+	probeRule := func(id, test string) string {
+		return `{"id":"` + id + `","risk":"Q0","tests":{"positive":["` + test + `::TestProbeWorks"],"negative":["` + test + `::TestProbeRefuses"]}}`
+	}
+	ruleOld := probeRule("QUAL-PROBE-OLD", "internal/probe/domain/old_test.go")
+	ruleA := probeRule("QUAL-PROBE-A", "internal/probe/domain/a_test.go")
+	ruleB := probeRule("QUAL-PROBE-B", "internal/probe/domain/b_test.go")
+	table := func(rules ...string) string {
+		return `{"rules":[` + strings.Join(rules, ",") + `]}`
+	}
+	base, afterA, afterB := table(ruleOld), table(ruleOld, ruleA), table(ruleOld, ruleA, ruleB)
+	commitA := commitRecord{SHA: "aaaaaa01", Message: "test(probe): declare rule A with its regression", Files: []fileRecord{
+		{Status: modifiedFile, Path: catalogPath, Before: base, After: afterA},
+		{Status: newFile, Path: "internal/probe/domain/a_test.go"},
+	}}
+	commitB := commitRecord{SHA: "aaaaaa02", Message: "test(probe): declare rule B with its regression", Files: []fileRecord{
+		{Status: modifiedFile, Path: catalogPath, Before: afterA, After: afterB},
+		{Status: newFile, Path: "internal/probe/domain/b_test.go"},
+	}}
+	document := changeDocument{Schema: changeSchemaVersion, Base: "base0000", Head: "head0000", CatalogBase: base, CatalogHead: afterB, Commits: []commitRecord{commitA, commitB}}
+	judgeOne := func(t *testing.T, commit commitRecord) []auditkit.Finding {
+		t.Helper()
+		st := mustState(t, document)
+		classes, err := classifyAll(changeDocument{Commits: []commitRecord{commit}}, st.pol, st.register)
+		if err != nil {
+			t.Fatalf("classifyAll = %v", err)
+		}
+		var findings []auditkit.Finding
+		result := measured{Classes: map[string]int{}}
+		if err := judgeQ0(commit, classes, st, &result, &findings); err != nil {
+			t.Fatalf("judgeQ0 = %v", err)
+		}
+		return findings
+	}
+	if findings := judgeOne(t, commitA); len(findings) != 0 {
+		t.Errorf("commit A with its regression refuses: %v", findings[0])
+	}
+	if findings := judgeOne(t, commitB); len(findings) != 0 {
+		t.Errorf("commit B with its regression refuses: %v", findings[0])
+	}
+	// The strict direction stays: a commit that writes a rule without the
+	// regression refuses, and names only the rule that commit wrote.
+	commitBLonely := commitRecord{SHA: "aaaaaa03", Message: "test(probe): declare rule B without its regression", Files: []fileRecord{
+		{Status: modifiedFile, Path: catalogPath, Before: afterA, After: afterB},
+	}}
+	findings := judgeOne(t, commitBLonely)
+	if len(findings) != 1 {
+		t.Fatalf("commit B without its regression has %d finding(s), want exactly 1", len(findings))
+	}
+	if findings[0].Rule != RuleQ0WithoutRegression || !strings.Contains(findings[0].Detail, "QUAL-PROBE-B") {
+		t.Errorf("refusal names %q: %q, want the Q0 rule QUAL-PROBE-B", findings[0].Rule, findings[0].Detail)
+	}
+	if strings.Contains(findings[0].Detail, "QUAL-PROBE-A") {
+		t.Errorf("refusal spills onto QUAL-PROBE-A, which this commit did not write: %q", findings[0].Detail)
+	}
+}

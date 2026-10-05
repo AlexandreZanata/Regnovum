@@ -48,6 +48,7 @@ type LedgerWriter interface {
 type ExecuteCommand struct {
 	Act               domain.RoyalAct
 	Clearance         domain.Clearance
+	Delegation        *domain.Delegation
 	Beneficiary       string
 	Vault             string
 	ConflictPending   bool
@@ -96,7 +97,7 @@ func (uc *ExecuteUseCase) Execute(ctx context.Context, cmd ExecuteCommand) (doma
 			return domain.ExecutionReceipt{}, err
 		}
 	}
-	order, err := domain.PlanExecution(sealed, cmd.Clearance, current, domain.CustodyView{
+	order, err := domain.PlanDelegatedExecution(sealed, cmd.Clearance, cmd.Delegation, current, domain.CustodyView{
 		Origin: string(sealed.Origin), Beneficiary: beneficiary, Vault: cmd.Vault,
 		Available: snapshot.Available, Frozen: snapshot.Frozen,
 		ConflictPending: cmd.ConflictPending, IndependentReview: cmd.IndependentReview,

@@ -39,8 +39,8 @@ func TestRoutesMatchFragment(t *testing.T) {
 		t.Fatalf("fragment openapi = %q, want 3.1.0", fragment.OpenAPI)
 	}
 	routes := adapterhttp.Routes()
-	if len(routes) != 3 {
-		t.Fatalf("routes = %d, want current, history and detail", len(routes))
+	if len(routes) != 4 {
+		t.Fatalf("routes = %d, want current, history, detail and champions", len(routes))
 	}
 	fragmentRoutes := map[string]string{}
 	for path, methods := range fragment.Paths {

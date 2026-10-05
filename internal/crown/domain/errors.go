@@ -159,6 +159,74 @@ const (
 	// wealth: revival never mints, never restores balance, office,
 	// contract or patent, and sealed-season wealth never reappears.
 	CodeMintedBlessing ErrorCode = "CROWN_MINTED_BLESSING"
+	// CodeUnknownWealthPolicy names an unratified wealth policy version:
+	// only ratified versions qualify.
+	CodeUnknownWealthPolicy ErrorCode = "CROWN_UNKNOWN_WEALTH_POLICY"
+	// CodeAmbiguousFixture names a wealth fixture missing required
+	// mappings, carrying contradictory tags or mixing domains.
+	CodeAmbiguousFixture ErrorCode = "CROWN_AMBIGUOUS_FIXTURE"
+	// CodeUnmappedBeneficiary names an asset holding without an explicit
+	// owner: every custody must name an explicit beneficiary.
+	CodeUnmappedBeneficiary ErrorCode = "CROWN_UNMAPPED_BENEFICIARY"
+	// CodeUnmappedObligation names a liability without a responsible
+	// debtor: every obligation must name an explicit debtor.
+	CodeUnmappedObligation ErrorCode = "CROWN_UNMAPPED_OBLIGATION"
+	// CodeInvalidWealthAmount names a negative or malformed wealth amount.
+	CodeInvalidWealthAmount ErrorCode = "CROWN_INVALID_WEALTH_AMOUNT"
+	// CodeWealthOverflow names an amount or sum exceeding supply bounds
+	// or integer arithmetic limits.
+	CodeWealthOverflow ErrorCode = "CROWN_WEALTH_OVERFLOW"
+	// CodeUnknownAssetKind names an asset classification outside the
+	// closed vocabulary of seasonal holdings.
+	CodeUnknownAssetKind ErrorCode = "CROWN_UNKNOWN_ASSET_KIND"
+	// CodeUnknownObligationKind names an obligation outside the closed
+	// vocabulary of seasonal liabilities.
+	CodeUnknownObligationKind ErrorCode = "CROWN_UNKNOWN_OBLIGATION_KIND"
+	// CodeDuplicateCustody names the same custody evaluated twice for
+	// a beneficiary.
+	CodeDuplicateCustody ErrorCode = "CROWN_DUPLICATE_CUSTODY"
+	// CodeDuplicateObligation names the same obligation evaluated twice.
+	CodeDuplicateObligation ErrorCode = "CROWN_DUPLICATE_OBLIGATION"
+	// CodeStaleRevision names an evaluation against a superseded revision.
+	CodeStaleRevision ErrorCode = "CROWN_STALE_REVISION"
+	// CodeRevisionGap names a detected gap in linearizable revisions.
+	CodeRevisionGap ErrorCode = "CROWN_REVISION_GAP"
+	// CodeProjectionFrozen names a frozen wealth projection.
+	CodeProjectionFrozen ErrorCode = "CROWN_PROJECTION_FROZEN"
+	// CodeProjectionMismatch names a divergence between projection and journal oracle.
+	CodeProjectionMismatch ErrorCode = "CROWN_PROJECTION_MISMATCH"
+	// CodeNoQualifiedSuccessor names a succession where no candidate qualifies and no incumbent or regent exists.
+	CodeNoQualifiedSuccessor ErrorCode = "CROWN_NO_QUALIFIED_SUCCESSOR"
+	// CodeDuplicateCandidate names the same subject appearing more than once in the succession candidate list.
+	CodeDuplicateCandidate ErrorCode = "CROWN_DUPLICATE_CANDIDATE"
+	// CodeWorkerLeaseBusy names an evaluator lease currently held by another worker.
+	CodeWorkerLeaseBusy ErrorCode = "CROWN_WORKER_LEASE_BUSY"
+	// CodeStaleWorkerLease names an evaluation attempt with an expired or stolen worker lease.
+	CodeStaleWorkerLease ErrorCode = "CROWN_STALE_WORKER_LEASE"
+	// CodeBacklogUnevaluated names economic events confirmed in the journal that have not yet been evaluated by the succession engine.
+	CodeBacklogUnevaluated ErrorCode = "CROWN_BACKLOG_UNEVALUATED"
+	// CodeActiveReignConflict names multiple active reigns detected for a season.
+	CodeActiveReignConflict ErrorCode = "CROWN_ACTIVE_REIGN_CONFLICT"
+	// CodeAccountDead names an investiture or authority claim by a deceased account.
+	CodeAccountDead ErrorCode = "CROWN_ACCOUNT_DEAD"
+	// CodeAccountSuspended names an investiture or authority claim by a suspended account.
+	CodeAccountSuspended ErrorCode = "CROWN_ACCOUNT_SUSPENDED"
+	// CodeMFAMissing names an investiture or authority claim without verified multi-factor authentication.
+	CodeMFAMissing ErrorCode = "CROWN_MFA_MISSING"
+	// CodeTermsSeasonMismatch names office terms accepted for another season offered in the current season.
+	CodeTermsSeasonMismatch ErrorCode = "CROWN_TERMS_SEASON_MISMATCH"
+	// CodeTamperedConsent names a consent or terms acceptance whose payload digest differs from canonical terms.
+	CodeTamperedConsent ErrorCode = "CROWN_TAMPERED_CONSENT"
+	// CodeAuthorityVersionRegression names an authority check with a version lower than the recorded sovereign version.
+	CodeAuthorityVersionRegression ErrorCode = "CROWN_AUTHORITY_VERSION_REGRESSION"
+	// CodeIdentityDependencyUnavailable names an unreachable or failed identity/consent provider.
+	CodeIdentityDependencyUnavailable ErrorCode = "CROWN_IDENTITY_DEPENDENCY_UNAVAILABLE"
+	// CodeOfficeConsentRefused names an express refusal of the seasonal office terms by the candidate.
+	CodeOfficeConsentRefused ErrorCode = "CROWN_OFFICE_CONSENT_REFUSED"
+	// CodePrivateDisclosureUnauthorized names an unauthorized party attempting to read private pending requirements.
+	CodePrivateDisclosureUnauthorized ErrorCode = "CROWN_PRIVATE_DISCLOSURE_UNAUTHORIZED"
+	// CodeProhibitedAlteration names an act attempting to alter season duration, supply, wealth criteria or succession rules.
+	CodeProhibitedAlteration ErrorCode = "CROWN_PROHIBITED_ALTERATION"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -393,5 +461,156 @@ var (
 	ErrMintedBlessing = DomainError{
 		Code:    CodeMintedBlessing,
 		Message: "the return mints: revival never recreates balance, office, contract or patent and sealed-season wealth never reappears",
+	}
+	// ErrUnknownWealthPolicy refuses an unratified wealth policy.
+	ErrUnknownWealthPolicy = DomainError{
+		Code:    CodeUnknownWealthPolicy,
+		Message: "unknown wealth policy: only ratified versions qualify",
+	}
+	// ErrAmbiguousFixture refuses a fixture with contradictory tags,
+	// missing fields or cross-domain violations.
+	ErrAmbiguousFixture = DomainError{
+		Code:    CodeAmbiguousFixture,
+		Message: "ambiguous wealth fixture: inputs must be uniquely and completely mapped",
+	}
+	// ErrUnmappedBeneficiary refuses an asset holding without an explicit owner.
+	ErrUnmappedBeneficiary = DomainError{
+		Code:    CodeUnmappedBeneficiary,
+		Message: "unmapped asset beneficiary: every custody must name an explicit owner",
+	}
+	// ErrUnmappedObligation refuses an obligation without an explicit debtor.
+	ErrUnmappedObligation = DomainError{
+		Code:    CodeUnmappedObligation,
+		Message: "unmapped obligation debtor: every liability must name an explicit responsible debtor",
+	}
+	// ErrInvalidWealthAmount refuses a negative or malformed amount.
+	ErrInvalidWealthAmount = DomainError{
+		Code:    CodeInvalidWealthAmount,
+		Message: "invalid wealth amount: amounts must be non-negative integers within bounds",
+	}
+	// ErrWealthOverflow refuses an amount or sum beyond limits.
+	ErrWealthOverflow = DomainError{
+		Code:    CodeWealthOverflow,
+		Message: "wealth amount overflows fixed limits or integer bounds",
+	}
+	// ErrUnknownAssetKind refuses an asset kind outside the closed vocabulary.
+	ErrUnknownAssetKind = DomainError{
+		Code:    CodeUnknownAssetKind,
+		Message: "unknown asset kind: classification must belong to the closed vocabulary",
+	}
+	// ErrUnknownObligationKind refuses an obligation kind outside the closed vocabulary.
+	ErrUnknownObligationKind = DomainError{
+		Code:    CodeUnknownObligationKind,
+		Message: "unknown obligation kind: obligation must belong to the closed vocabulary",
+	}
+	// ErrDuplicateCustody refuses duplicate custody in an evaluation.
+	ErrDuplicateCustody = DomainError{
+		Code:    CodeDuplicateCustody,
+		Message: "duplicate custody entry: each custody must be uniquely mapped per evaluation",
+	}
+	// ErrDuplicateObligation refuses duplicate obligation in an evaluation.
+	ErrDuplicateObligation = DomainError{
+		Code:    CodeDuplicateObligation,
+		Message: "duplicate obligation entry: each obligation must be uniquely mapped per evaluation",
+	}
+	// ErrStaleRevision refuses an operation based on a superseded revision.
+	ErrStaleRevision = DomainError{
+		Code:    CodeStaleRevision,
+		Message: "stale revision: wealth projection is behind current committed checkpoint",
+	}
+	// ErrRevisionGap refuses an operation when a revision gap is detected.
+	ErrRevisionGap = DomainError{
+		Code:    CodeRevisionGap,
+		Message: "revision gap: expected continuous monotonic revision without gaps",
+	}
+	// ErrProjectionFrozen refuses acts when the wealth projection is frozen.
+	ErrProjectionFrozen = DomainError{
+		Code:    CodeProjectionFrozen,
+		Message: "wealth projection is frozen: no sovereign decisions can be derived while frozen",
+	}
+	// ErrProjectionMismatch refuses when incremental projection drifts from the rebuild oracle.
+	ErrProjectionMismatch = DomainError{
+		Code:    CodeProjectionMismatch,
+		Message: "projection mismatch: incremental index diverged from authoritative journal",
+	}
+	// ErrNoQualifiedSuccessor refuses when no eligible candidate exceeded C and no incumbent or regent is available.
+	ErrNoQualifiedSuccessor = DomainError{
+		Code:    CodeNoQualifiedSuccessor,
+		Message: "no qualified successor: no candidate exceeded institutional threshold C, and no incumbent or regent is available",
+	}
+	// ErrDuplicateCandidate refuses when a subject appears multiple times in the candidate pool.
+	ErrDuplicateCandidate = DomainError{
+		Code:    CodeDuplicateCandidate,
+		Message: "duplicate candidate: each subject must appear at most once in candidate list",
+	}
+	// ErrWorkerLeaseBusy refuses when an evaluator lease is currently held by another active worker.
+	ErrWorkerLeaseBusy = DomainError{
+		Code:    CodeWorkerLeaseBusy,
+		Message: "worker lease busy: another evaluator holds an active lease for this season",
+	}
+	// ErrStaleWorkerLease refuses an evaluation attempt when the worker's lease has expired or was superseded.
+	ErrStaleWorkerLease = DomainError{
+		Code:    CodeStaleWorkerLease,
+		Message: "stale worker lease: worker lease expired or is not owned by this evaluator",
+	}
+	// ErrBacklogUnevaluated halts royal acts until all confirmed economic events are evaluated by succession.
+	ErrBacklogUnevaluated = DomainError{
+		Code:    CodeBacklogUnevaluated,
+		Message: "unevaluated backlog: confirmed economic events must be evaluated before executing royal acts",
+	}
+	// ErrActiveReignConflict refuses when multiple active reigns are detected for a season.
+	ErrActiveReignConflict = DomainError{
+		Code:    CodeActiveReignConflict,
+		Message: "active reign conflict: multiple active reigns exist for this season",
+	}
+	// ErrAccountDead refuses authority or investiture for a deceased account.
+	ErrAccountDead = DomainError{
+		Code:    CodeAccountDead,
+		Message: "dead account cannot hold sovereign office",
+	}
+	// ErrAccountSuspended refuses authority or investiture for a suspended account.
+	ErrAccountSuspended = DomainError{
+		Code:    CodeAccountSuspended,
+		Message: "suspended account cannot hold sovereign office",
+	}
+	// ErrMFAMissing refuses authority or investiture when multi-factor authentication is not verified.
+	ErrMFAMissing = DomainError{
+		Code:    CodeMFAMissing,
+		Message: "sovereign office requires verified multi-factor authentication",
+	}
+	// ErrTermsSeasonMismatch refuses office terms accepted for a different season book.
+	ErrTermsSeasonMismatch = DomainError{
+		Code:    CodeTermsSeasonMismatch,
+		Message: "royal office terms accepted for another season cannot authorize current season",
+	}
+	// ErrTamperedConsent refuses consent records whose digest does not match displayed and accepted terms.
+	ErrTamperedConsent = DomainError{
+		Code:    CodeTamperedConsent,
+		Message: "consent payload digest does not match displayed and accepted terms",
+	}
+	// ErrAuthorityVersionRegression refuses authority credentials when version has regressed.
+	ErrAuthorityVersionRegression = DomainError{
+		Code:    CodeAuthorityVersionRegression,
+		Message: "authority version regressed or is older than recorded sovereign version",
+	}
+	// ErrIdentityDependencyUnavailable fails closed when identity or consent provider cannot be reached.
+	ErrIdentityDependencyUnavailable = DomainError{
+		Code:    CodeIdentityDependencyUnavailable,
+		Message: "identity or consent provider is unavailable; failing closed",
+	}
+	// ErrOfficeConsentRefused indicates the candidate expressly refused the seasonal office terms.
+	ErrOfficeConsentRefused = DomainError{
+		Code:    CodeOfficeConsentRefused,
+		Message: "candidate expressly refused royal office terms; balance preserved",
+	}
+	// ErrPrivateDisclosureUnauthorized refuses access to pending requirements by third parties.
+	ErrPrivateDisclosureUnauthorized = DomainError{
+		Code:    CodePrivateDisclosureUnauthorized,
+		Message: "pending requirements status is private to the titular account holder",
+	}
+	// ErrProhibitedAlteration refuses royal acts that attempt to alter season duration, supply, wealth criteria or succession rules.
+	ErrProhibitedAlteration = DomainError{
+		Code:    CodeProhibitedAlteration,
+		Message: "royal act cannot alter season duration, supply, wealth criteria, or succession rules",
 	}
 )

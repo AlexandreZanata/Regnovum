@@ -238,6 +238,28 @@ func checkActCorrection(act RoyalAct) error {
 	return nil
 }
 
+var prohibitedAlterationTerms = []string{
+	"alterar-prazo", "prorrogar-temporada", "encurtar-temporada", "alterar-duracao",
+	"alterar-genesis", "mudar-oferta", "alterar-supply",
+	"alterar-riqueza", "mudar-limiar", "alterar-desempate",
+	"vetar-sucessao", "impedir-sucessor",
+}
+
+func checkProhibitedAlterations(act RoyalAct) error {
+	lowerTarget := strings.ToLower(act.Target)
+	lowerEffect := strings.ToLower(act.Effect)
+	lowerReason := strings.ToLower(act.Reason)
+
+	for _, term := range prohibitedAlterationTerms {
+		if strings.Contains(lowerTarget, term) ||
+			strings.Contains(lowerEffect, term) ||
+			strings.Contains(lowerReason, term) {
+			return ErrProhibitedAlteration
+		}
+	}
+	return nil
+}
+
 // DefineAct seals one explicit versioned decree before any effect.
 // Every refusal arrives before execution: unknown kinds (including
 // season alterations of deadline, Genesis or wealth criteria),
@@ -248,6 +270,9 @@ func DefineAct(act RoyalAct) (RoyalAct, error) {
 		return RoyalAct{}, err
 	}
 	if err := checkActProse(act); err != nil {
+		return RoyalAct{}, err
+	}
+	if err := checkProhibitedAlterations(act); err != nil {
 		return RoyalAct{}, err
 	}
 	if err := checkActVigour(act); err != nil {

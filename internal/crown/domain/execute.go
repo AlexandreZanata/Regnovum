@@ -115,40 +115,6 @@ func checkExecutionClearance(sealed RoyalAct, digest string, clearance Clearance
 	return nil
 }
 
-// checkExecutionAuthority revalidates authority at the effect,
-// not only at the approval: the same book still invests the same
-// reign and holder, the book is open, and the effect instant
-// falls inside both the season window and the decree vigour.
-func checkExecutionAuthority(sealed RoyalAct, current CurrentReign, now time.Time) error {
-	if err := current.validShape(); err != nil {
-		return err
-	}
-	if sealed.Season != current.Season {
-		return ErrSeasonMismatch
-	}
-	switch {
-	case sealed.Reign == current.Reign:
-	case sealed.Reign < current.Reign:
-		return ErrStaleReign
-	default:
-		return ErrFutureReign
-	}
-	if sealed.Author != current.Holder {
-		return ErrNotHolder
-	}
-	moment := now.UTC()
-	if !current.Open || !current.contains(moment) {
-		return ErrSeasonClosed
-	}
-	if moment.Before(sealed.Effective.UTC()) {
-		return ErrSeasonClosed
-	}
-	if !sealed.EndsAt.IsZero() && !moment.Before(sealed.EndsAt.UTC()) {
-		return ErrSeasonClosed
-	}
-	return nil
-}
-
 // checkExecutionCustody judges custody, destination and conflict:
 // frozen books move nothing, only the free treasury funds,
 // beneficiary and vault never mix, the author never pays itself,
@@ -199,15 +165,10 @@ func checkExecutionCustody(sealed RoyalAct, custody CustodyView) (bool, error) {
 	return hasBeneficiary, nil
 }
 
-// PlanExecution plans one conserved movement of an economic
-// decree against its clearance, the invested reign and the
-// custody snapshot at the effect instant. Every refusal arrives
-// before any effect: non-monetary kinds, foreign payloads,
-// stale reigns, ex-holders, closed or frozen books, forbidden
-// origins, self-grants, conflicted benefits and insufficiency
-// all stop here. Institutional pocket moves return Personal
-// false: reclassifying a pocket never grants personal wealth.
-func PlanExecution(act RoyalAct, clearance Clearance, current CurrentReign, custody CustodyView, now time.Time) (ExecutionOrder, error) {
+// PlanDelegatedExecution plans one conserved movement of an economic
+// decree against its clearance, an optional delegation chain, the invested
+// reign and the custody snapshot at the effect instant.
+func PlanDelegatedExecution(act RoyalAct, clearance Clearance, delegation *Delegation, current CurrentReign, custody CustodyView, now time.Time) (ExecutionOrder, error) {
 	if now.IsZero() {
 		return ExecutionOrder{}, ErrInvalidAuthority
 	}
@@ -223,8 +184,24 @@ func PlanExecution(act RoyalAct, clearance Clearance, current CurrentReign, cust
 	if err := checkExecutionClearance(sealed, digest, clearance, moment); err != nil {
 		return ExecutionOrder{}, err
 	}
-	if err := checkExecutionAuthority(sealed, current, moment); err != nil {
+	fence := EffectFence{
+		Season:               sealed.Season,
+		Reign:                sealed.Reign,
+		Competence:           sealed.Competence,
+		Author:               sealed.Author,
+		Delegation:           delegation,
+		CurrentReign:         current,
+		EconomicBacklogClean: true,
+		Now:                  moment,
+	}
+	if err := ValidateEffectFence(fence); err != nil {
 		return ExecutionOrder{}, err
+	}
+	if moment.Before(sealed.Effective.UTC()) {
+		return ExecutionOrder{}, ErrSeasonClosed
+	}
+	if !sealed.EndsAt.IsZero() && !moment.Before(sealed.EndsAt.UTC()) {
+		return ExecutionOrder{}, ErrSeasonClosed
 	}
 	personal, err := checkExecutionCustody(sealed, custody)
 	if err != nil {
@@ -238,6 +215,18 @@ func PlanExecution(act RoyalAct, clearance Clearance, current CurrentReign, cust
 		ExpiresAt: clearance.ExpiresAt.UTC(),
 	}
 	return order, nil
+}
+
+// PlanExecution plans one conserved movement of an economic
+// decree against its clearance, the invested reign and the
+// custody snapshot at the effect instant. Every refusal arrives
+// before any effect: non-monetary kinds, foreign payloads,
+// stale reigns, ex-holders, closed or frozen books, forbidden
+// origins, self-grants, conflicted benefits and insufficiency
+// all stop here. Institutional pocket moves return Personal
+// false: reclassifying a pocket never grants personal wealth.
+func PlanExecution(act RoyalAct, clearance Clearance, current CurrentReign, custody CustodyView, now time.Time) (ExecutionOrder, error) {
+	return PlanDelegatedExecution(act, clearance, nil, current, custody, now)
 }
 
 // SealReceipt cites the traceable proof of one appended order:
