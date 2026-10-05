@@ -199,6 +199,14 @@ const (
 	CodeNoQualifiedSuccessor ErrorCode = "CROWN_NO_QUALIFIED_SUCCESSOR"
 	// CodeDuplicateCandidate names the same subject appearing more than once in the succession candidate list.
 	CodeDuplicateCandidate ErrorCode = "CROWN_DUPLICATE_CANDIDATE"
+	// CodeWorkerLeaseBusy names an evaluator lease currently held by another worker.
+	CodeWorkerLeaseBusy ErrorCode = "CROWN_WORKER_LEASE_BUSY"
+	// CodeStaleWorkerLease names an evaluation attempt with an expired or stolen worker lease.
+	CodeStaleWorkerLease ErrorCode = "CROWN_STALE_WORKER_LEASE"
+	// CodeBacklogUnevaluated names economic events confirmed in the journal that have not yet been evaluated by the succession engine.
+	CodeBacklogUnevaluated ErrorCode = "CROWN_BACKLOG_UNEVALUATED"
+	// CodeActiveReignConflict names multiple active reigns detected for a season.
+	CodeActiveReignConflict ErrorCode = "CROWN_ACTIVE_REIGN_CONFLICT"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -514,5 +522,25 @@ var (
 	ErrDuplicateCandidate = DomainError{
 		Code:    CodeDuplicateCandidate,
 		Message: "duplicate candidate: each subject must appear at most once in candidate list",
+	}
+	// ErrWorkerLeaseBusy refuses when an evaluator lease is currently held by another active worker.
+	ErrWorkerLeaseBusy = DomainError{
+		Code:    CodeWorkerLeaseBusy,
+		Message: "worker lease busy: another evaluator holds an active lease for this season",
+	}
+	// ErrStaleWorkerLease refuses an evaluation attempt when the worker's lease has expired or was superseded.
+	ErrStaleWorkerLease = DomainError{
+		Code:    CodeStaleWorkerLease,
+		Message: "stale worker lease: worker lease expired or is not owned by this evaluator",
+	}
+	// ErrBacklogUnevaluated halts royal acts until all confirmed economic events are evaluated by succession.
+	ErrBacklogUnevaluated = DomainError{
+		Code:    CodeBacklogUnevaluated,
+		Message: "unevaluated backlog: confirmed economic events must be evaluated before executing royal acts",
+	}
+	// ErrActiveReignConflict refuses when multiple active reigns are detected for a season.
+	ErrActiveReignConflict = DomainError{
+		Code:    CodeActiveReignConflict,
+		Message: "active reign conflict: multiple active reigns exist for this season",
 	}
 )

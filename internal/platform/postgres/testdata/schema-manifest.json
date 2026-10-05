@@ -9126,6 +9126,448 @@
       ]
     },
     {
+      "name": "app.seasonal_reigns",
+      "owner": "arena_owner",
+      "comment": "Sovereign reigns: records active and historical monarchs/regents per season with strict single-active constraint",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "season_id",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Season book identity"
+        },
+        {
+          "name": "reign_version",
+          "type": "integer",
+          "nullable": false,
+          "default": "",
+          "comment": "Investiture sequence number within the season (starts at 1)"
+        },
+        {
+          "name": "holder_subject",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": "Account identifier of the reigning monarch or regent"
+        },
+        {
+          "name": "is_regent",
+          "type": "boolean",
+          "nullable": false,
+          "default": "false",
+          "comment": ""
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "institutional_c",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "winning_wealth",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "attained_revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "transition_revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "predecessor",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": ""
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": false,
+          "default": "true",
+          "comment": "True if this reign is the currently invested authority in this season"
+        },
+        {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        },
+        {
+          "name": "ended_at",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "seasonal_reigns_attained_check",
+          "kind": "c",
+          "definition": "CHECK (attained_revision \u003e= 0)"
+        },
+        {
+          "name": "seasonal_reigns_c_check",
+          "kind": "c",
+          "definition": "CHECK (institutional_c \u003e= 0)"
+        },
+        {
+          "name": "seasonal_reigns_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "seasonal_reigns_reason_check",
+          "kind": "c",
+          "definition": "CHECK (reason = ANY (ARRAY['conquest'::text, 'incumbent-retained'::text, 'regency'::text]))"
+        },
+        {
+          "name": "seasonal_reigns_reign_version_check",
+          "kind": "c",
+          "definition": "CHECK (reign_version \u003e= 1)"
+        },
+        {
+          "name": "seasonal_reigns_season_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_id) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        },
+        {
+          "name": "seasonal_reigns_transition_check",
+          "kind": "c",
+          "definition": "CHECK (transition_revision \u003e= 0)"
+        },
+        {
+          "name": "seasonal_reigns_version_unique",
+          "kind": "u",
+          "definition": "UNIQUE (season_id, reign_version)"
+        },
+        {
+          "name": "seasonal_reigns_winning_wealth_check",
+          "kind": "c",
+          "definition": "CHECK (winning_wealth \u003e= 0)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "seasonal_reigns_active_unique",
+          "definition": "CREATE UNIQUE INDEX seasonal_reigns_active_unique ON app.seasonal_reigns USING btree (season_id) WHERE (is_active = true)",
+          "valid": true
+        },
+        {
+          "name": "seasonal_reigns_holder_idx",
+          "definition": "CREATE INDEX seasonal_reigns_holder_idx ON app.seasonal_reigns USING btree (season_id, holder_subject)",
+          "valid": true
+        },
+        {
+          "name": "seasonal_reigns_pkey",
+          "definition": "CREATE UNIQUE INDEX seasonal_reigns_pkey ON app.seasonal_reigns USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "seasonal_reigns_version_unique",
+          "definition": "CREATE UNIQUE INDEX seasonal_reigns_version_unique ON app.seasonal_reigns USING btree (season_id, reign_version)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "SELECT",
+            "UPDATE"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.seasonal_succession_evaluators",
+      "owner": "arena_owner",
+      "comment": "Evaluator checkpoint and worker lease tracking for linearizable succession processing",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "season_id",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "last_evaluated_revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "active_worker_id",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": ""
+        },
+        {
+          "name": "lease_expires_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "'1970-01-01 00:00:00+00'::timestamp with time zone",
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "seasonal_succession_evaluators_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (season_id)"
+        },
+        {
+          "name": "seasonal_succession_evaluators_rev_check",
+          "kind": "c",
+          "definition": "CHECK (last_evaluated_revision \u003e= 0)"
+        },
+        {
+          "name": "seasonal_succession_evaluators_season_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_id) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "seasonal_succession_evaluators_pkey",
+          "definition": "CREATE UNIQUE INDEX seasonal_succession_evaluators_pkey ON app.seasonal_succession_evaluators USING btree (season_id)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "SELECT",
+            "UPDATE"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "app.seasonal_succession_events",
+      "owner": "arena_owner",
+      "comment": "Linearizable notification outbox for sovereign successions, written atomically with reign transitions",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "policies": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "uuidv7()",
+          "comment": ""
+        },
+        {
+          "name": "season_id",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "reign_version",
+          "type": "integer",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "event_kind",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "successor_subject",
+          "type": "text",
+          "nullable": false,
+          "default": "",
+          "comment": ""
+        },
+        {
+          "name": "predecessor_subject",
+          "type": "text",
+          "nullable": false,
+          "default": "''::text",
+          "comment": ""
+        },
+        {
+          "name": "institutional_c",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "winning_wealth",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "transition_revision",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "comment": ""
+        },
+        {
+          "name": "payload",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "'{}'::jsonb",
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "now()",
+          "comment": ""
+        }
+      ],
+      "constraints": [
+        {
+          "name": "seasonal_succession_events_kind_check",
+          "kind": "c",
+          "definition": "CHECK (event_kind = ANY (ARRAY['conquest'::text, 'incumbent-retained'::text, 'regency'::text]))"
+        },
+        {
+          "name": "seasonal_succession_events_pkey",
+          "kind": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "seasonal_succession_events_reign_version_check",
+          "kind": "c",
+          "definition": "CHECK (reign_version \u003e= 1)"
+        },
+        {
+          "name": "seasonal_succession_events_season_id_fkey",
+          "kind": "f",
+          "definition": "FOREIGN KEY (season_id) REFERENCES app.seasons(season_key) ON DELETE RESTRICT"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "seasonal_succession_events_pkey",
+          "definition": "CREATE UNIQUE INDEX seasonal_succession_events_pkey ON app.seasonal_succession_events USING btree (id)",
+          "valid": true
+        },
+        {
+          "name": "seasonal_succession_events_season_idx",
+          "definition": "CREATE INDEX seasonal_succession_events_season_idx ON app.seasonal_succession_events USING btree (season_id, reign_version)",
+          "valid": true
+        }
+      ],
+      "grants": [
+        {
+          "grantee": "arena_app",
+          "privileges": [
+            "INSERT",
+            "SELECT",
+            "UPDATE"
+          ]
+        },
+        {
+          "grantee": "arena_owner",
+          "privileges": [
+            "DELETE",
+            "INSERT",
+            "REFERENCES",
+            "SELECT",
+            "TRIGGER",
+            "TRUNCATE",
+            "UPDATE"
+          ]
+        }
+      ]
+    },
+    {
       "name": "app.seasonal_wealth_checkpoints",
       "owner": "arena_owner",
       "comment": "Checkpoint tracking last processed revision and integrity hash per season book",
@@ -31045,6 +31487,1308 @@
     {
       "table": "app.season_lifecycle",
       "column": "to_state",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "attained_revision",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "attained_revision",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "attained_revision",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "attained_revision",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "attained_revision",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "attained_revision",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "attained_revision",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "ended_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "ended_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "ended_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "ended_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "ended_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "ended_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "ended_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "holder_subject",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "holder_subject",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "holder_subject",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "holder_subject",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "holder_subject",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "holder_subject",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "holder_subject",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "institutional_c",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "institutional_c",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "institutional_c",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "institutional_c",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "institutional_c",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "institutional_c",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "institutional_c",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_active",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_active",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_active",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_active",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_active",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_active",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_active",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_regent",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_regent",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_regent",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_regent",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_regent",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_regent",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "is_regent",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "predecessor",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "predecessor",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "predecessor",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "predecessor",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "predecessor",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "predecessor",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "predecessor",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reason",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reason",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reign_version",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reign_version",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reign_version",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reign_version",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reign_version",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reign_version",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "reign_version",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "started_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "started_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "started_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "started_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "started_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "started_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "started_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "transition_revision",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "transition_revision",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "transition_revision",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "transition_revision",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "transition_revision",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "transition_revision",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "transition_revision",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "winning_wealth",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "winning_wealth",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "winning_wealth",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "winning_wealth",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "winning_wealth",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "winning_wealth",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_reigns",
+      "column": "winning_wealth",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "active_worker_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "active_worker_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "active_worker_id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "active_worker_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "active_worker_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "active_worker_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "active_worker_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "last_evaluated_revision",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "last_evaluated_revision",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "last_evaluated_revision",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "last_evaluated_revision",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "last_evaluated_revision",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "last_evaluated_revision",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "last_evaluated_revision",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "lease_expires_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "lease_expires_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "lease_expires_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "lease_expires_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "lease_expires_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "lease_expires_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "lease_expires_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "updated_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_evaluators",
+      "column": "updated_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "created_at",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "created_at",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "event_kind",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "event_kind",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "event_kind",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "event_kind",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "event_kind",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "event_kind",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "event_kind",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "institutional_c",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "institutional_c",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "institutional_c",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "institutional_c",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "institutional_c",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "institutional_c",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "institutional_c",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "payload",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "payload",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "payload",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "payload",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "payload",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "payload",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "payload",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "predecessor_subject",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "predecessor_subject",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "predecessor_subject",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "predecessor_subject",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "predecessor_subject",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "predecessor_subject",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "predecessor_subject",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "reign_version",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "reign_version",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "reign_version",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "reign_version",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "reign_version",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "reign_version",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "reign_version",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "season_id",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "season_id",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "successor_subject",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "successor_subject",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "successor_subject",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "successor_subject",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "successor_subject",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "successor_subject",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "successor_subject",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "transition_revision",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "transition_revision",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "transition_revision",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "transition_revision",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "transition_revision",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "transition_revision",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "transition_revision",
+      "grantee": "arena_owner",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "winning_wealth",
+      "grantee": "arena_app",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "winning_wealth",
+      "grantee": "arena_app",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "winning_wealth",
+      "grantee": "arena_app",
+      "privilege": "UPDATE"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "winning_wealth",
+      "grantee": "arena_owner",
+      "privilege": "INSERT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "winning_wealth",
+      "grantee": "arena_owner",
+      "privilege": "REFERENCES"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "winning_wealth",
+      "grantee": "arena_owner",
+      "privilege": "SELECT"
+    },
+    {
+      "table": "app.seasonal_succession_events",
+      "column": "winning_wealth",
       "grantee": "arena_owner",
       "privilege": "UPDATE"
     },

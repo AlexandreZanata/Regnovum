@@ -722,8 +722,17 @@ func TestSchemaManifestMatchesFreshDatabase(t *testing.T) {
 	defer cancel()
 
 	pool := db.Pool.Pool()
-	want := loadSchemaManifest(t)
 	got := snapshotSchema(ctx, t, pool)
+	if os.Getenv("UPDATE_SCHEMA_MANIFEST") == "1" {
+		data, err := json.MarshalIndent(got, "", "  ")
+		if err != nil {
+			t.Fatalf("marshal schema manifest: %v", err)
+		}
+		if err := os.WriteFile(schemaManifestPath, append(data, '\n'), 0644); err != nil {
+			t.Fatalf("write schema manifest: %v", err)
+		}
+	}
+	want := loadSchemaManifest(t)
 	failOnFindings(t, "fresh database drifts from testdata/schema-manifest.json", diffSchemaManifest(want, got))
 
 	excluded := countExcludedNotNullConstraints(ctx, t, pool)
