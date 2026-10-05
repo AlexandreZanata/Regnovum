@@ -131,6 +131,9 @@ func (uc *SeasonTransitionUseCase) OpenInitial(ctx context.Context, cmd OpenSeas
 // only permitted technical liquidation may run. Inside the window
 // authority stays live; any error keeps the economy blocked.
 func (uc *SeasonTransitionUseCase) CloseSeason(ctx context.Context, season domain.SeasonID, current domain.CurrentReign, now time.Time) (domain.CurrentReign, bool, error) {
+	if err := ctx.Err(); err != nil {
+		return domain.CurrentReign{}, true, err
+	}
 	if now.IsZero() {
 		return domain.CurrentReign{}, true, domain.ErrInvalidAuthority
 	}

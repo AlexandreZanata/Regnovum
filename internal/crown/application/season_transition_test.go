@@ -186,6 +186,11 @@ func TestSeasonTransition_CloseEndsOffices(t *testing.T) {
 	if err != nil || !technical || closed.Open {
 		t.Fatalf("at cutoff = %+v technical=%v err=%v, want closed technical-only", closed, technical, err)
 	}
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+	if _, _, err := uc.CloseSeason(cancelled, "temporada-1", current, view.StartsAt); err == nil {
+		t.Fatal("cancelled context passed: cancelamento do chamador para aqui, economia bloqueada")
+	}
 	if err := domain.AssertSingleAuthority([]domain.HolderSubject{closed.Holder}); err != nil {
 		t.Fatalf("single holder err = %v", err)
 	}
