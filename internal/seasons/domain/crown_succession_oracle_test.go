@@ -372,6 +372,20 @@ func TestCrownOracleThreeSeasonsConserveSupply(t *testing.T) {
 	t.Parallel()
 	seed := testsource.SeedFor(t)
 
+	first := driveCrownSeasonA(t)
+	assertCrownDomainAgreesOnWealth(t, first)
+	assertCrownFirstConquest(t, first)
+	conquered := assertCrownRetentionAndReconquest(t, first)
+	assertCrownFraudCorrection(t, first, conquered)
+	assertCrownReset(t, first)
+	t.Logf("seed=%d season=%s total=%d successors=1 corrections=1", seed, first.season, first.total())
+}
+
+// driveCrownSeasonA runs the first synthetic season: sales, tithe,
+// costs, a registered loan, third-party custody and one crumbs
+// batch, with conservation after every step.
+func driveCrownSeasonA(t *testing.T) *crownModel {
+	t.Helper()
 	first := newCrownModel("temporada-coroa-a")
 	if err := first.sale("ana", 900000000); err != nil {
 		t.Fatalf("sale: %v", err)
@@ -405,21 +419,28 @@ func TestCrownOracleThreeSeasonsConserveSupply(t *testing.T) {
 	if err := first.checkConservation(); err != nil {
 		t.Fatalf("season A conservation: %v", err)
 	}
+	return first
+}
 
-	// The delivered domain agrees with the model on A/L/W for ana.
+// assertCrownDomainAgreesOnWealth proves the delivered domain
+// computes the same A/L/W as the independent model, and that
+// third-party custody counts on neither side.
+func assertCrownDomainAgreesOnWealth(t *testing.T, first *crownModel) {
+	t.Helper()
 	modelWealth := first.wealth("ana")
 	domain := domainWealth(t, first.season, "ana", first.eligibleAssets("ana"), first.liabilities("ana"))
 	if domain.NetWealth != modelWealth || domain.Assets != first.eligibleAssets("ana") || domain.Liabilities != first.liabilities("ana") {
 		t.Fatalf("model W=%d A=%d L=%d vs domain %+v", modelWealth, first.eligibleAssets("ana"), first.liabilities("ana"), domain)
 	}
-
-	// Third-party custody never counts as wealth in either side.
-	withdrawn := first.wealth("bruno")
-	if withdrawn != first.eligibleAssets("bruno") {
+	if withdrawn := first.wealth("bruno"); withdrawn != first.eligibleAssets("bruno") {
 		t.Fatalf("third-party custody leaked into W: %d vs %d", withdrawn, first.eligibleAssets("bruno"))
 	}
+}
 
-	// Ana (P > C) conquers the throne: legitimate victory is possible.
+// assertCrownFirstConquest proves a legitimate victory is possible:
+// ana holds strict P > C and takes the throne without moving money.
+func assertCrownFirstConquest(t *testing.T, first *crownModel) {
+	t.Helper()
 	outcome := first.selectSovereign(t,
 		crowndomain.IncumbentSnapshot{Subject: "carla", Wealth: first.wealth("carla"), AttainedRevision: 1, Eligible: true},
 		"regente-tecnica",
@@ -431,10 +452,13 @@ func TestCrownOracleThreeSeasonsConserveSupply(t *testing.T) {
 	if err := first.checkConservation(); err != nil {
 		t.Fatalf("after succession: %v", err)
 	}
+}
 
-	// Two more revisions: the incumbent is retained while leading, then
-	// loses to a strictly greater P after a lawful transfer. Every
-	// revision carries exactly one authority.
+// assertCrownRetentionAndReconquest proves the next two revisions:
+// the leading incumbent is retained without a version change, then
+// loses to a strictly greater P after a lawful transfer.
+func assertCrownRetentionAndReconquest(t *testing.T, first *crownModel) crowndomain.SuccessionOutcome {
+	t.Helper()
 	first.revision++
 	retained := first.selectSovereign(t,
 		crowndomain.IncumbentSnapshot{Subject: "ana", Wealth: first.wealth("ana"), AttainedRevision: 4, Eligible: true},
@@ -459,9 +483,14 @@ func TestCrownOracleThreeSeasonsConserveSupply(t *testing.T) {
 	if err := first.checkConservation(); err != nil {
 		t.Fatalf("final season A: %v", err)
 	}
+	return conquered
+}
 
-	// Fraud after the cutoff: a linked correction preserves the
-	// original fact and grants no new wealth.
+// assertCrownFraudCorrection proves fraud after the cutoff becomes
+// a linked correction: the sealed fact stays and late revisions
+// grant no new wealth.
+func assertCrownFraudCorrection(t *testing.T, first *crownModel, conquered crowndomain.SuccessionOutcome) {
+	t.Helper()
 	archive, err := DeriveChampions(CutoffSnapshot{
 		Season: first.season, CutoffRevision: first.revision, Policy: string(crowndomain.WealthPolicyV1),
 		Entries: []ChampionEntry{
@@ -492,8 +521,13 @@ func TestCrownOracleThreeSeasonsConserveSupply(t *testing.T) {
 			t.Fatal("correction rewrote the sealed fact")
 		}
 	}
+}
 
-	// Reset: the successor holds all of S and inherits no wealth.
+// assertCrownReset proves the successor holds all of S, inherits no
+// wealth or revision, refuses cross-season transfers and opens its
+// first reign from the manifesto with zero wealth.
+func assertCrownReset(t *testing.T, first *crownModel) {
+	t.Helper()
 	successor := newCrownModel("temporada-coroa-b")
 	if err := successor.checkNoCarryOver(); err != nil {
 		t.Fatalf("successor reset: %v", err)
@@ -507,7 +541,6 @@ func TestCrownOracleThreeSeasonsConserveSupply(t *testing.T) {
 	if err := successor.transferAcrossSeasons(successor.season, 1000); err != nil {
 		t.Fatalf("same-season transfer refused: %v", err)
 	}
-	// The successor opens from its manifesto, with zero inherited wealth.
 	initial, err := crowndomain.DecideInitialReign(crowndomain.InitialInvestitureInput{
 		Policy: crowndomain.WealthPolicyV1, Season: crowndomain.SeasonID(successor.season),
 		StartsAt: crownStart(t).Add(90 * 24 * time.Hour), EndsAt: crownStart(t).Add(180 * 24 * time.Hour),
@@ -523,7 +556,6 @@ func TestCrownOracleThreeSeasonsConserveSupply(t *testing.T) {
 	if err := successor.checkConservation(); err != nil {
 		t.Fatalf("successor conservation: %v", err)
 	}
-	t.Logf("seed=%d season=%s total=%d successors=1 corrections=1", seed, first.season, first.total())
 }
 
 // TestCrownOracleZeroThroneFromTieAndThirdPartyCustody proves that a

@@ -65,48 +65,82 @@ type InitialReignOutcome struct {
 //  4. Measured wealth is always zero: old-season P never triggers
 //     the new algorithm and no balance is carried.
 func DecideInitialReign(in InitialInvestitureInput) (InitialReignOutcome, error) {
-	if _, err := ParseWealthPolicyVersion(string(in.Policy)); err != nil {
+	if err := checkInitialReignWindow(in); err != nil {
 		return InitialReignOutcome{}, err
+	}
+	if err := checkInitialReignParties(in); err != nil {
+		return InitialReignOutcome{}, err
+	}
+	return decideInitialHolder(in)
+}
+
+// checkInitialReignWindow judges the calendar half of one
+// investiture: a ratified policy, a whole season, a non-empty
+// window of exactly 90 days and a sealed predecessor. Anything
+// else keeps the economy blocked.
+func checkInitialReignWindow(in InitialInvestitureInput) error {
+	if _, err := ParseWealthPolicyVersion(string(in.Policy)); err != nil {
+		return err
 	}
 	if _, err := ParseSeasonID(string(in.Season)); err != nil {
-		return InitialReignOutcome{}, err
+		return err
 	}
 	if in.StartsAt.IsZero() || in.EndsAt.IsZero() {
-		return InitialReignOutcome{}, ErrInvalidAuthority
+		return ErrInvalidAuthority
 	}
 	start, end := in.StartsAt.UTC(), in.EndsAt.UTC()
 	if !end.After(start) {
-		return InitialReignOutcome{}, ErrInvalidAuthority
+		return ErrInvalidAuthority
 	}
 	if end.Sub(start) != SeasonalWindowSeconds*time.Second {
-		return InitialReignOutcome{}, ErrProhibitedAlteration
+		return ErrProhibitedAlteration
 	}
 	if !in.PredecessorSealed {
-		return InitialReignOutcome{}, ErrSeasonClosed
+		return ErrSeasonClosed
 	}
-	if in.InitialMonarch != "" {
-		if _, err := ParseHolderSubject(string(in.InitialMonarch)); err != nil {
-			return InitialReignOutcome{}, err
-		}
-		if in.InitialMonarch == InstitutionalCrownSubject {
-			return InitialReignOutcome{}, ErrAmbiguousFixture
-		}
+	return nil
+}
+
+// checkInitialReignParties judges the holder half of one
+// investiture: whole founder and regent tokens outside the
+// institutional subject, never the same account twice and never
+// both absent.
+func checkInitialReignParties(in InitialInvestitureInput) error {
+	if err := checkInitialReignParty(in.InitialMonarch); err != nil {
+		return err
 	}
-	if in.Regent != "" {
-		if _, err := ParseHolderSubject(string(in.Regent)); err != nil {
-			return InitialReignOutcome{}, err
-		}
-		if in.Regent == InstitutionalCrownSubject {
-			return InitialReignOutcome{}, ErrAmbiguousFixture
-		}
+	if err := checkInitialReignParty(in.Regent); err != nil {
+		return err
 	}
-	if in.InitialMonarch != "" && in.Regent != "" && in.InitialMonarch == in.Regent {
-		return InitialReignOutcome{}, ErrAmbiguousFixture
+	if in.InitialMonarch != "" && in.InitialMonarch == in.Regent {
+		return ErrAmbiguousFixture
 	}
 	if in.InitialMonarch == "" && in.Regent == "" {
-		return InitialReignOutcome{}, ErrAmbiguousFixture
+		return ErrAmbiguousFixture
 	}
+	return nil
+}
 
+// checkInitialReignParty judges one published holder token: absent
+// is allowed here, present must be whole and never the
+// institutional Crown.
+func checkInitialReignParty(holder HolderSubject) error {
+	if holder == "" {
+		return nil
+	}
+	if _, err := ParseHolderSubject(string(holder)); err != nil {
+		return err
+	}
+	if holder == InstitutionalCrownSubject {
+		return ErrAmbiguousFixture
+	}
+	return nil
+}
+
+// decideInitialHolder invests the first authority once the window
+// and the parties check out: the present and eligible founder, else
+// the published regent with the founder linked, else zero kings.
+func decideInitialHolder(in InitialInvestitureInput) (InitialReignOutcome, error) {
 	if in.MonarchPresent && in.MonarchEligible && in.InitialMonarch != "" {
 		return InitialReignOutcome{
 			Season: in.Season, Holder: in.InitialMonarch,
