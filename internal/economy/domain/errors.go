@@ -57,6 +57,8 @@ const (
 	CodeInvalidMonitorBudget       ErrorCode = "ECONOMY_INVALID_MONITOR_BUDGET"
 	CodeDuplicateMonitorObservable ErrorCode = "ECONOMY_DUPLICATE_MONITOR_OBSERVABLE"
 	CodeInvalidMonitorAmount       ErrorCode = "ECONOMY_INVALID_MONITOR_AMOUNT"
+	CodeUnknownRestoreDivergence   ErrorCode = "ECONOMY_UNKNOWN_RESTORE_DIVERGENCE"
+	CodeInvalidRestoreSnapshot     ErrorCode = "ECONOMY_INVALID_RESTORE_SNAPSHOT"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -281,5 +283,13 @@ var (
 	ErrInvalidMonitorAmount = DomainError{
 		Code:    CodeInvalidMonitorAmount,
 		Message: "negative money in a monitor observation is refused: books hold zero or more, never less",
+	}
+	ErrUnknownRestoreDivergence = DomainError{
+		Code:    CodeUnknownRestoreDivergence,
+		Message: "divergence code without a registry row is refused: every block names severity, owner, runbook and action",
+	}
+	ErrInvalidRestoreSnapshot = DomainError{
+		Code:    CodeInvalidRestoreSnapshot,
+		Message: "restore snapshot the comparison cannot judge is refused: unnamed books and negative counts never compare",
 	}
 )
