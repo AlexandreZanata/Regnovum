@@ -47,5 +47,14 @@
   "mergeP47": true,
   "realCredentialDays": 10,
   "maxCredentialDays": 90,
-  "prohibitedActive": false
+  "prohibitedActive": false,
+  "oracle": {"executed": true, "sequences": 8, "minSequences": 8},
+  "resets": {"count": 3, "required": 3},
+  "lateWebhook": {"proven": true},
+  "tiedTakes": {"proven": true},
+  "exKing": {"proven": true},
+  "purchase": {"termDays": 30},
+  "archive": {"retained": true},
+  "opinion": {"reference": "IREV-01", "critical": 0, "high": 0},
+  "legal": {"required": ["BR"], "approvals": {"BR": true}}
 }
