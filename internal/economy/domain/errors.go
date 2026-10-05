@@ -46,6 +46,8 @@ const (
 	CodeDeadOutOfOrder        ErrorCode = "ECONOMY_DEAD_OUT_OF_ORDER"
 	CodeDeadResidualBlocked   ErrorCode = "ECONOMY_DEAD_RESIDUAL_BLOCKED"
 	CodeDeadConflict          ErrorCode = "ECONOMY_DEAD_CONFLICT"
+	CodeBondsUnavailable      ErrorCode = "ECONOMY_BONDS_UNAVAILABLE"
+	CodeBondYieldForbidden    ErrorCode = "ECONOMY_BOND_YIELD_FORBIDDEN"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -226,5 +228,13 @@ var (
 	ErrDeadConflict = DomainError{
 		Code:    CodeDeadConflict,
 		Message: "effect key already recorded with different terms: replay returns the same state, divergence conflicts",
+	}
+	ErrBondsUnavailable = DomainError{
+		Code:    CodeBondsUnavailable,
+		Message: "crown bonds are an unratified concept pending legal review: purchase, issuance and offering are disabled",
+	}
+	ErrBondYieldForbidden = DomainError{
+		Code:    CodeBondYieldForbidden,
+		Message: "publishing or promising bond yield is forbidden: yield is never guaranteed and cannot be advertised",
 	}
 )
