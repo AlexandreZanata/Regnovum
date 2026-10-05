@@ -48,7 +48,7 @@ CAPACITYRATCHET := $(GO) run ./tools/capacityratchet
 IMAGE ?= goyim-arena:local
 TRIVY ?= trivy
 
-.PHONY: fmt fmt-check lint audit-complexity audit-deadcode audit-errors audit-provenance audit-tests audit-diff audit-deps audit-mutations audit-coverage test-unit test-integration test-race test-migration test-security dast flake-detect regression-pack test-web typecheck build-web audit-web audit-i18n i18n-audit audit-ci quality-catalog quality-waivers quality-taxonomy quality-inventory quality-inventory-write testenv-verify release-gate security-audit privacy-audit release-verify handoff-check handoff-walkthrough test-contract test-e2e test-load-smoke image-build image-verify image-scan caddy-verify compose-verify migration-audit backup-verify deploy-verify vuln generate generate-check verify quick-verify economy-decisions-check
+.PHONY: fmt fmt-check lint audit-complexity audit-deadcode audit-errors audit-provenance audit-tests audit-diff audit-deps audit-mutations audit-coverage test-unit test-integration test-race test-migration test-security dast flake-detect regression-pack test-web typecheck build-web audit-web audit-i18n i18n-audit audit-ci quality-catalog quality-waivers quality-taxonomy quality-inventory quality-inventory-write testenv-verify release-gate security-audit privacy-audit release-verify handoff-check handoff-walkthrough test-contract test-e2e test-load-smoke image-build image-verify image-scan caddy-verify compose-verify migration-audit backup-verify deploy-verify vuln generate generate-check verify quick-verify economy-decisions-check economy-certify
 
 # Gerador i18n (P02-T07): fontes em locales/, artefatos versionados em
 # web/src/i18n/generated.ts e internal/i18n/generated.go (nunca editados).
@@ -570,6 +570,18 @@ audit-runbooks:
 economy-decisions-check:
 	$(GO) run ./tools/economydecisions -root .
 	@echo "economy-decisions-check: ok"
+
+# economy-certify é o decisor fail-closed da P44-T12: julga um bundle
+# JSON de certificação e emite PASS/FAIL com razões estáveis. P44
+# exercita apenas fixtures, sem certificado real ou ativação: SHA,
+# decisões, manifest de seasons, toolchains, cobertura, mutação,
+# carga, threat review, jurisdição, reconciliação por livro, merges
+# P46/P47, credencial e produto proibido, tudo dentro do bundle.
+# Alvo standalone, fora do quick-verify como os demais portões de fase.
+ECONOMY_BUNDLE ?= tools/economycertify/testdata/green.json
+economy-certify:
+	$(GO) run ./tools/economycertify -bundle $(ECONOMY_BUNDLE)
+	@echo "economy-certify: ok"
 
 # audit-toolchain julga os pinos de produção contra quality/toolchain.json
 # (P29-T08): qualquer versão fora do pin falha. Alvo standalone, fora do
