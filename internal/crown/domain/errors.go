@@ -195,6 +195,10 @@ const (
 	CodeProjectionFrozen ErrorCode = "CROWN_PROJECTION_FROZEN"
 	// CodeProjectionMismatch names a divergence between projection and journal oracle.
 	CodeProjectionMismatch ErrorCode = "CROWN_PROJECTION_MISMATCH"
+	// CodeNoQualifiedSuccessor names a succession where no candidate qualifies and no incumbent or regent exists.
+	CodeNoQualifiedSuccessor ErrorCode = "CROWN_NO_QUALIFIED_SUCCESSOR"
+	// CodeDuplicateCandidate names the same subject appearing more than once in the succession candidate list.
+	CodeDuplicateCandidate ErrorCode = "CROWN_DUPLICATE_CANDIDATE"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -500,5 +504,15 @@ var (
 	ErrProjectionMismatch = DomainError{
 		Code:    CodeProjectionMismatch,
 		Message: "projection mismatch: incremental index diverged from authoritative journal",
+	}
+	// ErrNoQualifiedSuccessor refuses when no eligible candidate exceeded C and no incumbent or regent is available.
+	ErrNoQualifiedSuccessor = DomainError{
+		Code:    CodeNoQualifiedSuccessor,
+		Message: "no qualified successor: no candidate exceeded institutional threshold C, and no incumbent or regent is available",
+	}
+	// ErrDuplicateCandidate refuses when a subject appears multiple times in the candidate pool.
+	ErrDuplicateCandidate = DomainError{
+		Code:    CodeDuplicateCandidate,
+		Message: "duplicate candidate: each subject must appear at most once in candidate list",
 	}
 )
