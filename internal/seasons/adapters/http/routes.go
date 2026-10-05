@@ -20,13 +20,14 @@ import (
 )
 
 // Routes returns the canonical list of versioned HTTP routes served
-// by the seasons module once mounted: current season, one season
-// and history. Genesis, closing and archiving keep no public
-// endpoints beyond these three reads.
+// by the seasons module once mounted: current season, one season,
+// history and privacy-safe champions. Genesis, closing and archiving
+// keep no public endpoints beyond these four reads.
 func Routes() []httpserver.Route {
 	return []httpserver.Route{
 		{Method: http.MethodGet, Path: "/api/v1/me/seasons/current"},
 		{Method: http.MethodGet, Path: "/api/v1/me/seasons/history"},
 		{Method: http.MethodGet, Path: "/api/v1/me/seasons/{season_key}"},
+		{Method: http.MethodGet, Path: "/api/v1/me/seasons/{season_key}/champions"},
 	}
 }

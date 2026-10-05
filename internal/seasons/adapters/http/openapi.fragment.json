@@ -3,7 +3,7 @@
   "info": {
     "title": "Regnovum seasons staged API",
     "version": "0.1.0",
-    "description": "Staged season lifecycle surface (P46-T11): current season, one season and history. Unmounted until the P44 gate and the separate holder authorization; not part of the published contract."
+    "description": "Staged season lifecycle surface (P46-T11, champions P47-T08): current season, one season, history and privacy-safe champions. Unmounted until the P44 gate and the separate holder authorization; not part of the published contract."
   },
   "paths": {
     "/api/v1/me/seasons/current": {
@@ -39,6 +39,23 @@
         ],
         "responses": {
           "200": { "description": "Season document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "401": { "description": "Missing authentication" },
+          "403": { "description": "Inactive namespace requested as live" },
+          "404": { "description": "Unknown season for this account" },
+          "409": { "description": "No active season or archived predecessor" }
+        }
+      }
+    },
+    "/api/v1/me/seasons/{season_key}/champions": {
+      "get": {
+        "operationId": "readSeasonChampions",
+        "summary": "Read privacy-safe champions of one season at cutoff",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          { "name": "season_key", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Champions document with pseudonyms, no exact wealth", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
           "401": { "description": "Missing authentication" },
           "403": { "description": "Inactive namespace requested as live" },
           "404": { "description": "Unknown season for this account" },

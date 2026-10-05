@@ -14,6 +14,12 @@
     "failure": {
       "title": "Temporada indisponível",
       "detail": "Confira os dados e tente novamente."
+    },
+    "champions": {
+      "title": "Campeões da temporada",
+      "richest": "Mais rico no corte",
+      "last_king": "Último Rei",
+      "empty": "Nenhum campeão ainda"
     }
   }
 }

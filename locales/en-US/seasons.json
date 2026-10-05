@@ -14,6 +14,12 @@
     "failure": {
       "title": "Season unavailable",
       "detail": "Check the data and try again."
+    },
+    "champions": {
+      "title": "Season champions",
+      "richest": "Richest at cutoff",
+      "last_king": "Last King",
+      "empty": "No champions yet"
     }
   }
 }

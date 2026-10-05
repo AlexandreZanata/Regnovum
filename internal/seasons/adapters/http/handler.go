@@ -18,14 +18,16 @@ import (
 // HandlerConfig aggregates the season lifecycle reads required to
 // serve the staged seasons API.
 type HandlerConfig struct {
-	Reads    seasonapp.SeasonReads
-	Security *security.Manager
+	Reads     seasonapp.SeasonReads
+	Champions ChampionsReader
+	Security  *security.Manager
 }
 
 // Handler serves the staged versioned seasons API.
 type Handler struct {
-	reads    seasonapp.SeasonReads
-	security *security.Manager
+	reads     seasonapp.SeasonReads
+	champions ChampionsReader
+	security  *security.Manager
 }
 
 // NewHandler constructs a seasons HTTP handler, refusing incomplete
@@ -34,7 +36,7 @@ func NewHandler(cfg HandlerConfig) (*Handler, error) {
 	if cfg.Reads == nil {
 		return nil, apperr.New(apperr.KindInternal, "seasons_misconfigured", "seasons handler needs reads")
 	}
-	return &Handler{reads: cfg.Reads, security: cfg.Security}, nil
+	return &Handler{reads: cfg.Reads, champions: cfg.Champions, security: cfg.Security}, nil
 }
 
 // RegisterRoutes mounts the staged seasons routes on mux without
@@ -44,6 +46,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/me/seasons/current", h.private(http.HandlerFunc(h.getCurrent)))
 	mux.Handle("GET /api/v1/me/seasons/history", h.private(http.HandlerFunc(h.getHistory)))
 	mux.Handle("GET /api/v1/me/seasons/{season_key}", h.private(http.HandlerFunc(h.getSeason)))
+	mux.Handle("GET /api/v1/me/seasons/{season_key}/champions", h.private(http.HandlerFunc(h.getChampions)))
 }
 
 // private applies the authentication requirement when a security
