@@ -15,6 +15,7 @@ Esta pasta interpreta a *Constituição Funcional do Reino — v0.1* e a *Carta 
 - [LEDGER_CONTRACT.md](LEDGER_CONTRACT.md) — custódia exclusiva, dupla entrada, Genesis, empenho, correção compensatória e direitos de terceiros; exemplos com soma S preservada e contraexemplos recusados, sem regra ativa.
 - [DIREITOS_LEGADOS.md](DIREITOS_LEGADOS.md) — inventário de FREE_INK, PURCHASED_INK, Member e Arena Pass por schema e contrato, matriz permanência/opt-in/reembolso e expand/contract; sem conversão automática e sem leitura de saldo real.
 - [TEMPORADAS_SUCESSAO.md](TEMPORADAS_SUCESSAO.md) — adendo de 2026-09-30: temporadas de 90 dias, Genesis por temporada, encerramento sem apagar direitos/histórico, riqueza elegível e sucessão automática da Coroa; intenção aprovada, detalhes operacionais sujeitos à ratificação indicada.
+- [DIVULGACAO_HONESTA.md](DIVULGACAO_HONESTA.md) — política de divulgação honesta (P43-T06): limites não-autoritativos da Patente, indisponibilidade explícita de Títulos e Mercados/Apostas, e transparência de SEO/comunicações sem promessa de retorno.
 
 ## Estado documental
 

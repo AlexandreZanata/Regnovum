@@ -6,46 +6,51 @@ import "fmt"
 type ErrorCode string
 
 const (
-	CodeNegativeMilliInk      ErrorCode = "ECONOMY_NEGATIVE_MILLIINK"
-	CodeInvalidMilliInk       ErrorCode = "ECONOMY_INVALID_MILLIINK"
-	CodeMilliInkOverflow      ErrorCode = "ECONOMY_MILLIINK_OVERFLOW"
-	CodeInsufficientMilliInk  ErrorCode = "ECONOMY_INSUFFICIENT_MILLIINK"
-	CodeMilliInkPrecision     ErrorCode = "ECONOMY_MILLIINK_PRECISION"
-	CodeUnknownLocale         ErrorCode = "ECONOMY_UNKNOWN_LOCALE"
-	CodeInvalidGenesisKey     ErrorCode = "ECONOMY_INVALID_GENESIS_KEY"
-	CodeGenesisAlreadyExists  ErrorCode = "ECONOMY_GENESIS_ALREADY_EXISTS"
-	CodeUnknownCustody        ErrorCode = "ECONOMY_UNKNOWN_CUSTODY"
-	CodeUnauthorizedCustody   ErrorCode = "ECONOMY_UNAUTHORIZED_CUSTODY"
-	CodeSameCustody           ErrorCode = "ECONOMY_SAME_CUSTODY"
-	CodeInvalidIntention      ErrorCode = "ECONOMY_INVALID_INTENTION"
-	CodeIntentionConflict     ErrorCode = "ECONOMY_INTENTION_CONFLICT"
-	CodeInvalidStatement      ErrorCode = "ECONOMY_INVALID_STATEMENT"
-	CodeStatementForbidden    ErrorCode = "ECONOMY_STATEMENT_FORBIDDEN"
-	CodeStatementSuspended    ErrorCode = "ECONOMY_STATEMENT_SUSPENDED"
-	CodeInvalidHold           ErrorCode = "ECONOMY_INVALID_HOLD"
-	CodeHoldState             ErrorCode = "ECONOMY_HOLD_STATE"
-	CodeHoldNotFound          ErrorCode = "ECONOMY_HOLD_NOT_FOUND"
-	CodeHoldNotExpired        ErrorCode = "ECONOMY_HOLD_NOT_EXPIRED"
-	CodeEconomyFrozen         ErrorCode = "ECONOMY_FROZEN"
-	CodeIncidentNotFound      ErrorCode = "ECONOMY_INCIDENT_NOT_FOUND"
-	CodeInvalidCharter        ErrorCode = "ECONOMY_INVALID_CHARTER"
-	CodeConsentRequired       ErrorCode = "ECONOMY_CONSENT_REQUIRED"
-	CodeConsentConflict       ErrorCode = "ECONOMY_CONSENT_CONFLICT"
-	CodeRateMismatch          ErrorCode = "ECONOMY_RATE_MISMATCH"
-	CodeOptInExpired          ErrorCode = "ECONOMY_OPTIN_EXPIRED"
-	CodeOptInMissing          ErrorCode = "ECONOMY_OPTIN_MISSING"
-	CodeInvalidGrant          ErrorCode = "ECONOMY_INVALID_GRANT"
-	CodeInvalidRefund         ErrorCode = "ECONOMY_INVALID_REFUND"
-	CodeInvalidDisbursement   ErrorCode = "ECONOMY_INVALID_DISBURSEMENT"
-	CodeInvalidTotals         ErrorCode = "ECONOMY_INVALID_TOTALS"
-	CodeMissingSeason         ErrorCode = "ECONOMY_MISSING_SEASON"
-	CodeCrossSeason           ErrorCode = "ECONOMY_CROSS_SEASON"
-	CodeBookSealed            ErrorCode = "ECONOMY_BOOK_SEALED"
-	CodeBookNotPrepared       ErrorCode = "ECONOMY_BOOK_NOT_PREPARED"
-	CodeInvalidDeadSettlement ErrorCode = "ECONOMY_INVALID_DEAD_SETTLEMENT"
-	CodeDeadOutOfOrder        ErrorCode = "ECONOMY_DEAD_OUT_OF_ORDER"
-	CodeDeadResidualBlocked   ErrorCode = "ECONOMY_DEAD_RESIDUAL_BLOCKED"
-	CodeDeadConflict          ErrorCode = "ECONOMY_DEAD_CONFLICT"
+	CodeNegativeMilliInk           ErrorCode = "ECONOMY_NEGATIVE_MILLIINK"
+	CodeInvalidMilliInk            ErrorCode = "ECONOMY_INVALID_MILLIINK"
+	CodeMilliInkOverflow           ErrorCode = "ECONOMY_MILLIINK_OVERFLOW"
+	CodeInsufficientMilliInk       ErrorCode = "ECONOMY_INSUFFICIENT_MILLIINK"
+	CodeMilliInkPrecision          ErrorCode = "ECONOMY_MILLIINK_PRECISION"
+	CodeUnknownLocale              ErrorCode = "ECONOMY_UNKNOWN_LOCALE"
+	CodeInvalidGenesisKey          ErrorCode = "ECONOMY_INVALID_GENESIS_KEY"
+	CodeGenesisAlreadyExists       ErrorCode = "ECONOMY_GENESIS_ALREADY_EXISTS"
+	CodeUnknownCustody             ErrorCode = "ECONOMY_UNKNOWN_CUSTODY"
+	CodeUnauthorizedCustody        ErrorCode = "ECONOMY_UNAUTHORIZED_CUSTODY"
+	CodeSameCustody                ErrorCode = "ECONOMY_SAME_CUSTODY"
+	CodeInvalidIntention           ErrorCode = "ECONOMY_INVALID_INTENTION"
+	CodeIntentionConflict          ErrorCode = "ECONOMY_INTENTION_CONFLICT"
+	CodeInvalidStatement           ErrorCode = "ECONOMY_INVALID_STATEMENT"
+	CodeStatementForbidden         ErrorCode = "ECONOMY_STATEMENT_FORBIDDEN"
+	CodeStatementSuspended         ErrorCode = "ECONOMY_STATEMENT_SUSPENDED"
+	CodeInvalidHold                ErrorCode = "ECONOMY_INVALID_HOLD"
+	CodeHoldState                  ErrorCode = "ECONOMY_HOLD_STATE"
+	CodeHoldNotFound               ErrorCode = "ECONOMY_HOLD_NOT_FOUND"
+	CodeHoldNotExpired             ErrorCode = "ECONOMY_HOLD_NOT_EXPIRED"
+	CodeEconomyFrozen              ErrorCode = "ECONOMY_FROZEN"
+	CodeIncidentNotFound           ErrorCode = "ECONOMY_INCIDENT_NOT_FOUND"
+	CodeInvalidCharter             ErrorCode = "ECONOMY_INVALID_CHARTER"
+	CodeConsentRequired            ErrorCode = "ECONOMY_CONSENT_REQUIRED"
+	CodeConsentConflict            ErrorCode = "ECONOMY_CONSENT_CONFLICT"
+	CodeRateMismatch               ErrorCode = "ECONOMY_RATE_MISMATCH"
+	CodeOptInExpired               ErrorCode = "ECONOMY_OPTIN_EXPIRED"
+	CodeOptInMissing               ErrorCode = "ECONOMY_OPTIN_MISSING"
+	CodeInvalidGrant               ErrorCode = "ECONOMY_INVALID_GRANT"
+	CodeInvalidRefund              ErrorCode = "ECONOMY_INVALID_REFUND"
+	CodeInvalidDisbursement        ErrorCode = "ECONOMY_INVALID_DISBURSEMENT"
+	CodeInvalidTotals              ErrorCode = "ECONOMY_INVALID_TOTALS"
+	CodeMissingSeason              ErrorCode = "ECONOMY_MISSING_SEASON"
+	CodeCrossSeason                ErrorCode = "ECONOMY_CROSS_SEASON"
+	CodeBookSealed                 ErrorCode = "ECONOMY_BOOK_SEALED"
+	CodeBookNotPrepared            ErrorCode = "ECONOMY_BOOK_NOT_PREPARED"
+	CodeInvalidDeadSettlement      ErrorCode = "ECONOMY_INVALID_DEAD_SETTLEMENT"
+	CodeDeadOutOfOrder             ErrorCode = "ECONOMY_DEAD_OUT_OF_ORDER"
+	CodeDeadResidualBlocked        ErrorCode = "ECONOMY_DEAD_RESIDUAL_BLOCKED"
+	CodeDeadConflict               ErrorCode = "ECONOMY_DEAD_CONFLICT"
+	CodeBondsUnavailable           ErrorCode = "ECONOMY_BONDS_UNAVAILABLE"
+	CodeBondYieldForbidden         ErrorCode = "ECONOMY_BOND_YIELD_FORBIDDEN"
+	CodeBettingMarketsUnavailable  ErrorCode = "ECONOMY_BETTING_MARKETS_UNAVAILABLE"
+	CodeRealHarmProhibited         ErrorCode = "ECONOMY_REAL_HARM_PROHIBITED"
+	CodeBettingPreconditionMissing ErrorCode = "ECONOMY_BETTING_PRECONDITION_MISSING"
 )
 
 // DomainError represents an invariant or rule failure in the economy domain.
@@ -226,5 +231,25 @@ var (
 	ErrDeadConflict = DomainError{
 		Code:    CodeDeadConflict,
 		Message: "effect key already recorded with different terms: replay returns the same state, divergence conflicts",
+	}
+	ErrBondsUnavailable = DomainError{
+		Code:    CodeBondsUnavailable,
+		Message: "crown bonds are an unratified concept pending legal review: purchase, issuance and offering are disabled",
+	}
+	ErrBondYieldForbidden = DomainError{
+		Code:    CodeBondYieldForbidden,
+		Message: "publishing or promising bond yield is forbidden: yield is never guaranteed and cannot be advertised",
+	}
+	ErrBettingMarketsUnavailable = DomainError{
+		Code:    CodeBettingMarketsUnavailable,
+		Message: "betting and prediction markets are disabled by default: constitutional concept pending country-by-country legal framework",
+	}
+	ErrRealHarmProhibited = DomainError{
+		Code:    CodeRealHarmProhibited,
+		Message: "betting markets tied to real-world harm, bodily injury, violence or harassment are strictly prohibited",
+	}
+	ErrBettingPreconditionMissing = DomainError{
+		Code:    CodeBettingPreconditionMissing,
+		Message: "mandatory betting preconditions are missing: legal review, regulatory license, age/location verification, AML, objective event, independent oracle and conflict isolation must all be satisfied",
 	}
 )
