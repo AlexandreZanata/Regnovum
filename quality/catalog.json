@@ -4685,6 +4685,64 @@
         "docs/reino/DECISOES_VIGENTES.md"
       ],
       "not_applicable": {}
+    },
+    {
+      "id": "QUAL-THR-CROWN-01",
+      "source": "docs/reino/TEMPORADAS_SUCESSAO.md",
+      "description": "Manipulacao da Coroa recusada no dominio: emprestimo registrado deduzido, reclassificacao do Tesouro sem mover limiar, escrow/custodia de terceiro e compra pendente excluidos da riqueza, politica congelada na season, split de carteiras agregado uma vez, self-dealing e sancao interessada recusados com corretivo independente preservado, veto do perdedor impossivel e dividas externas desconhecidas registradas como limitacao sem coleta invasiva.",
+      "risk": "Q0",
+      "modules": [
+        "internal/crown"
+      ],
+      "actors": [
+        "king",
+        "worker",
+        "operator"
+      ],
+      "states": [
+        "refused",
+        "blocked"
+      ],
+      "tests": {
+        "positive": [
+          "internal/crown/domain/manipulation_test.go::TestManipulation_GoodFaithSuccessPermitted",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_TreasuryReclassificationKeepsThreshold"
+        ],
+        "negative": [
+          "internal/crown/domain/manipulation_test.go::TestManipulation_RegisteredLoanDeducted",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_LentEscrowExcluded",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_PendingPurchaseGrantsNoWealth",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_SelfDealingRefused",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_InterestedSanctionRefused",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_RoyalVetoImpossible"
+        ],
+        "limit": [
+          "internal/crown/domain/manipulation_test.go::TestManipulation_WalletSplitAggregatesOnce",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_PolicyFrozenDuringSeason",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_ActOutsideWindowRefused"
+        ],
+        "authorization": [
+          "internal/crown/domain/manipulation_test.go::TestManipulation_SelfDealingRefused",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_InterestedSanctionRefused",
+          "internal/crown/domain/manipulation_test.go::TestManipulation_RoyalVetoImpossible"
+        ],
+        "concurrency": [],
+        "idempotency": [],
+        "failure": []
+      },
+      "authorization": "Nenhum ator recebe poder por manipulação: o Rei nunca se concede Tesouro, interessado nunca julga caso próprio e ex-Rei nunca veta a sucessão por ato obsoleto.",
+      "concurrency": "Os controles são funções puras do domínio avaliadas por revisão linearizável; sem escrita concorrente nesta regra.",
+      "idempotency": "Recusas são determinísticas e sem efeito: repetir o ataque devolve a mesma recusa sem alterar livro ou reinado.",
+      "security": "As 9 vias de manipulação (empréstimo, reclassificação, escrow, compra pendente, condição/tempo, split, self-dealing, sanção interessada, veto) são recusadas com códigos estáveis; mutantes ignore-debt, count-third-party, obsolete-reign e king-self-grant morrem nestes testes.",
+      "privacy": "Casos ofensivos usam titulares sintéticos e pseudônimos; nenhuma coleta de identidade além de sujeito+tamanho fechado.",
+      "evidence": [
+        "docs/reino/TEMPORADAS_SUCESSAO.md",
+        "docs/THREAT_MODEL.md"
+      ],
+      "not_applicable": {
+        "concurrency": "Funções puras sem escrita compartilhada: não há corrida a resolver nesta regra",
+        "idempotency": "Recusas não produzem efeito, então não há chave de idempotência nesta regra"
+      }
     }
   ]
 }
