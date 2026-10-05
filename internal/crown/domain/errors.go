@@ -207,6 +207,24 @@ const (
 	CodeBacklogUnevaluated ErrorCode = "CROWN_BACKLOG_UNEVALUATED"
 	// CodeActiveReignConflict names multiple active reigns detected for a season.
 	CodeActiveReignConflict ErrorCode = "CROWN_ACTIVE_REIGN_CONFLICT"
+	// CodeAccountDead names an investiture or authority claim by a deceased account.
+	CodeAccountDead ErrorCode = "CROWN_ACCOUNT_DEAD"
+	// CodeAccountSuspended names an investiture or authority claim by a suspended account.
+	CodeAccountSuspended ErrorCode = "CROWN_ACCOUNT_SUSPENDED"
+	// CodeMFAMissing names an investiture or authority claim without verified multi-factor authentication.
+	CodeMFAMissing ErrorCode = "CROWN_MFA_MISSING"
+	// CodeTermsSeasonMismatch names office terms accepted for another season offered in the current season.
+	CodeTermsSeasonMismatch ErrorCode = "CROWN_TERMS_SEASON_MISMATCH"
+	// CodeTamperedConsent names a consent or terms acceptance whose payload digest differs from canonical terms.
+	CodeTamperedConsent ErrorCode = "CROWN_TAMPERED_CONSENT"
+	// CodeAuthorityVersionRegression names an authority check with a version lower than the recorded sovereign version.
+	CodeAuthorityVersionRegression ErrorCode = "CROWN_AUTHORITY_VERSION_REGRESSION"
+	// CodeIdentityDependencyUnavailable names an unreachable or failed identity/consent provider.
+	CodeIdentityDependencyUnavailable ErrorCode = "CROWN_IDENTITY_DEPENDENCY_UNAVAILABLE"
+	// CodeOfficeConsentRefused names an express refusal of the seasonal office terms by the candidate.
+	CodeOfficeConsentRefused ErrorCode = "CROWN_OFFICE_CONSENT_REFUSED"
+	// CodePrivateDisclosureUnauthorized names an unauthorized party attempting to read private pending requirements.
+	CodePrivateDisclosureUnauthorized ErrorCode = "CROWN_PRIVATE_DISCLOSURE_UNAUTHORIZED"
 )
 
 // DomainError represents an invariant or rule failure in the crown domain.
@@ -542,5 +560,50 @@ var (
 	ErrActiveReignConflict = DomainError{
 		Code:    CodeActiveReignConflict,
 		Message: "active reign conflict: multiple active reigns exist for this season",
+	}
+	// ErrAccountDead refuses authority or investiture for a deceased account.
+	ErrAccountDead = DomainError{
+		Code:    CodeAccountDead,
+		Message: "dead account cannot hold sovereign office",
+	}
+	// ErrAccountSuspended refuses authority or investiture for a suspended account.
+	ErrAccountSuspended = DomainError{
+		Code:    CodeAccountSuspended,
+		Message: "suspended account cannot hold sovereign office",
+	}
+	// ErrMFAMissing refuses authority or investiture when multi-factor authentication is not verified.
+	ErrMFAMissing = DomainError{
+		Code:    CodeMFAMissing,
+		Message: "sovereign office requires verified multi-factor authentication",
+	}
+	// ErrTermsSeasonMismatch refuses office terms accepted for a different season book.
+	ErrTermsSeasonMismatch = DomainError{
+		Code:    CodeTermsSeasonMismatch,
+		Message: "royal office terms accepted for another season cannot authorize current season",
+	}
+	// ErrTamperedConsent refuses consent records whose digest does not match displayed and accepted terms.
+	ErrTamperedConsent = DomainError{
+		Code:    CodeTamperedConsent,
+		Message: "consent payload digest does not match displayed and accepted terms",
+	}
+	// ErrAuthorityVersionRegression refuses authority credentials when version has regressed.
+	ErrAuthorityVersionRegression = DomainError{
+		Code:    CodeAuthorityVersionRegression,
+		Message: "authority version regressed or is older than recorded sovereign version",
+	}
+	// ErrIdentityDependencyUnavailable fails closed when identity or consent provider cannot be reached.
+	ErrIdentityDependencyUnavailable = DomainError{
+		Code:    CodeIdentityDependencyUnavailable,
+		Message: "identity or consent provider is unavailable; failing closed",
+	}
+	// ErrOfficeConsentRefused indicates the candidate expressly refused the seasonal office terms.
+	ErrOfficeConsentRefused = DomainError{
+		Code:    CodeOfficeConsentRefused,
+		Message: "candidate expressly refused royal office terms; balance preserved",
+	}
+	// ErrPrivateDisclosureUnauthorized refuses access to pending requirements by third parties.
+	ErrPrivateDisclosureUnauthorized = DomainError{
+		Code:    CodePrivateDisclosureUnauthorized,
+		Message: "pending requirements status is private to the titular account holder",
 	}
 )

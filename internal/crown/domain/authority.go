@@ -36,6 +36,19 @@ type ActID string
 // again.
 type ReignVersion int
 
+// AuthorityVersion counts versioned changes to one subject's authority,
+// consent and credential state. It is monotonic: a version lower than
+// the recorded version is a regression and refuses.
+type AuthorityVersion int64
+
+// ParseAuthorityVersion validates one authority version: must be at least 1.
+func ParseAuthorityVersion(raw int64) (AuthorityVersion, error) {
+	if raw < 1 {
+		return 0, ErrInvalidAuthority
+	}
+	return AuthorityVersion(raw), nil
+}
+
 // parseToken validates one opaque crown token: exact match, no
 // control characters, bounded length.
 func parseToken(raw string) (string, error) {
@@ -219,12 +232,13 @@ func (d Delegation) validShape() error {
 // whether the book is open. Holder selection lives in P47; here the
 // snapshot arrives as data.
 type CurrentReign struct {
-	Season   SeasonID
-	Holder   HolderSubject
-	Reign    ReignVersion
-	StartsAt time.Time
-	EndsAt   time.Time
-	Open     bool
+	Season           SeasonID
+	Holder           HolderSubject
+	Reign            ReignVersion
+	AuthorityVersion AuthorityVersion
+	StartsAt         time.Time
+	EndsAt           time.Time
+	Open             bool
 }
 
 // validShape checks the snapshot shape: whole book and holder,
@@ -239,8 +253,27 @@ func (c CurrentReign) validShape() error {
 	if _, err := ParseReignVersion(int(c.Reign)); err != nil {
 		return err
 	}
+	if c.AuthorityVersion < 0 {
+		return ErrInvalidAuthority
+	}
 	if c.StartsAt.IsZero() || c.EndsAt.IsZero() || !c.EndsAt.After(c.StartsAt.UTC()) {
 		return ErrInvalidAuthority
+	}
+	return nil
+}
+
+// VerifyAuthorityEffect revalidates authority version and currency at effect time:
+// the reign and holder must be active and open, and the presented authority version
+// must not have regressed relative to the recorded sovereign authority version.
+func VerifyAuthorityEffect(current CurrentReign, recordedVersion, presentedVersion AuthorityVersion) error {
+	if err := current.validShape(); err != nil {
+		return err
+	}
+	if !current.Open {
+		return ErrSeasonClosed
+	}
+	if recordedVersion > 0 && presentedVersion < recordedVersion {
+		return ErrAuthorityVersionRegression
 	}
 	return nil
 }
