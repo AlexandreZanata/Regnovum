@@ -307,15 +307,22 @@ func browserVerified(root string, entry RouteEntry) bool {
 		}
 	}
 	return false
+} // judgeTallies counts readiness states across one pass of the
+// inventory, so the counts rule compares like with like.
+type judgeTallies struct {
+	published int
+	staged    int
+	missing   int
 }
 
 // Judge confronts the inventory with the normative sources under
 // the given mode. A finding names exactly one broken rule with its
-// route; an empty set is the only PASS.
+// route; an empty set is the only PASS. The per-entry work lives
+// in the focused judges below so each one stays reviewable.
 func Judge(root string, inventory *Inventory, sources *Sources, mode string) []string {
 	findings := []string{}
 	byKey := make(map[string]RouteEntry, len(inventory.Routes))
-	published, staged, missing := 0, 0, 0
+	var tallies judgeTallies
 	for _, entry := range inventory.Routes {
 		key := entry.Method + " " + entry.Path
 		if _, dup := byKey[key]; dup {
@@ -323,111 +330,187 @@ func Judge(root string, inventory *Inventory, sources *Sources, mode string) []s
 			continue
 		}
 		byKey[key] = entry
+		findings = append(findings, judgeEntryDeclaration(key, entry, sources)...)
+		findings = append(findings, judgeEntryContract(key, entry, sources, &tallies)...)
+		findings = append(findings, judgeEntryBinding(key, entry)...)
+		findings = append(findings, judgeEntryEvidence(root, key, entry)...)
+	}
+	findings = append(findings, judgeCounts(inventory, tallies)...)
+	findings = append(findings, judgeMissingSources(byKey, sources)...)
+	if mode == ModeComplete {
+		findings = append(findings, judgeComplete(root, inventory)...)
+	}
+	sort.Strings(findings)
+	return findings
+}
 
-		wantDecl, declared := sources.Declarations[key]
-		if !declared {
-			findings = append(findings, RuleUndeclaredRoute+": "+key+" has no routes.go declaration")
-		} else if wantDecl != entry.Declaration {
-			findings = append(findings, RuleUndeclaredRoute+": "+key+" wants declaration "+wantDecl)
-		}
+// judgeEntryDeclaration checks the entry against the routes.go
+// registry: every inventoried route is declared exactly there.
+func judgeEntryDeclaration(key string, entry RouteEntry, sources *Sources) []string {
+	wantDecl, declared := sources.Declarations[key]
+	if !declared {
+		return []string{RuleUndeclaredRoute + ": " + key + " has no routes.go declaration"}
+	}
+	if wantDecl != entry.Declaration {
+		return []string{RuleUndeclaredRoute + ": " + key + " wants declaration " + wantDecl}
+	}
+	return nil
+}
 
-		switch entry.Readiness {
-		case "published":
-			published++
-			if entry.Contract == nil || *entry.Contract != "api/openapi.json" {
-				findings = append(findings, RuleContractDrift+": "+key+" leaves api/openapi.json")
-				break
-			}
-			want, ok := sources.Published[key]
-			if !ok {
-				findings = append(findings, RuleContractDrift+": "+key+" absent from api/openapi.json")
-				break
-			}
-			if entry.OperationID == nil || *entry.OperationID != want {
-				findings = append(findings, RuleContractDrift+": "+key+" wants operation "+want)
-			}
-			if entry.EvidenceState == EvidenceMissing {
-				findings = append(findings, RuleContractGap+": "+key+" hides a published contract behind a gap")
-			}
-		case "staged":
-			staged++
-			want, ok := sources.Staged[key]
-			if !ok {
-				findings = append(findings, RuleContractDrift+": "+key+" absent from the staged fragments")
-				break
-			}
-			if entry.Contract == nil || *entry.Contract != want.Fragment {
-				findings = append(findings, RuleContractDrift+": "+key+" wants fragment "+want.Fragment)
-			}
-			if entry.OperationID == nil || *entry.OperationID != want.Operation {
-				findings = append(findings, RuleContractDrift+": "+key+" wants operation "+want.Operation)
-			}
-			if _, ok := sources.Published[key]; ok {
-				findings = append(findings, RuleContractDrift+": "+key+" staged but published in api/openapi.json")
-			}
-			client, page := hasBinding(entry)
-			if entry.Exclusion != nil && *entry.Exclusion != "" {
-				findings = append(findings, RuleStagedAsActive+": "+key+" excepts a staged route instead of harness-binding it")
-			} else if !client || !page || *entry.Client != stagedHarnessBinding || *entry.Page != stagedHarnessBinding {
-				findings = append(findings, RuleStagedAsActive+": "+key+" treats a staged route as an active surface")
-			}
-			if entry.EvidenceState == EvidenceMissing {
-				findings = append(findings, RuleContractGap+": "+key+" hides a staged contract behind a gap")
-			}
-		case "missing-contract":
-			missing++
-			if entry.OperationID != nil || entry.Contract != nil {
-				findings = append(findings, RuleContractGap+": "+key+" must stay an explicit null-operation gap")
-			}
-			if _, ok := sources.Published[key]; ok {
-				findings = append(findings, RuleContractGap+": "+key+" contracted in api/openapi.json")
-			}
-			if _, ok := sources.Staged[key]; ok {
-				findings = append(findings, RuleContractGap+": "+key+" contracted in a staged fragment")
-			}
-			if entry.EvidenceState != EvidenceMissing {
-				findings = append(findings, RuleContractGap+": "+key+" wants evidence "+EvidenceMissing)
-			}
-		default:
-			findings = append(findings, RuleContractDrift+": "+key+" has unknown readiness "+entry.Readiness)
-		}
+// judgeEntryContract checks the entry against its contract home
+// and tallies its readiness. Unknown readiness is drift: the
+// inventory only knows the three states the sources can prove.
+func judgeEntryContract(key string, entry RouteEntry, sources *Sources, tallies *judgeTallies) []string {
+	switch entry.Readiness {
+	case "published":
+		tallies.published++
+		return judgePublishedContract(key, entry, sources)
+	case "staged":
+		tallies.staged++
+		return judgeStagedContract(key, entry, sources)
+	case "missing-contract":
+		tallies.missing++
+		return judgeContractGap(key, entry, sources)
+	default:
+		return []string{RuleContractDrift + ": " + key + " has unknown readiness " + entry.Readiness}
+	}
+}
 
-		client, page := hasBinding(entry)
-		_, excluded := excludedEntry(entry)
-		switch {
-		case client && !page:
-			findings = append(findings, RuleClientWithoutPage+": "+key)
-		case page && !client:
-			findings = append(findings, RulePageWithoutClient+": "+key)
-		case !client && !page && !excluded:
-			findings = append(findings, RuleExclusionUnjustified+": "+key+" has neither a consumer nor an exclusion")
-		case excluded && !validExclusion(entry):
-			findings = append(findings, RuleExclusionUnjustified+": "+key)
-		}
+// judgePublishedContract checks a published entry against
+// api/openapi.json.
+func judgePublishedContract(key string, entry RouteEntry, sources *Sources) []string {
+	if entry.Contract == nil || *entry.Contract != "api/openapi.json" {
+		return []string{RuleContractDrift + ": " + key + " leaves api/openapi.json"}
+	}
+	want, ok := sources.Published[key]
+	if !ok {
+		return []string{RuleContractDrift + ": " + key + " absent from api/openapi.json"}
+	}
+	findings := []string{}
+	if entry.OperationID == nil || *entry.OperationID != want {
+		findings = append(findings, RuleContractDrift+": "+key+" wants operation "+want)
+	}
+	if entry.EvidenceState == EvidenceMissing {
+		findings = append(findings, RuleContractGap+": "+key+" hides a published contract behind a gap")
+	}
+	return findings
+}
 
-		for _, ref := range entry.Tests {
-			if !resolveEvidence(root, ref) {
-				findings = append(findings, RuleEvidenceMissing+": "+key+" points at missing evidence "+ref)
-			}
-		}
+// judgeStagedContract checks a staged entry against its fragment
+// and its harness-only binding.
+func judgeStagedContract(key string, entry RouteEntry, sources *Sources) []string {
+	want, ok := sources.Staged[key]
+	if !ok {
+		return []string{RuleContractDrift + ": " + key + " absent from the staged fragments"}
+	}
+	findings := []string{}
+	if entry.Contract == nil || *entry.Contract != want.Fragment {
+		findings = append(findings, RuleContractDrift+": "+key+" wants fragment "+want.Fragment)
+	}
+	if entry.OperationID == nil || *entry.OperationID != want.Operation {
+		findings = append(findings, RuleContractDrift+": "+key+" wants operation "+want.Operation)
+	}
+	if _, published := sources.Published[key]; published {
+		findings = append(findings, RuleContractDrift+": "+key+" staged but published in api/openapi.json")
+	}
+	findings = append(findings, judgeStagedBinding(key, entry)...)
+	if entry.EvidenceState == EvidenceMissing {
+		findings = append(findings, RuleContractGap+": "+key+" hides a staged contract behind a gap")
+	}
+	return findings
+}
 
-		switch entry.EvidenceState {
-		case EvidenceNotVerified, EvidenceMissing:
-		case EvidenceVerified, EvidenceDone:
-			if !browserVerified(root, entry) {
-				findings = append(findings, RuleTestOnlyAsProduction+": "+key+" declares production without a browser proof")
-			}
-		default:
-			findings = append(findings, RuleEvidenceUnknown+": "+key+" carries "+entry.EvidenceState)
+// judgeStagedBinding refuses a staged route dressed as an active
+// surface: the harness binding is the only honest one, and an
+// exception would hide the route instead of proving it elsewhere.
+func judgeStagedBinding(key string, entry RouteEntry) []string {
+	if entry.Exclusion != nil && *entry.Exclusion != "" {
+		return []string{RuleStagedAsActive + ": " + key + " excepts a staged route instead of harness-binding it"}
+	}
+	client, page := hasBinding(entry)
+	if !client || !page || *entry.Client != stagedHarnessBinding || *entry.Page != stagedHarnessBinding {
+		return []string{RuleStagedAsActive + ": " + key + " treats a staged route as an active surface"}
+	}
+	return nil
+}
+
+// judgeContractGap checks an explicit contract gap: null operation,
+// null contract, absent from every contract home, gap evidence.
+func judgeContractGap(key string, entry RouteEntry, sources *Sources) []string {
+	findings := []string{}
+	if entry.OperationID != nil || entry.Contract != nil {
+		findings = append(findings, RuleContractGap+": "+key+" must stay an explicit null-operation gap")
+	}
+	if _, ok := sources.Published[key]; ok {
+		findings = append(findings, RuleContractGap+": "+key+" contracted in api/openapi.json")
+	}
+	if _, ok := sources.Staged[key]; ok {
+		findings = append(findings, RuleContractGap+": "+key+" contracted in a staged fragment")
+	}
+	if entry.EvidenceState != EvidenceMissing {
+		findings = append(findings, RuleContractGap+": "+key+" wants evidence "+EvidenceMissing)
+	}
+	return findings
+}
+
+// judgeEntryBinding checks the consumer side: a planned client and
+// page, or a valid exception — never half a binding and never
+// silence.
+func judgeEntryBinding(key string, entry RouteEntry) []string {
+	client, page := hasBinding(entry)
+	_, excluded := excludedEntry(entry)
+	switch {
+	case client && !page:
+		return []string{RuleClientWithoutPage + ": " + key}
+	case page && !client:
+		return []string{RulePageWithoutClient + ": " + key}
+	case !client && !page && !excluded:
+		return []string{RuleExclusionUnjustified + ": " + key + " has neither a consumer nor an exclusion"}
+	case excluded && !validExclusion(entry):
+		return []string{RuleExclusionUnjustified + ": " + key}
+	default:
+		return nil
+	}
+}
+
+// judgeEntryEvidence checks that every named proof resolves and
+// that a production claim carries a browser proof.
+func judgeEntryEvidence(root, key string, entry RouteEntry) []string {
+	findings := []string{}
+	for _, ref := range entry.Tests {
+		if !resolveEvidence(root, ref) {
+			findings = append(findings, RuleEvidenceMissing+": "+key+" points at missing evidence "+ref)
 		}
 	}
+	switch entry.EvidenceState {
+	case EvidenceNotVerified, EvidenceMissing:
+	case EvidenceVerified, EvidenceDone:
+		if !browserVerified(root, entry) {
+			findings = append(findings, RuleTestOnlyAsProduction+": "+key+" declares production without a browser proof")
+		}
+	default:
+		findings = append(findings, RuleEvidenceUnknown+": "+key+" carries "+entry.EvidenceState)
+	}
+	return findings
+}
 
+// judgeCounts checks the header tallies against the rows: the
+// counts describe the inventory, they never negotiate with it.
+func judgeCounts(inventory *Inventory, tallies judgeTallies) []string {
 	if inventory.Counts.Declared != len(inventory.Routes) ||
-		inventory.Counts.Published != published ||
-		inventory.Counts.Staged != staged ||
-		inventory.Counts.MissingPublishedContract != missing {
-		findings = append(findings, RuleCountsMismatch+": inventory counts its rows")
+		inventory.Counts.Published != tallies.published ||
+		inventory.Counts.Staged != tallies.staged ||
+		inventory.Counts.MissingPublishedContract != tallies.missing {
+		return []string{RuleCountsMismatch + ": inventory counts its rows"}
 	}
+	return nil
+}
+
+// judgeMissingSources accuses every normative route and operation
+// the inventory omits: a new declaration and a dropped contract
+// row fail alike.
+func judgeMissingSources(byKey map[string]RouteEntry, sources *Sources) []string {
+	findings := []string{}
 	for key, decl := range sources.Declarations {
 		if _, ok := byKey[key]; !ok {
 			findings = append(findings, RuleRouteMissing+": "+key+" declared by "+decl)
@@ -443,20 +526,22 @@ func Judge(root string, inventory *Inventory, sources *Sources, mode string) []s
 			findings = append(findings, RuleRouteMissing+": "+key+" contracted by "+staged.Fragment)
 		}
 	}
+	return findings
+}
 
-	if mode == ModeComplete {
-		for _, entry := range inventory.Routes {
-			key := entry.Method + " " + entry.Path
-			if _, excluded := excludedEntry(entry); excluded && validExclusion(entry) {
-				continue
-			}
-			if !browserVerified(root, entry) {
-				findings = append(findings, RuleCoverageGap+": "+key+" has no browser-verified binding")
-			}
+// judgeComplete demands zero browser gap: every route without a
+// valid exception proves a browser-verified binding.
+func judgeComplete(root string, inventory *Inventory) []string {
+	findings := []string{}
+	for _, entry := range inventory.Routes {
+		key := entry.Method + " " + entry.Path
+		if _, excluded := excludedEntry(entry); excluded && validExclusion(entry) {
+			continue
+		}
+		if !browserVerified(root, entry) {
+			findings = append(findings, RuleCoverageGap+": "+key+" has no browser-verified binding")
 		}
 	}
-
-	sort.Strings(findings)
 	return findings
 }
 

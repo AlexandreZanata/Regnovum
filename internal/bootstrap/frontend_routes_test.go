@@ -15,6 +15,9 @@
 // MISSING_PUBLISHED_CONTRACT. No entry may claim DONE by inference, and
 // no browser usage is inferred by string search: client/page are planned
 // bindings, and probes or contract gaps carry an exclusion instead.
+//
+// The verification is split into one focused test per facet so each
+// stays reviewable: counts, contracts, bindings and bijection.
 package bootstrap_test
 
 import (
@@ -171,31 +174,34 @@ func resolveTestRef(t *testing.T, root, ref string) {
 	}
 }
 
-func TestFrontendRoutesInventoryMatchesNormativeSources(t *testing.T) {
-	t.Parallel()
+// frontendInventoryContext carries the reconciled inventory with
+// the normative sets, loaded once per test.
+type frontendInventoryContext struct {
+	root           string
+	inventory      frontendRoutesFile
+	declarations   map[string]string
+	published      map[string]string
+	staged         map[string]string
+	stagedContract map[string]string
+	byKey          map[string]frontendRouteEntry
+}
+
+func loadFrontendInventoryContext(t *testing.T) *frontendInventoryContext {
+	t.Helper()
 
 	root, inventory := loadFrontendRoutes(t)
-
-	if inventory.Counts.Declared != 100 {
-		t.Errorf("declared = %d, want 100", inventory.Counts.Declared)
-	}
-	if inventory.Counts.Published != 82 {
-		t.Errorf("published = %d, want 82", inventory.Counts.Published)
-	}
-	if inventory.Counts.Staged != 15 {
-		t.Errorf("staged = %d, want 15", inventory.Counts.Staged)
-	}
-	if inventory.Counts.MissingPublishedContract != 3 {
-		t.Errorf("missingPublishedContract = %d, want 3", inventory.Counts.MissingPublishedContract)
-	}
 	if len(inventory.Routes) != 100 {
 		t.Fatalf("routes has %d entries, want 100", len(inventory.Routes))
 	}
-
-	declarations := collectRouteDeclarations(t, root)
-	published := collectContractOperations(t, root, "api/openapi.json")
-	staged := make(map[string]string)
-	stagedContract := make(map[string]string)
+	context := &frontendInventoryContext{
+		root:           root,
+		inventory:      inventory,
+		declarations:   collectRouteDeclarations(t, root),
+		published:      collectContractOperations(t, root, "api/openapi.json"),
+		staged:         make(map[string]string),
+		stagedContract: make(map[string]string),
+		byKey:          make(map[string]frontendRouteEntry, len(inventory.Routes)),
+	}
 	for _, fragment := range []string{
 		"internal/seasons/adapters/http/openapi.fragment.json",
 		"internal/metering/adapters/http/openapi.fragment.json",
@@ -203,30 +209,159 @@ func TestFrontendRoutesInventoryMatchesNormativeSources(t *testing.T) {
 		"internal/disputes/adapters/http/openapi.fragment.json",
 	} {
 		for key, operation := range collectContractOperations(t, root, fragment) {
-			if prev, dup := staged[key]; dup {
+			if prev, dup := context.staged[key]; dup {
 				t.Fatalf("duplicate staged operation %q (%q vs %q)", key, prev, operation)
 			}
-			staged[key] = operation
-			stagedContract[key] = fragment
+			context.staged[key] = operation
+			context.stagedContract[key] = fragment
 		}
 	}
-	if len(published) != 82 {
-		t.Errorf("published contract operations = %d, want 82", len(published))
-	}
-	if len(staged) != 15 {
-		t.Errorf("staged fragment operations = %d, want 15 (4+4+2+5)", len(staged))
-	}
-
-	byKey := make(map[string]frontendRouteEntry, len(inventory.Routes))
-	publishedCount, stagedCount, missingCount := 0, 0, 0
 	for _, entry := range inventory.Routes {
 		key := entry.Method + " " + entry.Path
-		if _, dup := byKey[key]; dup {
+		if _, dup := context.byKey[key]; dup {
 			t.Errorf("duplicate inventory entry %q", key)
 			continue
 		}
-		byKey[key] = entry
+		context.byKey[key] = entry
+	}
+	return context
+}
 
+func TestFrontendRoutesInventoryCounts(t *testing.T) {
+	t.Parallel()
+
+	context := loadFrontendInventoryContext(t)
+	if context.inventory.Counts.Declared != 100 {
+		t.Errorf("declared = %d, want 100", context.inventory.Counts.Declared)
+	}
+	if context.inventory.Counts.Published != 82 {
+		t.Errorf("published = %d, want 82", context.inventory.Counts.Published)
+	}
+	if context.inventory.Counts.Staged != 15 {
+		t.Errorf("staged = %d, want 15", context.inventory.Counts.Staged)
+	}
+	if context.inventory.Counts.MissingPublishedContract != 3 {
+		t.Errorf("missingPublishedContract = %d, want 3", context.inventory.Counts.MissingPublishedContract)
+	}
+	if len(context.published) != 82 {
+		t.Errorf("published contract operations = %d, want 82", len(context.published))
+	}
+	if len(context.staged) != 15 {
+		t.Errorf("staged fragment operations = %d, want 15 (4+4+2+5)", len(context.staged))
+	}
+	published, staged, missing := 0, 0, 0
+	for _, entry := range context.inventory.Routes {
+		switch entry.Readiness {
+		case "published":
+			published++
+		case "staged":
+			staged++
+		case "missing-contract":
+			missing++
+		default:
+			t.Errorf("readiness = %q, want published|staged|missing-contract", entry.Readiness)
+		}
+	}
+	if published != 82 || staged != 15 || missing != 3 {
+		t.Errorf("readiness rows = %d/%d/%d, want 82/15/3", published, staged, missing)
+	}
+}
+
+// checkPublishedEntry verifies one published row against
+// api/openapi.json and the routes.go registry.
+func checkPublishedEntry(t *testing.T, context *frontendInventoryContext, key string, entry frontendRouteEntry) {
+	t.Helper()
+
+	if entry.Contract == nil || *entry.Contract != "api/openapi.json" {
+		t.Errorf("%q readiness published needs contract api/openapi.json", key)
+	}
+	want, ok := context.published[key]
+	if !ok {
+		t.Errorf("%q marked published but absent from api/openapi.json", key)
+	} else if entry.OperationID == nil || *entry.OperationID != want {
+		t.Errorf("%q operation_id = %v, want %q from api/openapi.json", key, entry.OperationID, want)
+	}
+	wantDecl, ok := context.declarations[key]
+	if !ok {
+		t.Errorf("%q marked published but absent from routes.go declarations", key)
+	} else if wantDecl != entry.Declaration {
+		t.Errorf("%q declaration = %q, want %q", key, entry.Declaration, wantDecl)
+	}
+	if entry.EvidenceState != "NOT_VERIFIED" {
+		t.Errorf("%q evidence = %q, want NOT_VERIFIED", key, entry.EvidenceState)
+	}
+}
+
+// checkStagedEntry verifies one staged row against its fragment
+// and the routes.go registry.
+func checkStagedEntry(t *testing.T, context *frontendInventoryContext, key string, entry frontendRouteEntry) {
+	t.Helper()
+
+	wantFragment, ok := context.stagedContract[key]
+	if !ok {
+		t.Errorf("%q marked staged but absent from the four staged fragments", key)
+	} else if entry.Contract == nil || *entry.Contract != wantFragment {
+		t.Errorf("%q contract = %v, want %q", key, entry.Contract, wantFragment)
+	}
+	if want, ok := context.staged[key]; ok && (entry.OperationID == nil || *entry.OperationID != want) {
+		t.Errorf("%q operation_id = %v, want %q from %q", key, entry.OperationID, want, wantFragment)
+	}
+	wantDecl, ok := context.declarations[key]
+	if !ok {
+		t.Errorf("%q marked staged but absent from routes.go declarations", key)
+	} else if wantDecl != entry.Declaration {
+		t.Errorf("%q declaration = %q, want %q", key, entry.Declaration, wantDecl)
+	}
+	if entry.EvidenceState != "NOT_VERIFIED" {
+		t.Errorf("%q evidence = %q, want NOT_VERIFIED", key, entry.EvidenceState)
+	}
+}
+
+// checkGapEntry verifies one explicit contract gap: null operation,
+// null contract, absent from every contract home, gap evidence.
+func checkGapEntry(t *testing.T, context *frontendInventoryContext, key string, entry frontendRouteEntry) {
+	t.Helper()
+
+	if entry.OperationID != nil {
+		t.Errorf("%q readiness missing-contract must carry a null operation_id gap", key)
+	}
+	if entry.Contract != nil {
+		t.Errorf("%q readiness missing-contract must carry a null contract gap", key)
+	}
+	if _, ok := context.published[key]; ok {
+		t.Errorf("%q marked missing-contract but present in api/openapi.json", key)
+	}
+	if _, ok := context.staged[key]; ok {
+		t.Errorf("%q marked missing-contract but present in a staged fragment", key)
+	}
+	if entry.EvidenceState != "MISSING_PUBLISHED_CONTRACT" {
+		t.Errorf("%q evidence = %q, want MISSING_PUBLISHED_CONTRACT", key, entry.EvidenceState)
+	}
+}
+
+func TestFrontendRoutesInventoryContracts(t *testing.T) {
+	t.Parallel()
+
+	context := loadFrontendInventoryContext(t)
+	for _, entry := range context.inventory.Routes {
+		key := entry.Method + " " + entry.Path
+		switch entry.Readiness {
+		case "published":
+			checkPublishedEntry(t, context, key, entry)
+		case "staged":
+			checkStagedEntry(t, context, key, entry)
+		case "missing-contract":
+			checkGapEntry(t, context, key, entry)
+		}
+	}
+}
+
+func TestFrontendRoutesInventoryBindings(t *testing.T) {
+	t.Parallel()
+
+	context := loadFrontendInventoryContext(t)
+	for _, entry := range context.inventory.Routes {
+		key := entry.Method + " " + entry.Path
 		if entry.EvidenceState == "DONE" || entry.EvidenceState == "VERIFIED" || entry.EvidenceState == "COMPLETE" {
 			t.Errorf("%q claims %q by inference; T01 entries stay NOT_VERIFIED", key, entry.EvidenceState)
 		}
@@ -240,89 +375,22 @@ func TestFrontendRoutesInventoryMatchesNormativeSources(t *testing.T) {
 			t.Errorf("%q lists no tests", key)
 		}
 		for _, ref := range entry.Tests {
-			resolveTestRef(t, root, ref)
+			resolveTestRef(t, context.root, ref)
 		}
 		hasBinding := entry.Client != nil && *entry.Client != "" && entry.Page != nil && *entry.Page != ""
 		hasExclusion := entry.Exclusion != nil && *entry.Exclusion != ""
 		if hasBinding == hasExclusion {
 			t.Errorf("%q needs either planned client+page or an exclusion justification, not both/neither", key)
 		}
+	}
+}
 
-		switch entry.Readiness {
-		case "published":
-			publishedCount++
-			if entry.Contract == nil || *entry.Contract != "api/openapi.json" {
-				t.Errorf("%q readiness published needs contract api/openapi.json", key)
-			}
-			want, ok := published[key]
-			if !ok {
-				t.Errorf("%q marked published but absent from api/openapi.json", key)
-			} else if entry.OperationID == nil || *entry.OperationID != want {
-				t.Errorf("%q operation_id = %v, want %q from api/openapi.json", key, entry.OperationID, want)
-			}
-			if wantDecl, ok := declarations[key]; !ok {
-				t.Errorf("%q marked published but absent from routes.go declarations", key)
-			} else if wantDecl != entry.Declaration {
-				t.Errorf("%q declaration = %q, want %q", key, entry.Declaration, wantDecl)
-			}
-			if entry.EvidenceState != "NOT_VERIFIED" {
-				t.Errorf("%q evidence = %q, want NOT_VERIFIED", key, entry.EvidenceState)
-			}
-		case "staged":
-			stagedCount++
-			wantFragment, ok := stagedContract[key]
-			if !ok {
-				t.Errorf("%q marked staged but absent from the four staged fragments", key)
-			} else if entry.Contract == nil || *entry.Contract != wantFragment {
-				t.Errorf("%q contract = %v, want %q", key, entry.Contract, wantFragment)
-			}
-			if want, ok := staged[key]; ok && (entry.OperationID == nil || *entry.OperationID != want) {
-				t.Errorf("%q operation_id = %v, want %q from %q", key, entry.OperationID, want, wantFragment)
-			}
-			if wantDecl, ok := declarations[key]; !ok {
-				t.Errorf("%q marked staged but absent from routes.go declarations", key)
-			} else if wantDecl != entry.Declaration {
-				t.Errorf("%q declaration = %q, want %q", key, entry.Declaration, wantDecl)
-			}
-			if entry.EvidenceState != "NOT_VERIFIED" {
-				t.Errorf("%q evidence = %q, want NOT_VERIFIED", key, entry.EvidenceState)
-			}
-		case "missing-contract":
-			missingCount++
-			if entry.OperationID != nil {
-				t.Errorf("%q readiness missing-contract must carry a null operation_id gap", key)
-			}
-			if entry.Contract != nil {
-				t.Errorf("%q readiness missing-contract must carry a null contract gap", key)
-			}
-			if _, ok := published[key]; ok {
-				t.Errorf("%q marked missing-contract but present in api/openapi.json", key)
-			}
-			if _, ok := staged[key]; ok {
-				t.Errorf("%q marked missing-contract but present in a staged fragment", key)
-			}
-			if entry.EvidenceState != "MISSING_PUBLISHED_CONTRACT" {
-				t.Errorf("%q evidence = %q, want MISSING_PUBLISHED_CONTRACT", key, entry.EvidenceState)
-			}
-		default:
-			t.Errorf("%q readiness = %q, want published|staged|missing-contract", key, entry.Readiness)
-		}
-	}
+func TestFrontendRoutesInventoryBijection(t *testing.T) {
+	t.Parallel()
 
-	if publishedCount != 82 {
-		t.Errorf("inventory published = %d, want 82", publishedCount)
-	}
-	if stagedCount != 15 {
-		t.Errorf("inventory staged = %d, want 15", stagedCount)
-	}
-	if missingCount != 3 {
-		t.Errorf("inventory missing-contract = %d, want 3", missingCount)
-	}
-
-	// Bijection: every normative declaration and every contract
-	// operation must appear in the inventory, with no extras.
-	for key, decl := range declarations {
-		entry, ok := byKey[key]
+	context := loadFrontendInventoryContext(t)
+	for key, decl := range context.declarations {
+		entry, ok := context.byKey[key]
 		if !ok {
 			t.Errorf("routes.go declares %q (%s) but the inventory omits it", key, decl)
 			continue
@@ -331,22 +399,21 @@ func TestFrontendRoutesInventoryMatchesNormativeSources(t *testing.T) {
 			t.Errorf("%q declaration = %q, want %q", key, entry.Declaration, decl)
 		}
 	}
-	for key := range published {
-		if _, ok := byKey[key]; !ok {
+	for key := range context.published {
+		if _, ok := context.byKey[key]; !ok {
 			t.Errorf("api/openapi.json declares %q but the inventory omits it", key)
 		}
 	}
-	for key := range staged {
-		if _, ok := byKey[key]; !ok {
+	for key := range context.staged {
+		if _, ok := context.byKey[key]; !ok {
 			t.Errorf("staged fragment declares %q but the inventory omits it", key)
 		}
 	}
-	for key := range byKey {
-		if _, ok := declarations[key]; !ok {
+	for key := range context.byKey {
+		if _, ok := context.declarations[key]; !ok {
 			t.Errorf("inventory lists %q which no routes.go file declares", key)
 		}
 	}
-
 	// The three known operator jobs without a published contract are
 	// explicit gaps, never silent omissions.
 	for _, key := range []string{
@@ -354,7 +421,7 @@ func TestFrontendRoutesInventoryMatchesNormativeSources(t *testing.T) {
 		"GET /api/v1/admin/jobs/dead",
 		"POST /api/v1/admin/jobs/{id}/retry",
 	} {
-		entry, ok := byKey[key]
+		entry, ok := context.byKey[key]
 		if !ok {
 			t.Errorf("operator gap %q is missing from the inventory", key)
 			continue
