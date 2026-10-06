@@ -1,5 +1,7 @@
 # Arquitetura do frontend
 
+**Ampliação de escopo (2026-10-06):** o frontend passa do harness inicial à cobertura completa das rotas aplicáveis; ver [direção e critérios de conclusão](FRONTEND_COMPLETION.md). P48–P59 cobrem composição real do servidor, clientes, páginas, painéis restritos, interfaces staged isoladas e aceite, sem mudar a stack nem autorizar lançamento econômico. A matriz integral aguarda o SHA final após essas fases.
+
 **Status:** padrão obrigatório
 
 **Runtime de terceiros no browser:** nenhum
