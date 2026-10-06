@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	identityhtml "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/html"
+	identityhttp "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/http"
 	"github.com/AlexandreZanata/Regnovum/internal/identity/domain"
 	"github.com/AlexandreZanata/Regnovum/internal/platform/clockseed"
 	"github.com/AlexandreZanata/Regnovum/internal/platform/config"
@@ -282,8 +283,9 @@ func TestTheCompositionIsDeterministic(t *testing.T) {
 	if !reflect.DeepEqual(first.Routes(), second.Routes()) {
 		t.Errorf("two compositions declare different routes:\n%v\n%v", first.Routes(), second.Routes())
 	}
-	if !reflect.DeepEqual(first.Routes(), identityhtml.Routes()) {
-		t.Errorf("the surface declares %v, want the adapter's own %v", first.Routes(), identityhtml.Routes())
+	want := append(identityhtml.Routes(), identityhttp.Routes()...)
+	if !reflect.DeepEqual(first.Routes(), want) {
+		t.Errorf("the surface declares %v, want pages plus JSON %v", first.Routes(), want)
 	}
 }
 

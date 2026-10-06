@@ -475,9 +475,19 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 // configured, which is the same contract the other modules' private surfaces
 // use: the composition installs the manager, and a handler built without one
 // answers about the missing identity rather than panicking.
+//
+// The session is resolved first with the same validator the process shares
+// (SessionValidatorAdapter), then required: without the resolution the
+// requirement would refuse every call on a surface mounted without an outer
+// wrapper, and with a second manager it would refuse the cookie the shared
+// one issued. Participation mounts the same way per route.
 func (h *Handler) privateRoute(next http.Handler) http.Handler {
 	if h.security == nil {
 		return next
 	}
-	return h.security.RequireAuthMiddleware()(next)
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.authenticateSession == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.SessionValidatorAdapter())(required)
 }

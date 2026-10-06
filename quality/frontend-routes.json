@@ -274,10 +274,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -295,10 +296,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "GET",
@@ -316,10 +318,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -337,10 +340,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -358,10 +362,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -379,10 +384,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "GET",
@@ -400,10 +406,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "GET",
@@ -1114,10 +1121,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -1135,10 +1143,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -1156,10 +1165,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -1177,10 +1187,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -1408,10 +1419,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -1429,10 +1441,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "POST",
@@ -1450,10 +1463,11 @@
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
     },
     {
       "method": "GET",

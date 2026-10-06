@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 19,
-    "declaration_only": 81,
+    "mounted": 33,
+    "declaration_only": 67,
     "validated": 0
   },
   "environments": {
@@ -92,7 +92,7 @@
         "development",
         "production"
       ],
-      "note": "Twelve identity HTML documents (P18-T05). The /api/v1/auth/* JSON family stays declaration-only until P49-T01."
+      "note": "Twelve identity HTML documents (P18-T05) plus the identity JSON API mounted beside them by the same composer (P49-T01)."
     },
     {
       "name": "participation",
@@ -145,8 +145,8 @@
     },
     {
       "name": "identity-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeAccount",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/auth/password-reset",
         "GET /api/v1/auth/verify",
@@ -163,14 +163,14 @@
         "POST /api/v1/me/sessions/revocation",
         "POST /api/v1/me/sessions/rotation"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T01",
+      "reach_proof": "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout",
+      "p49": "mounted in P49-T01",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Auth/MFA/session JSON handlers exist and are tested in isolation; no surface mounts them yet."
+      "note": "Auth/MFA/session JSON mounted by ComposeAccount over the same pool/security/throttle/CSRF as the pages (P49-T01); proven via process httptest+PG: register-login-sessions-logout, 401, rotation, revocation."
     },
     {
       "name": "profiles-api",
