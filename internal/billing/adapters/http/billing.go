@@ -78,25 +78,32 @@ type BillingHandlerConfig struct {
 	GetBillingPortal      *application.GetBillingPortalUseCase
 	SecurityManager       *security.Manager
 	RateLimit             ratelimit.Protector
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // BillingHandler serves the private billing API.
 type BillingHandler struct {
-	checkout     *application.CreateCheckoutUseCase
-	subscription *application.GetSubscriptionStatusUseCase
-	portal       *application.GetBillingPortalUseCase
-	security     *security.Manager
-	rateLimit    ratelimit.Protector
+	checkout         *application.CreateCheckoutUseCase
+	subscription     *application.GetSubscriptionStatusUseCase
+	portal           *application.GetBillingPortalUseCase
+	security         *security.Manager
+	rateLimit        ratelimit.Protector
+	sessionValidator security.SessionValidator
 }
 
 // NewBillingHandler constructs the handler.
 func NewBillingHandler(cfg BillingHandlerConfig) *BillingHandler {
 	return &BillingHandler{
-		checkout:     cfg.CreateCheckout,
-		subscription: cfg.GetSubscriptionStatus,
-		portal:       cfg.GetBillingPortal,
-		security:     cfg.SecurityManager,
-		rateLimit:    cfg.RateLimit,
+		checkout:         cfg.CreateCheckout,
+		subscription:     cfg.GetSubscriptionStatus,
+		portal:           cfg.GetBillingPortal,
+		security:         cfg.SecurityManager,
+		rateLimit:        cfg.RateLimit,
+		sessionValidator: cfg.SessionValidator,
 	}
 }
 
@@ -247,11 +254,22 @@ func (h *BillingHandler) RegisterBillingRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/v1/me/billing/portal", withPrivateNoStore(h.privateBillingRoute(h.protect(ratelimit.ActionBillingPortal, http.HandlerFunc(h.CreatePortal)))))
 }
 
+// RegisterSubscriptionReadRoutes wires only the subscription read into the
+// mux: the P49-T05 entitlement surface mounts passes/history plus this
+// read, while checkout/portal stay with the guarded P49-T06 writes.
+func (h *BillingHandler) RegisterSubscriptionReadRoutes(mux *http.ServeMux) {
+	mux.Handle("GET /api/v1/me/billing/subscription", withPrivateNoStore(h.privateBillingRoute(http.HandlerFunc(h.GetSubscription))))
+}
+
 func (h *BillingHandler) privateBillingRoute(next http.Handler) http.Handler {
 	if h.security == nil {
 		return next
 	}
-	return h.security.RequireAuthMiddleware()(next)
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }
 
 // protect applies the rate limit policy of one action, inside the

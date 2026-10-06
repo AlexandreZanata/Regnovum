@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 69,
-    "declaration_only": 31,
+    "mounted": 72,
+    "declaration_only": 28,
     "validated": 0
   },
   "environments": {
@@ -314,24 +314,39 @@
       "note": "Public metrics, arena export and the transparency document stay placeholders."
     },
     {
-      "name": "wallet-billing",
-      "composer": null,
-      "state": "declaration",
+      "name": "wallet-billing-reads",
+      "composer": "internal/bootstrap.ComposeEntitlementReads",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/me/billing/subscription",
         "GET /api/v1/me/passes",
-        "GET /api/v1/me/passes/history",
-        "POST /api/v1/me/billing/checkout",
-        "POST /api/v1/me/billing/portal"
+        "GET /api/v1/me/passes/history"
       ],
-      "reach_proof": null,
-      "p49": "mount reads in P49-T05, guarded writes in P49-T06",
+      "reach_proof": "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped",
+      "p49": "mounted in P49-T05",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Passes/history/subscription reads land in P49-T05 and guarded checkout/portal writes in P49-T06; the wallet balance/statement reads moved to the mounted wallet surface in P49-T02."
+      "note": "Passes/history/subscription reads mounted by ComposeEntitlementReads over the same pool/security/session validator with a cursor secret (P49-T05); proven via process httptest+PG: owner-vs-other, reload grants nothing, forged cursor refused, subscription projection without provider identifiers, private no-store. Checkout/portal writes stay with P49-T06."
+    },
+    {
+      "name": "wallet-billing",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "POST /api/v1/me/billing/checkout",
+        "POST /api/v1/me/billing/portal"
+      ],
+      "reach_proof": null,
+      "p49": "guarded writes in P49-T06",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Guarded checkout/portal writes land in P49-T06 with a synthetic gateway in tests; the reads moved to the mounted wallet-billing-reads surface in P49-T05."
     },
     {
       "name": "moderation-api",

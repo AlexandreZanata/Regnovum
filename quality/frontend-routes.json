@@ -785,10 +785,11 @@
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementSubscriptionProjection"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (webhook-mirror projection, explicit absence for others, no provider identifier leaks, private no-store). Browser client/page lands in P54."
     },
     {
       "method": "GET",
@@ -1277,10 +1278,11 @@
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, reload grants nothing, faithful per-lot projection, private no-store). Browser client/page lands in P54."
     },
     {
       "method": "GET",
@@ -1298,10 +1300,11 @@
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementHistoryCursorIsHonest"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T05 mounted in ComposeEntitlementReads with the shared cursor secret; proven via process httptest+PG (owner history, forged cursor refused, issued next cursor walks forward, private no-store). Browser client/page lands in P54."
     },
     {
       "method": "POST",

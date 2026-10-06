@@ -63,21 +63,28 @@ type HandlerConfig struct {
 	GetArenaPassSummaryUseCase *application.GetArenaPassSummaryUseCase
 	GetArenaPassHistoryUseCase *application.GetArenaPassHistoryUseCase
 	SecurityManager            *security.Manager
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // Handler serves the versioned pass entitlement API.
 type Handler struct {
-	getSummary *application.GetArenaPassSummaryUseCase
-	getHistory *application.GetArenaPassHistoryUseCase
-	security   *security.Manager
+	getSummary       *application.GetArenaPassSummaryUseCase
+	getHistory       *application.GetArenaPassHistoryUseCase
+	security         *security.Manager
+	sessionValidator security.SessionValidator
 }
 
 // NewHandler constructs a billing HTTP handler.
 func NewHandler(cfg HandlerConfig) *Handler {
 	return &Handler{
-		getSummary: cfg.GetArenaPassSummaryUseCase,
-		getHistory: cfg.GetArenaPassHistoryUseCase,
-		security:   cfg.SecurityManager,
+		getSummary:       cfg.GetArenaPassSummaryUseCase,
+		getHistory:       cfg.GetArenaPassHistoryUseCase,
+		security:         cfg.SecurityManager,
+		sessionValidator: cfg.SessionValidator,
 	}
 }
 
@@ -227,11 +234,17 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/me/passes/history", withPrivateNoStore(h.privateRoute(http.HandlerFunc(h.GetArenaPassHistory))))
 }
 
-// privateRoute applies the authentication requirement when a security
-// manager is configured.
+// privateRoute applies the session requirement when a security manager is
+// configured: the session is resolved first with the shared validator, then
+// required — without the resolution the requirement would refuse every call
+// on a surface mounted without an outer wrapper.
 func (h *Handler) privateRoute(next http.Handler) http.Handler {
 	if h.security == nil {
 		return next
 	}
-	return h.security.RequireAuthMiddleware()(next)
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }

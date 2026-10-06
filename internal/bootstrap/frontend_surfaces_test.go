@@ -295,6 +295,13 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 	for _, route := range debate.Routes() {
 		context.composed[route.String()] = true
 	}
+	entitlements, err := bootstrap.ComposeEntitlementReads(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeEntitlementReads() error = %v", err)
+	}
+	for _, route := range entitlements.Routes() {
+		context.composed[route.String()] = true
+	}
 	for _, route := range httpserver.HealthRoutes() {
 		context.composed[route.String()] = true
 	}
