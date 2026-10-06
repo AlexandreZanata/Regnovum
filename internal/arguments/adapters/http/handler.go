@@ -96,29 +96,36 @@ type HandlerConfig struct {
 	GetPublicUseCase *application.GetPublicArgumentUseCase
 	SecurityManager  *security.Manager
 	RateLimit        ratelimit.Protector
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // Handler serves the versioned arguments API.
 type Handler struct {
-	publish     *application.PublishArgumentUseCase
-	withdraw    *application.WithdrawArgumentUseCase
-	listArena   *application.ListArenaArgumentsUseCase
-	listReplies *application.ListRepliesUseCase
-	getPublic   *application.GetPublicArgumentUseCase
-	security    *security.Manager
-	rateLimit   ratelimit.Protector
+	publish          *application.PublishArgumentUseCase
+	withdraw         *application.WithdrawArgumentUseCase
+	listArena        *application.ListArenaArgumentsUseCase
+	listReplies      *application.ListRepliesUseCase
+	getPublic        *application.GetPublicArgumentUseCase
+	security         *security.Manager
+	rateLimit        ratelimit.Protector
+	sessionValidator security.SessionValidator
 }
 
 // NewHandler constructs an arguments HTTP handler.
 func NewHandler(cfg HandlerConfig) *Handler {
 	return &Handler{
-		publish:     cfg.PublishUseCase,
-		withdraw:    cfg.WithdrawUseCase,
-		listArena:   cfg.ListArenaUseCase,
-		listReplies: cfg.ListRepliesCase,
-		getPublic:   cfg.GetPublicUseCase,
-		security:    cfg.SecurityManager,
-		rateLimit:   cfg.RateLimit,
+		publish:          cfg.PublishUseCase,
+		withdraw:         cfg.WithdrawUseCase,
+		listArena:        cfg.ListArenaUseCase,
+		listReplies:      cfg.ListRepliesCase,
+		getPublic:        cfg.GetPublicUseCase,
+		security:         cfg.SecurityManager,
+		rateLimit:        cfg.RateLimit,
+		sessionValidator: cfg.SessionValidator,
 	}
 }
 
@@ -456,13 +463,19 @@ func parseLimit(r *http.Request) (int, error) {
 	return value, nil
 }
 
-// privateRoute applies the authentication requirement when a security
-// manager is configured.
+// privateRoute applies the session requirement when a security manager is
+// configured: the session is resolved first with the shared validator, then
+// required — without the resolution the requirement would refuse every call
+// on a surface mounted without an outer wrapper.
 func (h *Handler) privateRoute(next http.Handler) http.Handler {
 	if h.security == nil {
 		return next
 	}
-	return h.security.RequireAuthMiddleware()(next)
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }
 
 // protect applies the rate limit policy of one action. It is applied inside

@@ -128,10 +128,11 @@
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
     },
     {
       "method": "GET",
@@ -170,10 +171,11 @@
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
     },
     {
       "method": "GET",
@@ -213,10 +215,11 @@
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
     },
     {
       "method": "GET",
@@ -234,10 +237,11 @@
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (public metrics reflect the credit). Browser client/page lands in P53."
     },
     {
       "method": "GET",
@@ -255,10 +259,11 @@
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
     },
     {
       "method": "POST",
@@ -562,10 +567,11 @@
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). Browser client/page lands in P53."
     },
     {
       "method": "POST",
@@ -583,10 +589,11 @@
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). Browser client/page lands in P53."
     },
     {
       "method": "POST",
@@ -626,10 +633,11 @@
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
     },
     {
       "method": "POST",
@@ -647,10 +655,11 @@
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
     },
     {
       "method": "GET",
@@ -668,10 +677,11 @@
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
     },
     {
       "method": "POST",
@@ -689,10 +699,11 @@
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
     },
     {
       "method": "POST",
@@ -710,10 +721,11 @@
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (withdraw retracts content, stranger 404, anonymous 401). Browser client/page lands in P53."
     },
     {
       "method": "POST",
@@ -1307,10 +1319,11 @@
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (record, idempotent replay, foreign change 404, anonymous 401). Browser client/page lands in P53."
     },
     {
       "method": "GET",
@@ -1544,10 +1557,11 @@
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateSignalsModeratorOnly"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the authorizer answered from the moderation role store; proven via process httptest+PG (moderator 200, plain account 403, anonymous 401). Restricted panel only, never a public client; case competence lands in P49-T07, panel in P55."
     },
     {
       "method": "GET",
@@ -1650,10 +1664,11 @@
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (factual reputation reflects the credit). Browser client/page lands in P51."
     },
     {
       "method": "GET",

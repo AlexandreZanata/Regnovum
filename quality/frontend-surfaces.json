@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 54,
-    "declaration_only": 46,
+    "mounted": 69,
+    "declaration_only": 31,
     "validated": 0
   },
   "environments": {
@@ -220,29 +220,28 @@
     },
     {
       "name": "positions-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeDebateAttribution",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/arenas/{id}/positions",
         "GET /api/v1/me/arenas/{id}/position",
         "GET /api/v1/me/arenas/{id}/position/changes",
         "POST /api/v1/me/arenas/{id}/position",
-        "POST /api/v1/me/arenas/{id}/position/changes",
-        "POST /api/v1/me/position-changes/{id}/attributions"
+        "POST /api/v1/me/arenas/{id}/position/changes"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T04",
+      "reach_proof": "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+      "p49": "mounted in P49-T04",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Position confirm/change/history plus the public aggregate stay placeholders."
+      "note": "Position confirm/change/history plus the public aggregate mounted by ComposeDebateAttribution over the same pool/security/session validator (P49-T04); proven via process httptest+PG: confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401. The attribution record moved to the mounted persuasion-api surface in P49-T04."
     },
     {
       "name": "arguments-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeDebateAttribution",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/arenas/{id}/arguments",
         "GET /api/v1/arguments/{id}",
@@ -251,31 +250,33 @@
         "POST /api/v1/me/arenas/{id}/arguments/{argumentID}/replies",
         "POST /api/v1/me/arguments/{id}/withdraw"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T04",
+      "reach_proof": "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+      "p49": "mounted in P49-T04",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Publish/reply/withdraw plus public list/replies/get stay placeholders."
+      "note": "Publish/reply/withdraw plus public list/replies/get mounted by ComposeDebateAttribution with the shared cursor secret and the INK debit bridge (P49-T04); proven via process httptest+PG: publish spending INK, idempotent replay, reply, forged cursor refused, withdraw retracts content, insufficient INK rolls back."
     },
     {
       "name": "persuasion-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeDebateAttribution",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/arguments/{id}/attributions",
-        "GET /api/v1/profiles/{username}/reputation"
+        "GET /api/v1/profiles/{username}/reputation",
+        "POST /api/v1/me/position-changes/{id}/attributions",
+        "GET /api/v1/moderation/attribution-signals/{authorID}"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T04",
+      "reach_proof": "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation",
+      "p49": "mounted in P49-T04",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Attribution recording, public counts and factual reputation stay placeholders."
+      "note": "Attribution recording, public counts, factual reputation and the moderator-only signals read mounted by ComposeDebateAttribution, the signals gate answered from the moderation role store (P49-T04); proven via process httptest+PG: record, idempotent replay, metrics, reputation, foreign change 404, non-moderator 403. Case competence and decisions stay with P49-T07."
     },
     {
       "name": "search-api",
@@ -337,7 +338,6 @@
       "composer": null,
       "state": "declaration",
       "routes": [
-        "GET /api/v1/moderation/attribution-signals/{authorID}",
         "GET /api/v1/moderation/cases",
         "POST /api/v1/me/moderation/appeals",
         "POST /api/v1/me/moderation/reports",
@@ -351,7 +351,7 @@
         "development",
         "production"
       ],
-      "note": "Reports/appeals/cases/claim/decisions plus the restricted attribution signals stay placeholders; no role is granted over HTTP."
+      "note": "Reports/appeals/cases/claim/decisions stay placeholders; no role is granted over HTTP. The restricted attribution signals read moved to the mounted persuasion-api surface in P49-T04."
     },
     {
       "name": "jobs-admin",

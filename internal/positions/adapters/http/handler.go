@@ -107,29 +107,36 @@ type HandlerConfig struct {
 	AggregateUseCase *application.GetPositionAggregateUseCase
 	SecurityManager  *security.Manager
 	RateLimit        ratelimit.Protector
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // Handler serves the positions API.
 type Handler struct {
-	confirm   *application.ConfirmInitialPositionUseCase
-	change    *application.ChangePositionUseCase
-	getMine   *application.GetMyPositionUseCase
-	listMine  *application.ListPositionChangesUseCase
-	aggregate *application.GetPositionAggregateUseCase
-	security  *security.Manager
-	rateLimit ratelimit.Protector
+	confirm          *application.ConfirmInitialPositionUseCase
+	change           *application.ChangePositionUseCase
+	getMine          *application.GetMyPositionUseCase
+	listMine         *application.ListPositionChangesUseCase
+	aggregate        *application.GetPositionAggregateUseCase
+	security         *security.Manager
+	rateLimit        ratelimit.Protector
+	sessionValidator security.SessionValidator
 }
 
 // NewHandler constructs a positions HTTP handler.
 func NewHandler(cfg HandlerConfig) *Handler {
 	return &Handler{
-		confirm:   cfg.ConfirmUseCase,
-		change:    cfg.ChangeUseCase,
-		getMine:   cfg.GetMineUseCase,
-		listMine:  cfg.ListMineUseCase,
-		aggregate: cfg.AggregateUseCase,
-		security:  cfg.SecurityManager,
-		rateLimit: cfg.RateLimit,
+		confirm:          cfg.ConfirmUseCase,
+		change:           cfg.ChangeUseCase,
+		getMine:          cfg.GetMineUseCase,
+		listMine:         cfg.ListMineUseCase,
+		aggregate:        cfg.AggregateUseCase,
+		security:         cfg.SecurityManager,
+		rateLimit:        cfg.RateLimit,
+		sessionValidator: cfg.SessionValidator,
 	}
 }
 
@@ -423,13 +430,19 @@ func (h *Handler) GetAggregate(w http.ResponseWriter, r *http.Request) {
 	writeCacheableJSON(w, r, facts, served)
 }
 
-// privateRoute applies the authentication requirement when a security
-// manager is configured.
+// privateRoute applies the session requirement when a security manager is
+// configured: the session is resolved first with the shared validator, then
+// required — without the resolution the requirement would refuse every call
+// on a surface mounted without an outer wrapper.
 func (h *Handler) privateRoute(next http.Handler) http.Handler {
 	if h.security == nil {
 		return next
 	}
-	return h.security.RequireAuthMiddleware()(next)
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }
 
 // protect applies the rate limit policy of one action.

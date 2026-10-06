@@ -276,16 +276,17 @@ func runServer(args []string, stdout *os.File) error {
 }
 
 // mountCursorJourneys composes the journeys that paginate — participation
-// (Arena feed), account privacy (wallet statement) and the Arena lifecycle
-// (feed, search and drafts) — over the shared edges the caller hands over.
-// Without the cursor signing secret none can paginate its lists honestly,
-// so all stay unmounted; production, which is expected to serve them,
-// refuses the boot instead of shipping the gap silently.
+// (Arena feed), account privacy (wallet statement), the Arena lifecycle
+// (feed, search and drafts) and the debate (argument lists) — over the
+// shared edges the caller hands over. Without the cursor signing secret
+// none can paginate its lists honestly, so all stay unmounted; production,
+// which is expected to serve them, refuses the boot instead of shipping
+// the gap silently.
 func mountCursorJourneys(base bootstrap.Options, cfg config.Config, logger *slog.Logger) ([]httpserver.Surface, error) {
 	if !cfg.CursorSecret().IsSet() {
 		if cfg.IsProduction() {
 			return nil, fmt.Errorf(
-				"compose the cursor journeys: %s is not set, and without a cursor signing secret neither the Arena pages, the wallet statement nor the Arena feed can paginate their lists",
+				"compose the cursor journeys: %s is not set, and without a cursor signing secret neither the Arena pages, the wallet statement, the Arena feed nor the argument lists can paginate their lists",
 				config.CursorSecretVariable,
 			)
 		}
@@ -309,10 +310,15 @@ func mountCursorJourneys(base bootstrap.Options, cfg config.Config, logger *slog
 	if err != nil {
 		return nil, err
 	}
+	debate, err := bootstrap.ComposeDebateAttribution(options)
+	if err != nil {
+		return nil, err
+	}
 	logger.Info("http server: participation journey mounted", slog.Int("routes", len(participation.Routes())))
 	logger.Info("http server: account privacy mounted", slog.Int("routes", len(privacy.Routes())))
 	logger.Info("http server: arena lifecycle mounted", slog.Int("routes", len(lifecycle.Routes())))
-	return []httpserver.Surface{participation.Surface(), privacy.Surface(), lifecycle.Surface()}, nil
+	logger.Info("http server: debate mounted", slog.Int("routes", len(debate.Routes())))
+	return []httpserver.Surface{participation.Surface(), privacy.Surface(), lifecycle.Surface(), debate.Surface()}, nil
 }
 
 // runVersion prints the reproducible build metadata (P01-T05). Without

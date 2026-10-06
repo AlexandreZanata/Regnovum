@@ -58,9 +58,9 @@
     },
     {
       "kind": "duplication",
-      "value": 29,
+      "value": 30,
       "owner": "internal/persuasion/adapters/http",
-      "digest": "4e3f35ea3daabfe9",
+      "digest": "657ca98e253b7868",
       "paths": [
         "internal/persuasion/adapters/http/handler.go",
         "internal/positions/adapters/http/handler.go"
