@@ -259,8 +259,50 @@ export interface BillingSubscription {
   readonly status?: "incomplete" | "incomplete_expired" | "trialing" | "active" | "past_due" | "canceled" | "unpaid" | "paused";
 }
 
+export interface DeadJob {
+  readonly age_seconds: number;
+  readonly attempts: number;
+  readonly job_id: string;
+  readonly last_error_code?: string;
+  readonly max_attempts: number;
+  readonly retryable: boolean;
+  readonly type: string;
+  readonly version: number;
+}
+
+export interface DeadJobPage {
+  readonly generated_at: string;
+  readonly items: ReadonlyArray<DeadJob>;
+  readonly total: number;
+}
+
 export interface HealthStatus {
   readonly status: "live" | "ready" | "unavailable";
+}
+
+export interface JobsQueueCounts {
+  readonly dead: number;
+  readonly due_now: number;
+  readonly lag_seconds: number;
+  readonly leased: number;
+  readonly oldest_dead_seconds: number;
+  readonly queued: number;
+  readonly succeeded: number;
+}
+
+export interface JobsQueueHealth {
+  readonly generated_at: string;
+  readonly queue: JobsQueueCounts;
+}
+
+export interface JobsRetry {
+  readonly job_id: string;
+  readonly state: string;
+  readonly type: string;
+}
+
+export interface JobsRetryRequest {
+  readonly reason: string;
 }
 
 export interface LoginRequest {

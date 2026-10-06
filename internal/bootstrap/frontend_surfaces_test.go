@@ -258,6 +258,14 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 	if err != nil {
 		t.Fatalf("ComposeParticipation() error = %v", err)
 	}
+	privacy, err := bootstrap.ComposeAccountPrivacy(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeAccountPrivacy() error = %v", err)
+	}
+	lifecycle, err := bootstrap.ComposeArenaLifecycle(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeArenaLifecycle() error = %v", err)
+	}
 	context := &surfacesContext{
 		surfaces:      surfaces,
 		inventoryKeys: make(map[string]bool, len(inventory.Routes)),
@@ -272,6 +280,57 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 		context.composed[route.String()] = true
 	}
 	for _, route := range participation.Routes() {
+		context.composed[route.String()] = true
+	}
+	for _, route := range privacy.Routes() {
+		context.composed[route.String()] = true
+	}
+	for _, route := range lifecycle.Routes() {
+		context.composed[route.String()] = true
+	}
+	debate, err := bootstrap.ComposeDebateAttribution(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeDebateAttribution() error = %v", err)
+	}
+	for _, route := range debate.Routes() {
+		context.composed[route.String()] = true
+	}
+	entitlements, err := bootstrap.ComposeEntitlementReads(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeEntitlementReads() error = %v", err)
+	}
+	for _, route := range entitlements.Routes() {
+		context.composed[route.String()] = true
+	}
+	// The billing writes compose over the synthetic gateway and secret in
+	// this map like the process composes them over Stripe: the proof is the
+	// guarded composition, and production refuses the incomplete one.
+	writes, err := bootstrap.ComposeBillingWrites(participationOptions, billingWritesTestConfig(t))
+	if err != nil {
+		t.Fatalf("ComposeBillingWrites() error = %v", err)
+	}
+	for _, route := range writes.Routes() {
+		context.composed[route.String()] = true
+	}
+	moderation, err := bootstrap.ComposeModeration(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeModeration() error = %v", err)
+	}
+	for _, route := range moderation.Routes() {
+		context.composed[route.String()] = true
+	}
+	transparency, err := bootstrap.ComposeTransparency(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeTransparency() error = %v", err)
+	}
+	for _, route := range transparency.Routes() {
+		context.composed[route.String()] = true
+	}
+	jobs, err := bootstrap.ComposeJobs(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeJobs() error = %v", err)
+	}
+	for _, route := range jobs.Routes() {
 		context.composed[route.String()] = true
 	}
 	for _, route := range httpserver.HealthRoutes() {
@@ -329,7 +388,7 @@ func TestSurfacesMapMatchesComposition(t *testing.T) {
 
 // TestSurfacesMapCoversInventory proves the map classifies every
 // inventory route exactly once with honest counts: 100 declared,
-// 19 mounted, zero validated and a P49 plan naming what mounts
+// 85 mounted, zero validated and a P49 plan naming what mounts
 // next.
 func TestSurfacesMapCoversInventory(t *testing.T) {
 	t.Parallel()

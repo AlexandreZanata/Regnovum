@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 19,
-    "declaration_only": 81,
+    "mounted": 85,
+    "declaration_only": 15,
     "validated": 0
   },
   "environments": {
@@ -92,7 +92,7 @@
         "development",
         "production"
       ],
-      "note": "Twelve identity HTML documents (P18-T05). The /api/v1/auth/* JSON family stays declaration-only until P49-T01."
+      "note": "Twelve identity HTML documents (P18-T05) plus the identity JSON API mounted beside them by the same composer (P49-T01)."
     },
     {
       "name": "participation",
@@ -129,24 +129,24 @@
     },
     {
       "name": "arena-document",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeArenaLifecycle",
+      "state": "mounted",
       "routes": [
         "GET /d/{slug}"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T03",
+      "reach_proof": "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument",
+      "p49": "mounted in P49-T03",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Cacheable public Arena document declared but claimed by no surface; the process answers its placeholder."
+      "note": "Cacheable public Arena document mounted by ComposeArenaLifecycle beside the JSON lifecycle (P49-T03); proven via process httptest+PG alongside draft publish, feed and search."
     },
     {
       "name": "identity-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeAccount",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/auth/password-reset",
         "GET /api/v1/auth/verify",
@@ -163,19 +163,19 @@
         "POST /api/v1/me/sessions/revocation",
         "POST /api/v1/me/sessions/rotation"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T01",
+      "reach_proof": "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout",
+      "p49": "mounted in P49-T01",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Auth/MFA/session JSON handlers exist and are tested in isolation; no surface mounts them yet."
+      "note": "Auth/MFA/session JSON mounted by ComposeAccount over the same pool/security/throttle/CSRF as the pages (P49-T01); proven via process httptest+PG: register-login-sessions-logout, 401, rotation, revocation."
     },
     {
       "name": "profiles-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeAccountPrivacy",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/me/deletion",
         "GET /api/v1/me/exports/{id}/download",
@@ -185,19 +185,19 @@
         "POST /api/v1/me/deletion/cancel",
         "POST /api/v1/me/exports"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T02",
+      "reach_proof": "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate",
+      "p49": "mounted in P49-T02",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Public profile, private profile, export/download and deletion reads/writes stay placeholders."
+      "note": "Public/private profile, personal export request/download and deletion request/status/cancel mounted by ComposeAccountPrivacy over the same pool/security/session validator as the account journey (P49-T02); proven via process httptest+PG: owner-vs-other, replay idempotence, no-store, single-use download."
     },
     {
       "name": "arenas-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeArenaLifecycle",
+      "state": "mounted",
       "routes": [
         "DELETE /api/v1/me/arena-drafts/{id}",
         "GET /api/v1/arenas",
@@ -209,40 +209,39 @@
         "POST /api/v1/me/arena-drafts/{id}/publish",
         "POST /api/v1/me/arenas/{id}/close"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T03",
+      "reach_proof": "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument",
+      "p49": "mounted in P49-T03",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Draft lifecycle, publish/close, feed and public document JSON stay placeholders; HTML participation is unaffected."
+      "note": "Draft CRUD, publish spending one pass, close, feed and public document JSON mounted by ComposeArenaLifecycle over the same pool/security/session validator with a cursor secret (P49-T03); proven via process httptest+PG: draft-publish-feed-document, owner-vs-stranger, forged cursor refused, idempotent close replay. HTML participation is unaffected."
     },
     {
       "name": "positions-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeDebateAttribution",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/arenas/{id}/positions",
         "GET /api/v1/me/arenas/{id}/position",
         "GET /api/v1/me/arenas/{id}/position/changes",
         "POST /api/v1/me/arenas/{id}/position",
-        "POST /api/v1/me/arenas/{id}/position/changes",
-        "POST /api/v1/me/position-changes/{id}/attributions"
+        "POST /api/v1/me/arenas/{id}/position/changes"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T04",
+      "reach_proof": "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+      "p49": "mounted in P49-T04",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Position confirm/change/history plus the public aggregate stay placeholders."
+      "note": "Position confirm/change/history plus the public aggregate mounted by ComposeDebateAttribution over the same pool/security/session validator (P49-T04); proven via process httptest+PG: confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401. The attribution record moved to the mounted persuasion-api surface in P49-T04."
     },
     {
       "name": "arguments-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeDebateAttribution",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/arenas/{id}/arguments",
         "GET /api/v1/arguments/{id}",
@@ -251,127 +250,141 @@
         "POST /api/v1/me/arenas/{id}/arguments/{argumentID}/replies",
         "POST /api/v1/me/arguments/{id}/withdraw"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T04",
+      "reach_proof": "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+      "p49": "mounted in P49-T04",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Publish/reply/withdraw plus public list/replies/get stay placeholders."
+      "note": "Publish/reply/withdraw plus public list/replies/get mounted by ComposeDebateAttribution with the shared cursor secret and the INK debit bridge (P49-T04); proven via process httptest+PG: publish spending INK, idempotent replay, reply, forged cursor refused, withdraw retracts content, insufficient INK rolls back."
     },
     {
       "name": "persuasion-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeDebateAttribution",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/arguments/{id}/attributions",
-        "GET /api/v1/profiles/{username}/reputation"
+        "GET /api/v1/profiles/{username}/reputation",
+        "POST /api/v1/me/position-changes/{id}/attributions",
+        "GET /api/v1/moderation/attribution-signals/{authorID}"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T04",
+      "reach_proof": "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation",
+      "p49": "mounted in P49-T04",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Attribution recording, public counts and factual reputation stay placeholders."
+      "note": "Attribution recording, public counts, factual reputation and the moderator-only signals read mounted by ComposeDebateAttribution, the signals gate answered from the moderation role store (P49-T04); proven via process httptest+PG: record, idempotent replay, metrics, reputation, foreign change 404, non-moderator 403. Case competence and decisions stay with P49-T07."
     },
     {
       "name": "search-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeArenaLifecycle",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/search/arenas",
         "GET /api/v1/search/arguments"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T03",
+      "reach_proof": "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor",
+      "p49": "mounted in P49-T03",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Arena and argument search stay placeholders."
+      "note": "Arena and argument full-text search mounted by ComposeArenaLifecycle with the shared cursor secret (P49-T03); proven via process httptest+PG: anonymous search finds the published Arena, forged cursor refused."
     },
     {
       "name": "transparency",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeTransparency",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/arenas/{id}/export",
         "GET /api/v1/public/transparency",
         "GET /transparency"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T08",
+      "reach_proof": "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsServesSuppressedSnapshot",
+      "p49": "mounted in P49-T08",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Public metrics, arena export and the transparency document stay placeholders."
+      "note": "Public metrics, the localized HTML document and the versioned Arena export mounted by ComposeTransparency over the process pool, clock and cursor secret (P49-T08). Unauthenticated by design: no session validator and no security boundary, because there is no identity to resolve. Proven via process httptest+PG: suppressed small-sample counts, exact period echo, unknown locale falling back without reflection, public cache with ETag/304, withdrawn content null with no sources, 404 without reflection and forged cursor 400, no seeded email or account id in any body. metrics/pprof stay off this surface."
     },
     {
-      "name": "wallet-billing",
-      "composer": null,
-      "state": "declaration",
+      "name": "wallet-billing-reads",
+      "composer": "internal/bootstrap.ComposeEntitlementReads",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/me/billing/subscription",
         "GET /api/v1/me/passes",
-        "GET /api/v1/me/passes/history",
-        "GET /api/v1/me/wallet",
-        "GET /api/v1/me/wallet/transactions",
-        "POST /api/v1/me/billing/checkout",
-        "POST /api/v1/me/billing/portal"
+        "GET /api/v1/me/passes/history"
       ],
-      "reach_proof": null,
-      "p49": "mount reads in P49-T05, guarded writes in P49-T06",
+      "reach_proof": "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped",
+      "p49": "mounted in P49-T05",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Wallet, passes and billing reads/writes stay placeholders; no benefit is granted by a read."
+      "note": "Passes/history/subscription reads mounted by ComposeEntitlementReads over the same pool/security/session validator with a cursor secret (P49-T05); proven via process httptest+PG: owner-vs-other, reload grants nothing, forged cursor refused, subscription projection without provider identifiers, private no-store. Checkout/portal writes stay with P49-T06."
+    },
+    {
+      "name": "wallet-billing",
+      "composer": "internal/bootstrap.ComposeBillingWrites",
+      "state": "mounted",
+      "routes": [
+        "POST /api/v1/me/billing/checkout",
+        "POST /api/v1/me/billing/portal"
+      ],
+      "reach_proof": "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutSettlesPassOnVerifiedEvent",
+      "p49": "mounted in P49-T06",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Guarded checkout/portal writes mounted by ComposeBillingWrites over the same pool/security/session validator with the versioned catalog and the synthetic gateway in tests (P49-T06); the provider-only webhook pipeline settles INK/passes/Member on verified events, production refuses the incomplete composition (no webhook secret configured) instead of faking payment. Proven via process httptest+PG: checkout→verified event→projection, browser return grants nothing, forged/replay guarded, provider down grants nothing, private no-store."
     },
     {
       "name": "moderation-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeModeration",
+      "state": "mounted",
       "routes": [
-        "GET /api/v1/moderation/attribution-signals/{authorID}",
         "GET /api/v1/moderation/cases",
         "POST /api/v1/me/moderation/appeals",
         "POST /api/v1/me/moderation/reports",
         "POST /api/v1/moderation/cases/{id}/claim",
         "POST /api/v1/moderation/cases/{id}/decisions"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T07",
+      "reach_proof": "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney",
+      "p49": "mounted in P49-T07",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Reports/appeals/cases/claim/decisions plus the restricted attribution signals stay placeholders; no role is granted over HTTP."
+      "note": "Reports/appeals/cases/claim/decisions mounted by ComposeModeration over the same pool/security/session validator with a cursor secret (P49-T07); the triage routes require an active assignment plus a stepped-up session read from the same role store the debate signals gate answers from. Proven via process httptest+PG: 401/403/MFA, double claim and lapsed lease 409, conflicting decision 409, audited decision row, no self-promotion route. No role is granted over HTTP."
     },
     {
       "name": "jobs-admin",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeJobs",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/admin/jobs/dead",
         "GET /api/v1/admin/jobs/health",
         "POST /api/v1/admin/jobs/{id}/retry"
       ],
-      "reach_proof": null,
-      "p49": "contract in P49-T09, then guarded composition",
+      "reach_proof": "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits",
+      "p49": "mounted in P49-T09",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Three operator routes without a published contract; P49-T09 closes the contract (operator/role/MFA) before composing."
+      "note": "Health/dead/retry mounted by ComposeJobs over the same pool/security with operatorbridge/auditbridge and TxManager lease (P49-T09); retry requires active admin assignment plus stepped-up session, audit/lease in one transaction, no payload/DSN serializes, no public retry, staged stays unmounted."
     },
     {
       "name": "staged-seasons",
@@ -447,6 +460,23 @@
         "production"
       ],
       "note": "Staged private case file proven only in the harness (P56/P57)."
+    },
+    {
+      "name": "wallet",
+      "composer": "internal/bootstrap.ComposeAccountPrivacy",
+      "state": "mounted",
+      "routes": [
+        "GET /api/v1/me/wallet",
+        "GET /api/v1/me/wallet/transactions"
+      ],
+      "reach_proof": "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped",
+      "p49": "mounted in P49-T02",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Legacy ledger reads (balance + statement) mounted by ComposeAccountPrivacy over the same pool/security/session validator with a cursor secret (P49-T02); proven via process httptest+PG: owner-vs-other, forged cursor refused, no-store."
     }
   ],
   "p49_plan": [

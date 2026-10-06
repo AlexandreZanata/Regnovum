@@ -36,6 +36,7 @@ import (
 	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/emailsink"
 	"github.com/AlexandreZanata/Regnovum/internal/identity/adapters/fakeemail"
 	identityhtml "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/html"
+	identityhttp "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/http"
 	identitypostgres "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/postgres"
 	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
 	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
@@ -138,7 +139,8 @@ type AccountSurface struct {
 // ComposeAccount builds the account journey of the browser: registration,
 // email confirmation, sign in, sign out and password recovery, over the real
 // PostgreSQL repositories, the real security manager, the real throttle and
-// the real pages.
+// the real pages, plus the JSON auth/MFA/session API over the same edges
+// (P49-T01).
 //
 // It returns ErrIncompleteComposition — naming what is missing — rather than a
 // surface that would answer some requests and fail others.
@@ -214,16 +216,32 @@ func ComposeAccount(options Options) (*AccountSurface, error) {
 		return nil, fmt.Errorf("bootstrap: account journey: %w", err)
 	}
 
+	jsonHandler, err := composeAccountJSONHandler(options, accountJSONDeps{
+		repository: repository,
+		hasher:     hasher,
+		emails:     emails,
+		manager:    manager,
+		throttle:   throttle,
+		risk:       risk,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	routes := append(identityhtml.Routes(), identityhttp.Routes()...)
 	options.Logger.Info("account journey: composed",
 		slog.String("env", string(options.Env)),
-		slog.Int("routes", len(identityhtml.Routes())),
+		slog.Int("routes", len(routes)),
 	)
 
 	return &AccountSurface{
-		routes:   identityhtml.Routes(),
-		register: handler.RegisterRoutes,
-		sink:     sink,
-		sinkDir:  options.SinkDir,
+		routes: routes,
+		register: func(mux *http.ServeMux) {
+			handler.RegisterRoutes(mux)
+			jsonHandler.RegisterRoutes(mux)
+		},
+		sink:    sink,
+		sinkDir: options.SinkDir,
 	}, nil
 }
 

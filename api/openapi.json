@@ -781,6 +781,99 @@
         }
       }
     },
+    "/api/v1/admin/jobs/health": {
+      "get": {
+        "operationId": "getJobsHealth",
+        "summary": "Queue health for operators",
+        "description": "Returns queue counts, due-now depth and waits for accounts with an active administrative assignment. Reading the queue is not a sensitive action: a stale session may read. Served with Cache-Control: private, no-store (THR-CACHE-01). No job payload ever serializes.",
+        "tags": ["jobs"],
+        "security": [{ "SessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Queue health.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/JobsQueueHealth" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/v1/admin/jobs/dead": {
+      "get": {
+        "operationId": "listDeadJobs",
+        "summary": "Dead-job page for operators",
+        "description": "Returns up to limit dead jobs, oldest first, for accounts with an active administrative assignment. The projection carries lifecycle columns only: no job payload ever serializes. Served with Cache-Control: private, no-store (THR-CACHE-01).",
+        "tags": ["jobs"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1..200); defaults to 50.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 50 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One dead-job page.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DeadJobPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/v1/admin/jobs/{id}/retry": {
+      "post": {
+        "operationId": "retryDeadJob",
+        "summary": "Retry one dead job",
+        "description": "Returns one dead job to the queue for accounts with an active administrative assignment and a recent authentication (step-up within 15 minutes). The operator states only the reason; the transition and the audit record commit together. Only allowlisted workloads retry. Served with Cache-Control: private, no-store (THR-CACHE-01). No job payload ever serializes.",
+        "tags": ["jobs"],
+        "security": [{ "SessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Dead job identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/JobsRetryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job requeued.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/JobsRetry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Validation" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
     "/api/v1/public/transparency": {
       "get": {
         "operationId": "getTransparencyMetrics",
@@ -3565,6 +3658,72 @@
           "action_id": { "type": "string" },
           "case_id": { "type": "string" },
           "action": { "type": "string" }
+        }
+      },
+      "JobsQueueCounts": {
+        "type": "object",
+        "description": "Queue counts and waits at one instant.",
+        "required": ["queued", "leased", "succeeded", "dead", "due_now", "lag_seconds", "oldest_dead_seconds"],
+        "properties": {
+          "queued": { "type": "integer", "minimum": 0 },
+          "leased": { "type": "integer", "minimum": 0 },
+          "succeeded": { "type": "integer", "minimum": 0 },
+          "dead": { "type": "integer", "minimum": 0 },
+          "due_now": { "type": "integer", "minimum": 0 },
+          "lag_seconds": { "type": "integer", "minimum": 0 },
+          "oldest_dead_seconds": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "JobsQueueHealth": {
+        "type": "object",
+        "description": "Operational view of the queue. Counts and durations only: no job payload ever serializes.",
+        "required": ["generated_at", "queue"],
+        "properties": {
+          "generated_at": { "type": "string", "format": "date-time" },
+          "queue": { "$ref": "#/components/schemas/JobsQueueCounts" }
+        }
+      },
+      "DeadJob": {
+        "type": "object",
+        "description": "One dead job as the operational surface exposes it. The payload is absent by construction.",
+        "required": ["job_id", "type", "version", "attempts", "max_attempts", "age_seconds", "retryable"],
+        "properties": {
+          "job_id": { "type": "string" },
+          "type": { "type": "string" },
+          "version": { "type": "integer", "minimum": 1 },
+          "attempts": { "type": "integer", "minimum": 0 },
+          "max_attempts": { "type": "integer", "minimum": 1 },
+          "last_error_code": { "type": "string" },
+          "age_seconds": { "type": "integer", "minimum": 0 },
+          "retryable": { "type": "boolean" }
+        }
+      },
+      "DeadJobPage": {
+        "type": "object",
+        "description": "Cursor-free page of dead jobs, oldest first.",
+        "required": ["generated_at", "total", "items"],
+        "properties": {
+          "generated_at": { "type": "string", "format": "date-time" },
+          "total": { "type": "integer", "minimum": 0 },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/DeadJob" } }
+        }
+      },
+      "JobsRetryRequest": {
+        "type": "object",
+        "description": "Operator justification for one retry. The job, the workload and the transition come from the row, not from the caller.",
+        "required": ["reason"],
+        "properties": {
+          "reason": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      },
+      "JobsRetry": {
+        "type": "object",
+        "description": "Transition that happened: one dead job back as queued.",
+        "required": ["job_id", "type", "state"],
+        "properties": {
+          "job_id": { "type": "string" },
+          "type": { "type": "string" },
+          "state": { "type": "string" }
         }
       },
       "ArenaDraftRequest": {

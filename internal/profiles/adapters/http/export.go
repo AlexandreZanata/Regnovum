@@ -24,25 +24,32 @@ type ExportHandlerConfig struct {
 	Sessions        application.SessionAgeDirectory
 	SecurityManager *security.Manager
 	Clock           ports.Clock
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // ExportHandler serves the authenticated personal data export.
 type ExportHandler struct {
-	request  *application.RequestPersonalExportUseCase
-	download *application.DownloadPersonalExportUseCase
-	sessions application.SessionAgeDirectory
-	security *security.Manager
-	clock    ports.Clock
+	request          *application.RequestPersonalExportUseCase
+	download         *application.DownloadPersonalExportUseCase
+	sessions         application.SessionAgeDirectory
+	security         *security.Manager
+	clock            ports.Clock
+	sessionValidator security.SessionValidator
 }
 
 // NewExportHandler constructs the personal export HTTP handler.
 func NewExportHandler(cfg ExportHandlerConfig) *ExportHandler {
 	return &ExportHandler{
-		request:  cfg.RequestUseCase,
-		download: cfg.DownloadUseCase,
-		sessions: cfg.Sessions,
-		security: cfg.SecurityManager,
-		clock:    cfg.Clock,
+		request:          cfg.RequestUseCase,
+		download:         cfg.DownloadUseCase,
+		sessions:         cfg.Sessions,
+		security:         cfg.SecurityManager,
+		clock:            cfg.Clock,
+		sessionValidator: cfg.SessionValidator,
 	}
 }
 
@@ -160,12 +167,21 @@ func writeExportProblem(w http.ResponseWriter, r *http.Request, err error) {
 // RegisterRoutes wires the export endpoints into the provided ServeMux.
 // Both routes require the owner session and the private cache policy.
 func (h *ExportHandler) RegisterRoutes(mux *http.ServeMux) {
-	request := http.Handler(http.HandlerFunc(h.RequestExport))
-	download := http.Handler(http.HandlerFunc(h.DownloadExport))
-	if h.security != nil {
-		request = h.security.RequireAuthMiddleware()(request)
-		download = h.security.RequireAuthMiddleware()(download)
+	mux.Handle("POST /api/v1/me/exports", withPrivateNoStore(h.privateRoute(http.HandlerFunc(h.RequestExport))))
+	mux.Handle("GET /api/v1/me/exports/{id}/download", withPrivateNoStore(h.privateRoute(http.HandlerFunc(h.DownloadExport))))
+}
+
+// privateRoute applies the session requirement when a security manager is
+// configured: the session is resolved first with the shared validator, then
+// required — without the resolution the requirement would refuse every call
+// on a surface mounted without an outer wrapper.
+func (h *ExportHandler) privateRoute(next http.Handler) http.Handler {
+	if h.security == nil {
+		return next
 	}
-	mux.Handle("POST /api/v1/me/exports", withPrivateNoStore(request))
-	mux.Handle("GET /api/v1/me/exports/{id}/download", withPrivateNoStore(download))
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }

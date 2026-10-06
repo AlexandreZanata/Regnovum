@@ -433,7 +433,7 @@ func TestTheSurfaceDeclaresTheRouteCount(t *testing.T) {
 	if got := len(journey.participation.Routes()); got != 5 {
 		t.Errorf("the participation surface declares %d routes, want 5", got)
 	}
-	if got := len(journey.account.Routes()); got != 12 {
-		t.Errorf("the account surface declares %d routes, want 12", got)
+	if got := len(journey.account.Routes()); got != 26 {
+		t.Errorf("the account surface declares %d routes, want 26 (12 pages + 14 JSON)", got)
 	}
 }

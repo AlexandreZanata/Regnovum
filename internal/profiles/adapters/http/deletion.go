@@ -20,23 +20,30 @@ type DeletionHandlerConfig struct {
 	StatusUseCase   *application.GetDeletionStatusUseCase
 	CancelUseCase   *application.CancelDeletionUseCase
 	SecurityManager *security.Manager
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // DeletionHandler serves the authenticated account deletion workflow.
 type DeletionHandler struct {
-	request  *application.RequestDeletionUseCase
-	status   *application.GetDeletionStatusUseCase
-	cancel   *application.CancelDeletionUseCase
-	security *security.Manager
+	request          *application.RequestDeletionUseCase
+	status           *application.GetDeletionStatusUseCase
+	cancel           *application.CancelDeletionUseCase
+	security         *security.Manager
+	sessionValidator security.SessionValidator
 }
 
 // NewDeletionHandler constructs the deletion HTTP handler.
 func NewDeletionHandler(cfg DeletionHandlerConfig) *DeletionHandler {
 	return &DeletionHandler{
-		request:  cfg.RequestUseCase,
-		status:   cfg.StatusUseCase,
-		cancel:   cfg.CancelUseCase,
-		security: cfg.SecurityManager,
+		request:          cfg.RequestUseCase,
+		status:           cfg.StatusUseCase,
+		cancel:           cfg.CancelUseCase,
+		security:         cfg.SecurityManager,
+		sessionValidator: cfg.SessionValidator,
 	}
 }
 
@@ -182,15 +189,22 @@ func writeDeletionProblem(w http.ResponseWriter, r *http.Request, err error) {
 // RegisterRoutes wires the deletion endpoints into the provided ServeMux.
 // All routes require the owner session and the private cache policy.
 func (h *DeletionHandler) RegisterRoutes(mux *http.ServeMux) {
-	request := http.Handler(http.HandlerFunc(h.RequestDeletion))
-	status := http.Handler(http.HandlerFunc(h.GetDeletionStatus))
-	cancel := http.Handler(http.HandlerFunc(h.CancelDeletion))
-	if h.security != nil {
-		request = h.security.RequireAuthMiddleware()(request)
-		status = h.security.RequireAuthMiddleware()(status)
-		cancel = h.security.RequireAuthMiddleware()(cancel)
+	mux.Handle("POST /api/v1/me/deletion", withPrivateNoStore(h.privateRoute(http.HandlerFunc(h.RequestDeletion))))
+	mux.Handle("GET /api/v1/me/deletion", withPrivateNoStore(h.privateRoute(http.HandlerFunc(h.GetDeletionStatus))))
+	mux.Handle("POST /api/v1/me/deletion/cancel", withPrivateNoStore(h.privateRoute(http.HandlerFunc(h.CancelDeletion))))
+}
+
+// privateRoute applies the session requirement when a security manager is
+// configured: the session is resolved first with the shared validator, then
+// required — without the resolution the requirement would refuse every call
+// on a surface mounted without an outer wrapper.
+func (h *DeletionHandler) privateRoute(next http.Handler) http.Handler {
+	if h.security == nil {
+		return next
 	}
-	mux.Handle("POST /api/v1/me/deletion", withPrivateNoStore(request))
-	mux.Handle("GET /api/v1/me/deletion", withPrivateNoStore(status))
-	mux.Handle("POST /api/v1/me/deletion/cancel", withPrivateNoStore(cancel))
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }

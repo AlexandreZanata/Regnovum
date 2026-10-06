@@ -490,6 +490,13 @@ func transparencyExportRoutes() []httpserver.Route {
 	return conformanceRoutes("GET", "/api/v1/arenas/{id}/export")
 }
 
+func jobsRoutes() []httpserver.Route {
+	return slices.Concat(
+		conformanceRoutes("GET", "/api/v1/admin/jobs/health", "/api/v1/admin/jobs/dead"),
+		conformanceRoutes("POST", "/api/v1/admin/jobs/{id}/retry"),
+	)
+}
+
 var errConformanceUnknownSession = errors.New("unknown session")
 
 func conformanceAccount(t *testing.T, pool *pgxpool.Pool, email string) string {

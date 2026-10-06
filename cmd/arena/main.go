@@ -18,6 +18,8 @@ import (
 	// ship no system tzdata.
 	_ "time/tzdata"
 
+	billingcatalog "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/catalog"
+	billingstripe "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/stripe"
 	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
 	"github.com/AlexandreZanata/Regnovum/internal/buildinfo"
 	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
@@ -213,39 +215,25 @@ func runServer(args []string, stdout *os.File) error {
 		surfaces = append(surfaces, account.Surface())
 		logger.Info("http server: account journey mounted", slog.Int("routes", len(account.Routes())))
 
-		// The participation journey charges INK, so it is composed where the
-		// wallet is: in the same process, over the same pool. Without the
-		// cursor signing secret it cannot paginate a list honestly, so it is
-		// not mounted — and production, which is expected to serve the Arena,
-		// refuses the boot instead of shipping the gap silently.
-		if cfg.CursorSecret().IsSet() {
-			participation, err := bootstrap.ComposeParticipation(bootstrap.Options{
-				Env:          cfg.Env(),
-				Logger:       logger,
-				Pool:         pool.Pool(),
-				Clock:        clock,
-				Random:       random,
-				Assets:       manifest,
-				CursorSecret: []byte(cfg.CursorSecret().Unredacted()),
-				Security:     manager,
-				Analytics:    telemetry.Events,
-			})
-			if err != nil {
-				return err
-			}
-			surfaces = append(surfaces, participation.Surface())
-			logger.Info("http server: participation journey mounted", slog.Int("routes", len(participation.Routes())))
-		} else if cfg.IsProduction() {
-			return fmt.Errorf(
-				"compose the participation journey: %s is not set, and without a cursor signing secret the Arena pages cannot paginate their lists",
-				config.CursorSecretVariable,
-			)
-		} else {
-			logger.Warn(
-				"http server: participation journey not mounted (ARENA_CURSOR_SECRET is not set); the account pages and the health routes are served",
-				slog.String("variable", config.CursorSecretVariable),
-			)
+		// The journeys that paginate — participation and account privacy —
+		// share one option set over the same pool and boundary as the
+		// account journey. The helper owns the cursor gate so the boot
+		// refuses a gap silently in no environment.
+		journeyBase := bootstrap.Options{
+			Env:       cfg.Env(),
+			Logger:    logger,
+			Pool:      pool.Pool(),
+			Clock:     clock,
+			Random:    random,
+			Assets:    manifest,
+			Security:  manager,
+			Analytics: telemetry.Events,
 		}
+		journeySurfaces, err := mountJourneySurfaces(journeyBase, cfg, logger)
+		if err != nil {
+			return err
+		}
+		surfaces = append(surfaces, journeySurfaces...)
 	} else {
 		logger.Warn("http server: account journey not mounted (ARENA_DATABASE_URL is not set); only the health routes are served")
 	}
@@ -287,6 +275,168 @@ func runServer(args []string, stdout *os.File) error {
 	)
 
 	return server.Run(ctx)
+}
+
+// mountJourneySurfaces composes every journey that mounts beside the account
+// journey: the guarded job operations, which need no cursor secret (the dead
+// listing is a bounded limit page) and therefore mount on any environment
+// with a database, plus the paginating cursor journeys. Composing them
+// together keeps the boot path reading one branch.
+func mountJourneySurfaces(base bootstrap.Options, cfg config.Config, logger *slog.Logger) ([]httpserver.Surface, error) {
+	jobs, err := mountJobOperations(base, logger)
+	if err != nil {
+		return nil, err
+	}
+	cursorSurfaces, err := mountCursorJourneys(base, cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+	return append(jobs, cursorSurfaces...), nil
+}
+
+// mountJobOperations composes the guarded operator surface of the job queue
+// over the shared edges the caller hands over. It needs neither the cursor
+// secret nor the payment configuration, so it mounts on every environment
+// that has a database and a security boundary — and its composition is
+// whole or refused, never partial.
+func mountJobOperations(base bootstrap.Options, logger *slog.Logger) ([]httpserver.Surface, error) {
+	surface, err := bootstrap.ComposeJobs(base)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("http server: job operations mounted", slog.Int("routes", len(surface.Routes())))
+	return []httpserver.Surface{surface.Surface()}, nil
+}
+
+// mountCursorJourneys composes the journeys that paginate — participation
+// (Arena feed), account privacy (wallet statement), the Arena lifecycle
+// (feed, search and drafts), the debate (argument lists), the entitlement
+// reads (pass history), the moderation triage queue and the public Arena
+// export — over the shared edges the caller hands over. Without the cursor
+// signing secret none can paginate its lists honestly, so all stay
+// unmounted; production, which is expected to serve them, refuses the boot
+// instead of shipping the gap silently.
+func mountCursorJourneys(base bootstrap.Options, cfg config.Config, logger *slog.Logger) ([]httpserver.Surface, error) {
+	if !cfg.CursorSecret().IsSet() {
+		if cfg.IsProduction() {
+			return nil, fmt.Errorf(
+				"compose the cursor journeys: %s is not set, and without a cursor signing secret neither the Arena pages, the wallet statement, the Arena feed, the argument lists, the pass history nor the triage queue can paginate their lists",
+				config.CursorSecretVariable,
+			)
+		}
+		logger.Warn(
+			"http server: participation and account privacy not mounted (ARENA_CURSOR_SECRET is not set); the account pages and the health routes are served",
+			slog.String("variable", config.CursorSecretVariable),
+		)
+		return nil, nil
+	}
+	options := base
+	options.CursorSecret = []byte(cfg.CursorSecret().Unredacted())
+	participation, err := bootstrap.ComposeParticipation(options)
+	if err != nil {
+		return nil, err
+	}
+	privacy, err := bootstrap.ComposeAccountPrivacy(options)
+	if err != nil {
+		return nil, err
+	}
+	lifecycle, err := bootstrap.ComposeArenaLifecycle(options)
+	if err != nil {
+		return nil, err
+	}
+	debate, err := bootstrap.ComposeDebateAttribution(options)
+	if err != nil {
+		return nil, err
+	}
+	entitlements, err := bootstrap.ComposeEntitlementReads(options)
+	if err != nil {
+		return nil, err
+	}
+	moderation, err := bootstrap.ComposeModeration(options)
+	if err != nil {
+		return nil, err
+	}
+	transparency, err := bootstrap.ComposeTransparency(options)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("http server: participation journey mounted", slog.Int("routes", len(participation.Routes())))
+	logger.Info("http server: account privacy mounted", slog.Int("routes", len(privacy.Routes())))
+	logger.Info("http server: arena lifecycle mounted", slog.Int("routes", len(lifecycle.Routes())))
+	logger.Info("http server: debate mounted", slog.Int("routes", len(debate.Routes())))
+	logger.Info("http server: entitlement reads mounted", slog.Int("routes", len(entitlements.Routes())))
+	logger.Info("http server: moderation mounted", slog.Int("routes", len(moderation.Routes())))
+	logger.Info("http server: transparency mounted", slog.Int("routes", len(transparency.Routes())))
+	surfaces := []httpserver.Surface{participation.Surface(), privacy.Surface(), lifecycle.Surface(), debate.Surface(), entitlements.Surface(), moderation.Surface(), transparency.Surface()}
+	// The guarded billing writes mount beside the cursor journeys: no second
+	// auth, no second cookie, the same pool and boundary as every surface
+	// above. An incomplete payment composition stays unmounted instead of
+	// taking money it cannot settle.
+	billing, err := mountBillingWrites(options, cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+	return append(surfaces, billing...), nil
+}
+
+// mountBillingWrites composes the guarded checkout and portal writes over
+// the shared edges the caller hands over. The writes mount only beside the
+// verified settlement pipeline, which needs the provider webhook secret:
+// no such variable exists in the configuration yet, so the composition is
+// refused and the writes stay unmounted — production serves the reads and
+// refuses the incomplete payment composition instead of faking a payment.
+// The refusal is a skip of the additive surface, never a boot failure: the
+// rest of the process serves normally without payment writes.
+func mountBillingWrites(base bootstrap.Options, cfg config.Config, logger *slog.Logger) ([]httpserver.Surface, error) {
+	if !cfg.StripeSecretKey().IsSet() && len(cfg.BillingMarkets()) == 0 && cfg.BillingSuccessURL() == "" && cfg.BillingCancelURL() == "" {
+		logger.Info("http server: billing writes not mounted (no billing configuration); the entitlement reads are served")
+		return nil, nil
+	}
+	markets := make([]billingcatalog.EnabledMarket, 0, len(cfg.BillingMarkets()))
+	for _, market := range cfg.BillingMarkets() {
+		markets = append(markets, billingcatalog.EnabledMarket{Market: market.Market, Currency: market.Currency})
+	}
+	prices := make([]billingcatalog.ConfiguredPrice, 0, len(cfg.BillingPrices()))
+	for _, price := range cfg.BillingPrices() {
+		prices = append(prices, billingcatalog.ConfiguredPrice{Market: price.Market, Product: price.Product, PriceID: price.PriceID})
+	}
+	catalog, err := billingcatalog.Load(billingcatalog.Spec{
+		Production: cfg.IsProduction(),
+		Markets:    markets,
+		Prices:     prices,
+	})
+	if err != nil {
+		logger.Error("http server: billing writes refused: incomplete payment composition, checkout and portal stay unmounted",
+			slog.String("reason", err.Error()))
+		return nil, nil
+	}
+	gateway, err := billingstripe.NewGateway(billingstripe.Config{
+		SecretKey: string(cfg.StripeSecretKey().Unredacted()),
+		Timeout:   cfg.StripeTimeout(),
+	})
+	if err != nil {
+		logger.Error("http server: billing writes refused: incomplete payment composition, checkout and portal stay unmounted",
+			slog.String("reason", err.Error()))
+		return nil, nil
+	}
+	surface, err := bootstrap.ComposeBillingWrites(base, bootstrap.BillingConfig{
+		Gateway:         gateway,
+		Catalog:         catalog,
+		SuccessURL:      cfg.BillingSuccessURL(),
+		CancelURL:       cfg.BillingCancelURL(),
+		PortalReturnURL: cfg.BillingSuccessURL(),
+		// No provider webhook secret exists in the configuration: the
+		// server-to-server ingress stays a declared provider-only contract
+		// and the writes stay unmounted until one is configured.
+		WebhookSecret: "",
+	})
+	if err != nil {
+		logger.Error("http server: billing writes refused: incomplete payment composition, checkout and portal stay unmounted",
+			slog.String("reason", err.Error()))
+		return nil, nil
+	}
+	logger.Info("http server: billing writes mounted", slog.Int("routes", len(surface.Routes())))
+	return []httpserver.Surface{surface.Surface()}, nil
 }
 
 // runVersion prints the reproducible build metadata (P01-T05). Without
