@@ -4,6 +4,8 @@ Este documento estabelece as regras mandatórias de execução técnica, arquite
 
 ## 1. Regras de Execução e Git
 
+- **Frontend completo (2026-10-06):** P45-preparação e fases anteriores estão mergeadas, não certificadas. Nova sequência P48 → P49 → P50 → P51 → P52 → P53 → P54 → P55 → P56 → P57 → P58 → P59 → gate final pós-merge que reutiliza P45 no novo SHA; não repetir IDs antigos. Ler `.local/FRONTEND_COMPLETION_PROGRAM.md` nas novas fases e `docs/FRONTEND_COMPLETION.md`. Esta regra prevalece sobre referências históricas abaixo à P45 como etapa anterior ao novo frontend.
+- **Cobertura e isolamento:** toda operação browser exige client + UI + jornada real/negativa; HTML é link/form, endpoints internos/provider têm exclusão provada. As 15 rotas staged só são exercitadas em harness sintético separado, nunca ativadas por esta direção. Testes locais pertinentes e CI curto continuam por tarefa/PR; suíte integral, certificado/tag e release só após merge de P48–P59 e pré-condições humanas/jurídicas. Nenhuma Q/TEMP ratificada por inferência, nenhuma guard afrouxada.
 - **Uma microtarefa por vez:** execute estritamente uma única tarefa por ciclo. É proibido acumular tarefas, pular etapas ou ampliar escopo não solicitado.
 - **Ajuste sazonal:** economia, Coroa, contratos e arquivos seguem `docs/reino/TEMPORADAS_SUCESSAO.md`. Dependências restantes: P39 → P46 → P40 → P41 → P42 → P43 → P47 → P44 → P45. IDs preservados; não escolher próxima fase por ordem numérica. P46/P47 devem estar mergeadas antes da certificação de release P45. Rei sazonal é cargo de jogo, separado do operador técnico.
 - **Commits atômicos:** cada tarefa concluída deve gerar exatamente um commit atômico após todos os gates passarem.
