@@ -559,18 +559,20 @@ func TestComposeBillingWritesRefusesIncompleteComposition(t *testing.T) {
 
 	database := dbtest.New(t)
 	complete := func() (bootstrap.Options, bootstrap.BillingConfig) {
-		return bootstrap.Options{
-				Env: config.EnvTest, Logger: slog.New(slog.NewJSONHandler(io.Discard, nil)),
-				Pool: database.Pool.Pool(), Clock: clockseed.NewClock(),
-				Random: clockseed.NewRandom(), Assets: manifestFixture(t),
-			}, bootstrap.BillingConfig{
-				Gateway:         newBillingTestGateway(),
-				Catalog:         testBillingCatalog(t),
-				SuccessURL:      "https://arena.example/billing/success",
-				CancelURL:       "https://arena.example/billing/cancel",
-				PortalReturnURL: "https://arena.example/billing/success",
-				WebhookSecret:   "whsec_t06_synthetic_secret",
-			}
+		options := bootstrap.Options{
+			Env: config.EnvTest, Logger: slog.New(slog.NewJSONHandler(io.Discard, nil)),
+			Pool: database.Pool.Pool(), Clock: clockseed.NewClock(),
+			Random: clockseed.NewRandom(), Assets: manifestFixture(t),
+		}
+		billing := bootstrap.BillingConfig{
+			Gateway:         newBillingTestGateway(),
+			Catalog:         testBillingCatalog(t),
+			SuccessURL:      "https://arena.example/billing/success",
+			CancelURL:       "https://arena.example/billing/cancel",
+			PortalReturnURL: "https://arena.example/billing/success",
+			WebhookSecret:   "whsec_t06_synthetic_secret",
+		}
+		return options, billing
 	}
 
 	options, billing := complete()

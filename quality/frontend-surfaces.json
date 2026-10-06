@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 79,
-    "declaration_only": 21,
+    "mounted": 82,
+    "declaration_only": 18,
     "validated": 0
   },
   "environments": {
@@ -297,21 +297,21 @@
     },
     {
       "name": "transparency",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeTransparency",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/arenas/{id}/export",
         "GET /api/v1/public/transparency",
         "GET /transparency"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T08",
+      "reach_proof": "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsServesSuppressedSnapshot",
+      "p49": "mounted in P49-T08",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Public metrics, arena export and the transparency document stay placeholders."
+      "note": "Public metrics, the localized HTML document and the versioned Arena export mounted by ComposeTransparency over the process pool, clock and cursor secret (P49-T08). Unauthenticated by design: no session validator and no security boundary, because there is no identity to resolve. Proven via process httptest+PG: suppressed small-sample counts, exact period echo, unknown locale falling back without reflection, public cache with ETag/304, withdrawn content null with no sources, 404 without reflection and forged cursor 400, no seeded email or account id in any body. metrics/pprof stay off this surface."
     },
     {
       "name": "wallet-billing-reads",

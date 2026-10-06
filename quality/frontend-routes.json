@@ -150,10 +150,11 @@
       "tests": [
         "internal/transparency/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/transparency_public_test.go::TestTransparencyExportServesPublicArena"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock/cursor secret; proven via process httptest+PG (published export with suppressed aggregates, withdrawn content null with no sources, 404 without reflection, forged cursor 400, public cache with ETag/304, no email or account id in body). Browser client/page lands in P55."
     },
     {
       "method": "GET",
@@ -1696,10 +1697,12 @@
       "tests": [
         "internal/transparency/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsServesSuppressedSnapshot",
+        "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsDefaultWindow"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (suppressed small-sample counts, exact period echo, default trailing-30-day window, invalid period 400, public cache with ETag/304, no email in body). Browser client/page lands in P55."
     },
     {
       "method": "GET",
@@ -2140,10 +2143,11 @@
       "tests": [
         "internal/transparency/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/transparency_public_test.go::TestTransparencyDocumentServesLocalizedHTML"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (explicit locale wins, header negotiates against the allowlist, unknown locale falls back without reflection, Vary plus public cache with ETag/304, no email in body). Browser client/page lands in P55."
     },
     {
       "method": "GET",
