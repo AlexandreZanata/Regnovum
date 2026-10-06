@@ -213,39 +213,25 @@ func runServer(args []string, stdout *os.File) error {
 		surfaces = append(surfaces, account.Surface())
 		logger.Info("http server: account journey mounted", slog.Int("routes", len(account.Routes())))
 
-		// The participation journey charges INK, so it is composed where the
-		// wallet is: in the same process, over the same pool. Without the
-		// cursor signing secret it cannot paginate a list honestly, so it is
-		// not mounted — and production, which is expected to serve the Arena,
-		// refuses the boot instead of shipping the gap silently.
-		if cfg.CursorSecret().IsSet() {
-			participation, err := bootstrap.ComposeParticipation(bootstrap.Options{
-				Env:          cfg.Env(),
-				Logger:       logger,
-				Pool:         pool.Pool(),
-				Clock:        clock,
-				Random:       random,
-				Assets:       manifest,
-				CursorSecret: []byte(cfg.CursorSecret().Unredacted()),
-				Security:     manager,
-				Analytics:    telemetry.Events,
-			})
-			if err != nil {
-				return err
-			}
-			surfaces = append(surfaces, participation.Surface())
-			logger.Info("http server: participation journey mounted", slog.Int("routes", len(participation.Routes())))
-		} else if cfg.IsProduction() {
-			return fmt.Errorf(
-				"compose the participation journey: %s is not set, and without a cursor signing secret the Arena pages cannot paginate their lists",
-				config.CursorSecretVariable,
-			)
-		} else {
-			logger.Warn(
-				"http server: participation journey not mounted (ARENA_CURSOR_SECRET is not set); the account pages and the health routes are served",
-				slog.String("variable", config.CursorSecretVariable),
-			)
+		// The journeys that paginate — participation and account privacy —
+		// share one option set over the same pool and boundary as the
+		// account journey. The helper owns the cursor gate so the boot
+		// refuses a gap silently in no environment.
+		journeyBase := bootstrap.Options{
+			Env:       cfg.Env(),
+			Logger:    logger,
+			Pool:      pool.Pool(),
+			Clock:     clock,
+			Random:    random,
+			Assets:    manifest,
+			Security:  manager,
+			Analytics: telemetry.Events,
 		}
+		cursorSurfaces, err := mountCursorJourneys(journeyBase, cfg, logger)
+		if err != nil {
+			return err
+		}
+		surfaces = append(surfaces, cursorSurfaces...)
 	} else {
 		logger.Warn("http server: account journey not mounted (ARENA_DATABASE_URL is not set); only the health routes are served")
 	}
@@ -287,6 +273,41 @@ func runServer(args []string, stdout *os.File) error {
 	)
 
 	return server.Run(ctx)
+}
+
+// mountCursorJourneys composes the journeys that paginate — participation
+// (Arena feed) and account privacy (wallet statement) — over the shared
+// edges the caller hands over. Without the cursor signing secret neither
+// can paginate its lists honestly, so both stay unmounted; production,
+// which is expected to serve them, refuses the boot instead of shipping
+// the gap silently.
+func mountCursorJourneys(base bootstrap.Options, cfg config.Config, logger *slog.Logger) ([]httpserver.Surface, error) {
+	if !cfg.CursorSecret().IsSet() {
+		if cfg.IsProduction() {
+			return nil, fmt.Errorf(
+				"compose the cursor journeys: %s is not set, and without a cursor signing secret neither the Arena pages nor the wallet statement can paginate their lists",
+				config.CursorSecretVariable,
+			)
+		}
+		logger.Warn(
+			"http server: participation and account privacy not mounted (ARENA_CURSOR_SECRET is not set); the account pages and the health routes are served",
+			slog.String("variable", config.CursorSecretVariable),
+		)
+		return nil, nil
+	}
+	options := base
+	options.CursorSecret = []byte(cfg.CursorSecret().Unredacted())
+	participation, err := bootstrap.ComposeParticipation(options)
+	if err != nil {
+		return nil, err
+	}
+	privacy, err := bootstrap.ComposeAccountPrivacy(options)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("http server: participation journey mounted", slog.Int("routes", len(participation.Routes())))
+	logger.Info("http server: account privacy mounted", slog.Int("routes", len(privacy.Routes())))
+	return []httpserver.Surface{participation.Surface(), privacy.Surface()}, nil
 }
 
 // runVersion prints the reproducible build metadata (P01-T05). Without

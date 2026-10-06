@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 33,
-    "declaration_only": 67,
+    "mounted": 42,
+    "declaration_only": 58,
     "validated": 0
   },
   "environments": {
@@ -174,8 +174,8 @@
     },
     {
       "name": "profiles-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeAccountPrivacy",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/me/deletion",
         "GET /api/v1/me/exports/{id}/download",
@@ -185,14 +185,14 @@
         "POST /api/v1/me/deletion/cancel",
         "POST /api/v1/me/exports"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T02",
+      "reach_proof": "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate",
+      "p49": "mounted in P49-T02",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Public profile, private profile, export/download and deletion reads/writes stay placeholders."
+      "note": "Public/private profile, personal export request/download and deletion request/status/cancel mounted by ComposeAccountPrivacy over the same pool/security/session validator as the account journey (P49-T02); proven via process httptest+PG: owner-vs-other, replay idempotence, no-store, single-use download."
     },
     {
       "name": "arenas-api",
@@ -320,8 +320,6 @@
         "GET /api/v1/me/billing/subscription",
         "GET /api/v1/me/passes",
         "GET /api/v1/me/passes/history",
-        "GET /api/v1/me/wallet",
-        "GET /api/v1/me/wallet/transactions",
         "POST /api/v1/me/billing/checkout",
         "POST /api/v1/me/billing/portal"
       ],
@@ -332,7 +330,7 @@
         "development",
         "production"
       ],
-      "note": "Wallet, passes and billing reads/writes stay placeholders; no benefit is granted by a read."
+      "note": "Passes/history/subscription reads land in P49-T05 and guarded checkout/portal writes in P49-T06; the wallet balance/statement reads moved to the mounted wallet surface in P49-T02."
     },
     {
       "name": "moderation-api",
@@ -447,6 +445,23 @@
         "production"
       ],
       "note": "Staged private case file proven only in the harness (P56/P57)."
+    },
+    {
+      "name": "wallet",
+      "composer": "internal/bootstrap.ComposeAccountPrivacy",
+      "state": "mounted",
+      "routes": [
+        "GET /api/v1/me/wallet",
+        "GET /api/v1/me/wallet/transactions"
+      ],
+      "reach_proof": "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped",
+      "p49": "mounted in P49-T02",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Legacy ledger reads (balance + statement) mounted by ComposeAccountPrivacy over the same pool/security/session validator with a cursor secret (P49-T02); proven via process httptest+PG: owner-vs-other, forged cursor refused, no-store."
     }
   ],
   "p49_plan": [

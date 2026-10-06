@@ -44,6 +44,11 @@ type HandlerConfig struct {
 	GetPublicProfileUseCase  *application.GetPublicProfileUseCase
 	GetPrivateProfileUseCase *application.GetPrivateProfileUseCase
 	SecurityManager          *security.Manager
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // Handler serves the versioned profile API.
@@ -51,6 +56,7 @@ type Handler struct {
 	getPublicProfile  *application.GetPublicProfileUseCase
 	getPrivateProfile *application.GetPrivateProfileUseCase
 	security          *security.Manager
+	sessionValidator  security.SessionValidator
 }
 
 // NewHandler constructs a profiles HTTP handler.
@@ -59,6 +65,7 @@ func NewHandler(cfg HandlerConfig) *Handler {
 		getPublicProfile:  cfg.GetPublicProfileUseCase,
 		getPrivateProfile: cfg.GetPrivateProfileUseCase,
 		security:          cfg.SecurityManager,
+		sessionValidator:  cfg.SessionValidator,
 	}
 }
 
@@ -160,10 +167,20 @@ func withPrivateNoStore(next http.Handler) http.Handler {
 // mandatory private cache policy.
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/profiles/{username}", h.GetPublicProfile)
+	mux.Handle("GET /api/v1/me/profile", withPrivateNoStore(h.privateRoute(http.HandlerFunc(h.GetPrivateProfile))))
+}
 
-	privateProfile := http.Handler(http.HandlerFunc(h.GetPrivateProfile))
-	if h.security != nil {
-		privateProfile = h.security.RequireAuthMiddleware()(privateProfile)
+// privateRoute applies the session requirement when a security manager is
+// configured: the session is resolved first with the shared validator, then
+// required — without the resolution the requirement would refuse every call
+// on a surface mounted without an outer wrapper.
+func (h *Handler) privateRoute(next http.Handler) http.Handler {
+	if h.security == nil {
+		return next
 	}
-	mux.Handle("GET /api/v1/me/profile", withPrivateNoStore(privateProfile))
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }

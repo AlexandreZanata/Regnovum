@@ -258,6 +258,10 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 	if err != nil {
 		t.Fatalf("ComposeParticipation() error = %v", err)
 	}
+	privacy, err := bootstrap.ComposeAccountPrivacy(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeAccountPrivacy() error = %v", err)
+	}
 	context := &surfacesContext{
 		surfaces:      surfaces,
 		inventoryKeys: make(map[string]bool, len(inventory.Routes)),
@@ -272,6 +276,9 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 		context.composed[route.String()] = true
 	}
 	for _, route := range participation.Routes() {
+		context.composed[route.String()] = true
+	}
+	for _, route := range privacy.Routes() {
 		context.composed[route.String()] = true
 	}
 	for _, route := range httpserver.HealthRoutes() {
