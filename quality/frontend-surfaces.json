@@ -1,0 +1,465 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "status": "DECLARED_VS_MOUNTED_NOT_BROWSER_VALIDATED",
+  "note": "P48-T03 reach map measured with the process httptest server, not the constructor: a mounted route answers beyond the registry placeholder (never structural 404/501 on an applicable call); a declared route no surface claims keeps the placeholder 404 of a module not composed yet. declaration = declared in routes.go/contract; mounted = served by the composed process in the environment; validated = full browser journey proven, claimed by no surface here — browser validation lands in P49+. No business machine was changed for this map; no external provider is called and no real data is used.",
+  "states": [
+    "declaration",
+    "mounted",
+    "validated"
+  ],
+  "counts": {
+    "declared": 100,
+    "mounted": 19,
+    "declaration_only": 81,
+    "validated": 0
+  },
+  "environments": {
+    "test": {
+      "surfaces": [
+        "health",
+        "account",
+        "participation"
+      ],
+      "note": "dbtest disposable PostgreSQL + fakeemail sink; participation requires CursorSecret like production."
+    },
+    "development": {
+      "surfaces": [
+        "health",
+        "static-build",
+        "account",
+        "participation"
+      ],
+      "note": "like test plus the hashed frontend build; participation mounted only with ARENA_CURSOR_SECRET, else warn and serve account+health."
+    },
+    "production": {
+      "surfaces": [
+        "health",
+        "static-build",
+        "account",
+        "participation"
+      ],
+      "note": "like development with provider email delivery; missing CursorSecret refuses the boot instead of shipping the gap silently."
+    },
+    "no-database": {
+      "surfaces": [
+        "health"
+      ],
+      "note": "without ARENA_DATABASE_URL only the platform probes answer; every other declaration keeps its placeholder."
+    }
+  },
+  "surfaces": [
+    {
+      "name": "health",
+      "composer": "internal/platform/httpserver.HealthRoutes",
+      "state": "mounted",
+      "routes": [
+        "GET /health/live",
+        "GET /health/ready"
+      ],
+      "reach_proof": "internal/bootstrap/frontend_surfaces_test.go::TestMountedSurfacesAnswerBeyondPlaceholders",
+      "p49": "keep",
+      "environments": [
+        "test",
+        "development",
+        "production",
+        "no-database"
+      ],
+      "note": "Platform probes answered by the platform itself; no surface may claim them."
+    },
+    {
+      "name": "account",
+      "composer": "internal/bootstrap.ComposeAccount",
+      "state": "mounted",
+      "routes": [
+        "GET /login",
+        "GET /logout",
+        "GET /register",
+        "GET /reset",
+        "GET /reset/confirm",
+        "GET /verify",
+        "POST /login",
+        "POST /logout",
+        "POST /register",
+        "POST /reset",
+        "POST /reset/confirm",
+        "POST /verify"
+      ],
+      "reach_proof": "internal/bootstrap/frontend_surfaces_test.go::TestMountedSurfacesAnswerBeyondPlaceholders",
+      "p49": "keep",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Twelve identity HTML documents (P18-T05). The /api/v1/auth/* JSON family stays declaration-only until P49-T01."
+    },
+    {
+      "name": "participation",
+      "composer": "internal/bootstrap.ComposeParticipation",
+      "state": "mounted",
+      "routes": [
+        "GET /arenas/{slug}",
+        "POST /arenas/{slug}/arguments",
+        "POST /arenas/{slug}/attributions",
+        "POST /arenas/{slug}/position",
+        "POST /arenas/{slug}/position/change"
+      ],
+      "reach_proof": "internal/bootstrap/frontend_surfaces_test.go::TestMountedSurfacesAnswerBeyondPlaceholders",
+      "p49": "keep",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Arena page plus four authenticated transitions (P18-T06). /d/{slug} stays declaration-only until P49-T03."
+    },
+    {
+      "name": "static-build",
+      "composer": "internal/platform/assets.Server via cmd/arena",
+      "state": "mounted",
+      "routes": [],
+      "reach_proof": null,
+      "p49": "keep",
+      "environments": [
+        "development",
+        "production"
+      ],
+      "note": "Hashed frontend build served by the process; declares no registry routes, takes no part in the contract comparison."
+    },
+    {
+      "name": "arena-document",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /d/{slug}"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T03",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Cacheable public Arena document declared but claimed by no surface; the process answers its placeholder."
+    },
+    {
+      "name": "identity-api",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/auth/password-reset",
+        "GET /api/v1/auth/verify",
+        "GET /api/v1/me/sessions",
+        "POST /api/v1/auth/login",
+        "POST /api/v1/auth/logout",
+        "POST /api/v1/auth/password-reset/confirm",
+        "POST /api/v1/auth/password-reset/request",
+        "POST /api/v1/auth/register",
+        "POST /api/v1/me/mfa/enrollment",
+        "POST /api/v1/me/mfa/enrollment/confirm",
+        "POST /api/v1/me/mfa/recovery",
+        "POST /api/v1/me/mfa/step-up",
+        "POST /api/v1/me/sessions/revocation",
+        "POST /api/v1/me/sessions/rotation"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T01",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Auth/MFA/session JSON handlers exist and are tested in isolation; no surface mounts them yet."
+    },
+    {
+      "name": "profiles-api",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/me/deletion",
+        "GET /api/v1/me/exports/{id}/download",
+        "GET /api/v1/me/profile",
+        "GET /api/v1/profiles/{username}",
+        "POST /api/v1/me/deletion",
+        "POST /api/v1/me/deletion/cancel",
+        "POST /api/v1/me/exports"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T02",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Public profile, private profile, export/download and deletion reads/writes stay placeholders."
+    },
+    {
+      "name": "arenas-api",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "DELETE /api/v1/me/arena-drafts/{id}",
+        "GET /api/v1/arenas",
+        "GET /api/v1/arenas/{slug}",
+        "GET /api/v1/me/arena-drafts",
+        "GET /api/v1/me/arena-drafts/{id}",
+        "PATCH /api/v1/me/arena-drafts/{id}",
+        "POST /api/v1/me/arena-drafts",
+        "POST /api/v1/me/arena-drafts/{id}/publish",
+        "POST /api/v1/me/arenas/{id}/close"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T03",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Draft lifecycle, publish/close, feed and public document JSON stay placeholders; HTML participation is unaffected."
+    },
+    {
+      "name": "positions-api",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/arenas/{id}/positions",
+        "GET /api/v1/me/arenas/{id}/position",
+        "GET /api/v1/me/arenas/{id}/position/changes",
+        "POST /api/v1/me/arenas/{id}/position",
+        "POST /api/v1/me/arenas/{id}/position/changes",
+        "POST /api/v1/me/position-changes/{id}/attributions"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T04",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Position confirm/change/history plus the public aggregate stay placeholders."
+    },
+    {
+      "name": "arguments-api",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/arenas/{id}/arguments",
+        "GET /api/v1/arguments/{id}",
+        "GET /api/v1/arguments/{id}/replies",
+        "POST /api/v1/me/arenas/{id}/arguments",
+        "POST /api/v1/me/arenas/{id}/arguments/{argumentID}/replies",
+        "POST /api/v1/me/arguments/{id}/withdraw"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T04",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Publish/reply/withdraw plus public list/replies/get stay placeholders."
+    },
+    {
+      "name": "persuasion-api",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/arguments/{id}/attributions",
+        "GET /api/v1/profiles/{username}/reputation"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T04",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Attribution recording, public counts and factual reputation stay placeholders."
+    },
+    {
+      "name": "search-api",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/search/arenas",
+        "GET /api/v1/search/arguments"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T03",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Arena and argument search stay placeholders."
+    },
+    {
+      "name": "transparency",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/arenas/{id}/export",
+        "GET /api/v1/public/transparency",
+        "GET /transparency"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T08",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Public metrics, arena export and the transparency document stay placeholders."
+    },
+    {
+      "name": "wallet-billing",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/me/billing/subscription",
+        "GET /api/v1/me/passes",
+        "GET /api/v1/me/passes/history",
+        "GET /api/v1/me/wallet",
+        "GET /api/v1/me/wallet/transactions",
+        "POST /api/v1/me/billing/checkout",
+        "POST /api/v1/me/billing/portal"
+      ],
+      "reach_proof": null,
+      "p49": "mount reads in P49-T05, guarded writes in P49-T06",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Wallet, passes and billing reads/writes stay placeholders; no benefit is granted by a read."
+    },
+    {
+      "name": "moderation-api",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/moderation/attribution-signals/{authorID}",
+        "GET /api/v1/moderation/cases",
+        "POST /api/v1/me/moderation/appeals",
+        "POST /api/v1/me/moderation/reports",
+        "POST /api/v1/moderation/cases/{id}/claim",
+        "POST /api/v1/moderation/cases/{id}/decisions"
+      ],
+      "reach_proof": null,
+      "p49": "mount in P49-T07",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Reports/appeals/cases/claim/decisions plus the restricted attribution signals stay placeholders; no role is granted over HTTP."
+    },
+    {
+      "name": "jobs-admin",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/admin/jobs/dead",
+        "GET /api/v1/admin/jobs/health",
+        "POST /api/v1/admin/jobs/{id}/retry"
+      ],
+      "reach_proof": null,
+      "p49": "contract in P49-T09, then guarded composition",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Three operator routes without a published contract; P49-T09 closes the contract (operator/role/MFA) before composing."
+    },
+    {
+      "name": "staged-seasons",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/me/seasons/current",
+        "GET /api/v1/me/seasons/history",
+        "GET /api/v1/me/seasons/{season_key}",
+        "GET /api/v1/me/seasons/{season_key}/champions"
+      ],
+      "reach_proof": null,
+      "p49": "harness-only, never shipped",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Staged season reads proven only in the separate synthetic harness (P56); the delivered server keeps the placeholder."
+    },
+    {
+      "name": "staged-metering",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/me/metering/publications/{id}",
+        "GET /api/v1/me/metering/statement",
+        "POST /api/v1/me/metering/publications",
+        "POST /api/v1/me/metering/quotes"
+      ],
+      "reach_proof": null,
+      "p49": "harness-only, never shipped",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Staged metering quote/publication/receipt/statement proven only in the harness (P56/P57)."
+    },
+    {
+      "name": "staged-commerce",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/me/commerce/contracts/{id}",
+        "GET /api/v1/me/commerce/statement"
+      ],
+      "reach_proof": null,
+      "p49": "harness-only, never shipped",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Staged trade receipt/statement proven only in the harness (P56/P57); no commercial transfer is activated."
+    },
+    {
+      "name": "staged-disputes",
+      "composer": null,
+      "state": "declaration",
+      "routes": [
+        "GET /api/v1/me/disputes/cases/{key}",
+        "GET /api/v1/me/disputes/cases/{key}/ruling",
+        "POST /api/v1/me/disputes/cases/{key}/accepts",
+        "POST /api/v1/me/disputes/cases/{key}/appeals",
+        "POST /api/v1/me/disputes/cases/{key}/defenses"
+      ],
+      "reach_proof": null,
+      "p49": "harness-only, never shipped",
+      "environments": [
+        "test",
+        "development",
+        "production"
+      ],
+      "note": "Staged private case file proven only in the harness (P56/P57)."
+    }
+  ],
+  "p49_plan": [
+    "keep: health, static-build, account, participation (P18 journeys stay mounted)",
+    "P49-T01: mount identity-api (auth/MFA/session JSON) reusing the account security/pool",
+    "P49-T02: mount profiles-api (public profile, private profile, export/download, deletion)",
+    "P49-T03: mount arena-document, arenas-api and search-api (lifecycle + search JSON)",
+    "P49-T04: mount positions-api, arguments-api and persuasion-api (debate + factual reputation)",
+    "P49-T05: mount wallet-billing reads (passes/history/subscription); no benefit on read",
+    "P49-T06: compose guarded wallet-billing writes (checkout/portal) with synthetic gateway in tests",
+    "P49-T07: mount moderation-api with competence and step-up; never grant roles over HTTP",
+    "P49-T08: mount transparency (metrics document + export + HTML)",
+    "P49-T09: close the jobs-admin contract, then compose guarded operator surfaces",
+    "staged-seasons/metering/commerce/disputes: stay declaration-only in the delivered server; harness-only in P56/P57"
+  ]
+}
