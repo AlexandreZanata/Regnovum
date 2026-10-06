@@ -743,10 +743,11 @@
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutSettlesPassOnVerifiedEvent"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T06 mounted in ComposeBillingWrites with the versioned catalog and the synthetic gateway; proven via process httptest+PG (checkout→verified event→pass/INK projection, browser return grants nothing, forged signature and replay guarded, provider down grants nothing). Browser client/page lands in P54."
     },
     {
       "method": "POST",
@@ -764,10 +765,11 @@
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/billing_writes_test.go::TestBillingPortalOpensForCustomer"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T06 mounted in ComposeBillingWrites over shared pool/security/session validator; proven via process httptest+PG (portal opens for the stored customer, 404 without one, 401 anonymous, private no-store). Browser client/page lands in P54."
     },
     {
       "method": "GET",

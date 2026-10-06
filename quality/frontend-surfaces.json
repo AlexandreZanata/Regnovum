@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 72,
-    "declaration_only": 28,
+    "mounted": 74,
+    "declaration_only": 26,
     "validated": 0
   },
   "environments": {
@@ -333,20 +333,20 @@
     },
     {
       "name": "wallet-billing",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeBillingWrites",
+      "state": "mounted",
       "routes": [
         "POST /api/v1/me/billing/checkout",
         "POST /api/v1/me/billing/portal"
       ],
-      "reach_proof": null,
-      "p49": "guarded writes in P49-T06",
+      "reach_proof": "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutSettlesPassOnVerifiedEvent",
+      "p49": "mounted in P49-T06",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Guarded checkout/portal writes land in P49-T06 with a synthetic gateway in tests; the reads moved to the mounted wallet-billing-reads surface in P49-T05."
+      "note": "Guarded checkout/portal writes mounted by ComposeBillingWrites over the same pool/security/session validator with the versioned catalog and the synthetic gateway in tests (P49-T06); the provider-only webhook pipeline settles INK/passes/Member on verified events, production refuses the incomplete composition (no webhook secret configured) instead of faking payment. Proven via process httptest+PG: checkout→verified event→projection, browser return grants nothing, forged/replay guarded, provider down grants nothing, private no-store."
     },
     {
       "name": "moderation-api",

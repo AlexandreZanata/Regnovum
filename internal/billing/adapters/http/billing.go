@@ -261,6 +261,15 @@ func (h *BillingHandler) RegisterSubscriptionReadRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/me/billing/subscription", withPrivateNoStore(h.privateBillingRoute(http.HandlerFunc(h.GetSubscription))))
 }
 
+// RegisterBillingWriteRoutes wires only the guarded writes into the mux:
+// checkout and the hosted portal. The P49-T06 billing surface mounts these
+// two; the subscription read stays with the P49-T05 entitlement surface so
+// no route is ever registered twice on the process mux.
+func (h *BillingHandler) RegisterBillingWriteRoutes(mux *http.ServeMux) {
+	mux.Handle("POST /api/v1/me/billing/checkout", withPrivateNoStore(h.privateBillingRoute(h.protect(ratelimit.ActionCheckoutCreate, http.HandlerFunc(h.CreateCheckout)))))
+	mux.Handle("POST /api/v1/me/billing/portal", withPrivateNoStore(h.privateBillingRoute(h.protect(ratelimit.ActionBillingPortal, http.HandlerFunc(h.CreatePortal)))))
+}
+
 func (h *BillingHandler) privateBillingRoute(next http.Handler) http.Handler {
 	if h.security == nil {
 		return next

@@ -18,6 +18,8 @@ import (
 	// ship no system tzdata.
 	_ "time/tzdata"
 
+	billingcatalog "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/catalog"
+	billingstripe "github.com/AlexandreZanata/Regnovum/internal/billing/adapters/stripe"
 	"github.com/AlexandreZanata/Regnovum/internal/bootstrap"
 	"github.com/AlexandreZanata/Regnovum/internal/buildinfo"
 	"github.com/AlexandreZanata/Regnovum/internal/platform/assets"
@@ -323,7 +325,76 @@ func mountCursorJourneys(base bootstrap.Options, cfg config.Config, logger *slog
 	logger.Info("http server: arena lifecycle mounted", slog.Int("routes", len(lifecycle.Routes())))
 	logger.Info("http server: debate mounted", slog.Int("routes", len(debate.Routes())))
 	logger.Info("http server: entitlement reads mounted", slog.Int("routes", len(entitlements.Routes())))
-	return []httpserver.Surface{participation.Surface(), privacy.Surface(), lifecycle.Surface(), debate.Surface(), entitlements.Surface()}, nil
+	surfaces := []httpserver.Surface{participation.Surface(), privacy.Surface(), lifecycle.Surface(), debate.Surface(), entitlements.Surface()}
+	// The guarded billing writes mount beside the cursor journeys: no second
+	// auth, no second cookie, the same pool and boundary as every surface
+	// above. An incomplete payment composition stays unmounted instead of
+	// taking money it cannot settle.
+	billing, err := mountBillingWrites(options, cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+	return append(surfaces, billing...), nil
+}
+
+// mountBillingWrites composes the guarded checkout and portal writes over
+// the shared edges the caller hands over. The writes mount only beside the
+// verified settlement pipeline, which needs the provider webhook secret:
+// no such variable exists in the configuration yet, so the composition is
+// refused and the writes stay unmounted — production serves the reads and
+// refuses the incomplete payment composition instead of faking a payment.
+// The refusal is a skip of the additive surface, never a boot failure: the
+// rest of the process serves normally without payment writes.
+func mountBillingWrites(base bootstrap.Options, cfg config.Config, logger *slog.Logger) ([]httpserver.Surface, error) {
+	if !cfg.StripeSecretKey().IsSet() && len(cfg.BillingMarkets()) == 0 && cfg.BillingSuccessURL() == "" && cfg.BillingCancelURL() == "" {
+		logger.Info("http server: billing writes not mounted (no billing configuration); the entitlement reads are served")
+		return nil, nil
+	}
+	markets := make([]billingcatalog.EnabledMarket, 0, len(cfg.BillingMarkets()))
+	for _, market := range cfg.BillingMarkets() {
+		markets = append(markets, billingcatalog.EnabledMarket{Market: market.Market, Currency: market.Currency})
+	}
+	prices := make([]billingcatalog.ConfiguredPrice, 0, len(cfg.BillingPrices()))
+	for _, price := range cfg.BillingPrices() {
+		prices = append(prices, billingcatalog.ConfiguredPrice{Market: price.Market, Product: price.Product, PriceID: price.PriceID})
+	}
+	catalog, err := billingcatalog.Load(billingcatalog.Spec{
+		Production: cfg.IsProduction(),
+		Markets:    markets,
+		Prices:     prices,
+	})
+	if err != nil {
+		logger.Error("http server: billing writes refused: incomplete payment composition, checkout and portal stay unmounted",
+			slog.String("reason", err.Error()))
+		return nil, nil
+	}
+	gateway, err := billingstripe.NewGateway(billingstripe.Config{
+		SecretKey: string(cfg.StripeSecretKey().Unredacted()),
+		Timeout:   cfg.StripeTimeout(),
+	})
+	if err != nil {
+		logger.Error("http server: billing writes refused: incomplete payment composition, checkout and portal stay unmounted",
+			slog.String("reason", err.Error()))
+		return nil, nil
+	}
+	surface, err := bootstrap.ComposeBillingWrites(base, bootstrap.BillingConfig{
+		Gateway:         gateway,
+		Catalog:         catalog,
+		SuccessURL:      cfg.BillingSuccessURL(),
+		CancelURL:       cfg.BillingCancelURL(),
+		PortalReturnURL: cfg.BillingSuccessURL(),
+		// No provider webhook secret exists in the configuration: the
+		// server-to-server ingress stays a declared provider-only contract
+		// and the writes stay unmounted until one is configured.
+		WebhookSecret: "",
+	})
+	if err != nil {
+		logger.Error("http server: billing writes refused: incomplete payment composition, checkout and portal stay unmounted",
+			slog.String("reason", err.Error()))
+		return nil, nil
+	}
+	logger.Info("http server: billing writes mounted", slog.Int("routes", len(surface.Routes())))
+	return []httpserver.Surface{surface.Surface()}, nil
 }
 
 // runVersion prints the reproducible build metadata (P01-T05). Without

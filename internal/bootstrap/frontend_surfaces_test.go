@@ -302,6 +302,16 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 	for _, route := range entitlements.Routes() {
 		context.composed[route.String()] = true
 	}
+	// The billing writes compose over the synthetic gateway and secret in
+	// this map like the process composes them over Stripe: the proof is the
+	// guarded composition, and production refuses the incomplete one.
+	writes, err := bootstrap.ComposeBillingWrites(participationOptions, billingWritesTestConfig(t))
+	if err != nil {
+		t.Fatalf("ComposeBillingWrites() error = %v", err)
+	}
+	for _, route := range writes.Routes() {
+		context.composed[route.String()] = true
+	}
 	for _, route := range httpserver.HealthRoutes() {
 		context.composed[route.String()] = true
 	}
