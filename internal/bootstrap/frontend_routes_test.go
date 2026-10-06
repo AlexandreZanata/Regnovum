@@ -4,15 +4,15 @@
 //
 // Normative sources (never .local/frontend/ROUTE_BASELINE.json, which is
 // only a photograph for cross-check):
-//   - api/openapi.json (published contract, 82 operations),
+//   - api/openapi.json (published contract, 85 operations),
 //   - the four staged fragments (seasons 4, metering 4, commerce 2,
 //     disputes 5 = 15 operations),
 //   - every internal/*/adapters/{http,html}/routes.go declaration plus
 //     the two platform health routes (100 declarations total).
 //
-// The inventory starts honest: every entry is NOT_VERIFIED, except the
-// three operator jobs without a published contract, which are
-// MISSING_PUBLISHED_CONTRACT. No entry may claim DONE by inference, and
+// The inventory starts honest: every entry is NOT_VERIFIED. P49-T09 closed
+// the three operator jobs gap, so no MISSING_PUBLISHED_CONTRACT row remains.
+// No entry may claim DONE by inference, and
 // no browser usage is inferred by string search: client/page are planned
 // bindings, and probes or contract gaps carry an exclusion instead.
 //
@@ -234,17 +234,17 @@ func TestFrontendRoutesInventoryCounts(t *testing.T) {
 	if context.inventory.Counts.Declared != 100 {
 		t.Errorf("declared = %d, want 100", context.inventory.Counts.Declared)
 	}
-	if context.inventory.Counts.Published != 82 {
-		t.Errorf("published = %d, want 82", context.inventory.Counts.Published)
+	if context.inventory.Counts.Published != 85 {
+		t.Errorf("published = %d, want 85", context.inventory.Counts.Published)
 	}
 	if context.inventory.Counts.Staged != 15 {
 		t.Errorf("staged = %d, want 15", context.inventory.Counts.Staged)
 	}
-	if context.inventory.Counts.MissingPublishedContract != 3 {
-		t.Errorf("missingPublishedContract = %d, want 3", context.inventory.Counts.MissingPublishedContract)
+	if context.inventory.Counts.MissingPublishedContract != 0 {
+		t.Errorf("missingPublishedContract = %d, want 0", context.inventory.Counts.MissingPublishedContract)
 	}
-	if len(context.published) != 82 {
-		t.Errorf("published contract operations = %d, want 82", len(context.published))
+	if len(context.published) != 85 {
+		t.Errorf("published contract operations = %d, want 85", len(context.published))
 	}
 	if len(context.staged) != 15 {
 		t.Errorf("staged fragment operations = %d, want 15 (4+4+2+5)", len(context.staged))
@@ -262,8 +262,8 @@ func TestFrontendRoutesInventoryCounts(t *testing.T) {
 			t.Errorf("readiness = %q, want published|staged|missing-contract", entry.Readiness)
 		}
 	}
-	if published != 82 || staged != 15 || missing != 3 {
-		t.Errorf("readiness rows = %d/%d/%d, want 82/15/3", published, staged, missing)
+	if published != 85 || staged != 15 || missing != 0 {
+		t.Errorf("readiness rows = %d/%d/%d, want 85/15/0", published, staged, missing)
 	}
 }
 
@@ -414,20 +414,20 @@ func TestFrontendRoutesInventoryBijection(t *testing.T) {
 			t.Errorf("inventory lists %q which no routes.go file declares", key)
 		}
 	}
-	// The three known operator jobs without a published contract are
-	// explicit gaps, never silent omissions.
-	for _, key := range []string{
-		"GET /api/v1/admin/jobs/health",
-		"GET /api/v1/admin/jobs/dead",
-		"POST /api/v1/admin/jobs/{id}/retry",
+	// P49-T09 closed the three operator jobs gap: they are published
+	// operations with a contract, never silent omissions.
+	for key, operation := range map[string]string{
+		"GET /api/v1/admin/jobs/health":      "getJobsHealth",
+		"GET /api/v1/admin/jobs/dead":        "listDeadJobs",
+		"POST /api/v1/admin/jobs/{id}/retry": "retryDeadJob",
 	} {
 		entry, ok := context.byKey[key]
 		if !ok {
-			t.Errorf("operator gap %q is missing from the inventory", key)
+			t.Errorf("operator job %q is missing from the inventory", key)
 			continue
 		}
-		if entry.Readiness != "missing-contract" || entry.OperationID != nil {
-			t.Errorf("operator gap %q must stay an explicit null-operation gap", key)
+		if entry.Readiness != "published" || entry.OperationID == nil || *entry.OperationID != operation {
+			t.Errorf("operator job %q must stay a published operation %q", key, operation)
 		}
 	}
 }

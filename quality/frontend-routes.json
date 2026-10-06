@@ -3,7 +3,7 @@
   "date": "2026-10-06",
   "baseline_sha": "3f4522b97410e360023da67a17c548344cb42d73",
   "status": "RECONCILED_INVENTORY_NOT_RUNTIME_COVERAGE",
-  "note": "P48-T01 reconciled inventory built from normative sources only (api/openapi.json, four staged fragments, all internal/*/adapters/{http,html}/routes.go plus platform health routes). .local/frontend/ROUTE_BASELINE.json was used only as a photograph for cross-check, never as source. 100 METHOD+path declarations: 82 published, 15 staged, 3 jobs without published contract. Every entry starts at NOT_VERIFIED (or MISSING_PUBLISHED_CONTRACT for the 3 gaps); no browser usage is claimed by string search. Mounting is measured in P48-T03 and bound in P49+.",
+  "note": "P48-T01 reconciled inventory built from normative sources only (api/openapi.json, four staged fragments, all internal/*/adapters/{http,html}/routes.go plus platform health routes). .local/frontend/ROUTE_BASELINE.json was used only as a photograph for cross-check, never as source. 100 METHOD+path declarations: 85 published, 15 staged, 0 missing. P49-T09 closes the 3 jobs gaps (operator/role/MFA contract + guarded composition); no browser usage is claimed by string search.",
   "sources": [
     "api/openapi.json",
     "internal/seasons/adapters/http/openapi.fragment.json",
@@ -16,9 +16,9 @@
   ],
   "counts": {
     "declared": 100,
-    "published": 82,
+    "published": 85,
     "staged": 15,
-    "missingPublishedContract": 3
+    "missingPublishedContract": 0
   },
   "readiness_values": [
     "published",
@@ -33,62 +33,65 @@
     {
       "method": "GET",
       "path": "/api/v1/admin/jobs/dead",
-      "operation_id": null,
-      "contract": null,
+      "operation_id": "listDeadJobs",
+      "contract": "api/openapi.json",
       "declaration": "internal/jobs/adapters/http/routes.go",
-      "readiness": "missing-contract",
+      "readiness": "published",
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
       "client": null,
       "page": null,
-      "exclusion": "restricted operator panel without published contract; browser binding planned in P55, not claimed here",
+      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/handler_test.go::TestHealthAnswersCountsAndLag"
+        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
       ],
-      "evidence_state": "MISSING_PUBLISHED_CONTRACT",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "evidence_state": "NOT_VERIFIED",
+      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/jobs/health",
-      "operation_id": null,
-      "contract": null,
+      "operation_id": "getJobsHealth",
+      "contract": "api/openapi.json",
       "declaration": "internal/jobs/adapters/http/routes.go",
-      "readiness": "missing-contract",
+      "readiness": "published",
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
       "client": null,
       "page": null,
-      "exclusion": "restricted operator panel without published contract; browser binding planned in P55, not claimed here",
+      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/handler_test.go::TestHealthAnswersCountsAndLag"
+        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
       ],
-      "evidence_state": "MISSING_PUBLISHED_CONTRACT",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "evidence_state": "NOT_VERIFIED",
+      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
     },
     {
       "method": "POST",
       "path": "/api/v1/admin/jobs/{id}/retry",
-      "operation_id": null,
-      "contract": null,
+      "operation_id": "retryDeadJob",
+      "contract": "api/openapi.json",
       "declaration": "internal/jobs/adapters/http/routes.go",
-      "readiness": "missing-contract",
+      "readiness": "published",
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
       "client": null,
       "page": null,
-      "exclusion": "restricted operator panel without published contract; browser binding planned in P55, not claimed here",
+      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/handler_test.go::TestHealthAnswersCountsAndLag"
+        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
       ],
-      "evidence_state": "MISSING_PUBLISHED_CONTRACT",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "evidence_state": "NOT_VERIFIED",
+      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
     },
     {
       "method": "GET",

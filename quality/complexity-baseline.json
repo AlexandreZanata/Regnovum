@@ -388,7 +388,7 @@
       "path": "internal/contract/contract_test.go",
       "function": "TestContractRoutesMatchRegisteredRoutes",
       "metric": "cyclomatic",
-      "value": 42,
+      "value": 41,
       "owner": "internal/contract"
     },
     {

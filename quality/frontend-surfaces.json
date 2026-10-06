@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 82,
-    "declaration_only": 18,
+    "mounted": 85,
+    "declaration_only": 15,
     "validated": 0
   },
   "environments": {
@@ -370,21 +370,21 @@
     },
     {
       "name": "jobs-admin",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeJobs",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/admin/jobs/dead",
         "GET /api/v1/admin/jobs/health",
         "POST /api/v1/admin/jobs/{id}/retry"
       ],
-      "reach_proof": null,
-      "p49": "contract in P49-T09, then guarded composition",
+      "reach_proof": "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits",
+      "p49": "mounted in P49-T09",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Three operator routes without a published contract; P49-T09 closes the contract (operator/role/MFA) before composing."
+      "note": "Health/dead/retry mounted by ComposeJobs over the same pool/security with operatorbridge/auditbridge and TxManager lease (P49-T09); retry requires active admin assignment plus stepped-up session, audit/lease in one transaction, no payload/DSN serializes, no public retry, staged stays unmounted."
     },
     {
       "name": "staged-seasons",

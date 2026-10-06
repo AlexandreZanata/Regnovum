@@ -229,11 +229,11 @@ func runServer(args []string, stdout *os.File) error {
 			Security:  manager,
 			Analytics: telemetry.Events,
 		}
-		cursorSurfaces, err := mountCursorJourneys(journeyBase, cfg, logger)
+		journeySurfaces, err := mountJourneySurfaces(journeyBase, cfg, logger)
 		if err != nil {
 			return err
 		}
-		surfaces = append(surfaces, cursorSurfaces...)
+		surfaces = append(surfaces, journeySurfaces...)
 	} else {
 		logger.Warn("http server: account journey not mounted (ARENA_DATABASE_URL is not set); only the health routes are served")
 	}
@@ -275,6 +275,37 @@ func runServer(args []string, stdout *os.File) error {
 	)
 
 	return server.Run(ctx)
+}
+
+// mountJourneySurfaces composes every journey that mounts beside the account
+// journey: the guarded job operations, which need no cursor secret (the dead
+// listing is a bounded limit page) and therefore mount on any environment
+// with a database, plus the paginating cursor journeys. Composing them
+// together keeps the boot path reading one branch.
+func mountJourneySurfaces(base bootstrap.Options, cfg config.Config, logger *slog.Logger) ([]httpserver.Surface, error) {
+	jobs, err := mountJobOperations(base, logger)
+	if err != nil {
+		return nil, err
+	}
+	cursorSurfaces, err := mountCursorJourneys(base, cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+	return append(jobs, cursorSurfaces...), nil
+}
+
+// mountJobOperations composes the guarded operator surface of the job queue
+// over the shared edges the caller hands over. It needs neither the cursor
+// secret nor the payment configuration, so it mounts on every environment
+// that has a database and a security boundary — and its composition is
+// whole or refused, never partial.
+func mountJobOperations(base bootstrap.Options, logger *slog.Logger) ([]httpserver.Surface, error) {
+	surface, err := bootstrap.ComposeJobs(base)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("http server: job operations mounted", slog.Int("routes", len(surface.Routes())))
+	return []httpserver.Surface{surface.Surface()}, nil
 }
 
 // mountCursorJourneys composes the journeys that paginate — participation

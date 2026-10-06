@@ -193,6 +193,10 @@ func TestPrivilegedBootstrap(t *testing.T) {
 
 // TestPrivilegedNoHttpPromotion prova a ausência da superfície: o contrato
 // não declara rota que concede papel e os palpites voltam 404.
+//
+// As três operações da fila (P49-T09) são a exceção explícita: leem a fila e
+// reenfileiram um job morto sob assignment administrativo ativo e sessão
+// recente — nenhuma concede papel, nenhuma promove conta.
 func TestPrivilegedNoHttpPromotion(t *testing.T) {
 	t.Parallel()
 	world, server, _ := privilegedServer(t)
@@ -202,10 +206,20 @@ func TestPrivilegedNoHttpPromotion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load contract: %v", err)
 	}
-	for path := range document.Paths {
+	operatorJobs := map[string]bool{
+		"GET /api/v1/admin/jobs/health":      true,
+		"GET /api/v1/admin/jobs/dead":        true,
+		"POST /api/v1/admin/jobs/{id}/retry": true,
+	}
+	for path, methods := range document.Paths {
 		lowered := strings.ToLower(path)
-		if strings.HasPrefix(lowered, "/api/v1/admin") || strings.Contains(lowered, "role") && strings.Contains(lowered, "grant") {
-			t.Fatalf("contract declares a role-granting route: %s", path)
+		for method := range methods {
+			if operatorJobs[strings.ToUpper(method)+" "+path] {
+				continue
+			}
+			if strings.HasPrefix(lowered, "/api/v1/admin") || strings.Contains(lowered, "role") && strings.Contains(lowered, "grant") {
+				t.Fatalf("contract declares a role-granting route: %s %s", method, path)
+			}
 		}
 	}
 	for _, path := range []string{"/api/v1/admin/promote", "/api/v1/admin/roles", "/api/v1/moderation/roles", "/api/v1/moderation/grant"} {

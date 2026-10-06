@@ -71,6 +71,9 @@ type matrixParams struct {
 	// perfil, e o caso de arena jamais aceitaria a medida (mismatch
 	// responderia 500 não classificado — lacuna para a T03).
 	profileCase string
+	// deadJob é o job morto que a célula de retry do operador reenfileira;
+	// o tipo é retryable por política, então o 200 prova a transição.
+	deadJob string
 }
 
 // matrixWorld builds the full journeys composition with seven actors:
@@ -230,6 +233,18 @@ func matrixWorld(t *testing.T) (*journeyWorld, *httptest.Server, *matrixParams) 
 	}
 	params.export = exported.ExportID
 
+	// Um job morto para a operação de operador: o retry só é permitido
+	// para workload da allowlist, e email_delivery é um deles.
+	if err := pool.QueryRow(ctx, `
+		INSERT INTO app.jobs (type, version, parameters, state, available_at, attempts, max_attempts,
+		                      last_error_code, last_error_detail, created_at, updated_at)
+		VALUES ('email_delivery', 1, '{"template":"verification","locale":"pt-BR"}'::jsonb, 'dead',
+		        now() - interval '2 hours', 5, 5, 'JOB_HANDLER_ERROR', 'provider unavailable',
+		        now() - interval '2 hours', now() - interval '2 hours')
+		RETURNING id::text`).Scan(&params.deadJob); err != nil {
+		t.Fatalf("seed dead job: %v", err)
+	}
+
 	return world, server, params
 }
 
@@ -321,6 +336,20 @@ func allMatrixCells(params *matrixParams) []matrixCell {
 		{category: "moderation", method: "POST", template: "/api/v1/moderation/cases/{id}/decisions", concrete: "/api/v1/moderation/cases/" + params.profileCase + "/decisions", actor: actorAdmin, body: `{"action":"suspension","rule":"MOD-10:suspension","justification":"Matriz t02 do admin","expires_at":"2026-10-18T12:00:00Z"}`, want: []int{200}},
 		{category: "moderation", method: "POST", template: "/api/v1/me/moderation/appeals", concrete: "/api/v1/me/moderation/appeals", actor: actorAnon, body: `{"action_id":"` + params.action + `","context":"x"}`, want: []int{401}},
 		{category: "moderation", method: "POST", template: "/api/v1/me/moderation/appeals", concrete: "/api/v1/me/moderation/appeals", actor: actorOther, body: `{"action_id":"` + params.action + `","context":"Recurso t02 de quem não foi sancionado"}`, want: []int{403, 404, 409}},
+
+		// Operação restrita da fila (P49-T09): ler exige assignment
+		// administrativo ativo, reenfileirar exige também sessão recente;
+		// moderador e estranho caem na BOLA vertical e o anônimo no 401.
+		{category: "jobs", method: "GET", template: "/api/v1/admin/jobs/health", concrete: "/api/v1/admin/jobs/health", actor: actorAnon, want: []int{401}},
+		{category: "jobs", method: "GET", template: "/api/v1/admin/jobs/health", concrete: "/api/v1/admin/jobs/health", actor: actorOther, want: []int{403}},
+		{category: "jobs", method: "GET", template: "/api/v1/admin/jobs/health", concrete: "/api/v1/admin/jobs/health", actor: actorModerator, want: []int{403}},
+		{category: "jobs", method: "GET", template: "/api/v1/admin/jobs/health", concrete: "/api/v1/admin/jobs/health", actor: actorAdmin, want: []int{200}},
+		{category: "jobs", method: "GET", template: "/api/v1/admin/jobs/dead", concrete: "/api/v1/admin/jobs/dead", actor: actorAnon, want: []int{401}},
+		{category: "jobs", method: "GET", template: "/api/v1/admin/jobs/dead", concrete: "/api/v1/admin/jobs/dead", actor: actorOther, want: []int{403}},
+		{category: "jobs", method: "GET", template: "/api/v1/admin/jobs/dead", concrete: "/api/v1/admin/jobs/dead", actor: actorAdmin, want: []int{200}},
+		{category: "jobs", method: "POST", template: "/api/v1/admin/jobs/{id}/retry", concrete: "/api/v1/admin/jobs/" + params.deadJob + "/retry", actor: actorAnon, body: `{"reason":"matriz t02"}`, want: []int{401}},
+		{category: "jobs", method: "POST", template: "/api/v1/admin/jobs/{id}/retry", concrete: "/api/v1/admin/jobs/" + params.deadJob + "/retry", actor: actorModerator, body: `{"reason":"matriz t02"}`, want: []int{403}},
+		{category: "jobs", method: "POST", template: "/api/v1/admin/jobs/{id}/retry", concrete: "/api/v1/admin/jobs/" + params.deadJob + "/retry", actor: actorAdmin, body: `{"reason":"matriz t02 do operador"}`, want: []int{200}},
 
 		// Cobrança: anônimo 401, dono lê o próprio, suspenso negado; compra
 		// exige elegibilidade, sem oráculo de conta.

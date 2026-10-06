@@ -47,6 +47,9 @@ import (
 	identitypg "github.com/AlexandreZanata/Regnovum/internal/identity/adapters/postgres"
 	identityapp "github.com/AlexandreZanata/Regnovum/internal/identity/application"
 	identitydomain "github.com/AlexandreZanata/Regnovum/internal/identity/domain"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/auditbridge"
+	jobshttp "github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/http"
+	"github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/operatorbridge"
 	jobspg "github.com/AlexandreZanata/Regnovum/internal/jobs/adapters/postgres"
 	jobsapp "github.com/AlexandreZanata/Regnovum/internal/jobs/application"
 	jobsdomain "github.com/AlexandreZanata/Regnovum/internal/jobs/domain"
@@ -208,6 +211,7 @@ func (world *journeyWorld) serveJourneys(t *testing.T) *httptest.Server {
 	checkout := world.mountJourneyCheckout(t)
 	metrics, export := mountTransparencyExport(t, world.pool, world.clock, world.secMgr)
 	profileExport, profileDeletion := mountJourneyPrivacy(t, world)
+	jobs := mountJobs(t, world)
 
 	ids := clockseed.NewIDGenerator("req", world.random, world.clock)
 	handler, err := httpserver.NewMuxWith(ids, locale.NewResolver(), securityheaders.Config{}, []httpserver.Surface{
@@ -226,6 +230,7 @@ func (world *journeyWorld) serveJourneys(t *testing.T) *httptest.Server {
 		surfaceOf(transparencyExportRoutes(), export.RegisterRoutes),
 		surfaceOf(journeyPrivacyRoutes(), profileExport.RegisterRoutes),
 		surfaceOf(journeyDeletionRoutes(), profileDeletion.RegisterRoutes),
+		surfaceOf(jobsRoutes(), jobs.RegisterRoutes),
 	})
 	if err != nil {
 		t.Fatalf("compose journeys router: %v", err)
@@ -741,6 +746,40 @@ func journeyPrivacyRoutes() []httpserver.Route {
 		{Method: "POST", Path: "/api/v1/me/exports"},
 		{Method: "GET", Path: "/api/v1/me/exports/{id}/download"},
 	}
+}
+
+// mountJobs composes the guarded operator surface of the job queue
+// (P49-T09) over the harness pool and boundary: the same use cases, bridges
+// and transaction manager the process composes, so the authorization matrix
+// probes the real handler. The outer middleware already resolved the
+// session, and the handler's own requirement reads it from the context.
+func mountJobs(t *testing.T, world *journeyWorld) *jobshttp.Handler {
+	t.Helper()
+	repo := jobspg.NewRepository(world.pool)
+	health, err := jobsapp.NewGetQueueHealthUseCase(repo, world.clock)
+	if err != nil {
+		t.Fatalf("NewGetQueueHealthUseCase: %v", err)
+	}
+	list, err := jobsapp.NewListDeadJobsUseCase(repo, world.clock)
+	if err != nil {
+		t.Fatalf("NewListDeadJobsUseCase: %v", err)
+	}
+	operators, err := operatorbridge.NewDirectory(moderationpg.NewRepository(world.pool))
+	if err != nil {
+		t.Fatalf("operator bridge: %v", err)
+	}
+	audit, err := auditbridge.NewRecorder(auditpg.NewRepository(world.pool))
+	if err != nil {
+		t.Fatalf("audit bridge: %v", err)
+	}
+	retry, err := jobsapp.NewRetryJobUseCase(repo, repo, audit, platformpg.NewTxManager(world.pool), world.clock)
+	if err != nil {
+		t.Fatalf("NewRetryJobUseCase: %v", err)
+	}
+	return jobshttp.NewHandler(jobshttp.HandlerConfig{
+		Health: health, ListDead: list, Retry: retry,
+		Operators: operators, Sessions: repo, Security: world.secMgr, Clock: world.clock,
+	})
 }
 
 func journeyDeletionRoutes() []httpserver.Route {
