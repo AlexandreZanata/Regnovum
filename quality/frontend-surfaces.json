@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 42,
-    "declaration_only": 58,
+    "mounted": 54,
+    "declaration_only": 46,
     "validated": 0
   },
   "environments": {
@@ -129,19 +129,19 @@
     },
     {
       "name": "arena-document",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeArenaLifecycle",
+      "state": "mounted",
       "routes": [
         "GET /d/{slug}"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T03",
+      "reach_proof": "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument",
+      "p49": "mounted in P49-T03",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Cacheable public Arena document declared but claimed by no surface; the process answers its placeholder."
+      "note": "Cacheable public Arena document mounted by ComposeArenaLifecycle beside the JSON lifecycle (P49-T03); proven via process httptest+PG alongside draft publish, feed and search."
     },
     {
       "name": "identity-api",
@@ -196,8 +196,8 @@
     },
     {
       "name": "arenas-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeArenaLifecycle",
+      "state": "mounted",
       "routes": [
         "DELETE /api/v1/me/arena-drafts/{id}",
         "GET /api/v1/arenas",
@@ -209,14 +209,14 @@
         "POST /api/v1/me/arena-drafts/{id}/publish",
         "POST /api/v1/me/arenas/{id}/close"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T03",
+      "reach_proof": "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument",
+      "p49": "mounted in P49-T03",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Draft lifecycle, publish/close, feed and public document JSON stay placeholders; HTML participation is unaffected."
+      "note": "Draft CRUD, publish spending one pass, close, feed and public document JSON mounted by ComposeArenaLifecycle over the same pool/security/session validator with a cursor secret (P49-T03); proven via process httptest+PG: draft-publish-feed-document, owner-vs-stranger, forged cursor refused, idempotent close replay. HTML participation is unaffected."
     },
     {
       "name": "positions-api",
@@ -279,20 +279,20 @@
     },
     {
       "name": "search-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeArenaLifecycle",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/search/arenas",
         "GET /api/v1/search/arguments"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T03",
+      "reach_proof": "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor",
+      "p49": "mounted in P49-T03",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Arena and argument search stay placeholders."
+      "note": "Arena and argument full-text search mounted by ComposeArenaLifecycle with the shared cursor secret (P49-T03); proven via process httptest+PG: anonymous search finds the published Arena, forged cursor refused."
     },
     {
       "name": "transparency",

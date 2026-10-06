@@ -262,6 +262,10 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 	if err != nil {
 		t.Fatalf("ComposeAccountPrivacy() error = %v", err)
 	}
+	lifecycle, err := bootstrap.ComposeArenaLifecycle(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeArenaLifecycle() error = %v", err)
+	}
 	context := &surfacesContext{
 		surfaces:      surfaces,
 		inventoryKeys: make(map[string]bool, len(inventory.Routes)),
@@ -279,6 +283,9 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 		context.composed[route.String()] = true
 	}
 	for _, route := range privacy.Routes() {
+		context.composed[route.String()] = true
+	}
+	for _, route := range lifecycle.Routes() {
 		context.composed[route.String()] = true
 	}
 	for _, route := range httpserver.HealthRoutes() {

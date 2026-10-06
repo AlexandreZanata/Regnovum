@@ -106,10 +106,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "GET",
@@ -190,10 +191,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "GET",
@@ -428,10 +430,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "POST",
@@ -449,10 +452,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "DELETE",
@@ -470,10 +474,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftOwnerStranger"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "GET",
@@ -491,10 +496,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftOwnerStranger"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "PATCH",
@@ -512,10 +518,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "POST",
@@ -533,10 +540,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "POST",
@@ -596,10 +604,11 @@
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaClose"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "GET",
@@ -1683,10 +1692,11 @@
       "tests": [
         "internal/search/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (anonymous search finds the published Arena, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "GET",
@@ -1704,10 +1714,11 @@
       "tests": [
         "internal/search/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (anonymous search served, forged cursor refused; argument results land with debate reads in P53). Browser client/page lands in P53."
     },
     {
       "method": "GET",
@@ -1830,10 +1841,11 @@
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
     },
     {
       "method": "GET",

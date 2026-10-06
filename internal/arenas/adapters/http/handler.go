@@ -119,37 +119,44 @@ type HandlerConfig struct {
 	GetPublicUseCase   *application.GetPublicArenaUseCase
 	SecurityManager    *security.Manager
 	Challenge          turnstile.Challenger
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // Handler serves the versioned arena API.
 type Handler struct {
-	createDraft *application.CreateArenaDraftUseCase
-	getDraft    *application.GetArenaDraftUseCase
-	listDrafts  *application.ListArenaDraftsUseCase
-	updateDraft *application.UpdateArenaDraftUseCase
-	deleteDraft *application.DeleteArenaDraftUseCase
-	publish     *application.PublishArenaUseCase
-	close       *application.CloseArenaUseCase
-	feed        *application.GetArenaFeedUseCase
-	getPublic   *application.GetPublicArenaUseCase
-	security    *security.Manager
-	challenge   turnstile.Challenger
+	createDraft      *application.CreateArenaDraftUseCase
+	getDraft         *application.GetArenaDraftUseCase
+	listDrafts       *application.ListArenaDraftsUseCase
+	updateDraft      *application.UpdateArenaDraftUseCase
+	deleteDraft      *application.DeleteArenaDraftUseCase
+	publish          *application.PublishArenaUseCase
+	close            *application.CloseArenaUseCase
+	feed             *application.GetArenaFeedUseCase
+	getPublic        *application.GetPublicArenaUseCase
+	security         *security.Manager
+	challenge        turnstile.Challenger
+	sessionValidator security.SessionValidator
 }
 
 // NewHandler constructs an arenas HTTP handler.
 func NewHandler(cfg HandlerConfig) *Handler {
 	return &Handler{
-		createDraft: cfg.CreateDraftUseCase,
-		getDraft:    cfg.GetDraftUseCase,
-		listDrafts:  cfg.ListDraftsUseCase,
-		updateDraft: cfg.UpdateDraftUseCase,
-		deleteDraft: cfg.DeleteDraftUseCase,
-		publish:     cfg.PublishUseCase,
-		close:       cfg.CloseUseCase,
-		feed:        cfg.FeedUseCase,
-		getPublic:   cfg.GetPublicUseCase,
-		security:    cfg.SecurityManager,
-		challenge:   cfg.Challenge,
+		createDraft:      cfg.CreateDraftUseCase,
+		getDraft:         cfg.GetDraftUseCase,
+		listDrafts:       cfg.ListDraftsUseCase,
+		updateDraft:      cfg.UpdateDraftUseCase,
+		deleteDraft:      cfg.DeleteDraftUseCase,
+		publish:          cfg.PublishUseCase,
+		close:            cfg.CloseUseCase,
+		feed:             cfg.FeedUseCase,
+		getPublic:        cfg.GetPublicUseCase,
+		security:         cfg.SecurityManager,
+		challenge:        cfg.Challenge,
+		sessionValidator: cfg.SessionValidator,
 	}
 }
 
@@ -547,13 +554,19 @@ func (h *Handler) challenged(action turnstile.Action, next http.Handler) http.Ha
 	return h.challenge.Challenge(action, next)
 }
 
-// privateRoute applies the authentication requirement when a security
-// manager is configured.
+// privateRoute applies the session requirement when a security manager is
+// configured: the session is resolved first with the shared validator, then
+// required — without the resolution the requirement would refuse every call
+// on a surface mounted without an outer wrapper.
 func (h *Handler) privateRoute(next http.Handler) http.Handler {
 	if h.security == nil {
 		return next
 	}
-	return h.security.RequireAuthMiddleware()(next)
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }
 
 // RegisterRoutes wires the arena endpoints into the provided ServeMux.
