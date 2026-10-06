@@ -312,6 +312,13 @@ func loadSurfacesContext(t *testing.T) *surfacesContext {
 	for _, route := range writes.Routes() {
 		context.composed[route.String()] = true
 	}
+	moderation, err := bootstrap.ComposeModeration(participationOptions)
+	if err != nil {
+		t.Fatalf("ComposeModeration() error = %v", err)
+	}
+	for _, route := range moderation.Routes() {
+		context.composed[route.String()] = true
+	}
 	for _, route := range httpserver.HealthRoutes() {
 		context.composed[route.String()] = true
 	}

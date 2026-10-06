@@ -1238,10 +1238,11 @@
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationAppealAfterWarning"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (owner appeals an appealable measure inside its window, private no-store). Browser client/page lands in P55."
     },
     {
       "method": "POST",
@@ -1259,10 +1260,11 @@
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationReportFiling"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (authenticated filing, 401 anonymous, private no-store). Browser client/page lands in P55."
     },
     {
       "method": "GET",
@@ -1584,10 +1586,11 @@
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationQueueRequiresRoleAndStepUp"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T07 mounted in ComposeModeration with the shared cursor secret; proven via process httptest+PG (403 without role, 403 without/stale factor, 200 stepped up, 401 anonymous). Browser client/page lands in P55."
     },
     {
       "method": "POST",
@@ -1605,10 +1608,11 @@
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (claim under lease, live-lease claim 409, private no-store). Browser client/page lands in P55."
     },
     {
       "method": "POST",
@@ -1626,10 +1630,11 @@
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (warning settles with its audit row, second decision 409, lapsed lease 409, no evidence leak). Browser client/page lands in P55."
     },
     {
       "method": "GET",

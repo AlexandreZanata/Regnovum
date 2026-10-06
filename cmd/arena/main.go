@@ -279,16 +279,17 @@ func runServer(args []string, stdout *os.File) error {
 
 // mountCursorJourneys composes the journeys that paginate — participation
 // (Arena feed), account privacy (wallet statement), the Arena lifecycle
-// (feed, search and drafts), the debate (argument lists) and the entitlement
-// reads (pass history) — over the shared edges the caller hands over.
-// Without the cursor signing secret none can paginate its lists honestly,
-// so all stay unmounted; production, which is expected to serve them,
-// refuses the boot instead of shipping the gap silently.
+// (feed, search and drafts), the debate (argument lists), the entitlement
+// reads (pass history) and the moderation triage queue — over the shared
+// edges the caller hands over. Without the cursor signing secret none can
+// paginate its lists honestly, so all stay unmounted; production, which is
+// expected to serve them, refuses the boot instead of shipping the gap
+// silently.
 func mountCursorJourneys(base bootstrap.Options, cfg config.Config, logger *slog.Logger) ([]httpserver.Surface, error) {
 	if !cfg.CursorSecret().IsSet() {
 		if cfg.IsProduction() {
 			return nil, fmt.Errorf(
-				"compose the cursor journeys: %s is not set, and without a cursor signing secret neither the Arena pages, the wallet statement, the Arena feed, the argument lists nor the pass history can paginate their lists",
+				"compose the cursor journeys: %s is not set, and without a cursor signing secret neither the Arena pages, the wallet statement, the Arena feed, the argument lists, the pass history nor the triage queue can paginate their lists",
 				config.CursorSecretVariable,
 			)
 		}
@@ -320,12 +321,17 @@ func mountCursorJourneys(base bootstrap.Options, cfg config.Config, logger *slog
 	if err != nil {
 		return nil, err
 	}
+	moderation, err := bootstrap.ComposeModeration(options)
+	if err != nil {
+		return nil, err
+	}
 	logger.Info("http server: participation journey mounted", slog.Int("routes", len(participation.Routes())))
 	logger.Info("http server: account privacy mounted", slog.Int("routes", len(privacy.Routes())))
 	logger.Info("http server: arena lifecycle mounted", slog.Int("routes", len(lifecycle.Routes())))
 	logger.Info("http server: debate mounted", slog.Int("routes", len(debate.Routes())))
 	logger.Info("http server: entitlement reads mounted", slog.Int("routes", len(entitlements.Routes())))
-	surfaces := []httpserver.Surface{participation.Surface(), privacy.Surface(), lifecycle.Surface(), debate.Surface(), entitlements.Surface()}
+	logger.Info("http server: moderation mounted", slog.Int("routes", len(moderation.Routes())))
+	surfaces := []httpserver.Surface{participation.Surface(), privacy.Surface(), lifecycle.Surface(), debate.Surface(), entitlements.Surface(), moderation.Surface()}
 	// The guarded billing writes mount beside the cursor journeys: no second
 	// auth, no second cookie, the same pool and boundary as every surface
 	// above. An incomplete payment composition stays unmounted instead of

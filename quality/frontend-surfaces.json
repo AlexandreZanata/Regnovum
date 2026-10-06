@@ -10,8 +10,8 @@
   ],
   "counts": {
     "declared": 100,
-    "mounted": 74,
-    "declaration_only": 26,
+    "mounted": 79,
+    "declaration_only": 21,
     "validated": 0
   },
   "environments": {
@@ -350,8 +350,8 @@
     },
     {
       "name": "moderation-api",
-      "composer": null,
-      "state": "declaration",
+      "composer": "internal/bootstrap.ComposeModeration",
+      "state": "mounted",
       "routes": [
         "GET /api/v1/moderation/cases",
         "POST /api/v1/me/moderation/appeals",
@@ -359,14 +359,14 @@
         "POST /api/v1/moderation/cases/{id}/claim",
         "POST /api/v1/moderation/cases/{id}/decisions"
       ],
-      "reach_proof": null,
-      "p49": "mount in P49-T07",
+      "reach_proof": "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney",
+      "p49": "mounted in P49-T07",
       "environments": [
         "test",
         "development",
         "production"
       ],
-      "note": "Reports/appeals/cases/claim/decisions stay placeholders; no role is granted over HTTP. The restricted attribution signals read moved to the mounted persuasion-api surface in P49-T04."
+      "note": "Reports/appeals/cases/claim/decisions mounted by ComposeModeration over the same pool/security/session validator with a cursor secret (P49-T07); the triage routes require an active assignment plus a stepped-up session read from the same role store the debate signals gate answers from. Proven via process httptest+PG: 401/403/MFA, double claim and lapsed lease 409, conflicting decision 409, audited decision row, no self-promotion route. No role is granted over HTTP."
     },
     {
       "name": "jobs-admin",

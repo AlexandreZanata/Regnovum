@@ -120,37 +120,44 @@ type HandlerConfig struct {
 	SecurityManager *security.Manager
 	Clock           ports.Clock
 	RateLimit       ratelimit.Protector
+	// SessionValidator resolves the session cookie before the requirement
+	// is enforced — the same contract the identity JSON API uses. When nil
+	// the composition is expected to resolve the session upstream, as the
+	// adapter unit tests do.
+	SessionValidator security.SessionValidator
 }
 
 // Handler serves the moderation API.
 type Handler struct {
-	fileReport *application.FileReportUseCase
-	fileAppeal *application.FileAppealUseCase
-	getQueue   *application.GetCaseQueueUseCase
-	claimCase  *application.ClaimCaseUseCase
-	decideCase *application.DecideCaseUseCase
-	roles      application.RoleRepository
-	sessions   application.SessionAgeDirectory
-	codec      *application.QueueCursorCodec
-	security   *security.Manager
-	clock      ports.Clock
-	rateLimit  ratelimit.Protector
+	fileReport       *application.FileReportUseCase
+	fileAppeal       *application.FileAppealUseCase
+	getQueue         *application.GetCaseQueueUseCase
+	claimCase        *application.ClaimCaseUseCase
+	decideCase       *application.DecideCaseUseCase
+	roles            application.RoleRepository
+	sessions         application.SessionAgeDirectory
+	codec            *application.QueueCursorCodec
+	security         *security.Manager
+	clock            ports.Clock
+	rateLimit        ratelimit.Protector
+	sessionValidator security.SessionValidator
 }
 
 // NewHandler constructs a moderation HTTP handler.
 func NewHandler(cfg HandlerConfig) *Handler {
 	return &Handler{
-		fileReport: cfg.FileReport,
-		fileAppeal: cfg.FileAppeal,
-		getQueue:   cfg.GetQueue,
-		claimCase:  cfg.ClaimCase,
-		decideCase: cfg.DecideCase,
-		roles:      cfg.Roles,
-		sessions:   cfg.Sessions,
-		codec:      cfg.QueueCodec,
-		security:   cfg.SecurityManager,
-		clock:      cfg.Clock,
-		rateLimit:  cfg.RateLimit,
+		fileReport:       cfg.FileReport,
+		fileAppeal:       cfg.FileAppeal,
+		getQueue:         cfg.GetQueue,
+		claimCase:        cfg.ClaimCase,
+		decideCase:       cfg.DecideCase,
+		roles:            cfg.Roles,
+		sessions:         cfg.Sessions,
+		codec:            cfg.QueueCodec,
+		security:         cfg.SecurityManager,
+		clock:            cfg.Clock,
+		rateLimit:        cfg.RateLimit,
+		sessionValidator: cfg.SessionValidator,
 	}
 }
 
@@ -565,11 +572,17 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/v1/moderation/cases/{id}/decisions", withPrivateNoStore(h.privateRoute(http.HandlerFunc(h.DecideCase))))
 }
 
-// privateRoute applies the authentication requirement when a security
-// manager is configured.
+// privateRoute applies the session requirement when a security manager is
+// configured: the session is resolved first with the shared validator, then
+// required — without the resolution the requirement would refuse every call
+// on a surface mounted without an outer wrapper.
 func (h *Handler) privateRoute(next http.Handler) http.Handler {
 	if h.security == nil {
 		return next
 	}
-	return h.security.RequireAuthMiddleware()(next)
+	required := h.security.RequireAuthMiddleware()(next)
+	if h.sessionValidator == nil {
+		return required
+	}
+	return h.security.AuthenticateMiddleware(h.sessionValidator)(required)
 }
