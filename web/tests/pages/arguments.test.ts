@@ -1,13 +1,17 @@
 /**
- * Tests of the argument reading and discovery presentation (P53-T02).
+ * Tests of the argument reading and discovery presentation (P53-T02;
+ * replies and withdrawal P53-T04).
  *
  * They run the real generated catalogs in both locales: rows render
  * user content verbatim with translated relations, a withdrawn read
  * keeps identity and status while withholding content, the search
  * carries the query verbatim without changing any Arena language,
  * pages merge without duplication while late answers are discarded,
- * sources pass a structural check that refuses the malicious, and
- * failures name only the server codes the backend really emits.
+ * sources pass a structural check that refuses the malicious,
+ * replies render one level with their own empty state, the
+ * withdrawal confirmation names the content without promising a
+ * refund, and failures name only the server codes the backend
+ * really emits.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -15,6 +19,7 @@ import { test } from "node:test";
 import {
   argumentFailure,
   argumentListView,
+  argumentRepliesView,
   argumentRow,
   argumentSearchListView,
   argumentSearchRow,
@@ -25,7 +30,10 @@ import {
   mergeArgumentSearchPage,
   parseArgumentSearch,
   relationLabel,
+  replyContextView,
+  replyFailure,
   serializeArgumentSearch,
+  withdrawConfirmView,
 } from "../../src/pages/arguments.js";
 import { createTranslator } from "../../src/i18n/translator.js";
 import type {
@@ -228,6 +236,95 @@ test("argument failures name the real server codes and fall back otherwise", () 
   assert.equal(
     argumentFailure(translator, "argument_too_many"),
     argumentFailure(translator, "something-the-backend-never-emits"),
+    "an unknown code must fall back to the generic sentence",
+  );
+});
+
+const PARENT: Argument = {
+  arena_id: "arena-1",
+  content: "Because responsibility presupposes consciousness.",
+  created_at: "2026-10-02T11:00:00Z",
+  id: "arg-1",
+  parent_id: null,
+  relation: "support",
+  status: "published",
+};
+
+const REPLY_ITEM: ArgumentListItem = {
+  arena_id: "arena-1",
+  content: "The historical context shows verification always helped.",
+  created_at: "2026-10-02T12:00:00Z",
+  id: "arg-2",
+  parent_id: "arg-1",
+  relation: "context",
+  reply_count: 0,
+  status: "published",
+};
+
+test("replies render one level with their own empty state", () => {
+  const translator = translatorOf("pt-BR");
+  const merged = mergeArgumentPage(translator, "pt-BR", [], { items: [REPLY_ITEM], next_cursor: null });
+  const view = argumentRepliesView(translator, merged);
+
+  assert.equal(view.state, "ready");
+  if (view.state === "ready") {
+    assert.equal(view.rows.length, 1);
+    assert.equal(view.rows[0]?.relation, "Contexto");
+    assert.equal(view.end, "Sem mais resultados.");
+  } else {
+    assert.ok(false, "a recorded reply must be ready");
+  }
+
+  const empty = argumentRepliesView(translatorOf("en-US"), { rows: [], nextCursor: null });
+  assert.equal(empty.state, "empty");
+  if (empty.state === "empty") {
+    assert.equal(empty.empty, "No replies to this argument yet.");
+  }
+});
+
+test("the withdrawal confirmation names the content without promising a refund", () => {
+  const view = withdrawConfirmView(translatorOf("pt-BR"), PARENT);
+
+  assert.ok(
+    view.confirmation.includes("Because responsibility presupposes consciousness."),
+    `unexpected: ${view.confirmation}`,
+  );
+  assert.ok(view.confirmation.includes("sem reembolso"), `no refund is promised: ${view.confirmation}`);
+  assert.equal(view.submit, "Retirar argumento");
+
+  const en = withdrawConfirmView(translatorOf("en-US"), PARENT);
+  assert.ok(en.confirmation.includes("without a refund"));
+  assert.equal(en.submit, "Withdraw argument");
+});
+
+test("the reply context names the parent it answers", () => {
+  const view = replyContextView(translatorOf("pt-BR"), PARENT);
+
+  assert.ok(view.notice.includes("Because responsibility presupposes consciousness."));
+
+  const en = replyContextView(translatorOf("en-US"), PARENT);
+  assert.ok(en.notice.startsWith("In reply to:"));
+});
+
+test("reply and withdrawal failures name the real codes, the rest delegates", () => {
+  const translator = translatorOf("en-US");
+
+  assert.ok(replyFailure(translator, "parent_not_found").includes("no longer exists"));
+  assert.ok(replyFailure(translator, "parent_not_available").includes("accepts no replies"));
+  assert.ok(replyFailure(translator, "reply_depth_exceeded").includes("one level"));
+  assert.ok(replyFailure(translator, "argument_not_withdrawable").includes("cannot be withdrawn"));
+  assert.ok(replyFailure(translator, "argument_not_found").includes("removed"));
+  assert.ok(
+    replyFailure(translator, "insufficient_ink").includes("balance"),
+    "a reply costs: the shared publication sentence answers",
+  );
+  assert.ok(
+    replyFailure(translator, "argument_content_too_long").includes("graphemes"),
+    "content rules delegate to the publication journey",
+  );
+  assert.equal(
+    replyFailure(translator, "reply_too_many"),
+    replyFailure(translator, "something-the-backend-never-emits"),
     "an unknown code must fall back to the generic sentence",
   );
 });

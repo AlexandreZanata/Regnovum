@@ -257,6 +257,105 @@ test("a reply posts the replies path with its own key", async () => {
   assert.equal(answer.replayed, false);
 });
 
+test("withdrawal posts the owner subresource with no body and no key", async () => {
+  const context = createTestContext({
+    responder: () => jsonResponse({ argument: { ...ITEM, content: null, status: "withdrawn" }, replayed: false }),
+  });
+
+  const answer = await createArgumentsClient(context.core).withdraw("arg-1");
+
+  assert.equal(context.calls.length, 1);
+  assert.equal(context.lastCall().init.method, "POST");
+  assert.equal(context.lastCall().url, "https://arena.test/api/v1/me/arguments/arg-1/withdraw");
+  assert.equal(context.lastCall().init.body, undefined, "the withdrawal carries no body");
+  assert.equal(headerOf(context.lastCall(), "idempotency-key"), null);
+  assert.equal(answer.argument.status, "withdrawn");
+  assert.equal(answer.argument.content, null, "the historical fact stays, the display content goes");
+  assert.equal(answer.replayed, false);
+  assert.equal(context.lastCall().init.cache, "no-store");
+});
+
+test("a repeated withdrawal resolves the recorded one without a second transition", async () => {
+  const context = createTestContext({
+    responder: () =>
+      jsonResponse({ argument: { ...ITEM, content: null, status: "withdrawn" }, replayed: true }),
+  });
+
+  const answer = await createArgumentsClient(context.core).withdraw("arg-1");
+
+  assert.equal(answer.replayed, true);
+  assert.equal(context.calls.length, 1, "the client never replays a withdrawal by itself");
+});
+
+test("a stranger never reaches another author's argument", async () => {
+  const context = createTestContext({ responder: () => problemResponse(404, "argument_not_found") });
+
+  const failure = await captureApiError(() => createArgumentsClient(context.core).withdraw("someone-elses"));
+
+  assert.equal(failure.code, "argument_not_found");
+  assert.equal(failure.kind, "not_found");
+  assert.equal(context.calls.length, 1);
+});
+
+test("an argument that cannot be withdrawn fails without a write", async () => {
+  const context = createTestContext({ responder: () => problemResponse(409, "argument_not_withdrawable") });
+
+  const failure = await captureApiError(() => createArgumentsClient(context.core).withdraw("arg-1"));
+
+  assert.equal(failure.code, "argument_not_withdrawable");
+  assert.equal(failure.kind, "conflict");
+  assert.equal(failure.retryable, false);
+  assert.equal(context.calls.length, 1);
+});
+
+test("a reply to a reply exceeds the single recursion level", async () => {
+  const context = createTestContext({ responder: () => problemResponse(409, "reply_depth_exceeded") });
+
+  const failure = await captureApiError(() =>
+    createArgumentsClient(context.core).reply("arena-1", "arg-2", {
+      relation: "context",
+      content: "Resposta a uma resposta.",
+      sources: [],
+    }),
+  );
+
+  assert.equal(failure.code, "reply_depth_exceeded");
+  assert.equal(failure.kind, "conflict");
+  assert.equal(context.calls.length, 1);
+});
+
+test("a parent outside the arena stays refused", async () => {
+  const context = createTestContext({ responder: () => problemResponse(404, "parent_not_found") });
+
+  const failure = await captureApiError(() =>
+    createArgumentsClient(context.core).reply("arena-1", "other-arena-parent", {
+      relation: "support",
+      content: "Fora da arena.",
+      sources: [],
+    }),
+  );
+
+  assert.equal(failure.code, "parent_not_found");
+  assert.equal(failure.kind, "not_found");
+  assert.equal(context.calls.length, 1);
+});
+
+test("an unavailable parent accepts no replies", async () => {
+  const context = createTestContext({ responder: () => problemResponse(409, "parent_not_available") });
+
+  const failure = await captureApiError(() =>
+    createArgumentsClient(context.core).reply("arena-1", "arg-1", {
+      relation: "support",
+      content: "Tarde demais.",
+      sources: [],
+    }),
+  );
+
+  assert.equal(failure.code, "parent_not_available");
+  assert.equal(failure.kind, "conflict");
+  assert.equal(context.calls.length, 1);
+});
+
 test("reads send no body and no key", async () => {
   const context = createTestContext({ responder: () => jsonResponse({ items: [], next_cursor: null }) });
 

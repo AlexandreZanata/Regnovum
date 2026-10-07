@@ -370,6 +370,13 @@ const expectations: readonly Expectation[] = [
     idempotent: false,
   },
   {
+    name: "arguments withdraw",
+    run: (core) => createArgumentsClient(core).withdraw("arg-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/arguments/arg-1/withdraw",
+    idempotent: false,
+  },
+  {
     name: "arguments reply",
     run: (core) => createArgumentsClient(core).reply("arena-1", "arg-1", { relation: "oppose", content: "reply", sources: [] }),
     method: "POST",

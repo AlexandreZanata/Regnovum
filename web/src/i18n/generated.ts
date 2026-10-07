@@ -4,11 +4,19 @@
 /** Message keys per namespace. */
 export const messageKeys = {
   arenas: [
+    "arenas.arguments.failure_depth",
     "arenas.arguments.failure_generic",
     "arenas.arguments.failure_invalid_query",
     "arenas.arguments.failure_missing",
+    "arenas.arguments.failure_not_withdrawable",
+    "arenas.arguments.failure_parent_missing",
+    "arenas.arguments.failure_parent_unavailable",
+    "arenas.arguments.replies_empty",
+    "arenas.arguments.reply_to",
     "arenas.arguments.search_empty",
     "arenas.arguments.search_hint",
+    "arenas.arguments.withdraw_confirm",
+    "arenas.arguments.withdraw_submit",
     "arenas.arguments.withdrawn_note",
     "arenas.document.gone.detail",
     "arenas.document.gone.title",
@@ -485,11 +493,19 @@ export const messageKeys = {
 
 /** Every message key across namespaces. */
 export type MessageKey =
+  | "arenas.arguments.failure_depth"
   | "arenas.arguments.failure_generic"
   | "arenas.arguments.failure_invalid_query"
   | "arenas.arguments.failure_missing"
+  | "arenas.arguments.failure_not_withdrawable"
+  | "arenas.arguments.failure_parent_missing"
+  | "arenas.arguments.failure_parent_unavailable"
+  | "arenas.arguments.replies_empty"
+  | "arenas.arguments.reply_to"
   | "arenas.arguments.search_empty"
   | "arenas.arguments.search_hint"
+  | "arenas.arguments.withdraw_confirm"
+  | "arenas.arguments.withdraw_submit"
   | "arenas.arguments.withdrawn_note"
   | "arenas.document.gone.detail"
   | "arenas.document.gone.title"
@@ -947,11 +963,19 @@ export type MessageKey =
 
 /** Named placeholders per message key: the exact values one translation accepts. */
 export const messagePlaceholders = Object.freeze({
+  "arenas.arguments.failure_depth": [],
   "arenas.arguments.failure_generic": [],
   "arenas.arguments.failure_invalid_query": [],
   "arenas.arguments.failure_missing": [],
+  "arenas.arguments.failure_not_withdrawable": [],
+  "arenas.arguments.failure_parent_missing": [],
+  "arenas.arguments.failure_parent_unavailable": [],
+  "arenas.arguments.replies_empty": [],
+  "arenas.arguments.reply_to": ["content"],
   "arenas.arguments.search_empty": [],
   "arenas.arguments.search_hint": [],
+  "arenas.arguments.withdraw_confirm": ["content"],
+  "arenas.arguments.withdraw_submit": [],
   "arenas.arguments.withdrawn_note": [],
   "arenas.document.gone.detail": [],
   "arenas.document.gone.title": [],
@@ -1410,11 +1434,19 @@ export const messagePlaceholders = Object.freeze({
 /** Localized messages per locale per key. */
 export const messages: Readonly<Record<string, Readonly<Record<string, string>>>> = Object.freeze({
   "en-US": Object.freeze({
+    "arenas.arguments.failure_depth": "Replies accept one level: this one already is a reply.",
     "arenas.arguments.failure_generic": "The argument did not answer. Try again.",
     "arenas.arguments.failure_invalid_query": "The search did not pass. Check the text and the language.",
     "arenas.arguments.failure_missing": "This argument does not exist or was removed.",
+    "arenas.arguments.failure_not_withdrawable": "This argument cannot be withdrawn in its current state.",
+    "arenas.arguments.failure_parent_missing": "The parent argument no longer exists.",
+    "arenas.arguments.failure_parent_unavailable": "The parent argument accepts no replies.",
+    "arenas.arguments.replies_empty": "No replies to this argument yet.",
+    "arenas.arguments.reply_to": "In reply to: “{content}”",
     "arenas.arguments.search_empty": "No arguments match this search.",
     "arenas.arguments.search_hint": "Type what you seek in the published arguments.",
+    "arenas.arguments.withdraw_confirm": "Withdraw the argument “{content}”? The content leaves the display, without erasing the historical fact and without a refund.",
+    "arenas.arguments.withdraw_submit": "Withdraw argument",
     "arenas.arguments.withdrawn_note": "This argument was withdrawn by its author. Only its identity remains.",
     "arenas.document.gone.detail": "This Arena was removed by moderation and is no longer available.",
     "arenas.document.gone.title": "Arena removed",
@@ -1870,11 +1902,19 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.metrics.window": "Sealed window: {start} – {end} (UTC)",
   }),
   "pt-BR": Object.freeze({
+    "arenas.arguments.failure_depth": "Respostas aceitam um nível: esta já é uma resposta.",
     "arenas.arguments.failure_generic": "O argumento não respondeu. Tente de novo.",
     "arenas.arguments.failure_invalid_query": "A busca não passou. Confira o texto e o idioma.",
     "arenas.arguments.failure_missing": "Este argumento não existe ou foi removido.",
+    "arenas.arguments.failure_not_withdrawable": "Este argumento não pode ser retirado neste estado.",
+    "arenas.arguments.failure_parent_missing": "O argumento de origem não existe mais.",
+    "arenas.arguments.failure_parent_unavailable": "O argumento de origem não aceita respostas.",
+    "arenas.arguments.replies_empty": "Ainda não há respostas para este argumento.",
+    "arenas.arguments.reply_to": "Em resposta a: “{content}”",
     "arenas.arguments.search_empty": "Nenhum argumento bate com esta busca.",
     "arenas.arguments.search_hint": "Digite o que procura nos argumentos publicados.",
+    "arenas.arguments.withdraw_confirm": "Retirar o argumento “{content}”? O conteúdo sai da exibição, sem apagar o fato histórico e sem reembolso.",
+    "arenas.arguments.withdraw_submit": "Retirar argumento",
     "arenas.arguments.withdrawn_note": "Este argumento foi retirado pelo autor. Só a identidade permanece.",
     "arenas.document.gone.detail": "Esta Arena foi removida pela moderação e não está mais disponível.",
     "arenas.document.gone.title": "Arena removida",

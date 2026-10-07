@@ -9,7 +9,11 @@
  * replyToArgument): the client names one key per attempt, the core
  * replays it across the single retry, and a replay answers the
  * recorded argument instead of charging again. The core never invents
- * the key — it only sends what this client supplies.
+ * the key — it only sends what this client supplies. Withdrawing is
+ * a single-shot call with no key: the contract declares no
+ * `Idempotency-Key` for it, and the server itself resolves a repeat
+ * by state, answering the recorded withdrawal without erasing
+ * anything else. A lost answer is re-read, never replayed blind.
  */
 import type {
   Argument,
@@ -46,6 +50,7 @@ export interface ArgumentsClient {
   list(arenaId: string, query: ArenaArgumentsQuery, signal?: AbortSignal): Promise<ArgumentPage>;
   get(argumentId: string, signal?: AbortSignal): Promise<Argument>;
   search(query: ArgumentSearchQuery, signal?: AbortSignal): Promise<SearchArgumentPage>;
+  withdraw(argumentId: string): Promise<ArgumentMutationResult>;
   replies(argumentId: string, query?: ArgumentRepliesQuery): Promise<ArgumentPage>;
   publish(arenaId: string, input: ArgumentPublishRequest): Promise<ArgumentMutationResult>;
   reply(arenaId: string, argumentId: string, input: ArgumentPublishRequest): Promise<ArgumentMutationResult>;
@@ -55,6 +60,7 @@ const ARENAS_PATH = "/api/v1/arenas";
 const ARGUMENTS_PATH = "/api/v1/arguments";
 const SEARCH_PATH = "/api/v1/search";
 const ME_ARENAS_PATH = "/api/v1/me/arenas";
+const ME_ARGUMENTS_PATH = "/api/v1/me/arguments";
 
 /** Two attempts: enough to survive a dropped response, never a hammer. */
 const MUTATION_RETRY = { maxAttempts: 2 } as const;
@@ -95,6 +101,13 @@ export function createArgumentsClient(core: HttpCore): ArgumentsClient {
         method: "GET",
         path: `${ARGUMENTS_PATH}/${encodeURIComponent(argumentId)}/replies`,
         ...(query === undefined ? {} : { query: { cursor: query.cursor, limit: query.limit } }),
+      }),
+
+    withdraw: (argumentId: string): Promise<ArgumentMutationResult> =>
+      core.request<ArgumentMutationResult>({
+        method: "POST",
+        path: `${ME_ARGUMENTS_PATH}/${encodeURIComponent(argumentId)}/withdraw`,
+        retry: false,
       }),
 
     publish: (arenaId: string, input: ArgumentPublishRequest): Promise<ArgumentMutationResult> =>

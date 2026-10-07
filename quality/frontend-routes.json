@@ -275,16 +275,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). P53-T04 reads one reply level in the browser through the arguments client and the arguments page (newest-first cancellable pages, own empty state, depth forbids grandchildren)."
     },
     {
       "method": "POST",
@@ -632,16 +635,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). P53-T04 replies in the browser through the arguments client and the arguments page (parent named verbatim, cross-arena parent refused, depth and availability conflicts, shared publication failures)."
     },
     {
       "method": "POST",
@@ -783,16 +789,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (withdraw retracts content, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (withdraw retracts content, stranger 404, anonymous 401). P53-T04 withdraws in the browser through the arguments client and the arguments page (confirmation names the content with no refund, bodiless single-shot call, stranger reads as not found, repeat resolves recorded, re-read renders the placeholder)."
     },
     {
       "method": "POST",

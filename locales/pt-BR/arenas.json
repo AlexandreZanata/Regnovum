@@ -136,7 +136,15 @@
       "withdrawn_note": "Este argumento foi retirado pelo autor. Só a identidade permanece.",
       "failure_invalid_query": "A busca não passou. Confira o texto e o idioma.",
       "failure_missing": "Este argumento não existe ou foi removido.",
-      "failure_generic": "O argumento não respondeu. Tente de novo."
+      "failure_generic": "O argumento não respondeu. Tente de novo.",
+      "replies_empty": "Ainda não há respostas para este argumento.",
+      "reply_to": "Em resposta a: “{content}”",
+      "withdraw_confirm": "Retirar o argumento “{content}”? O conteúdo sai da exibição, sem apagar o fato histórico e sem reembolso.",
+      "withdraw_submit": "Retirar argumento",
+      "failure_parent_missing": "O argumento de origem não existe mais.",
+      "failure_parent_unavailable": "O argumento de origem não aceita respostas.",
+      "failure_depth": "Respostas aceitam um nível: esta já é uma resposta.",
+      "failure_not_withdrawable": "Este argumento não pode ser retirado neste estado."
     },
     "feed": {
       "heading": "Arenas",

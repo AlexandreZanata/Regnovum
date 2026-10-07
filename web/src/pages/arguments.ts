@@ -28,6 +28,7 @@
  * status stay visible while the content is withheld — and a removed
  * one reads as not found.
  */
+import { publishFailure } from "./publication.js";
 import type { ArgumentSearchQuery } from "../core/clients/arguments.js";
 import type {
   Argument,
@@ -351,6 +352,76 @@ export function isSafeSourceUrl(raw: string): boolean {
   return true;
 }
 
+/** What the page renders for replies: rows, an end, or nothing yet. */
+export type ArgumentRepliesView =
+  | { readonly state: "ready"; readonly rows: readonly ArgumentRowView[]; readonly more: string | null; readonly end: string | null }
+  | { readonly state: "empty"; readonly empty: string };
+
+/**
+ * argumentRepliesView projects one merged replies page. Replies are
+ * rows of the same shape — the depth policy forbids grandchildren,
+ * so there is no deeper level to render.
+ */
+export function argumentRepliesView(
+  translator: Translator,
+  merged: RowPage<ArgumentRowView>,
+): ArgumentRepliesView {
+  if (merged.rows.length === 0) {
+    return { state: "empty", empty: translator.translate("arenas.arguments.replies_empty") };
+  }
+  return {
+    state: "ready",
+    rows: merged.rows,
+    more: merged.nextCursor === null ? null : translator.translate("arenas.search.load_more"),
+    end: merged.nextCursor === null ? translator.translate("arenas.search.end") : null,
+  };
+}
+
+/** Everything the page confirms before withdrawing one argument. */
+export interface WithdrawConfirmView {
+  /**
+   * Names the content under withdrawal: retracting removes it from
+   * display without erasing the historical fact and without any
+   * refund, and the sentence says exactly that.
+   */
+  readonly confirmation: string;
+  readonly submit: string;
+}
+
+/**
+ * withdrawConfirmView projects the sentence the page confirms with.
+ * Only the author's own argument is withdrawable; a stranger's
+ * reads as not found and a removed one can never be overridden,
+ * both before this screen. After the withdrawal the page re-reads:
+ * the placeholder — never an optimistic removal — is what renders.
+ */
+export function withdrawConfirmView(translator: Translator, argument: Argument): WithdrawConfirmView {
+  return {
+    confirmation: translator.translate("arenas.arguments.withdraw_confirm", {
+      content: argument.content ?? "",
+    }),
+    submit: translator.translate("arenas.arguments.withdraw_submit"),
+  };
+}
+
+/** Everything the page renders above the reply form. */
+export interface ReplyContextView {
+  /** Names the parent content the reply answers, verbatim. */
+  readonly notice: string;
+}
+
+/**
+ * replyContextView projects the parent one reply answers: the Arena
+ * travels in the path so a parent outside it stays refused, and the
+ * depth policy accepts a single level — a reply to a reply is
+ * refused before any write.
+ */
+export function replyContextView(translator: Translator, parent: Argument): ReplyContextView {
+  return {
+    notice: translator.translate("arenas.arguments.reply_to", { content: parent.content ?? "" }),
+  };
+}
+
 /**
  * argumentFailure translates a refusal by the server code the backend
  * really emits. Codes the backend never emits are not named here:
@@ -371,5 +442,29 @@ export function argumentFailure(translator: Translator, serverCode: string): str
       return translator.translate("arenas.document.not_found.detail");
     default:
       return translator.translate("arenas.arguments.failure_generic");
+  }
+}
+
+/**
+ * replyFailure translates a refusal of a reply or a withdrawal. Codes
+ * the publication journey already names — content, relation,
+ * sources, balance, eligibility and arena state — arrive by import
+ * instead of a second switch; only the reply and withdrawal codes
+ * live here.
+ */
+export function replyFailure(translator: Translator, serverCode: string): string {
+  switch (serverCode) {
+    case "parent_not_found":
+      return translator.translate("arenas.arguments.failure_parent_missing");
+    case "parent_not_available":
+      return translator.translate("arenas.arguments.failure_parent_unavailable");
+    case "reply_depth_exceeded":
+      return translator.translate("arenas.arguments.failure_depth");
+    case "argument_not_withdrawable":
+      return translator.translate("arenas.arguments.failure_not_withdrawable");
+    case "argument_not_found":
+      return translator.translate("arenas.arguments.failure_missing");
+    default:
+      return publishFailure(translator, serverCode);
   }
 }

@@ -136,7 +136,15 @@
       "withdrawn_note": "This argument was withdrawn by its author. Only its identity remains.",
       "failure_invalid_query": "The search did not pass. Check the text and the language.",
       "failure_missing": "This argument does not exist or was removed.",
-      "failure_generic": "The argument did not answer. Try again."
+      "failure_generic": "The argument did not answer. Try again.",
+      "replies_empty": "No replies to this argument yet.",
+      "reply_to": "In reply to: “{content}”",
+      "withdraw_confirm": "Withdraw the argument “{content}”? The content leaves the display, without erasing the historical fact and without a refund.",
+      "withdraw_submit": "Withdraw argument",
+      "failure_parent_missing": "The parent argument no longer exists.",
+      "failure_parent_unavailable": "The parent argument accepts no replies.",
+      "failure_depth": "Replies accept one level: this one already is a reply.",
+      "failure_not_withdrawable": "This argument cannot be withdrawn in its current state."
     },
     "feed": {
       "heading": "Arenas",
