@@ -22,6 +22,9 @@ import { createExportsClient } from "../../src/core/clients/exports.js";
 import { createMFAClient } from "../../src/core/clients/mfa.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import { createSessionsClient } from "../../src/core/clients/sessions.js";
+import { createModerationClient } from "../../src/core/clients/moderation.js";
+import { createJobsClient } from "../../src/core/clients/jobs.js";
+import { createTransparencyClient } from "../../src/core/clients/transparency.js";
 import { createWalletClient } from "../../src/core/clients/wallet.js";
 import { createPassesClient } from "../../src/core/clients/passes.js";
 import { createBillingClient } from "../../src/core/clients/billing.js";
@@ -395,6 +398,82 @@ const expectations: readonly Expectation[] = [
     run: (core) => createAttributionsClient(core).counts("arg-1"),
     method: "GET",
     url: "https://arena.test/api/v1/arguments/arg-1/attributions",
+    idempotent: false,
+  },
+  {
+    name: "moderation report",
+    run: (core) =>
+      createModerationClient(core).report({ target_type: "argument", target_id: "arg-1", reason: "spam" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/moderation/reports",
+    body: { target_type: "argument", target_id: "arg-1", reason: "spam" },
+    idempotent: false,
+  },
+  {
+    name: "moderation appeal",
+    run: (core) => createModerationClient(core).appeal({ action_id: "act-1", context: "my case" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/moderation/appeals",
+    body: { action_id: "act-1", context: "my case" },
+    idempotent: false,
+  },
+  {
+    name: "moderation queue",
+    run: (core) => createModerationClient(core).queue({ status: "open", limit: 20 }),
+    method: "GET",
+    url: "https://arena.test/api/v1/moderation/cases?status=open&limit=20",
+    idempotent: false,
+  },
+  {
+    name: "moderation claim",
+    run: (core) => createModerationClient(core).claim("case-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/moderation/cases/case-1/claim",
+    idempotent: false,
+  },
+  {
+    name: "moderation decide",
+    run: (core) =>
+      createModerationClient(core).decide("case-1", { action: "warning", rule: "R1", justification: "why" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/moderation/cases/case-1/decisions",
+    body: { action: "warning", rule: "R1", justification: "why" },
+    idempotent: false,
+  },
+  {
+    name: "moderation signals",
+    run: (core) => createModerationClient(core).signals("author-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/moderation/attribution-signals/author-1",
+    idempotent: false,
+  },
+  {
+    name: "jobs health",
+    run: (core) => createJobsClient(core).health(),
+    method: "GET",
+    url: "https://arena.test/api/v1/admin/jobs/health",
+    idempotent: false,
+  },
+  {
+    name: "jobs dead",
+    run: (core) => createJobsClient(core).dead(50),
+    method: "GET",
+    url: "https://arena.test/api/v1/admin/jobs/dead?limit=50",
+    idempotent: false,
+  },
+  {
+    name: "jobs retry",
+    run: (core) => createJobsClient(core).retry("job-1", { reason: "provider was down" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/admin/jobs/job-1/retry",
+    body: { reason: "provider was down" },
+    idempotent: false,
+  },
+  {
+    name: "transparency metrics",
+    run: (core) => createTransparencyClient(core).metrics(),
+    method: "GET",
+    url: "https://arena.test/api/v1/public/transparency",
     idempotent: false,
   },
   {

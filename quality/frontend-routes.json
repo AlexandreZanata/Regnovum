@@ -40,16 +40,20 @@
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": null,
-      "page": null,
-      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
+      "client": "jobs",
+      "page": "operator",
+      "exclusion": null,
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
-        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
+        "api/openapi.json",
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsHealthAndDeadServeForOperator",
+        "web/tests/core/jobs.test.ts",
+        "web/tests/pages/operator.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
+      "note": "P49-T09 mounted the dead listing in ComposeJobs with the cursor-free oldest-first page; proven via process httptest+PG (invalid limit 400, owner-vs-stranger). P55-T03 lists it in the browser through the jobs client and the operator panel (lifecycle columns only, no payload ever, 1..200 page allowlisted, private no-store)."
     },
     {
       "method": "GET",
@@ -61,16 +65,20 @@
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": null,
-      "page": null,
-      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
+      "client": "jobs",
+      "page": "operator",
+      "exclusion": null,
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
-        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
+        "api/openapi.json",
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsHealthAndDeadServeForOperator",
+        "web/tests/core/jobs.test.ts",
+        "web/tests/pages/operator.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
+      "note": "P49-T09 closed the jobs contract gap and mounted ComposeJobs over the same pool/security with operatorbridge, auditbridge and TxManager; proven via process httptest+PG (health/dead with invalid limit, 401 anonymous, 403 stranger and moderator, stale reads only, retry 200 with renewed budget and audit line without payload, double retry 409). P55-T03 reads it in the browser through the jobs client and the operator panel (counts and waits only, private no-store, never public)."
     },
     {
       "method": "POST",
@@ -82,16 +90,20 @@
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": null,
-      "page": null,
-      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
+      "client": "jobs",
+      "page": "operator",
+      "exclusion": null,
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
-        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
+        "api/openapi.json",
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits",
+        "web/tests/core/jobs.test.ts",
+        "web/tests/pages/operator.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
+      "note": "P49-T09 mounted the retry in ComposeJobs with step-up, allowlisted workloads and the transition auditing in one commit; proven via process httptest+PG (200 with stated reason, forged replay refused, provider down without credit). P55-T03 retries in the browser through the jobs client and the operator panel (manual confirmation naming the job, bounded reason only, single-shot without an invented key, duplicate 409 read instead of resent)."
     },
     {
       "method": "GET",
@@ -1358,17 +1370,20 @@
       "audience": "owner",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "moderation",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationAppealAfterWarning"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationAppealAfterWarning",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/moderation.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (owner appeals an appealable measure inside its window, private no-store). Browser client/page lands in P55."
+      "note": "P49-T07 mounted in ComposeModeration with the appeal ownership rule; proven via process httptest+PG (owner appeal, second decision 409). P55-T01 appeals in the browser through the moderation client and the moderation page (one appeal per action inside the window, single-shot without an invented key, replay resolved by the server, no list or state promised)."
     },
     {
       "method": "POST",
@@ -1380,17 +1395,21 @@
       "audience": "owner",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "moderation",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationReportFiling"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationReportFiling",
+        "internal/moderation/adapters/http/handler_test.go::TestModerationReportFlowHidesEvidence",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/moderation.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (authenticated filing, 401 anonymous, private no-store). Browser client/page lands in P55."
+      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/validator/cursor secret with the admin gate and step-up; proven via process httptest+PG (filing, claim to warning with audit line, double claim and expired lease 409). P55-T01 files in the browser through the moderation client and the moderation page (closed reason vocabulary, optional bounded context, single-shot without an invented key, replay resolved by the server, receipt without restricted evidence)."
     },
     {
       "method": "GET",
@@ -1717,17 +1736,20 @@
       "audience": "moderator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-persuasion",
-      "page": "planned-participation",
+      "client": "moderation",
+      "page": "workbench",
       "exclusion": null,
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateSignalsModeratorOnly"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateSignalsModeratorOnly",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/workbench.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the authorizer answered from the moderation role store; proven via process httptest+PG (moderator 200, plain account 403, anonymous 401). Restricted panel only, never a public client; case competence lands in P49-T07, panel in P55."
+      "note": "P49-T04 composed the signal port from the real role store; proven via process httptest+PG (403/401/200 by role). P55-T02 reads it in the browser through the moderation client and the workbench page (advisory counts only, no score/severity/weight, never on a public page, private no-store)."
     },
     {
       "method": "GET",
@@ -1739,17 +1761,20 @@
       "audience": "moderator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "workbench",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationQueueRequiresRoleAndStepUp"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationQueueRequiresRoleAndStepUp",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/workbench.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration with the shared cursor secret; proven via process httptest+PG (403 without role, 403 without/stale factor, 200 stepped up, 401 anonymous). Browser client/page lands in P55."
+      "note": "P49-T07 mounted the queue read in ComposeModeration with the admin gate and step-up over shared pool/security; proven via process httptest+PG (401/403/stale, filing, no-store). P55-T02 reads it in the browser through the moderation client and the workbench page (allowlisted lifecycle filter, opaque cursor page, routing rows with holder, merge by case id, private no-store)."
     },
     {
       "method": "POST",
@@ -1761,17 +1786,20 @@
       "audience": "moderator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "workbench",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/workbench.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (claim under lease, live-lease claim 409, private no-store). Browser client/page lands in P55."
+      "note": "P49-T07 mounted the claim in ComposeModeration with the bounded lease; proven via process httptest+PG (claim to warning with audit line, double claim and expired lease 409). P55-T02 claims in the browser through the moderation client and the workbench page (single-shot without an invented key, held lease 409 without false success, lease reclaimed only by claiming again)."
     },
     {
       "method": "POST",
@@ -1783,17 +1811,20 @@
       "audience": "moderator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "workbench",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/workbench.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (warning settles with its audit row, second decision 409, lapsed lease 409, no evidence leak). Browser client/page lands in P55."
+      "note": "P49-T07 mounted the decision in ComposeModeration with rule, justification and audit in one transaction; proven via process httptest+PG (second decision 409). P55-T02 decides in the browser through the moderation client and the workbench page (11 closed actions untouched, justification never rendered back, single-shot without an invented key)."
     },
     {
       "method": "GET",
@@ -1855,18 +1886,21 @@
       "audience": "public",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-transparency",
-      "page": "planned-transparency",
+      "client": "transparency",
+      "page": "transparency",
       "exclusion": null,
       "tests": [
         "internal/transparency/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
         "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsServesSuppressedSnapshot",
-        "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsDefaultWindow"
+        "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsDefaultWindow",
+        "web/tests/core/transparency.test.ts",
+        "web/tests/pages/transparency.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (suppressed small-sample counts, exact period echo, default trailing-30-day window, invalid period 400, public cache with ETag/304, no email in body). Browser client/page lands in P55."
+      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (suppressed small-sample counts, exact period echo, default trailing-30-day window, invalid period 400, public cache with ETag/304, no email in body). P55-T04 reads in the browser through the transparency client and the transparency page (anonymous GET with the window verbatim, browser cache with its ETag, no hand-assembled validator, invalid window as validation)."
     },
     {
       "method": "GET",
@@ -2327,16 +2361,19 @@
       "phase": "P55",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-transparency",
+      "page": "transparency",
       "exclusion": null,
       "tests": [
         "internal/transparency/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/transparency_public_test.go::TestTransparencyDocumentServesLocalizedHTML"
+        "internal/bootstrap/transparency_public_test.go::TestTransparencyDocumentServesLocalizedHTML",
+        "web/tests/core/transparency.test.ts",
+        "web/tests/pages/transparency.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (explicit locale wins, header negotiates against the allowlist, unknown locale falls back without reflection, Vary plus public cache with ETag/304, no email in body). Browser client/page lands in P55."
+      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (explicit locale wins, header negotiates against the allowlist, unknown locale falls back without reflection, Vary plus public cache with ETag/304, no email in body). P55-T04 presents in the browser through the transparency page (25 codes under localized labels, missing code renders no row, unsafe count refused, canonical link with allowlisted params only, no empty report fabricated)."
     },
     {
       "method": "GET",

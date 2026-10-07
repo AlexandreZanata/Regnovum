@@ -1,0 +1,46 @@
+{
+  "moderation": {
+    "report": {
+      "heading": "Report content",
+      "intro": "A report contests an Arena, an argument or a profile with closed reasons. It never removes content by itself.",
+      "filed": "Report filed: {id}",
+      "replayed": "Report already filed: {id}",
+      "rate_note": "Too many reports in a row. Wait before reporting again."
+    },
+    "appeal": {
+      "heading": "Appeal a sanction",
+      "intro": "An appeal contests one sanction inside the window. One appeal contests one action.",
+      "filed": "Appeal filed: {id}",
+      "replayed": "Appeal already filed: {id}"
+    },
+    "failure": {
+      "invalid": "This request is not valid. Check the reason and try again.",
+      "unauthorized": "Sign in to report or appeal.",
+      "forbidden": "This account cannot do this right now.",
+      "step_up": "Confirm your identity again to continue.",
+      "missing": "This content or sanction no longer exists.",
+      "conflict": "This request conflicts with the current state.",
+      "generic": "It could not be filed. Check and try again."
+    },
+    "workbench": {
+      "heading": "Moderation workbench",
+      "intro": "Triage queue for active moderators. Role and second factor are revalidated per call.",
+      "empty": "No cases in the queue",
+      "row": "{target} · {status} · {priority} priority on {instant}",
+      "claimed": "Case with {holder} ({status})",
+      "decided": "{action} decision recorded: {id}",
+      "signal": "{kind} signal with {counterpart}: {counts}",
+      "signals_head": "Signals of policy {policy}, {window}s window, read {instant}"
+    },
+    "operator": {
+      "heading": "Operator panel",
+      "intro": "Queue health and dead jobs for accounts with an active assignment. Nothing here is public.",
+      "counts": "Queue: {counts}",
+      "generated": "Read {instant}",
+      "dead_row": "{id} ({type}): {attempts}/{max} attempts, {age}s old, error {error}",
+      "dead_total": "{total} dead, read {instant}",
+      "retry_confirm": "Retry {id} ({type})?",
+      "retried": "{id} ({type}) back as {state}"
+    }
+  }
+}

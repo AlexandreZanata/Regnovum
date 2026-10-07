@@ -124,6 +124,8 @@ const KNOWN_METHODS: readonly HttpMethod[] = ["GET", "HEAD", "POST", "PUT", "PAT
 const RETRYABLE_STATUSES: readonly number[] = [429, 502, 503, 504];
 const SESSION_PATH_PREFIX = "/api/v1/me";
 const AUTH_PATH_PREFIX = "/api/v1/auth";
+const MODERATION_PATH_PREFIX = "/api/v1/moderation";
+const ADMIN_PATH_PREFIX = "/api/v1/admin";
 const NO_CONTENT_STATUSES: readonly number[] = [204, 205];
 
 /** Resolved retry policy of one request. */
@@ -531,11 +533,21 @@ function buildUrl(baseUrl: string, path: string, query?: Readonly<Record<string,
 /**
  * Account-scoped responses are never cached (the browser must not replay a
  * former account's data); public reads keep the HTTP cache and its ETags.
- * Both the session family (`/api/v1/me/*`) and the authentication family
- * (`/api/v1/auth/*`: register, login, verify, password reset) are private.
+ * The session family (`/api/v1/me/*`), the authentication family
+ * (`/api/v1/auth/*`: register, login, verify, password reset) and the
+ * restricted moderation console (`/api/v1/moderation/*`: triage queue,
+ * claims, decisions and abuse signals, all role-gated with a mandatory
+ * private cache policy) and the operator console (`/api/v1/admin/*`:
+ * jobs health, dead-job pages and retries, all assignment-gated with
+ * the same mandatory policy) are private.
  */
 function cacheModeFor(path: string): RequestCache {
-  if (path.startsWith(SESSION_PATH_PREFIX) || path.startsWith(AUTH_PATH_PREFIX)) {
+  if (
+    path.startsWith(SESSION_PATH_PREFIX) ||
+    path.startsWith(AUTH_PATH_PREFIX) ||
+    path.startsWith(MODERATION_PATH_PREFIX) ||
+    path.startsWith(ADMIN_PATH_PREFIX)
+  ) {
     return "no-store";
   }
   return "default";

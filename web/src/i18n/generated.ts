@@ -464,6 +464,40 @@ export const messageKeys = {
     "metering.statement.empty",
     "metering.statement.title",
   ] as const,
+  moderation: [
+    "moderation.appeal.filed",
+    "moderation.appeal.heading",
+    "moderation.appeal.intro",
+    "moderation.appeal.replayed",
+    "moderation.failure.conflict",
+    "moderation.failure.forbidden",
+    "moderation.failure.generic",
+    "moderation.failure.invalid",
+    "moderation.failure.missing",
+    "moderation.failure.step_up",
+    "moderation.failure.unauthorized",
+    "moderation.operator.counts",
+    "moderation.operator.dead_row",
+    "moderation.operator.dead_total",
+    "moderation.operator.generated",
+    "moderation.operator.heading",
+    "moderation.operator.intro",
+    "moderation.operator.retried",
+    "moderation.operator.retry_confirm",
+    "moderation.report.filed",
+    "moderation.report.heading",
+    "moderation.report.intro",
+    "moderation.report.rate_note",
+    "moderation.report.replayed",
+    "moderation.workbench.claimed",
+    "moderation.workbench.decided",
+    "moderation.workbench.empty",
+    "moderation.workbench.heading",
+    "moderation.workbench.intro",
+    "moderation.workbench.row",
+    "moderation.workbench.signal",
+    "moderation.workbench.signals_head",
+  ] as const,
   seasons: [
     "seasons.champions.empty",
     "seasons.champions.last_king",
@@ -483,6 +517,31 @@ export const messageKeys = {
     "transparency.document.metric",
     "transparency.document.page_title",
     "transparency.document.period",
+    "transparency.document.rows.actions_recorded",
+    "transparency.document.rows.appeals_filed",
+    "transparency.document.rows.appeals_reversed",
+    "transparency.document.rows.arenas_closed",
+    "transparency.document.rows.arenas_published",
+    "transparency.document.rows.arenas_removed",
+    "transparency.document.rows.arenas_restricted",
+    "transparency.document.rows.arguments_published",
+    "transparency.document.rows.arguments_withdrawn",
+    "transparency.document.rows.attributions_invalidated",
+    "transparency.document.rows.attributions_valid",
+    "transparency.document.rows.eligible_accounts",
+    "transparency.document.rows.influenced_authors",
+    "transparency.document.rows.ink_admin_adjusted",
+    "transparency.document.rows.ink_free_consumed",
+    "transparency.document.rows.ink_free_expired",
+    "transparency.document.rows.ink_free_granted",
+    "transparency.document.rows.ink_purchased_consumed",
+    "transparency.document.rows.ink_purchased_granted",
+    "transparency.document.rows.ink_refunded",
+    "transparency.document.rows.passes_consumed",
+    "transparency.document.rows.passes_member_granted",
+    "transparency.document.rows.passes_purchase_granted",
+    "transparency.document.rows.position_changes",
+    "transparency.document.rows.reports_filed",
     "transparency.document.updated",
     "transparency.document.value",
     "transparency.metrics.circulation",
@@ -996,6 +1055,38 @@ export type MessageKey =
   | "metering.statement.balance"
   | "metering.statement.empty"
   | "metering.statement.title"
+  | "moderation.appeal.filed"
+  | "moderation.appeal.heading"
+  | "moderation.appeal.intro"
+  | "moderation.appeal.replayed"
+  | "moderation.failure.conflict"
+  | "moderation.failure.forbidden"
+  | "moderation.failure.generic"
+  | "moderation.failure.invalid"
+  | "moderation.failure.missing"
+  | "moderation.failure.step_up"
+  | "moderation.failure.unauthorized"
+  | "moderation.operator.counts"
+  | "moderation.operator.dead_row"
+  | "moderation.operator.dead_total"
+  | "moderation.operator.generated"
+  | "moderation.operator.heading"
+  | "moderation.operator.intro"
+  | "moderation.operator.retried"
+  | "moderation.operator.retry_confirm"
+  | "moderation.report.filed"
+  | "moderation.report.heading"
+  | "moderation.report.intro"
+  | "moderation.report.rate_note"
+  | "moderation.report.replayed"
+  | "moderation.workbench.claimed"
+  | "moderation.workbench.decided"
+  | "moderation.workbench.empty"
+  | "moderation.workbench.heading"
+  | "moderation.workbench.intro"
+  | "moderation.workbench.row"
+  | "moderation.workbench.signal"
+  | "moderation.workbench.signals_head"
   | "seasons.champions.empty"
   | "seasons.champions.last_king"
   | "seasons.champions.richest"
@@ -1012,6 +1103,31 @@ export type MessageKey =
   | "transparency.document.metric"
   | "transparency.document.page_title"
   | "transparency.document.period"
+  | "transparency.document.rows.actions_recorded"
+  | "transparency.document.rows.appeals_filed"
+  | "transparency.document.rows.appeals_reversed"
+  | "transparency.document.rows.arenas_closed"
+  | "transparency.document.rows.arenas_published"
+  | "transparency.document.rows.arenas_removed"
+  | "transparency.document.rows.arenas_restricted"
+  | "transparency.document.rows.arguments_published"
+  | "transparency.document.rows.arguments_withdrawn"
+  | "transparency.document.rows.attributions_invalidated"
+  | "transparency.document.rows.attributions_valid"
+  | "transparency.document.rows.eligible_accounts"
+  | "transparency.document.rows.influenced_authors"
+  | "transparency.document.rows.ink_admin_adjusted"
+  | "transparency.document.rows.ink_free_consumed"
+  | "transparency.document.rows.ink_free_expired"
+  | "transparency.document.rows.ink_free_granted"
+  | "transparency.document.rows.ink_purchased_consumed"
+  | "transparency.document.rows.ink_purchased_granted"
+  | "transparency.document.rows.ink_refunded"
+  | "transparency.document.rows.passes_consumed"
+  | "transparency.document.rows.passes_member_granted"
+  | "transparency.document.rows.passes_purchase_granted"
+  | "transparency.document.rows.position_changes"
+  | "transparency.document.rows.reports_filed"
   | "transparency.document.updated"
   | "transparency.document.value"
   | "transparency.metrics.circulation"
@@ -1522,6 +1638,38 @@ export const messagePlaceholders = Object.freeze({
   "metering.statement.balance": ["total"],
   "metering.statement.empty": [],
   "metering.statement.title": [],
+  "moderation.appeal.filed": ["id"],
+  "moderation.appeal.heading": [],
+  "moderation.appeal.intro": [],
+  "moderation.appeal.replayed": ["id"],
+  "moderation.failure.conflict": [],
+  "moderation.failure.forbidden": [],
+  "moderation.failure.generic": [],
+  "moderation.failure.invalid": [],
+  "moderation.failure.missing": [],
+  "moderation.failure.step_up": [],
+  "moderation.failure.unauthorized": [],
+  "moderation.operator.counts": ["counts"],
+  "moderation.operator.dead_row": ["age", "attempts", "error", "id", "max", "type"],
+  "moderation.operator.dead_total": ["instant", "total"],
+  "moderation.operator.generated": ["instant"],
+  "moderation.operator.heading": [],
+  "moderation.operator.intro": [],
+  "moderation.operator.retried": ["id", "state", "type"],
+  "moderation.operator.retry_confirm": ["id", "type"],
+  "moderation.report.filed": ["id"],
+  "moderation.report.heading": [],
+  "moderation.report.intro": [],
+  "moderation.report.rate_note": [],
+  "moderation.report.replayed": ["id"],
+  "moderation.workbench.claimed": ["holder", "status"],
+  "moderation.workbench.decided": ["action", "id"],
+  "moderation.workbench.empty": [],
+  "moderation.workbench.heading": [],
+  "moderation.workbench.intro": [],
+  "moderation.workbench.row": ["instant", "priority", "status", "target"],
+  "moderation.workbench.signal": ["counterpart", "counts", "kind"],
+  "moderation.workbench.signals_head": ["instant", "policy", "window"],
   "seasons.champions.empty": [],
   "seasons.champions.last_king": [],
   "seasons.champions.richest": [],
@@ -1538,6 +1686,31 @@ export const messagePlaceholders = Object.freeze({
   "transparency.document.metric": [],
   "transparency.document.page_title": [],
   "transparency.document.period": ["end", "start", "timezone"],
+  "transparency.document.rows.actions_recorded": [],
+  "transparency.document.rows.appeals_filed": [],
+  "transparency.document.rows.appeals_reversed": [],
+  "transparency.document.rows.arenas_closed": [],
+  "transparency.document.rows.arenas_published": [],
+  "transparency.document.rows.arenas_removed": [],
+  "transparency.document.rows.arenas_restricted": [],
+  "transparency.document.rows.arguments_published": [],
+  "transparency.document.rows.arguments_withdrawn": [],
+  "transparency.document.rows.attributions_invalidated": [],
+  "transparency.document.rows.attributions_valid": [],
+  "transparency.document.rows.eligible_accounts": [],
+  "transparency.document.rows.influenced_authors": [],
+  "transparency.document.rows.ink_admin_adjusted": [],
+  "transparency.document.rows.ink_free_consumed": [],
+  "transparency.document.rows.ink_free_expired": [],
+  "transparency.document.rows.ink_free_granted": [],
+  "transparency.document.rows.ink_purchased_consumed": [],
+  "transparency.document.rows.ink_purchased_granted": [],
+  "transparency.document.rows.ink_refunded": [],
+  "transparency.document.rows.passes_consumed": [],
+  "transparency.document.rows.passes_member_granted": [],
+  "transparency.document.rows.passes_purchase_granted": [],
+  "transparency.document.rows.position_changes": [],
+  "transparency.document.rows.reports_filed": [],
   "transparency.document.updated": ["at", "version"],
   "transparency.document.value": [],
   "transparency.metrics.circulation": ["total"],
@@ -2049,6 +2222,38 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "metering.statement.balance": "Balance: {total} thousandths of INK",
     "metering.statement.empty": "No publications yet",
     "metering.statement.title": "INK statement",
+    "moderation.appeal.filed": "Appeal filed: {id}",
+    "moderation.appeal.heading": "Appeal a sanction",
+    "moderation.appeal.intro": "An appeal contests one sanction inside the window. One appeal contests one action.",
+    "moderation.appeal.replayed": "Appeal already filed: {id}",
+    "moderation.failure.conflict": "This request conflicts with the current state.",
+    "moderation.failure.forbidden": "This account cannot do this right now.",
+    "moderation.failure.generic": "It could not be filed. Check and try again.",
+    "moderation.failure.invalid": "This request is not valid. Check the reason and try again.",
+    "moderation.failure.missing": "This content or sanction no longer exists.",
+    "moderation.failure.step_up": "Confirm your identity again to continue.",
+    "moderation.failure.unauthorized": "Sign in to report or appeal.",
+    "moderation.operator.counts": "Queue: {counts}",
+    "moderation.operator.dead_row": "{id} ({type}): {attempts}/{max} attempts, {age}s old, error {error}",
+    "moderation.operator.dead_total": "{total} dead, read {instant}",
+    "moderation.operator.generated": "Read {instant}",
+    "moderation.operator.heading": "Operator panel",
+    "moderation.operator.intro": "Queue health and dead jobs for accounts with an active assignment. Nothing here is public.",
+    "moderation.operator.retried": "{id} ({type}) back as {state}",
+    "moderation.operator.retry_confirm": "Retry {id} ({type})?",
+    "moderation.report.filed": "Report filed: {id}",
+    "moderation.report.heading": "Report content",
+    "moderation.report.intro": "A report contests an Arena, an argument or a profile with closed reasons. It never removes content by itself.",
+    "moderation.report.rate_note": "Too many reports in a row. Wait before reporting again.",
+    "moderation.report.replayed": "Report already filed: {id}",
+    "moderation.workbench.claimed": "Case with {holder} ({status})",
+    "moderation.workbench.decided": "{action} decision recorded: {id}",
+    "moderation.workbench.empty": "No cases in the queue",
+    "moderation.workbench.heading": "Moderation workbench",
+    "moderation.workbench.intro": "Triage queue for active moderators. Role and second factor are revalidated per call.",
+    "moderation.workbench.row": "{target} · {status} · {priority} priority on {instant}",
+    "moderation.workbench.signal": "{kind} signal with {counterpart}: {counts}",
+    "moderation.workbench.signals_head": "Signals of policy {policy}, {window}s window, read {instant}",
     "seasons.champions.empty": "No champions yet",
     "seasons.champions.last_king": "Last King",
     "seasons.champions.richest": "Richest at cutoff",
@@ -2065,6 +2270,31 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.document.metric": "Metric",
     "transparency.document.page_title": "Transparency — Regnovum",
     "transparency.document.period": "Period: {start} – {end} ({timezone})",
+    "transparency.document.rows.actions_recorded": "Recorded sanctions",
+    "transparency.document.rows.appeals_filed": "Filed appeals",
+    "transparency.document.rows.appeals_reversed": "Reversed appeals",
+    "transparency.document.rows.arenas_closed": "Closed arenas",
+    "transparency.document.rows.arenas_published": "Published arenas",
+    "transparency.document.rows.arenas_removed": "Removed arenas",
+    "transparency.document.rows.arenas_restricted": "Restricted arenas",
+    "transparency.document.rows.arguments_published": "Published arguments",
+    "transparency.document.rows.arguments_withdrawn": "Withdrawn arguments",
+    "transparency.document.rows.attributions_invalidated": "Invalidated attributions",
+    "transparency.document.rows.attributions_valid": "Valid attributions",
+    "transparency.document.rows.eligible_accounts": "Eligible accounts",
+    "transparency.document.rows.influenced_authors": "Influenced authors",
+    "transparency.document.rows.ink_admin_adjusted": "Admin-adjusted INK",
+    "transparency.document.rows.ink_free_consumed": "Free INK consumed",
+    "transparency.document.rows.ink_free_expired": "Free INK expired",
+    "transparency.document.rows.ink_free_granted": "Free INK granted",
+    "transparency.document.rows.ink_purchased_consumed": "Purchased INK consumed",
+    "transparency.document.rows.ink_purchased_granted": "Purchased INK granted",
+    "transparency.document.rows.ink_refunded": "Refunded INK",
+    "transparency.document.rows.passes_consumed": "Passes consumed",
+    "transparency.document.rows.passes_member_granted": "Member passes granted",
+    "transparency.document.rows.passes_purchase_granted": "Purchase passes granted",
+    "transparency.document.rows.position_changes": "Position changes",
+    "transparency.document.rows.reports_filed": "Filed reports",
     "transparency.document.updated": "Updated at {at} · methodology v{version}",
     "transparency.document.value": "Value",
     "transparency.metrics.circulation": "In circulation: {total} thousandths of INK",
@@ -2573,6 +2803,38 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "metering.statement.balance": "Saldo: {total} milésimos de INK",
     "metering.statement.empty": "Nenhuma publicação ainda",
     "metering.statement.title": "Extrato de INK",
+    "moderation.appeal.filed": "Recurso registrado: {id}",
+    "moderation.appeal.heading": "Recorrer de sanção",
+    "moderation.appeal.intro": "O recurso contesta uma sanção dentro do prazo. Um recurso contesta uma ação.",
+    "moderation.appeal.replayed": "Recurso já registrado: {id}",
+    "moderation.failure.conflict": "Este pedido conflita com o estado atual.",
+    "moderation.failure.forbidden": "Esta conta não pode fazer isso agora.",
+    "moderation.failure.generic": "Não foi possível registrar. Confira e tente novamente.",
+    "moderation.failure.invalid": "Este pedido não é válido. Confira o motivo e tente de novo.",
+    "moderation.failure.missing": "Este conteúdo ou sanção não existe mais.",
+    "moderation.failure.step_up": "Confirme sua identidade de novo para continuar.",
+    "moderation.failure.unauthorized": "Entre na conta para denunciar ou recorrer.",
+    "moderation.operator.counts": "Fila: {counts}",
+    "moderation.operator.dead_row": "{id} ({type}): {attempts}/{max} tentativas, {age}s parado, erro {error}",
+    "moderation.operator.dead_total": "{total} mortos, lido em {instant}",
+    "moderation.operator.generated": "Lido em {instant}",
+    "moderation.operator.heading": "Painel do operador",
+    "moderation.operator.intro": "Saúde da fila e trabalhos mortos para contas com designação ativa. Nada aqui é público.",
+    "moderation.operator.retried": "{id} ({type}) de volta como {state}",
+    "moderation.operator.retry_confirm": "Repetir {id} ({type})?",
+    "moderation.report.filed": "Denúncia registrada: {id}",
+    "moderation.report.heading": "Denunciar conteúdo",
+    "moderation.report.intro": "A denúncia contesta uma Arena, um argumento ou um perfil com motivos fechados. Ela nunca remove conteúdo sozinha.",
+    "moderation.report.rate_note": "Muitas denúncias seguidas. Aguarde antes de denunciar de novo.",
+    "moderation.report.replayed": "Denúncia já registrada: {id}",
+    "moderation.workbench.claimed": "Caso com {holder} ({status})",
+    "moderation.workbench.decided": "Decisão {action} registrada: {id}",
+    "moderation.workbench.empty": "Nenhum caso na fila",
+    "moderation.workbench.heading": "Banca de moderação",
+    "moderation.workbench.intro": "Fila de triagem para moderadores ativos. Papel e segundo fator são revalidados a cada chamada.",
+    "moderation.workbench.row": "{target} · {status} · prioridade {priority} em {instant}",
+    "moderation.workbench.signal": "Sinal {kind} com {counterpart}: {counts}",
+    "moderation.workbench.signals_head": "Sinais da política {policy}, janela {window}s, lidos em {instant}",
     "seasons.champions.empty": "Nenhum campeão ainda",
     "seasons.champions.last_king": "Último Rei",
     "seasons.champions.richest": "Mais rico no corte",
@@ -2589,6 +2851,31 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.document.metric": "Métrica",
     "transparency.document.page_title": "Transparência — Regnovum",
     "transparency.document.period": "Período: {start} – {end} ({timezone})",
+    "transparency.document.rows.actions_recorded": "Sanções registradas",
+    "transparency.document.rows.appeals_filed": "Recursos registrados",
+    "transparency.document.rows.appeals_reversed": "Recursos revertidos",
+    "transparency.document.rows.arenas_closed": "Arenas encerradas",
+    "transparency.document.rows.arenas_published": "Arenas publicadas",
+    "transparency.document.rows.arenas_removed": "Arenas removidas",
+    "transparency.document.rows.arenas_restricted": "Arenas restritas",
+    "transparency.document.rows.arguments_published": "Argumentos publicados",
+    "transparency.document.rows.arguments_withdrawn": "Argumentos retirados",
+    "transparency.document.rows.attributions_invalidated": "Atribuições invalidadas",
+    "transparency.document.rows.attributions_valid": "Atribuições válidas",
+    "transparency.document.rows.eligible_accounts": "Contas elegíveis",
+    "transparency.document.rows.influenced_authors": "Autores influenciados",
+    "transparency.document.rows.ink_admin_adjusted": "INK com ajuste administrativo",
+    "transparency.document.rows.ink_free_consumed": "INK livre consumido",
+    "transparency.document.rows.ink_free_expired": "INK livre expirado",
+    "transparency.document.rows.ink_free_granted": "INK livre concedido",
+    "transparency.document.rows.ink_purchased_consumed": "INK comprado consumido",
+    "transparency.document.rows.ink_purchased_granted": "INK comprado concedido",
+    "transparency.document.rows.ink_refunded": "INK reembolsado",
+    "transparency.document.rows.passes_consumed": "Passes consumidos",
+    "transparency.document.rows.passes_member_granted": "Passes Member concedidos",
+    "transparency.document.rows.passes_purchase_granted": "Passes de compra concedidos",
+    "transparency.document.rows.position_changes": "Mudanças de posição",
+    "transparency.document.rows.reports_filed": "Denúncias registradas",
     "transparency.document.updated": "Atualizado em {at} · metodologia v{version}",
     "transparency.document.value": "Valor",
     "transparency.metrics.circulation": "Em circulação: {total} milésimos de INK",
