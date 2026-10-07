@@ -6,6 +6,12 @@ package i18n
 // catalog maps locale -> message key -> localized message.
 var catalog = map[string]map[string]string{
 	"en-US": {
+		"arenas.arguments.failure_generic":                  "The argument did not answer. Try again.",
+		"arenas.arguments.failure_invalid_query":            "The search did not pass. Check the text and the language.",
+		"arenas.arguments.failure_missing":                  "This argument does not exist or was removed.",
+		"arenas.arguments.search_empty":                     "No arguments match this search.",
+		"arenas.arguments.search_hint":                      "Type what you seek in the published arguments.",
+		"arenas.arguments.withdrawn_note":                   "This argument was withdrawn by its author. Only its identity remains.",
 		"arenas.document.gone.detail":                       "This Arena was removed by moderation and is no longer available.",
 		"arenas.document.gone.title":                        "Arena removed",
 		"arenas.document.not_found.detail":                  "This Arena does not exist or has not been published yet.",
@@ -459,6 +465,12 @@ var catalog = map[string]map[string]string{
 		"transparency.metrics.window":                       "Sealed window: {start} – {end} (UTC)",
 	},
 	"pt-BR": {
+		"arenas.arguments.failure_generic":                  "O argumento não respondeu. Tente de novo.",
+		"arenas.arguments.failure_invalid_query":            "A busca não passou. Confira o texto e o idioma.",
+		"arenas.arguments.failure_missing":                  "Este argumento não existe ou foi removido.",
+		"arenas.arguments.search_empty":                     "Nenhum argumento bate com esta busca.",
+		"arenas.arguments.search_hint":                      "Digite o que procura nos argumentos publicados.",
+		"arenas.arguments.withdrawn_note":                   "Este argumento foi retirado pelo autor. Só a identidade permanece.",
 		"arenas.document.gone.detail":                       "Esta Arena foi removida pela moderação e não está mais disponível.",
 		"arenas.document.gone.title":                        "Arena removida",
 		"arenas.document.not_found.detail":                  "Esta Arena não existe ou ainda não foi publicada.",
@@ -915,6 +927,12 @@ var catalog = map[string]map[string]string{
 
 // placeholders maps message key -> sorted placeholder names.
 var placeholders = map[string][]string{
+	"arenas.arguments.failure_generic":                  {},
+	"arenas.arguments.failure_invalid_query":            {},
+	"arenas.arguments.failure_missing":                  {},
+	"arenas.arguments.search_empty":                     {},
+	"arenas.arguments.search_hint":                      {},
+	"arenas.arguments.withdrawn_note":                   {},
 	"arenas.document.gone.detail":                       {},
 	"arenas.document.gone.title":                        {},
 	"arenas.document.not_found.detail":                  {},

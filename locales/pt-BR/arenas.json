@@ -129,6 +129,14 @@
         "generic": "A posição não respondeu. Tente de novo."
       }
     },
+    "arguments": {
+      "search_hint": "Digite o que procura nos argumentos publicados.",
+      "search_empty": "Nenhum argumento bate com esta busca.",
+      "withdrawn_note": "Este argumento foi retirado pelo autor. Só a identidade permanece.",
+      "failure_invalid_query": "A busca não passou. Confira o texto e o idioma.",
+      "failure_missing": "Este argumento não existe ou foi removido.",
+      "failure_generic": "O argumento não respondeu. Tente de novo."
+    },
     "feed": {
       "heading": "Arenas",
       "intro": "As controvérsias publicadas, das mais novas para as mais antigas.",

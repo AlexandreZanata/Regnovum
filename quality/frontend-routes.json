@@ -128,16 +128,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). P53-T02 lists in the browser through the arguments client and the arguments page (one relation newest-first, cancellable pages merged without duplication, late answers discarded, withdrawn and removed never appear)."
     },
     {
       "method": "GET",
@@ -225,16 +228,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). P53-T02 reads in the browser through the arguments client and the arguments page (verbatim content, withdrawn resolves as a retracted placeholder, removed reads as not found)."
     },
     {
       "method": "GET",
@@ -1851,16 +1857,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/search/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor"
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (anonymous search served, forged cursor refused; argument results land with debate reads in P53). Browser client/page lands in P53."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (anonymous search served, forged cursor refused; argument results land with debate reads in P53). P53-T02 searches in the browser through the arguments client and the arguments page (query verbatim for the server to judge, cancellable pages, result language rendered as-is, score never shown)."
     },
     {
       "method": "GET",

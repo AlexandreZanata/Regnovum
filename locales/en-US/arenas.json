@@ -129,6 +129,14 @@
         "generic": "The position did not answer. Try again."
       }
     },
+    "arguments": {
+      "search_hint": "Type what you seek in the published arguments.",
+      "search_empty": "No arguments match this search.",
+      "withdrawn_note": "This argument was withdrawn by its author. Only its identity remains.",
+      "failure_invalid_query": "The search did not pass. Check the text and the language.",
+      "failure_missing": "This argument does not exist or was removed.",
+      "failure_generic": "The argument did not answer. Try again."
+    },
     "feed": {
       "heading": "Arenas",
       "intro": "The published controversies, newest first.",

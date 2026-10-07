@@ -363,6 +363,13 @@ const expectations: readonly Expectation[] = [
     idempotent: false,
   },
   {
+    name: "arguments search",
+    run: (core) => createArgumentsClient(core).search({ q: "minds changed", language: "en-US" }),
+    method: "GET",
+    url: "https://arena.test/api/v1/search/arguments?q=minds+changed&language=en-US",
+    idempotent: false,
+  },
+  {
     name: "arguments reply",
     run: (core) => createArgumentsClient(core).reply("arena-1", "arg-1", { relation: "oppose", content: "reply", sources: [] }),
     method: "POST",
