@@ -1,0 +1,26 @@
+{
+  "moderation": {
+    "report": {
+      "heading": "Denunciar conteúdo",
+      "intro": "A denúncia contesta uma Arena, um argumento ou um perfil com motivos fechados. Ela nunca remove conteúdo sozinha.",
+      "filed": "Denúncia registrada: {id}",
+      "replayed": "Denúncia já registrada: {id}",
+      "rate_note": "Muitas denúncias seguidas. Aguarde antes de denunciar de novo."
+    },
+    "appeal": {
+      "heading": "Recorrer de sanção",
+      "intro": "O recurso contesta uma sanção dentro do prazo. Um recurso contesta uma ação.",
+      "filed": "Recurso registrado: {id}",
+      "replayed": "Recurso já registrado: {id}"
+    },
+    "failure": {
+      "invalid": "Este pedido não é válido. Confira o motivo e tente de novo.",
+      "unauthorized": "Entre na conta para denunciar ou recorrer.",
+      "forbidden": "Esta conta não pode fazer isso agora.",
+      "step_up": "Confirme sua identidade de novo para continuar.",
+      "missing": "Este conteúdo ou sanção não existe mais.",
+      "conflict": "Este pedido conflita com o estado atual.",
+      "generic": "Não foi possível registrar. Confira e tente novamente."
+    }
+  }
+}

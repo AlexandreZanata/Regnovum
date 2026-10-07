@@ -20,6 +20,7 @@ import { createExportsClient } from "../../src/core/clients/exports.js";
 import { createMFAClient } from "../../src/core/clients/mfa.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import { createSessionsClient } from "../../src/core/clients/sessions.js";
+import { createModerationClient } from "../../src/core/clients/moderation.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -390,6 +391,23 @@ const expectations: readonly Expectation[] = [
     run: (core) => createAttributionsClient(core).counts("arg-1"),
     method: "GET",
     url: "https://arena.test/api/v1/arguments/arg-1/attributions",
+    idempotent: false,
+  },
+  {
+    name: "moderation report",
+    run: (core) =>
+      createModerationClient(core).report({ target_type: "argument", target_id: "arg-1", reason: "spam" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/moderation/reports",
+    body: { target_type: "argument", target_id: "arg-1", reason: "spam" },
+    idempotent: false,
+  },
+  {
+    name: "moderation appeal",
+    run: (core) => createModerationClient(core).appeal({ action_id: "act-1", context: "my case" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/moderation/appeals",
+    body: { action_id: "act-1", context: "my case" },
     idempotent: false,
   },
   {

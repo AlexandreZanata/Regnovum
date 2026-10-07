@@ -464,6 +464,24 @@ export const messageKeys = {
     "metering.statement.empty",
     "metering.statement.title",
   ] as const,
+  moderation: [
+    "moderation.appeal.filed",
+    "moderation.appeal.heading",
+    "moderation.appeal.intro",
+    "moderation.appeal.replayed",
+    "moderation.failure.conflict",
+    "moderation.failure.forbidden",
+    "moderation.failure.generic",
+    "moderation.failure.invalid",
+    "moderation.failure.missing",
+    "moderation.failure.step_up",
+    "moderation.failure.unauthorized",
+    "moderation.report.filed",
+    "moderation.report.heading",
+    "moderation.report.intro",
+    "moderation.report.rate_note",
+    "moderation.report.replayed",
+  ] as const,
   seasons: [
     "seasons.champions.empty",
     "seasons.champions.last_king",
@@ -945,6 +963,22 @@ export type MessageKey =
   | "metering.statement.balance"
   | "metering.statement.empty"
   | "metering.statement.title"
+  | "moderation.appeal.filed"
+  | "moderation.appeal.heading"
+  | "moderation.appeal.intro"
+  | "moderation.appeal.replayed"
+  | "moderation.failure.conflict"
+  | "moderation.failure.forbidden"
+  | "moderation.failure.generic"
+  | "moderation.failure.invalid"
+  | "moderation.failure.missing"
+  | "moderation.failure.step_up"
+  | "moderation.failure.unauthorized"
+  | "moderation.report.filed"
+  | "moderation.report.heading"
+  | "moderation.report.intro"
+  | "moderation.report.rate_note"
+  | "moderation.report.replayed"
   | "seasons.champions.empty"
   | "seasons.champions.last_king"
   | "seasons.champions.richest"
@@ -1422,6 +1456,22 @@ export const messagePlaceholders = Object.freeze({
   "metering.statement.balance": ["total"],
   "metering.statement.empty": [],
   "metering.statement.title": [],
+  "moderation.appeal.filed": ["id"],
+  "moderation.appeal.heading": [],
+  "moderation.appeal.intro": [],
+  "moderation.appeal.replayed": ["id"],
+  "moderation.failure.conflict": [],
+  "moderation.failure.forbidden": [],
+  "moderation.failure.generic": [],
+  "moderation.failure.invalid": [],
+  "moderation.failure.missing": [],
+  "moderation.failure.step_up": [],
+  "moderation.failure.unauthorized": [],
+  "moderation.report.filed": ["id"],
+  "moderation.report.heading": [],
+  "moderation.report.intro": [],
+  "moderation.report.rate_note": [],
+  "moderation.report.replayed": ["id"],
   "seasons.champions.empty": [],
   "seasons.champions.last_king": [],
   "seasons.champions.richest": [],
@@ -1900,6 +1950,22 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "metering.statement.balance": "Balance: {total} thousandths of INK",
     "metering.statement.empty": "No publications yet",
     "metering.statement.title": "INK statement",
+    "moderation.appeal.filed": "Appeal filed: {id}",
+    "moderation.appeal.heading": "Appeal a sanction",
+    "moderation.appeal.intro": "An appeal contests one sanction inside the window. One appeal contests one action.",
+    "moderation.appeal.replayed": "Appeal already filed: {id}",
+    "moderation.failure.conflict": "This request conflicts with the current state.",
+    "moderation.failure.forbidden": "This account cannot do this right now.",
+    "moderation.failure.generic": "It could not be filed. Check and try again.",
+    "moderation.failure.invalid": "This request is not valid. Check the reason and try again.",
+    "moderation.failure.missing": "This content or sanction no longer exists.",
+    "moderation.failure.step_up": "Confirm your identity again to continue.",
+    "moderation.failure.unauthorized": "Sign in to report or appeal.",
+    "moderation.report.filed": "Report filed: {id}",
+    "moderation.report.heading": "Report content",
+    "moderation.report.intro": "A report contests an Arena, an argument or a profile with closed reasons. It never removes content by itself.",
+    "moderation.report.rate_note": "Too many reports in a row. Wait before reporting again.",
+    "moderation.report.replayed": "Report already filed: {id}",
     "seasons.champions.empty": "No champions yet",
     "seasons.champions.last_king": "Last King",
     "seasons.champions.richest": "Richest at cutoff",
@@ -2375,6 +2441,22 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "metering.statement.balance": "Saldo: {total} milésimos de INK",
     "metering.statement.empty": "Nenhuma publicação ainda",
     "metering.statement.title": "Extrato de INK",
+    "moderation.appeal.filed": "Recurso registrado: {id}",
+    "moderation.appeal.heading": "Recorrer de sanção",
+    "moderation.appeal.intro": "O recurso contesta uma sanção dentro do prazo. Um recurso contesta uma ação.",
+    "moderation.appeal.replayed": "Recurso já registrado: {id}",
+    "moderation.failure.conflict": "Este pedido conflita com o estado atual.",
+    "moderation.failure.forbidden": "Esta conta não pode fazer isso agora.",
+    "moderation.failure.generic": "Não foi possível registrar. Confira e tente novamente.",
+    "moderation.failure.invalid": "Este pedido não é válido. Confira o motivo e tente de novo.",
+    "moderation.failure.missing": "Este conteúdo ou sanção não existe mais.",
+    "moderation.failure.step_up": "Confirme sua identidade de novo para continuar.",
+    "moderation.failure.unauthorized": "Entre na conta para denunciar ou recorrer.",
+    "moderation.report.filed": "Denúncia registrada: {id}",
+    "moderation.report.heading": "Denunciar conteúdo",
+    "moderation.report.intro": "A denúncia contesta uma Arena, um argumento ou um perfil com motivos fechados. Ela nunca remove conteúdo sozinha.",
+    "moderation.report.rate_note": "Muitas denúncias seguidas. Aguarde antes de denunciar de novo.",
+    "moderation.report.replayed": "Denúncia já registrada: {id}",
     "seasons.champions.empty": "Nenhum campeão ainda",
     "seasons.champions.last_king": "Último Rei",
     "seasons.champions.richest": "Mais rico no corte",

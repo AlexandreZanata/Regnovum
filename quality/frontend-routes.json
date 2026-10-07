@@ -1348,17 +1348,20 @@
       "audience": "owner",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "moderation",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationAppealAfterWarning"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationAppealAfterWarning",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/moderation.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (owner appeals an appealable measure inside its window, private no-store). Browser client/page lands in P55."
+      "note": "P49-T07 mounted in ComposeModeration with the appeal ownership rule; proven via process httptest+PG (owner appeal, second decision 409). P55-T01 appeals in the browser through the moderation client and the moderation page (one appeal per action inside the window, single-shot without an invented key, replay resolved by the server, no list or state promised)."
     },
     {
       "method": "POST",
@@ -1370,17 +1373,21 @@
       "audience": "owner",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "moderation",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationReportFiling"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationReportFiling",
+        "internal/moderation/adapters/http/handler_test.go::TestModerationReportFlowHidesEvidence",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/moderation.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (authenticated filing, 401 anonymous, private no-store). Browser client/page lands in P55."
+      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/validator/cursor secret with the admin gate and step-up; proven via process httptest+PG (filing, claim to warning with audit line, double claim and expired lease 409). P55-T01 files in the browser through the moderation client and the moderation page (closed reason vocabulary, optional bounded context, single-shot without an invented key, replay resolved by the server, receipt without restricted evidence)."
     },
     {
       "method": "GET",

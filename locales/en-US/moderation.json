@@ -1,0 +1,26 @@
+{
+  "moderation": {
+    "report": {
+      "heading": "Report content",
+      "intro": "A report contests an Arena, an argument or a profile with closed reasons. It never removes content by itself.",
+      "filed": "Report filed: {id}",
+      "replayed": "Report already filed: {id}",
+      "rate_note": "Too many reports in a row. Wait before reporting again."
+    },
+    "appeal": {
+      "heading": "Appeal a sanction",
+      "intro": "An appeal contests one sanction inside the window. One appeal contests one action.",
+      "filed": "Appeal filed: {id}",
+      "replayed": "Appeal already filed: {id}"
+    },
+    "failure": {
+      "invalid": "This request is not valid. Check the reason and try again.",
+      "unauthorized": "Sign in to report or appeal.",
+      "forbidden": "This account cannot do this right now.",
+      "step_up": "Confirm your identity again to continue.",
+      "missing": "This content or sanction no longer exists.",
+      "conflict": "This request conflicts with the current state.",
+      "generic": "It could not be filed. Check and try again."
+    }
+  }
+}
