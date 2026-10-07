@@ -816,17 +816,21 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "billing",
+      "page": "checkout",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutSettlesPassOnVerifiedEvent"
+        "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutSettlesPassOnVerifiedEvent",
+        "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutFailsClosedWhenProviderIsDown",
+        "web/tests/core/billing.test.ts",
+        "web/tests/pages/checkout.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T06 mounted in ComposeBillingWrites with the versioned catalog and the synthetic gateway; proven via process httptest+PG (checkout→verified event→pass/INK projection, browser return grants nothing, forged signature and replay guarded, provider down grants nothing). Browser client/page lands in P54."
+      "note": "P49-T06 mounted in ComposeBillingWrites over shared pool/security/validator with versioned catalog, injected gateway and provider-only webhook pipeline; proven via process httptest+PG with synthetic gateway (checkout to signed event to pass/INK projection, forged/replayed events refused, provider down without credit). P54-T03 buys in the browser through the billing client and the checkout page (minimal intent under one explicit key with single retry, server-priced amount in minor units with ISO currency, redirect followed only when safe, return grants nothing, no seasonal sale)."
     },
     {
       "method": "POST",
@@ -838,17 +842,20 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "billing",
+      "page": "subscription",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/billing_writes_test.go::TestBillingPortalOpensForCustomer"
+        "internal/bootstrap/billing_writes_test.go::TestBillingPortalOpensForCustomer",
+        "web/tests/core/billing.test.ts",
+        "web/tests/pages/subscription.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T06 mounted in ComposeBillingWrites over shared pool/security/session validator; proven via process httptest+PG (portal opens for the stored customer, 404 without one, 401 anonymous, private no-store). Browser client/page lands in P54."
+      "note": "P49-T06 mounted the portal write in ComposeBillingWrites with the store idempotency and the hosted session; proven via process httptest+PG with synthetic gateway (owner opens, other answers 404 without a customer, anonymous 401, private no-store). P54-T04 opens it in the browser through the billing client and the subscription page (body token at most, single-shot without an invented header, hosted URL followed only when safe, return grants nothing)."
     },
     {
       "method": "GET",
@@ -860,17 +867,20 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "billing",
+      "page": "subscription",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/entitlement_read_test.go::TestEntitlementSubscriptionProjection"
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementSubscriptionProjection",
+        "web/tests/core/billing.test.ts",
+        "web/tests/pages/subscription.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (webhook-mirror projection, explicit absence for others, no provider identifier leaks, private no-store). Browser client/page lands in P54."
+      "note": "P49-T05 mounted the subscription read in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (projection without provider ids, absence explicit). P54-T04 reads it in the browser through the billing client and the subscription page (lifecycle verbatim, period localized, absence as state, benefit warning without new rules)."
     },
     {
       "method": "GET",
@@ -1392,17 +1402,22 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "passes",
+      "page": "passes",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped"
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementReloadGrantsNothing",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementHistoryCursorIsHonest",
+        "web/tests/core/passes.test.ts",
+        "web/tests/pages/passes.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, reload grants nothing, faithful per-lot projection, private no-store). Browser client/page lands in P54."
+      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, no grant on read, cursor guard, projection without provider ids). P54-T02 reads in the browser through the passes client and the passes page (derived total without expired lots, per-lot contracted rights with immutable expiration, MEMBER lots rendered as derived without renewal)."
     },
     {
       "method": "GET",
@@ -1414,17 +1429,22 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "passes",
+      "page": "passes",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/entitlement_read_test.go::TestEntitlementHistoryCursorIsHonest"
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementReloadGrantsNothing",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementHistoryCursorIsHonest",
+        "web/tests/core/passes.test.ts",
+        "web/tests/pages/passes.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T05 mounted in ComposeEntitlementReads with the shared cursor secret; proven via process httptest+PG (owner history, forged cursor refused, issued next cursor walks forward, private no-store). Browser client/page lands in P54."
+      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, cursor page, forged cursor 400, no-store). P54-T02 reads in the browser through the passes client and the passes page (opaque cursor passthrough, 1..100 page allowlisted in the address, merge deduped by consumption id, private history with reference verbatim)."
     },
     {
       "method": "POST",
@@ -1645,17 +1665,21 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "wallet",
+      "page": "wallet",
       "exclusion": null,
       "tests": [
         "internal/wallet/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped",
+        "internal/wallet/adapters/http/wallet_http_test.go",
+        "web/tests/core/wallet.test.ts",
+        "web/tests/pages/wallet.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). P54-T01 reads in the browser through the wallet client and the wallet page (derived buckets as safe integers, opaque cursor page, reference verbatim, no legacy/seasonal split invented)."
     },
     {
       "method": "GET",
@@ -1667,17 +1691,21 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "wallet",
+      "page": "wallet",
       "exclusion": null,
       "tests": [
         "internal/wallet/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped",
+        "internal/wallet/adapters/http/wallet_http_test.go",
+        "web/tests/core/wallet.test.ts",
+        "web/tests/pages/wallet.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, cursor page, forged cursor 400, no-store). P54-T01 reads in the browser through the wallet client and the wallet page (opaque cursor passthrough, 1..100 page allowlisted in the address, merge deduped by transaction id, stale never rendered)."
     },
     {
       "method": "GET",

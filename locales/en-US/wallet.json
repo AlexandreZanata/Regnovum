@@ -1,0 +1,65 @@
+{
+  "wallet": {
+    "balance": {
+      "heading": "INK wallet",
+      "intro": "Balances derived from the ledger, in whole INK units. The browser never prices anything nor grants any benefit.",
+      "free": "Free INK: {amount}",
+      "purchased": "Purchased INK: {amount}",
+      "total": "Total: {amount}"
+    },
+    "statement": {
+      "heading": "Ledger statement",
+      "intro": "Entries newest first, in opaque cursor pages.",
+      "empty": "No entries yet",
+      "entry": "{signed} INK — {operation} ({bucket}) on {instant}"
+    },
+    "failure": {
+      "invalid_cursor": "This statement cursor expired. Start again from the first page.",
+      "invalid_limit": "This page size is not valid. Use a value from 1 to 100.",
+      "unauthorized": "Sign in to see the wallet.",
+      "generic": "The wallet could not be loaded. Check and try again."
+    },
+    "passes": {
+      "heading": "Arena passes",
+      "intro": "Contracted rights and real consumption. The browser never grants a pass nor renews any benefit.",
+      "empty": "No passes yet",
+      "available": "Available passes: {count}",
+      "checked": "Checked {instant}",
+      "lot_active": "{remaining} of {quantity} passes ({origin}), expires {instant}",
+      "lot_no_expiry": "{remaining} of {quantity} passes ({origin}), never expires",
+      "lot_expired": "{remaining} of {quantity} passes ({origin}), expired {instant}",
+      "entry": "{origin} pass in {arena} on {instant}"
+    },
+    "checkout": {
+      "heading": "Buy",
+      "intro": "Offers from the versioned catalog. Price and destination come from the server; returning alone never grants any benefit.",
+      "offer": "{product} ({market})",
+      "price": "Price: {amount}",
+      "redirect_note": "You will be taken to the payment page. The account only changes once payment is confirmed.",
+      "paid_note": "Payment confirmed. The benefit lands when the confirmation arrives — re-check balance and passes.",
+      "expired_note": "This purchase expired and can no longer be paid. Start another one if you want.",
+      "failed_note": "This purchase failed and nothing was charged. Try again if you want.",
+      "unavailable": "Buying is unavailable right now. Try later.",
+      "failure_invalid": "This purchase request is not valid. Check the offer and try again.",
+      "failure_unauthorized": "Sign in to buy.",
+      "failure_forbidden": "This account cannot buy right now.",
+      "failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+      "failure_generic": "The purchase could not be created. Check and try again."
+    },
+    "subscription": {
+      "heading": "Member",
+      "intro": "Subscription projection: lifecycle and period, without provider identifiers.",
+      "absent": "No active subscription",
+      "state": "{status} subscription ({product}, {market})",
+      "period": "Current period until {instant}",
+      "canceling": "It will be canceled at the end of the current period.",
+      "benefit_note": "Current and legacy benefits apply as the rules in force declare.",
+      "portal_note": "You will be taken to the customer portal. When back, re-check the subscription.",
+      "unavailable": "Portal unavailable right now. Try later.",
+      "failure_unauthorized": "Sign in to see the subscription.",
+      "failure_no_customer": "No billing customer on this account.",
+      "failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+      "failure_generic": "The subscription could not be loaded. Check and try again."
+    }
+  }
+}
