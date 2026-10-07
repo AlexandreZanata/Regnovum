@@ -1146,19 +1146,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "mfa",
+      "page": "mfa",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/identity/adapters/http/mfa_http_test.go::TestMFAEnrollmentShowsTheSecretAndRotatesWhilePending",
+        "web/tests/core/mfa.test.ts",
+        "web/tests/pages/mfa.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T03 begins the enrollment in the browser through the mfa client and the mfa page (pt/en catalogs, numeric one-time-code field); proven via deterministic web tests (no-body begin, confirmed enrollment refused 409 never replaced, no retry, no idempotency key) plus the process journey over PG (secret shown once, rotation while pending). The secret lives in the begin answer alone: no log, no cache, no persistence."
     },
     {
       "method": "POST",
@@ -1168,19 +1171,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "mfa",
+      "page": "mfa",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/identity/adapters/http/mfa_http_test.go::TestMFAConfirmationSpendsTheCodeAndReturnsRecoveryCodesOnce",
+        "web/tests/core/mfa.test.ts",
+        "web/tests/pages/mfa.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T03 confirms the pending enrollment in the browser through the mfa client and the mfa page (one-time recovery codes, real server-code failures); proven via deterministic web tests (code body, invalid/replayed/missing kinds, no retry) plus the process journey over PG (confirming code spent, codes returned once, replay at step-up refused 403)."
     },
     {
       "method": "POST",
@@ -1190,19 +1196,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "mfa",
+      "page": "mfa",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/identity/adapters/http/mfa_http_test.go::TestMFARecoverySpendsTheCodeOnceAndRecordsIt",
+        "web/tests/core/mfa.test.ts",
+        "web/tests/pages/mfa.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T03 spends one backup code in the browser through the mfa client and the mfa page (lost-authenticator path, recorded recovery); proven via deterministic web tests (code body, spent code refused never replayed) plus the process journey over PG (code consumed once, audit recorded before elevation). Step-up grants no role."
     },
     {
       "method": "POST",
@@ -1212,19 +1221,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "mfa",
+      "page": "mfa",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/identity/adapters/http/mfa_http_test.go::TestMFAConfirmationSpendsTheCodeAndReturnsRecoveryCodesOnce",
+        "web/tests/core/mfa.test.ts",
+        "web/tests/pages/mfa.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T03 elevates the calling session in the browser through the mfa client and the mfa page (contextual step-up, lapsed elevation reported); proven via deterministic web tests (code body, replayed 403 never retried, lapsed elevation refused, 429 no replay) plus the process journey over PG (accepted step spent, replay refused 403 mfa_code_replayed even inside the window)."
     },
     {
       "method": "POST",

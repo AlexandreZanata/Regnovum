@@ -13,6 +13,7 @@ import { createArgumentsClient } from "../../src/core/clients/arguments.js";
 import { createArenasClient } from "../../src/core/clients/arenas.js";
 import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
+import { createMFAClient } from "../../src/core/clients/mfa.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import { createSessionsClient } from "../../src/core/clients/sessions.js";
 import type { HttpCore } from "../../src/core/http.js";
@@ -225,6 +226,37 @@ const expectations: readonly Expectation[] = [
     method: "POST",
     url: "https://arena.test/api/v1/me/sessions/revocation",
     body: { session_id: "sess-2", password: "pw" },
+    idempotent: false,
+  },
+  {
+    name: "mfa begin",
+    run: (core) => createMFAClient(core).begin(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/mfa/enrollment",
+    idempotent: false,
+  },
+  {
+    name: "mfa confirm",
+    run: (core) => createMFAClient(core).confirm({ code: "123456" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/mfa/enrollment/confirm",
+    body: { code: "123456" },
+    idempotent: false,
+  },
+  {
+    name: "mfa step-up",
+    run: (core) => createMFAClient(core).stepUp({ code: "654321" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/mfa/step-up",
+    body: { code: "654321" },
+    idempotent: false,
+  },
+  {
+    name: "mfa recovery",
+    run: (core) => createMFAClient(core).recover({ code: "r1-first" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/mfa/recovery",
+    body: { code: "r1-first" },
     idempotent: false,
   },
   {
