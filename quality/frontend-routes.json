@@ -175,16 +175,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 reads the public aggregate in the browser through the positions client and the aggregate presentation (pt/en catalogs, suppressed samples hide every count, visitor choice gates the UI never the API)."
     },
     {
       "method": "GET",
@@ -666,16 +670,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 reads the owner projection in the browser through the positions client and the participation page (private head with version, no position yet reads as not found, stranger reads as not found, visitor holds none)."
     },
     {
       "method": "POST",
@@ -688,16 +696,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 confirms in the browser through the positions client and the participation page (contract body once, immutable initial history conflicts on a different value, replay resolves the recorded projection, closed arenas refuse)."
     },
     {
       "method": "GET",
@@ -710,16 +722,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 lists the private history in the browser through the positions client and the participation page (newest first as answered, never reordered, empty state named)."
     },
     {
       "method": "POST",
@@ -732,16 +748,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 changes in the browser through the positions client and the participation page (201 with the change identifier, concurrent change conflicts without a write, same position conflicts, single-shot calls never replayed)."
     },
     {
       "method": "POST",

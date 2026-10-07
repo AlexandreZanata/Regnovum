@@ -97,6 +97,10 @@
         "submit": "Record influence",
         "busy": "Recording…"
       },
+      "history": {
+        "heading": "Position history",
+        "empty": "No changes recorded. The initial confirmation starts the history."
+      },
       "notice": {
         "position_confirmed": "Initial position confirmed.",
         "position_changed": "Position changed.",
@@ -116,7 +120,13 @@
         "argument_not_found": "One of the chosen arguments is no longer available.",
         "too_many_attributions": "Choose at most {max} arguments.",
         "csrf_title": "Form expired",
-        "csrf_detail": "Reload the page and submit the form again."
+        "csrf_detail": "Reload the page and submit the form again.",
+        "position_missing": "You have not confirmed a position in this arena yet.",
+        "arena_closed": "This arena accepts no more positions.",
+        "not_eligible": "Your account cannot participate in this arena yet.",
+        "suspended": "Your account is suspended and cannot participate.",
+        "same_position": "Choose a position different from the current one.",
+        "generic": "The position did not answer. Try again."
       }
     },
     "feed": {

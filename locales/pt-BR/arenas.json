@@ -97,6 +97,10 @@
         "submit": "Registrar influência",
         "busy": "Registrando…"
       },
+      "history": {
+        "heading": "Histórico de posições",
+        "empty": "Nenhuma mudança registrada. A confirmação inicial é o começo do histórico."
+      },
       "notice": {
         "position_confirmed": "Posição inicial confirmada.",
         "position_changed": "Posição alterada.",
@@ -116,7 +120,13 @@
         "argument_not_found": "Um dos argumentos escolhidos não está mais disponível.",
         "too_many_attributions": "Escolha no máximo {max} argumentos.",
         "csrf_title": "Formulário expirado",
-        "csrf_detail": "Recarregue a página e envie o formulário de novo."
+        "csrf_detail": "Recarregue a página e envie o formulário de novo.",
+        "position_missing": "Você ainda não confirmou uma posição nesta arena.",
+        "arena_closed": "Esta arena não aceita mais posições.",
+        "not_eligible": "Sua conta ainda não pode participar desta arena.",
+        "suspended": "Sua conta está suspensa e não pode participar.",
+        "same_position": "Escolha uma posição diferente da atual.",
+        "generic": "A posição não respondeu. Tente de novo."
       }
     },
     "feed": {

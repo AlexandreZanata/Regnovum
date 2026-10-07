@@ -76,23 +76,31 @@ export const messageKeys = {
     "arenas.participation.choice.agree",
     "arenas.participation.choice.disagree",
     "arenas.participation.choice.undecided",
+    "arenas.participation.errors.arena_closed",
     "arenas.participation.errors.argument_not_found",
     "arenas.participation.errors.change_not_found",
     "arenas.participation.errors.csrf_detail",
     "arenas.participation.errors.csrf_title",
+    "arenas.participation.errors.generic",
     "arenas.participation.errors.immutable_position",
     "arenas.participation.errors.insufficient_ink",
     "arenas.participation.errors.invalid_choice",
     "arenas.participation.errors.invalid_content",
     "arenas.participation.errors.invalid_relation",
+    "arenas.participation.errors.not_eligible",
+    "arenas.participation.errors.position_missing",
     "arenas.participation.errors.required",
+    "arenas.participation.errors.same_position",
     "arenas.participation.errors.summary_title",
+    "arenas.participation.errors.suspended",
     "arenas.participation.errors.too_many_attributions",
     "arenas.participation.errors.version_conflict",
     "arenas.participation.field.content_hint",
     "arenas.participation.field.content_label",
     "arenas.participation.field.position_label",
     "arenas.participation.field.relation_label",
+    "arenas.participation.history.empty",
+    "arenas.participation.history.heading",
     "arenas.participation.local.heading",
     "arenas.participation.local.hint",
     "arenas.participation.meta.category",
@@ -542,23 +550,31 @@ export type MessageKey =
   | "arenas.participation.choice.agree"
   | "arenas.participation.choice.disagree"
   | "arenas.participation.choice.undecided"
+  | "arenas.participation.errors.arena_closed"
   | "arenas.participation.errors.argument_not_found"
   | "arenas.participation.errors.change_not_found"
   | "arenas.participation.errors.csrf_detail"
   | "arenas.participation.errors.csrf_title"
+  | "arenas.participation.errors.generic"
   | "arenas.participation.errors.immutable_position"
   | "arenas.participation.errors.insufficient_ink"
   | "arenas.participation.errors.invalid_choice"
   | "arenas.participation.errors.invalid_content"
   | "arenas.participation.errors.invalid_relation"
+  | "arenas.participation.errors.not_eligible"
+  | "arenas.participation.errors.position_missing"
   | "arenas.participation.errors.required"
+  | "arenas.participation.errors.same_position"
   | "arenas.participation.errors.summary_title"
+  | "arenas.participation.errors.suspended"
   | "arenas.participation.errors.too_many_attributions"
   | "arenas.participation.errors.version_conflict"
   | "arenas.participation.field.content_hint"
   | "arenas.participation.field.content_label"
   | "arenas.participation.field.position_label"
   | "arenas.participation.field.relation_label"
+  | "arenas.participation.history.empty"
+  | "arenas.participation.history.heading"
   | "arenas.participation.local.heading"
   | "arenas.participation.local.hint"
   | "arenas.participation.meta.category"
@@ -989,23 +1005,31 @@ export const messagePlaceholders = Object.freeze({
   "arenas.participation.choice.agree": [],
   "arenas.participation.choice.disagree": [],
   "arenas.participation.choice.undecided": [],
+  "arenas.participation.errors.arena_closed": [],
   "arenas.participation.errors.argument_not_found": [],
   "arenas.participation.errors.change_not_found": [],
   "arenas.participation.errors.csrf_detail": [],
   "arenas.participation.errors.csrf_title": [],
+  "arenas.participation.errors.generic": [],
   "arenas.participation.errors.immutable_position": [],
   "arenas.participation.errors.insufficient_ink": [],
   "arenas.participation.errors.invalid_choice": [],
   "arenas.participation.errors.invalid_content": ["max"],
   "arenas.participation.errors.invalid_relation": [],
+  "arenas.participation.errors.not_eligible": [],
+  "arenas.participation.errors.position_missing": [],
   "arenas.participation.errors.required": [],
+  "arenas.participation.errors.same_position": [],
   "arenas.participation.errors.summary_title": [],
+  "arenas.participation.errors.suspended": [],
   "arenas.participation.errors.too_many_attributions": ["max"],
   "arenas.participation.errors.version_conflict": [],
   "arenas.participation.field.content_hint": ["max"],
   "arenas.participation.field.content_label": [],
   "arenas.participation.field.position_label": [],
   "arenas.participation.field.relation_label": [],
+  "arenas.participation.history.empty": [],
+  "arenas.participation.history.heading": [],
   "arenas.participation.local.heading": [],
   "arenas.participation.local.hint": [],
   "arenas.participation.meta.category": ["category"],
@@ -1437,23 +1461,31 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.participation.choice.agree": "Agree",
     "arenas.participation.choice.disagree": "Disagree",
     "arenas.participation.choice.undecided": "Undecided",
+    "arenas.participation.errors.arena_closed": "This arena accepts no more positions.",
     "arenas.participation.errors.argument_not_found": "One of the chosen arguments is no longer available.",
     "arenas.participation.errors.change_not_found": "This change is no longer available for attribution.",
     "arenas.participation.errors.csrf_detail": "Reload the page and submit the form again.",
     "arenas.participation.errors.csrf_title": "Form expired",
+    "arenas.participation.errors.generic": "The position did not answer. Try again.",
     "arenas.participation.errors.immutable_position": "The initial position was already confirmed with another value.",
     "arenas.participation.errors.insufficient_ink": "Your INK balance does not cover this publication.",
     "arenas.participation.errors.invalid_choice": "Choose one of the listed positions.",
     "arenas.participation.errors.invalid_content": "Write an argument of up to {max} graphemes.",
     "arenas.participation.errors.invalid_relation": "Choose one of the listed relations.",
+    "arenas.participation.errors.not_eligible": "Your account cannot participate in this arena yet.",
+    "arenas.participation.errors.position_missing": "You have not confirmed a position in this arena yet.",
     "arenas.participation.errors.required": "Provide a value for this field.",
+    "arenas.participation.errors.same_position": "Choose a position different from the current one.",
     "arenas.participation.errors.summary_title": "Fix the highlighted fields",
+    "arenas.participation.errors.suspended": "Your account is suspended and cannot participate.",
     "arenas.participation.errors.too_many_attributions": "Choose at most {max} arguments.",
     "arenas.participation.errors.version_conflict": "Your position changed elsewhere. Reload the page and submit again.",
     "arenas.participation.field.content_hint": "Up to {max} graphemes — the same limit the server enforces.",
     "arenas.participation.field.content_label": "Argument",
     "arenas.participation.field.position_label": "Position",
     "arenas.participation.field.relation_label": "Relation to the statement",
+    "arenas.participation.history.empty": "No changes recorded. The initial confirmation starts the history.",
+    "arenas.participation.history.heading": "Position history",
     "arenas.participation.local.heading": "Where would you stand?",
     "arenas.participation.local.hint": "Your choice stays in this browser only: nothing is sent until you sign in and confirm it.",
     "arenas.participation.meta.category": "Category: {category}",
@@ -1882,23 +1914,31 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.participation.choice.agree": "A favor",
     "arenas.participation.choice.disagree": "Contra",
     "arenas.participation.choice.undecided": "Sem posição",
+    "arenas.participation.errors.arena_closed": "Esta arena não aceita mais posições.",
     "arenas.participation.errors.argument_not_found": "Um dos argumentos escolhidos não está mais disponível.",
     "arenas.participation.errors.change_not_found": "Esta mudança não está mais disponível para atribuição.",
     "arenas.participation.errors.csrf_detail": "Recarregue a página e envie o formulário de novo.",
     "arenas.participation.errors.csrf_title": "Formulário expirado",
+    "arenas.participation.errors.generic": "A posição não respondeu. Tente de novo.",
     "arenas.participation.errors.immutable_position": "A posição inicial já foi confirmada com outro valor.",
     "arenas.participation.errors.insufficient_ink": "Seu saldo de INK não cobre esta publicação.",
     "arenas.participation.errors.invalid_choice": "Escolha uma das posições listadas.",
     "arenas.participation.errors.invalid_content": "Escreva um argumento de até {max} grafemas.",
     "arenas.participation.errors.invalid_relation": "Escolha uma das relações listadas.",
+    "arenas.participation.errors.not_eligible": "Sua conta ainda não pode participar desta arena.",
+    "arenas.participation.errors.position_missing": "Você ainda não confirmou uma posição nesta arena.",
     "arenas.participation.errors.required": "Informe um valor para este campo.",
+    "arenas.participation.errors.same_position": "Escolha uma posição diferente da atual.",
     "arenas.participation.errors.summary_title": "Corrija os campos indicados",
+    "arenas.participation.errors.suspended": "Sua conta está suspensa e não pode participar.",
     "arenas.participation.errors.too_many_attributions": "Escolha no máximo {max} argumentos.",
     "arenas.participation.errors.version_conflict": "Sua posição mudou em outro lugar. Recarregue a página e envie de novo.",
     "arenas.participation.field.content_hint": "Até {max} grafemas — o mesmo limite que o servidor aplica.",
     "arenas.participation.field.content_label": "Argumento",
     "arenas.participation.field.position_label": "Posição",
     "arenas.participation.field.relation_label": "Relação com o enunciado",
+    "arenas.participation.history.empty": "Nenhuma mudança registrada. A confirmação inicial é o começo do histórico.",
+    "arenas.participation.history.heading": "Histórico de posições",
     "arenas.participation.local.heading": "Qual seria a sua posição?",
     "arenas.participation.local.hint": "Sua escolha fica apenas neste navegador: nada é enviado até você entrar e confirmar.",
     "arenas.participation.meta.category": "Categoria: {category}",

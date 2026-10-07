@@ -1,11 +1,12 @@
 /**
- * DOM-free decisions of the Arena participation page (P18-T06).
+ * DOM-free decisions of the Arena participation page (P18-T06; position
+ * and aggregate journeys P53-T01).
  *
  * The page is a server-rendered document and it works without any script: every
  * form has a real `action`, a real `method` and a real CSRF field, the server
  * validates every submitted value against the same closed vocabulary the page
  * rendered, and every transition answers a document or a redirect. What a script
- * can add, and all this module decides, are the two things a document cannot do
+ * can add, and all this module decides, are the things a document cannot do
  * by itself:
  *
  *   - the local position choice of a visitor. It stays in this browser and is
@@ -16,12 +17,24 @@
  *     page listed, and the browser refuses to tick past the limit the server
  *     declares — as a courtesy, never as the authority: the application enforces
  *     the same limit on the request, which is what the adapter tests prove.
+ *   - the translated projection of the position journey: the confirmation
+ *     and change forms, the owner's private head and change history, and
+ *     the failure sentences for exactly the server codes the backend
+ *     emits. The private history and the public aggregate never mix: one
+ *     account's projection is unreachable from any other, and a visitor
+ *     holds no projection at all.
  *
  * Keeping the decisions here means the Node runner verifies them without a
  * browser: the element wiring in `arena.ts` only applies what is computed in
  * this file.
  */
-import type { ArenaPositionForm } from "../contracts/generated.js";
+import { formatInstant } from "../i18n/formats.js";
+import type {
+  ArenaPositionForm,
+  PositionChangeHistory,
+  PrivatePosition,
+} from "../contracts/generated.js";
+import type { Locale } from "../i18n/locale.js";
 import type { Translator } from "../i18n/translator.js";
 
 /** The position vocabulary, taken from the generated contract. */
@@ -151,4 +164,201 @@ export function attributionSelection(
  */
 export function attributionLimitMessage(translator: Translator, limit: number): string {
   return translator.translate("arenas.participation.errors.too_many_attributions", { max: limit });
+}
+
+/** positionLabel names one vocabulary value in the locale of the page. */
+export function positionLabel(translator: Translator, position: Position): string {
+  switch (position) {
+    case "agree":
+      return translator.translate("arenas.participation.choice.agree");
+    case "disagree":
+      return translator.translate("arenas.participation.choice.disagree");
+    case "undecided":
+      return translator.translate("arenas.participation.choice.undecided");
+  }
+}
+
+/** One rendered choice of a position form: value and label travel together. */
+export interface PositionChoice {
+  readonly value: Position;
+  readonly label: string;
+}
+
+/** positionChoices lists the vocabulary in the order the page renders it. */
+export function positionChoices(translator: Translator): readonly PositionChoice[] {
+  return POSITIONS.map((value) => ({ value, label: positionLabel(translator, value) }));
+}
+
+/** Everything the page renders for the first confirmation form. */
+export interface PositionConfirmView {
+  readonly heading: string;
+  readonly intro: string;
+  readonly choices: readonly PositionChoice[];
+  /**
+   * The visitor's local choice, when it is one the page rendered:
+   * the form starts from it, the server still receives only what
+   * the person submits.
+   */
+  readonly suggested: Position | null;
+  readonly submit: string;
+}
+
+/**
+ * positionConfirmView projects the initial confirmation: the choice
+ * is immutable history once recorded, so a different value later
+ * conflicts instead of overwriting. Repeating the same value
+ * replays the recorded projection instead of writing again.
+ */
+export function positionConfirmView(translator: Translator, suggested: Position | null): PositionConfirmView {
+  return {
+    heading: translator.translate("arenas.participation.position.confirm_heading"),
+    intro: translator.translate("arenas.participation.position.confirm_intro"),
+    choices: positionChoices(translator),
+    suggested,
+    submit: translator.translate("arenas.participation.position.confirm_submit"),
+  };
+}
+
+/** Everything the page renders for the change form. */
+export interface PositionChangeView {
+  readonly heading: string;
+  readonly intro: string;
+  /** The current position, named so the person sees what moves. */
+  readonly current: string;
+  readonly choices: readonly PositionChoice[];
+  readonly submit: string;
+}
+
+/**
+ * positionChangeView projects one later change: the move appends an
+ * immutable history row and the projection advances in the same
+ * server transaction. Changing to the current position conflicts,
+ * and a closed Arena accepts no new change.
+ */
+export function positionChangeView(translator: Translator, current: Position): PositionChangeView {
+  return {
+    heading: translator.translate("arenas.participation.position.change_heading"),
+    intro: translator.translate("arenas.participation.position.change_intro"),
+    current: translator.translate("arenas.participation.position.current", {
+      position: positionLabel(translator, current),
+    }),
+    choices: positionChoices(translator),
+    submit: translator.translate("arenas.participation.position.change_submit"),
+  };
+}
+
+/** Everything the page renders for the owner's own projection. */
+export interface MyPositionView {
+  readonly initial: string;
+  readonly current: string;
+  readonly version: number;
+  readonly updated: string;
+}
+
+/**
+ * myPositionView projects the private head of one account: initial
+ * and current positions with the version the next change must beat.
+ * Another account's projection is unreachable — it reads as not
+ * found — and a visitor holds no projection at all.
+ */
+export function myPositionView(translator: Translator, locale: Locale, position: PrivatePosition): MyPositionView {
+  return {
+    initial: translator.translate("arenas.participation.position.initial", {
+      position: positionLabel(translator, position.initial_position),
+    }),
+    current: translator.translate("arenas.participation.position.current", {
+      position: positionLabel(translator, position.current_position),
+    }),
+    version: position.version,
+    updated: formatInstant(locale, position.updated_at, { dateStyle: "medium", timeStyle: "short" }),
+  };
+}
+
+/** One recorded move of the private history. */
+export interface PositionHistoryRow {
+  readonly from: string;
+  readonly to: string;
+  readonly version: number;
+  readonly changed: string;
+}
+
+/** What the page renders for the private change history. */
+export type PositionHistoryView =
+  | { readonly state: "ready"; readonly rows: readonly PositionHistoryRow[] }
+  | { readonly state: "empty"; readonly empty: string };
+
+/** The heading of the history section, in the locale of the page. */
+export function positionHistoryHeading(translator: Translator): string {
+  return translator.translate("arenas.participation.history.heading");
+}
+
+/**
+ * positionHistoryView projects the owner's change history newest
+ * first, exactly as the server answers it: the page never reorders
+ * immutable history. Labels are translated, instants formatted, and
+ * a history that has not started yet names its empty state.
+ */
+export function positionHistoryView(
+  translator: Translator,
+  locale: Locale,
+  history: PositionChangeHistory,
+): PositionHistoryView {
+  if (history.items.length === 0) {
+    return { state: "empty", empty: translator.translate("arenas.participation.history.empty") };
+  }
+  return {
+    state: "ready",
+    rows: history.items.map((item) => ({
+      from: positionLabel(translator, item.from_position),
+      to: positionLabel(translator, item.to_position),
+      version: item.version,
+      changed: formatInstant(locale, item.changed_at, { dateStyle: "medium", timeStyle: "short" }),
+    })),
+  };
+}
+
+/**
+ * positionFailureField names the form field a refusal belongs to, so
+ * the renderer can focus the error where the person fixes it. Only
+ * the position field is ever named; anything else answers null and
+ * the error stays at the form.
+ */
+export function positionFailureField(serverCode: string): "position" | null {
+  switch (serverCode) {
+    case "position_invalid":
+      return "position";
+    default:
+      return null;
+  }
+}
+
+/**
+ * positionFailure translates a refusal by the server code the backend
+ * really emits. Codes the backend never emits are not named here:
+ * they fall back to the generic sentence instead of inventing a
+ * meaning.
+ */
+export function positionFailure(translator: Translator, serverCode: string): string {
+  switch (serverCode) {
+    case "position_invalid":
+      return translator.translate("arenas.participation.errors.invalid_choice");
+    case "initial_position_already_set":
+      return translator.translate("arenas.participation.errors.immutable_position");
+    case "version_conflict":
+      return translator.translate("arenas.participation.errors.version_conflict");
+    case "position_not_found":
+      return translator.translate("arenas.participation.errors.position_missing");
+    case "arena_not_open":
+      return translator.translate("arenas.participation.errors.arena_closed");
+    case "account_not_eligible":
+      return translator.translate("arenas.participation.errors.not_eligible");
+    case "account_suspended":
+      return translator.translate("arenas.participation.errors.suspended");
+    case "position_same":
+      return translator.translate("arenas.participation.errors.same_position");
+    case "arena_not_found":
+      return translator.translate("arenas.document.not_found.detail");
+    default:
+      return translator.translate("arenas.participation.errors.generic");
+  }
 }
