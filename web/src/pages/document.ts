@@ -5,11 +5,12 @@
  * page (`showArenaParticipationPage`) are two server-rendered views of
  * one Arena: the first is the cacheable public record, the second the
  * page a person acts on. This module completes the browser side of the
- * first without duplicating anything the tree already owns: the slug
- * parsing of the participation page, the realm exhibit of the arenas
- * components, and the status and error sentences of the arenas catalog
- * all arrive by import, so there is no rival document page here — only
- * the projection the canonical address needs.
+ * first without duplicating anything the tree already owns: the realm
+ * exhibit of the arenas components and the status and error sentences
+ * of the arenas catalog arrive by import, and the participation address
+ * stays parsed by the participation module (asserted, not reimplemented),
+ * so there is no rival document page here — only the projection the
+ * canonical address needs.
  *
  * The content language is the Arena's own: it drives the `lang` the
  * renderer writes and selects nothing else, and no hreflang is ever
