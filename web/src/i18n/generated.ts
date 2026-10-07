@@ -555,6 +555,57 @@ export const messageKeys = {
     "transparency.metrics.treasury",
     "transparency.metrics.window",
   ] as const,
+  wallet: [
+    "wallet.balance.free",
+    "wallet.balance.heading",
+    "wallet.balance.intro",
+    "wallet.balance.purchased",
+    "wallet.balance.total",
+    "wallet.checkout.expired_note",
+    "wallet.checkout.failed_note",
+    "wallet.checkout.failure_forbidden",
+    "wallet.checkout.failure_generic",
+    "wallet.checkout.failure_invalid",
+    "wallet.checkout.failure_rate_limited",
+    "wallet.checkout.failure_unauthorized",
+    "wallet.checkout.heading",
+    "wallet.checkout.intro",
+    "wallet.checkout.offer",
+    "wallet.checkout.paid_note",
+    "wallet.checkout.price",
+    "wallet.checkout.redirect_note",
+    "wallet.checkout.unavailable",
+    "wallet.failure.generic",
+    "wallet.failure.invalid_cursor",
+    "wallet.failure.invalid_limit",
+    "wallet.failure.unauthorized",
+    "wallet.passes.available",
+    "wallet.passes.checked",
+    "wallet.passes.empty",
+    "wallet.passes.entry",
+    "wallet.passes.heading",
+    "wallet.passes.intro",
+    "wallet.passes.lot_active",
+    "wallet.passes.lot_expired",
+    "wallet.passes.lot_no_expiry",
+    "wallet.statement.empty",
+    "wallet.statement.entry",
+    "wallet.statement.heading",
+    "wallet.statement.intro",
+    "wallet.subscription.absent",
+    "wallet.subscription.benefit_note",
+    "wallet.subscription.canceling",
+    "wallet.subscription.failure_generic",
+    "wallet.subscription.failure_no_customer",
+    "wallet.subscription.failure_rate_limited",
+    "wallet.subscription.failure_unauthorized",
+    "wallet.subscription.heading",
+    "wallet.subscription.intro",
+    "wallet.subscription.period",
+    "wallet.subscription.portal_note",
+    "wallet.subscription.state",
+    "wallet.subscription.unavailable",
+  ] as const,
 } as const;
 
 /** Every message key across namespaces. */
@@ -1089,6 +1140,55 @@ export type MessageKey =
   | "transparency.metrics.title"
   | "transparency.metrics.treasury"
   | "transparency.metrics.window"
+  | "wallet.balance.free"
+  | "wallet.balance.heading"
+  | "wallet.balance.intro"
+  | "wallet.balance.purchased"
+  | "wallet.balance.total"
+  | "wallet.checkout.expired_note"
+  | "wallet.checkout.failed_note"
+  | "wallet.checkout.failure_forbidden"
+  | "wallet.checkout.failure_generic"
+  | "wallet.checkout.failure_invalid"
+  | "wallet.checkout.failure_rate_limited"
+  | "wallet.checkout.failure_unauthorized"
+  | "wallet.checkout.heading"
+  | "wallet.checkout.intro"
+  | "wallet.checkout.offer"
+  | "wallet.checkout.paid_note"
+  | "wallet.checkout.price"
+  | "wallet.checkout.redirect_note"
+  | "wallet.checkout.unavailable"
+  | "wallet.failure.generic"
+  | "wallet.failure.invalid_cursor"
+  | "wallet.failure.invalid_limit"
+  | "wallet.failure.unauthorized"
+  | "wallet.passes.available"
+  | "wallet.passes.checked"
+  | "wallet.passes.empty"
+  | "wallet.passes.entry"
+  | "wallet.passes.heading"
+  | "wallet.passes.intro"
+  | "wallet.passes.lot_active"
+  | "wallet.passes.lot_expired"
+  | "wallet.passes.lot_no_expiry"
+  | "wallet.statement.empty"
+  | "wallet.statement.entry"
+  | "wallet.statement.heading"
+  | "wallet.statement.intro"
+  | "wallet.subscription.absent"
+  | "wallet.subscription.benefit_note"
+  | "wallet.subscription.canceling"
+  | "wallet.subscription.failure_generic"
+  | "wallet.subscription.failure_no_customer"
+  | "wallet.subscription.failure_rate_limited"
+  | "wallet.subscription.failure_unauthorized"
+  | "wallet.subscription.heading"
+  | "wallet.subscription.intro"
+  | "wallet.subscription.period"
+  | "wallet.subscription.portal_note"
+  | "wallet.subscription.state"
+  | "wallet.subscription.unavailable"
 ;
 
 /** Named placeholders per message key: the exact values one translation accepts. */
@@ -1623,6 +1723,55 @@ export const messagePlaceholders = Object.freeze({
   "transparency.metrics.title": [],
   "transparency.metrics.treasury": ["total"],
   "transparency.metrics.window": ["end", "start"],
+  "wallet.balance.free": ["amount"],
+  "wallet.balance.heading": [],
+  "wallet.balance.intro": [],
+  "wallet.balance.purchased": ["amount"],
+  "wallet.balance.total": ["amount"],
+  "wallet.checkout.expired_note": [],
+  "wallet.checkout.failed_note": [],
+  "wallet.checkout.failure_forbidden": [],
+  "wallet.checkout.failure_generic": [],
+  "wallet.checkout.failure_invalid": [],
+  "wallet.checkout.failure_rate_limited": [],
+  "wallet.checkout.failure_unauthorized": [],
+  "wallet.checkout.heading": [],
+  "wallet.checkout.intro": [],
+  "wallet.checkout.offer": ["market", "product"],
+  "wallet.checkout.paid_note": [],
+  "wallet.checkout.price": ["amount"],
+  "wallet.checkout.redirect_note": [],
+  "wallet.checkout.unavailable": [],
+  "wallet.failure.generic": [],
+  "wallet.failure.invalid_cursor": [],
+  "wallet.failure.invalid_limit": [],
+  "wallet.failure.unauthorized": [],
+  "wallet.passes.available": ["count"],
+  "wallet.passes.checked": ["instant"],
+  "wallet.passes.empty": [],
+  "wallet.passes.entry": ["arena", "instant", "origin"],
+  "wallet.passes.heading": [],
+  "wallet.passes.intro": [],
+  "wallet.passes.lot_active": ["instant", "origin", "quantity", "remaining"],
+  "wallet.passes.lot_expired": ["instant", "origin", "quantity", "remaining"],
+  "wallet.passes.lot_no_expiry": ["origin", "quantity", "remaining"],
+  "wallet.statement.empty": [],
+  "wallet.statement.entry": ["bucket", "instant", "operation", "signed"],
+  "wallet.statement.heading": [],
+  "wallet.statement.intro": [],
+  "wallet.subscription.absent": [],
+  "wallet.subscription.benefit_note": [],
+  "wallet.subscription.canceling": [],
+  "wallet.subscription.failure_generic": [],
+  "wallet.subscription.failure_no_customer": [],
+  "wallet.subscription.failure_rate_limited": [],
+  "wallet.subscription.failure_unauthorized": [],
+  "wallet.subscription.heading": [],
+  "wallet.subscription.intro": [],
+  "wallet.subscription.period": ["instant"],
+  "wallet.subscription.portal_note": [],
+  "wallet.subscription.state": ["market", "product", "status"],
+  "wallet.subscription.unavailable": [],
 } as const satisfies Readonly<Record<string, readonly string[]>>);
 
 /** Localized messages per locale per key. */
@@ -2158,6 +2307,55 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.metrics.title": "Crumbs and reflux — weekly aggregate",
     "transparency.metrics.treasury": "Treasury: {total} thousandths of INK",
     "transparency.metrics.window": "Sealed window: {start} – {end} (UTC)",
+    "wallet.balance.free": "Free INK: {amount}",
+    "wallet.balance.heading": "INK wallet",
+    "wallet.balance.intro": "Balances derived from the ledger, in whole INK units. The browser never prices anything nor grants any benefit.",
+    "wallet.balance.purchased": "Purchased INK: {amount}",
+    "wallet.balance.total": "Total: {amount}",
+    "wallet.checkout.expired_note": "This purchase expired and can no longer be paid. Start another one if you want.",
+    "wallet.checkout.failed_note": "This purchase failed and nothing was charged. Try again if you want.",
+    "wallet.checkout.failure_forbidden": "This account cannot buy right now.",
+    "wallet.checkout.failure_generic": "The purchase could not be created. Check and try again.",
+    "wallet.checkout.failure_invalid": "This purchase request is not valid. Check the offer and try again.",
+    "wallet.checkout.failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+    "wallet.checkout.failure_unauthorized": "Sign in to buy.",
+    "wallet.checkout.heading": "Buy",
+    "wallet.checkout.intro": "Offers from the versioned catalog. Price and destination come from the server; returning alone never grants any benefit.",
+    "wallet.checkout.offer": "{product} ({market})",
+    "wallet.checkout.paid_note": "Payment confirmed. The benefit lands when the confirmation arrives — re-check balance and passes.",
+    "wallet.checkout.price": "Price: {amount}",
+    "wallet.checkout.redirect_note": "You will be taken to the payment page. The account only changes once payment is confirmed.",
+    "wallet.checkout.unavailable": "Buying is unavailable right now. Try later.",
+    "wallet.failure.generic": "The wallet could not be loaded. Check and try again.",
+    "wallet.failure.invalid_cursor": "This statement cursor expired. Start again from the first page.",
+    "wallet.failure.invalid_limit": "This page size is not valid. Use a value from 1 to 100.",
+    "wallet.failure.unauthorized": "Sign in to see the wallet.",
+    "wallet.passes.available": "Available passes: {count}",
+    "wallet.passes.checked": "Checked {instant}",
+    "wallet.passes.empty": "No passes yet",
+    "wallet.passes.entry": "{origin} pass in {arena} on {instant}",
+    "wallet.passes.heading": "Arena passes",
+    "wallet.passes.intro": "Contracted rights and real consumption. The browser never grants a pass nor renews any benefit.",
+    "wallet.passes.lot_active": "{remaining} of {quantity} passes ({origin}), expires {instant}",
+    "wallet.passes.lot_expired": "{remaining} of {quantity} passes ({origin}), expired {instant}",
+    "wallet.passes.lot_no_expiry": "{remaining} of {quantity} passes ({origin}), never expires",
+    "wallet.statement.empty": "No entries yet",
+    "wallet.statement.entry": "{signed} INK — {operation} ({bucket}) on {instant}",
+    "wallet.statement.heading": "Ledger statement",
+    "wallet.statement.intro": "Entries newest first, in opaque cursor pages.",
+    "wallet.subscription.absent": "No active subscription",
+    "wallet.subscription.benefit_note": "Current and legacy benefits apply as the rules in force declare.",
+    "wallet.subscription.canceling": "It will be canceled at the end of the current period.",
+    "wallet.subscription.failure_generic": "The subscription could not be loaded. Check and try again.",
+    "wallet.subscription.failure_no_customer": "No billing customer on this account.",
+    "wallet.subscription.failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+    "wallet.subscription.failure_unauthorized": "Sign in to see the subscription.",
+    "wallet.subscription.heading": "Member",
+    "wallet.subscription.intro": "Subscription projection: lifecycle and period, without provider identifiers.",
+    "wallet.subscription.period": "Current period until {instant}",
+    "wallet.subscription.portal_note": "You will be taken to the customer portal. When back, re-check the subscription.",
+    "wallet.subscription.state": "{status} subscription ({product}, {market})",
+    "wallet.subscription.unavailable": "Portal unavailable right now. Try later.",
   }),
   "pt-BR": Object.freeze({
     "arenas.arguments.failure_cross_arena": "O argumento pertence a outra arena.",
@@ -2690,5 +2888,54 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.metrics.title": "Migalhas e refluxo — agregado semanal",
     "transparency.metrics.treasury": "Tesouro: {total} milésimos de INK",
     "transparency.metrics.window": "Janela selada: {start} – {end} (UTC)",
+    "wallet.balance.free": "INK livre: {amount}",
+    "wallet.balance.heading": "Carteira INK",
+    "wallet.balance.intro": "Saldos derivados do livro-razão, em unidades inteiras de INK. O navegador nunca calcula preço nem concede benefício.",
+    "wallet.balance.purchased": "INK comprado: {amount}",
+    "wallet.balance.total": "Total: {amount}",
+    "wallet.checkout.expired_note": "Esta compra expirou e não pode mais ser paga. Comece outra se quiser.",
+    "wallet.checkout.failed_note": "Esta compra falhou e nada foi cobrado. Tente de novo se quiser.",
+    "wallet.checkout.failure_forbidden": "Esta conta não pode comprar agora.",
+    "wallet.checkout.failure_generic": "Não foi possível criar a compra. Confira e tente novamente.",
+    "wallet.checkout.failure_invalid": "Este pedido de compra não é válido. Confira a oferta e tente de novo.",
+    "wallet.checkout.failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
+    "wallet.checkout.failure_unauthorized": "Entre na conta para comprar.",
+    "wallet.checkout.heading": "Comprar",
+    "wallet.checkout.intro": "Ofertas do catálogo versionado. Preço e destino vêm do servidor; a volta nunca concede benefício sozinha.",
+    "wallet.checkout.offer": "{product} ({market})",
+    "wallet.checkout.paid_note": "Pagamento confirmado. O benefício entra quando a confirmação chegar — reconsulte saldo e passes.",
+    "wallet.checkout.price": "Preço: {amount}",
+    "wallet.checkout.redirect_note": "Você será levado à página de pagamento. A conta só muda quando o pagamento for confirmado.",
+    "wallet.checkout.unavailable": "Compra indisponível agora. Tente mais tarde.",
+    "wallet.failure.generic": "Não foi possível carregar a carteira. Confira e tente novamente.",
+    "wallet.failure.invalid_cursor": "Este cursor de extrato expirou. Recomece da primeira página.",
+    "wallet.failure.invalid_limit": "Este tamanho de página não é válido. Use um valor de 1 a 100.",
+    "wallet.failure.unauthorized": "Entre na conta para ver a carteira.",
+    "wallet.passes.available": "Passes disponíveis: {count}",
+    "wallet.passes.checked": "Verificado em {instant}",
+    "wallet.passes.empty": "Nenhum passe ainda",
+    "wallet.passes.entry": "Passe {origin} em {arena} em {instant}",
+    "wallet.passes.heading": "Passes de Arena",
+    "wallet.passes.intro": "Direitos contratados e consumo real. O navegador nunca concede passe nem renova benefício.",
+    "wallet.passes.lot_active": "{remaining} de {quantity} passes ({origin}), vence em {instant}",
+    "wallet.passes.lot_expired": "{remaining} de {quantity} passes ({origin}), vencido em {instant}",
+    "wallet.passes.lot_no_expiry": "{remaining} de {quantity} passes ({origin}), sem vencimento",
+    "wallet.statement.empty": "Nenhum lançamento ainda",
+    "wallet.statement.entry": "{signed} INK — {operation} ({bucket}) em {instant}",
+    "wallet.statement.heading": "Extrato do livro-razão",
+    "wallet.statement.intro": "Lançamentos do mais novo ao mais antigo, em páginas de cursor opaco.",
+    "wallet.subscription.absent": "Sem assinatura ativa",
+    "wallet.subscription.benefit_note": "Benefícios vigentes e legados valem conforme as regras em vigor.",
+    "wallet.subscription.canceling": "Será cancelada ao fim do período atual.",
+    "wallet.subscription.failure_generic": "Não foi possível carregar a assinatura. Confira e tente novamente.",
+    "wallet.subscription.failure_no_customer": "Nenhum cliente de cobrança nesta conta.",
+    "wallet.subscription.failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
+    "wallet.subscription.failure_unauthorized": "Entre na conta para ver a assinatura.",
+    "wallet.subscription.heading": "Member",
+    "wallet.subscription.intro": "Projeção da assinatura: ciclo e período, sem identificadores do provedor.",
+    "wallet.subscription.period": "Período atual até {instant}",
+    "wallet.subscription.portal_note": "Você será levado ao portal do cliente. Ao voltar, reconsulte a assinatura.",
+    "wallet.subscription.state": "Assinatura {status} ({product}, {market})",
+    "wallet.subscription.unavailable": "Portal indisponível agora. Tente mais tarde.",
   }),
 });
