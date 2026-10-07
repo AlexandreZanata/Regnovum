@@ -816,17 +816,21 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "billing",
+      "page": "checkout",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutSettlesPassOnVerifiedEvent"
+        "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutSettlesPassOnVerifiedEvent",
+        "internal/bootstrap/billing_writes_test.go::TestBillingCheckoutFailsClosedWhenProviderIsDown",
+        "web/tests/core/billing.test.ts",
+        "web/tests/pages/checkout.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T06 mounted in ComposeBillingWrites with the versioned catalog and the synthetic gateway; proven via process httptest+PG (checkout→verified event→pass/INK projection, browser return grants nothing, forged signature and replay guarded, provider down grants nothing). Browser client/page lands in P54."
+      "note": "P49-T06 mounted in ComposeBillingWrites over shared pool/security/validator with versioned catalog, injected gateway and provider-only webhook pipeline; proven via process httptest+PG with synthetic gateway (checkout to signed event to pass/INK projection, forged/replayed events refused, provider down without credit). P54-T03 buys in the browser through the billing client and the checkout page (minimal intent under one explicit key with single retry, server-priced amount in minor units with ISO currency, redirect followed only when safe, return grants nothing, no seasonal sale)."
     },
     {
       "method": "POST",

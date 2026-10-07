@@ -22,6 +22,7 @@ import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import { createSessionsClient } from "../../src/core/clients/sessions.js";
 import { createWalletClient } from "../../src/core/clients/wallet.js";
 import { createPassesClient } from "../../src/core/clients/passes.js";
+import { createBillingClient } from "../../src/core/clients/billing.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -421,6 +422,15 @@ const expectations: readonly Expectation[] = [
     method: "GET",
     url: "https://arena.test/api/v1/me/passes/history?cursor=c1&limit=20",
     idempotent: false,
+  },
+  {
+    name: "billing checkout",
+    run: (core) =>
+      createBillingClient(core).checkout({ market: "BR", product: "pass_1", idempotencyKey: "op-1" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/billing/checkout",
+    body: { market: "BR", product: "pass_1", idempotency_key: "op-1" },
+    idempotent: true,
   },
   {
     name: "arguments reply",

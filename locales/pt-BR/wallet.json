@@ -29,6 +29,22 @@
       "lot_no_expiry": "{remaining} de {quantity} passes ({origin}), sem vencimento",
       "lot_expired": "{remaining} de {quantity} passes ({origin}), vencido em {instant}",
       "entry": "Passe {origin} em {arena} em {instant}"
+    },
+    "checkout": {
+      "heading": "Comprar",
+      "intro": "Ofertas do catálogo versionado. Preço e destino vêm do servidor; a volta nunca concede benefício sozinha.",
+      "offer": "{product} ({market})",
+      "price": "Preço: {amount}",
+      "redirect_note": "Você será levado à página de pagamento. A conta só muda quando o pagamento for confirmado.",
+      "paid_note": "Pagamento confirmado. O benefício entra quando a confirmação chegar — reconsulte saldo e passes.",
+      "expired_note": "Esta compra expirou e não pode mais ser paga. Comece outra se quiser.",
+      "failed_note": "Esta compra falhou e nada foi cobrado. Tente de novo se quiser.",
+      "unavailable": "Compra indisponível agora. Tente mais tarde.",
+      "failure_invalid": "Este pedido de compra não é válido. Confira a oferta e tente de novo.",
+      "failure_unauthorized": "Entre na conta para comprar.",
+      "failure_forbidden": "Esta conta não pode comprar agora.",
+      "failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
+      "failure_generic": "Não foi possível criar a compra. Confira e tente novamente."
     }
   }
 }

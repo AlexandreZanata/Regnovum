@@ -29,6 +29,22 @@
       "lot_no_expiry": "{remaining} of {quantity} passes ({origin}), never expires",
       "lot_expired": "{remaining} of {quantity} passes ({origin}), expired {instant}",
       "entry": "{origin} pass in {arena} on {instant}"
+    },
+    "checkout": {
+      "heading": "Buy",
+      "intro": "Offers from the versioned catalog. Price and destination come from the server; returning alone never grants any benefit.",
+      "offer": "{product} ({market})",
+      "price": "Price: {amount}",
+      "redirect_note": "You will be taken to the payment page. The account only changes once payment is confirmed.",
+      "paid_note": "Payment confirmed. The benefit lands when the confirmation arrives — re-check balance and passes.",
+      "expired_note": "This purchase expired and can no longer be paid. Start another one if you want.",
+      "failed_note": "This purchase failed and nothing was charged. Try again if you want.",
+      "unavailable": "Buying is unavailable right now. Try later.",
+      "failure_invalid": "This purchase request is not valid. Check the offer and try again.",
+      "failure_unauthorized": "Sign in to buy.",
+      "failure_forbidden": "This account cannot buy right now.",
+      "failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+      "failure_generic": "The purchase could not be created. Check and try again."
     }
   }
 }
