@@ -247,6 +247,15 @@ func usesMarker(file fileRecord, marker string) bool {
 // matches decides the depth, and a path that matches none belongs to its own
 // directory. The area is what `same-area-test` compares, and nothing else.
 func areaOf(path string, pol policy) string {
+	for _, mirror := range pol.Areas.Mirrors {
+		if mirror.Prefix == "" || mirror.Target == "" {
+			continue
+		}
+		if strings.HasPrefix(path, mirror.Prefix) {
+			path = mirror.Target + strings.TrimPrefix(path, mirror.Prefix)
+			break
+		}
+	}
 	segments := strings.Split(path, "/")
 	for _, rule := range pol.Areas.Prefixes {
 		if !strings.HasPrefix(path, rule.Prefix) {

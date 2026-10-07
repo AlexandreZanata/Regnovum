@@ -89,7 +89,41 @@ export const messageKeys = {
     "arenas.realm.no_official_outcome",
   ] as const,
   auth: [
+    "auth.account.checked_at",
+    "auth.account.influenced_people",
+    "auth.account.locale_label",
+    "auth.account.member_since",
+    "auth.account.private_heading",
+    "auth.account.private_intro",
+    "auth.account.public_heading",
+    "auth.account.public_intro",
+    "auth.account.reputation_heading",
+    "auth.account.reputation_intro",
+    "auth.account.unknown_user",
+    "auth.account.updated_at",
+    "auth.account.username_label",
+    "auth.account.valid_attributions",
     "auth.brand",
+    "auth.deletion.cancel_note",
+    "auth.deletion.cancel_submit",
+    "auth.deletion.confirm",
+    "auth.deletion.cooling",
+    "auth.deletion.failure_generic",
+    "auth.deletion.failure_ineligible",
+    "auth.deletion.failure_missing",
+    "auth.deletion.failure_terminal",
+    "auth.deletion.heading",
+    "auth.deletion.intro",
+    "auth.deletion.not_sanction",
+    "auth.deletion.placeholder",
+    "auth.deletion.preserved",
+    "auth.deletion.public_intact",
+    "auth.deletion.removed",
+    "auth.deletion.request_submit",
+    "auth.deletion.requested_at",
+    "auth.deletion.status_canceled",
+    "auth.deletion.status_executed",
+    "auth.deletion.status_requested",
     "auth.errors.csrf_detail",
     "auth.errors.csrf_title",
     "auth.errors.invalid_code",
@@ -98,6 +132,20 @@ export const messageKeys = {
     "auth.errors.required",
     "auth.errors.summary_title",
     "auth.errors.weak_password",
+    "auth.exports.download_submit",
+    "auth.exports.failure_forged",
+    "auth.exports.failure_generic",
+    "auth.exports.failure_gone",
+    "auth.exports.failure_stale",
+    "auth.exports.heading",
+    "auth.exports.intro",
+    "auth.exports.pending_heading",
+    "auth.exports.pending_note",
+    "auth.exports.ready_heading",
+    "auth.exports.ready_note",
+    "auth.exports.request_submit",
+    "auth.exports.revoke_note",
+    "auth.exports.stepup_note",
     "auth.field.code_hint",
     "auth.field.code_label",
     "auth.field.email_hint",
@@ -141,6 +189,30 @@ export const messageKeys = {
     "auth.logout.intro",
     "auth.logout.page_title",
     "auth.logout.submit",
+    "auth.mfa.backup_heading",
+    "auth.mfa.backup_note",
+    "auth.mfa.begin_note",
+    "auth.mfa.begin_submit",
+    "auth.mfa.code_hint",
+    "auth.mfa.code_label",
+    "auth.mfa.confirm_submit",
+    "auth.mfa.elevated_recovery",
+    "auth.mfa.elevated_stepup",
+    "auth.mfa.failure_enrolled",
+    "auth.mfa.failure_generic",
+    "auth.mfa.failure_invalid",
+    "auth.mfa.failure_missing",
+    "auth.mfa.failure_not_enrolled",
+    "auth.mfa.failure_replayed",
+    "auth.mfa.failure_step_required",
+    "auth.mfa.heading",
+    "auth.mfa.intro",
+    "auth.mfa.recover_note",
+    "auth.mfa.recover_submit",
+    "auth.mfa.secret_label",
+    "auth.mfa.stepup_note",
+    "auth.mfa.stepup_submit",
+    "auth.mfa.uri_note",
     "auth.nav.label",
     "auth.nav.login",
     "auth.nav.logout",
@@ -171,6 +243,20 @@ export const messageKeys = {
     "auth.reset.notice_heading",
     "auth.reset.page_title",
     "auth.reset.submit",
+    "auth.sessions.current_label",
+    "auth.sessions.empty",
+    "auth.sessions.expires_at",
+    "auth.sessions.heading",
+    "auth.sessions.intro",
+    "auth.sessions.last_seen",
+    "auth.sessions.other_label",
+    "auth.sessions.revoke_confirm",
+    "auth.sessions.revoke_submit",
+    "auth.sessions.revoke_success",
+    "auth.sessions.revoked_current",
+    "auth.sessions.rotate_submit",
+    "auth.sessions.rotate_success",
+    "auth.sessions.unknown_session",
     "auth.shell.footer_note",
     "auth.shell.skip_link",
     "auth.verify.busy",
@@ -419,7 +505,41 @@ export type MessageKey =
   | "arenas.realm.arena"
   | "arenas.realm.kingdom"
   | "arenas.realm.no_official_outcome"
+  | "auth.account.checked_at"
+  | "auth.account.influenced_people"
+  | "auth.account.locale_label"
+  | "auth.account.member_since"
+  | "auth.account.private_heading"
+  | "auth.account.private_intro"
+  | "auth.account.public_heading"
+  | "auth.account.public_intro"
+  | "auth.account.reputation_heading"
+  | "auth.account.reputation_intro"
+  | "auth.account.unknown_user"
+  | "auth.account.updated_at"
+  | "auth.account.username_label"
+  | "auth.account.valid_attributions"
   | "auth.brand"
+  | "auth.deletion.cancel_note"
+  | "auth.deletion.cancel_submit"
+  | "auth.deletion.confirm"
+  | "auth.deletion.cooling"
+  | "auth.deletion.failure_generic"
+  | "auth.deletion.failure_ineligible"
+  | "auth.deletion.failure_missing"
+  | "auth.deletion.failure_terminal"
+  | "auth.deletion.heading"
+  | "auth.deletion.intro"
+  | "auth.deletion.not_sanction"
+  | "auth.deletion.placeholder"
+  | "auth.deletion.preserved"
+  | "auth.deletion.public_intact"
+  | "auth.deletion.removed"
+  | "auth.deletion.request_submit"
+  | "auth.deletion.requested_at"
+  | "auth.deletion.status_canceled"
+  | "auth.deletion.status_executed"
+  | "auth.deletion.status_requested"
   | "auth.errors.csrf_detail"
   | "auth.errors.csrf_title"
   | "auth.errors.invalid_code"
@@ -428,6 +548,20 @@ export type MessageKey =
   | "auth.errors.required"
   | "auth.errors.summary_title"
   | "auth.errors.weak_password"
+  | "auth.exports.download_submit"
+  | "auth.exports.failure_forged"
+  | "auth.exports.failure_generic"
+  | "auth.exports.failure_gone"
+  | "auth.exports.failure_stale"
+  | "auth.exports.heading"
+  | "auth.exports.intro"
+  | "auth.exports.pending_heading"
+  | "auth.exports.pending_note"
+  | "auth.exports.ready_heading"
+  | "auth.exports.ready_note"
+  | "auth.exports.request_submit"
+  | "auth.exports.revoke_note"
+  | "auth.exports.stepup_note"
   | "auth.field.code_hint"
   | "auth.field.code_label"
   | "auth.field.email_hint"
@@ -471,6 +605,30 @@ export type MessageKey =
   | "auth.logout.intro"
   | "auth.logout.page_title"
   | "auth.logout.submit"
+  | "auth.mfa.backup_heading"
+  | "auth.mfa.backup_note"
+  | "auth.mfa.begin_note"
+  | "auth.mfa.begin_submit"
+  | "auth.mfa.code_hint"
+  | "auth.mfa.code_label"
+  | "auth.mfa.confirm_submit"
+  | "auth.mfa.elevated_recovery"
+  | "auth.mfa.elevated_stepup"
+  | "auth.mfa.failure_enrolled"
+  | "auth.mfa.failure_generic"
+  | "auth.mfa.failure_invalid"
+  | "auth.mfa.failure_missing"
+  | "auth.mfa.failure_not_enrolled"
+  | "auth.mfa.failure_replayed"
+  | "auth.mfa.failure_step_required"
+  | "auth.mfa.heading"
+  | "auth.mfa.intro"
+  | "auth.mfa.recover_note"
+  | "auth.mfa.recover_submit"
+  | "auth.mfa.secret_label"
+  | "auth.mfa.stepup_note"
+  | "auth.mfa.stepup_submit"
+  | "auth.mfa.uri_note"
   | "auth.nav.label"
   | "auth.nav.login"
   | "auth.nav.logout"
@@ -501,6 +659,20 @@ export type MessageKey =
   | "auth.reset.notice_heading"
   | "auth.reset.page_title"
   | "auth.reset.submit"
+  | "auth.sessions.current_label"
+  | "auth.sessions.empty"
+  | "auth.sessions.expires_at"
+  | "auth.sessions.heading"
+  | "auth.sessions.intro"
+  | "auth.sessions.last_seen"
+  | "auth.sessions.other_label"
+  | "auth.sessions.revoke_confirm"
+  | "auth.sessions.revoke_submit"
+  | "auth.sessions.revoke_success"
+  | "auth.sessions.revoked_current"
+  | "auth.sessions.rotate_submit"
+  | "auth.sessions.rotate_success"
+  | "auth.sessions.unknown_session"
   | "auth.shell.footer_note"
   | "auth.shell.skip_link"
   | "auth.verify.busy"
@@ -732,7 +904,41 @@ export const messagePlaceholders = Object.freeze({
   "arenas.realm.arena": [],
   "arenas.realm.kingdom": [],
   "arenas.realm.no_official_outcome": [],
+  "auth.account.checked_at": ["instant"],
+  "auth.account.influenced_people": ["count"],
+  "auth.account.locale_label": [],
+  "auth.account.member_since": ["instant"],
+  "auth.account.private_heading": [],
+  "auth.account.private_intro": [],
+  "auth.account.public_heading": [],
+  "auth.account.public_intro": [],
+  "auth.account.reputation_heading": [],
+  "auth.account.reputation_intro": [],
+  "auth.account.unknown_user": [],
+  "auth.account.updated_at": ["instant"],
+  "auth.account.username_label": [],
+  "auth.account.valid_attributions": ["count"],
   "auth.brand": [],
+  "auth.deletion.cancel_note": [],
+  "auth.deletion.cancel_submit": [],
+  "auth.deletion.confirm": [],
+  "auth.deletion.cooling": [],
+  "auth.deletion.failure_generic": [],
+  "auth.deletion.failure_ineligible": [],
+  "auth.deletion.failure_missing": [],
+  "auth.deletion.failure_terminal": [],
+  "auth.deletion.heading": [],
+  "auth.deletion.intro": [],
+  "auth.deletion.not_sanction": [],
+  "auth.deletion.placeholder": [],
+  "auth.deletion.preserved": [],
+  "auth.deletion.public_intact": [],
+  "auth.deletion.removed": [],
+  "auth.deletion.request_submit": [],
+  "auth.deletion.requested_at": ["instant"],
+  "auth.deletion.status_canceled": [],
+  "auth.deletion.status_executed": [],
+  "auth.deletion.status_requested": [],
   "auth.errors.csrf_detail": [],
   "auth.errors.csrf_title": [],
   "auth.errors.invalid_code": [],
@@ -741,6 +947,20 @@ export const messagePlaceholders = Object.freeze({
   "auth.errors.required": [],
   "auth.errors.summary_title": [],
   "auth.errors.weak_password": ["min"],
+  "auth.exports.download_submit": [],
+  "auth.exports.failure_forged": [],
+  "auth.exports.failure_generic": [],
+  "auth.exports.failure_gone": [],
+  "auth.exports.failure_stale": [],
+  "auth.exports.heading": [],
+  "auth.exports.intro": [],
+  "auth.exports.pending_heading": [],
+  "auth.exports.pending_note": [],
+  "auth.exports.ready_heading": [],
+  "auth.exports.ready_note": [],
+  "auth.exports.request_submit": [],
+  "auth.exports.revoke_note": [],
+  "auth.exports.stepup_note": [],
   "auth.field.code_hint": [],
   "auth.field.code_label": [],
   "auth.field.email_hint": [],
@@ -784,6 +1004,30 @@ export const messagePlaceholders = Object.freeze({
   "auth.logout.intro": [],
   "auth.logout.page_title": [],
   "auth.logout.submit": [],
+  "auth.mfa.backup_heading": [],
+  "auth.mfa.backup_note": [],
+  "auth.mfa.begin_note": [],
+  "auth.mfa.begin_submit": [],
+  "auth.mfa.code_hint": [],
+  "auth.mfa.code_label": [],
+  "auth.mfa.confirm_submit": [],
+  "auth.mfa.elevated_recovery": [],
+  "auth.mfa.elevated_stepup": [],
+  "auth.mfa.failure_enrolled": [],
+  "auth.mfa.failure_generic": [],
+  "auth.mfa.failure_invalid": [],
+  "auth.mfa.failure_missing": [],
+  "auth.mfa.failure_not_enrolled": [],
+  "auth.mfa.failure_replayed": [],
+  "auth.mfa.failure_step_required": [],
+  "auth.mfa.heading": [],
+  "auth.mfa.intro": [],
+  "auth.mfa.recover_note": [],
+  "auth.mfa.recover_submit": [],
+  "auth.mfa.secret_label": [],
+  "auth.mfa.stepup_note": [],
+  "auth.mfa.stepup_submit": [],
+  "auth.mfa.uri_note": [],
   "auth.nav.label": [],
   "auth.nav.login": [],
   "auth.nav.logout": [],
@@ -814,6 +1058,20 @@ export const messagePlaceholders = Object.freeze({
   "auth.reset.notice_heading": [],
   "auth.reset.page_title": [],
   "auth.reset.submit": [],
+  "auth.sessions.current_label": [],
+  "auth.sessions.empty": [],
+  "auth.sessions.expires_at": ["instant"],
+  "auth.sessions.heading": [],
+  "auth.sessions.intro": [],
+  "auth.sessions.last_seen": ["instant"],
+  "auth.sessions.other_label": [],
+  "auth.sessions.revoke_confirm": ["id"],
+  "auth.sessions.revoke_submit": [],
+  "auth.sessions.revoke_success": [],
+  "auth.sessions.revoked_current": [],
+  "auth.sessions.rotate_submit": [],
+  "auth.sessions.rotate_success": [],
+  "auth.sessions.unknown_session": [],
   "auth.shell.footer_note": [],
   "auth.shell.skip_link": [],
   "auth.verify.busy": [],
@@ -1046,7 +1304,41 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.realm.arena": "Debate arena — controversy instance",
     "arenas.realm.kingdom": "Regnovum — the Kingdom",
     "arenas.realm.no_official_outcome": "Debates carry no winner and no official truth",
+    "auth.account.checked_at": "Checked at {instant}",
+    "auth.account.influenced_people": "People influenced: {count}",
+    "auth.account.locale_label": "Interface language",
+    "auth.account.member_since": "Account created on {instant}",
+    "auth.account.private_heading": "Your account",
+    "auth.account.private_intro": "What the server keeps about you on this account.",
+    "auth.account.public_heading": "Public profile",
+    "auth.account.public_intro": "What any visitor can see.",
+    "auth.account.reputation_heading": "Factual reputation",
+    "auth.account.reputation_intro": "Verified counts, no score and no ranking.",
+    "auth.account.unknown_user": "This profile does not exist or is not published yet.",
+    "auth.account.updated_at": "Profile updated on {instant}",
+    "auth.account.username_label": "Username",
+    "auth.account.valid_attributions": "Valid attributions: {count}",
     "auth.brand": "Regnovum",
+    "auth.deletion.cancel_note": "Canceling counts inside the window; once executed or already canceled, there is nothing to cancel.",
+    "auth.deletion.cancel_submit": "Cancel deletion",
+    "auth.deletion.confirm": "I confirm I read the consequences above and want to open the 7 days of cooling off.",
+    "auth.deletion.cooling": "7 days of cooling off: you can cancel at any moment inside the window.",
+    "auth.deletion.failure_generic": "The deletion did not answer. Try again.",
+    "auth.deletion.failure_ineligible": "This account cannot request deletion through this path.",
+    "auth.deletion.failure_missing": "No request of yours. Request the deletion before reading or canceling.",
+    "auth.deletion.failure_terminal": "This request already ended: executed or canceled never comes back.",
+    "auth.deletion.heading": "Delete my account",
+    "auth.deletion.intro": "The deletion request is yours, of your privacy: it opens 7 days of cooling off, and only counts after your explicit confirmation.",
+    "auth.deletion.not_sanction": "This is not a sanction nor an Inquisition: it erases no obligations and touches no right of appeal.",
+    "auth.deletion.placeholder": "The account keeps only the stable identifier with an opaque email and never authenticates again.",
+    "auth.deletion.preserved": "Billing, ledger, passes, moderation and audit stay, under their retention obligations.",
+    "auth.deletion.public_intact": "Public content stays intact, with an unresolvable author.",
+    "auth.deletion.removed": "At the end of the wait, the private rows leave (profile, username history, credentials, tokens, sessions).",
+    "auth.deletion.request_submit": "Request deletion",
+    "auth.deletion.requested_at": "Requested on {instant}",
+    "auth.deletion.status_canceled": "Deletion canceled: the account keeps standing.",
+    "auth.deletion.status_executed": "Deletion executed: this account no longer authenticates.",
+    "auth.deletion.status_requested": "Deletion requested: the account falls in 7 days, unless canceled.",
     "auth.errors.csrf_detail": "The form protection expired. Reload the page and submit it again.",
     "auth.errors.csrf_title": "The page is no longer valid",
     "auth.errors.invalid_code": "The code is invalid, expired or already used.",
@@ -1055,6 +1347,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.errors.required": "Fill in this field.",
     "auth.errors.summary_title": "Fix the fields below",
     "auth.errors.weak_password": "The password must be at least {min} characters long.",
+    "auth.exports.download_submit": "Download file",
+    "auth.exports.failure_forged": "This receipt does not check out. Download only through the request you made.",
+    "auth.exports.failure_generic": "The export did not answer. Try again.",
+    "auth.exports.failure_gone": "This link is worth no more: used, expired, or of another account. Request a new export.",
+    "auth.exports.failure_stale": "The session went stale for this request. Sign in again and ask once more.",
+    "auth.exports.heading": "Export my data",
+    "auth.exports.intro": "Request a file with your data and download it when it is ready. The download link is worth exactly once.",
+    "auth.exports.pending_heading": "Export requested",
+    "auth.exports.pending_note": "The file is being generated. Ask again to meet the active request; there is no other status address.",
+    "auth.exports.ready_heading": "Export ready",
+    "auth.exports.ready_note": "Download now: the link is worth exactly once and expires in 24 hours.",
+    "auth.exports.request_submit": "Request export",
+    "auth.exports.revoke_note": "After saving, the temporary file address is revoked and nothing stays in the browser.",
+    "auth.exports.stepup_note": "The request needs a recent authentication: if the session went stale, sign in again before requesting.",
     "auth.field.code_hint": "Paste the code we sent by email.",
     "auth.field.code_label": "Code",
     "auth.field.email_hint": "We use this address to confirm the account and to tell you when it changes.",
@@ -1098,6 +1404,30 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.logout.intro": "Ending the session in this browser ends the access until you sign in again.",
     "auth.logout.page_title": "End session — Regnovum",
     "auth.logout.submit": "End session",
+    "auth.mfa.backup_heading": "Recovery codes",
+    "auth.mfa.backup_note": "Keep these codes now: each is worth exactly once, and this is the only time they appear.",
+    "auth.mfa.begin_note": "We generate a pending secret for this account only. It appears exactly once and is never shown again.",
+    "auth.mfa.begin_submit": "Start enrollment",
+    "auth.mfa.code_hint": "Enter the current code from your authenticator app.",
+    "auth.mfa.code_label": "Authenticator code",
+    "auth.mfa.confirm_submit": "Confirm enrollment",
+    "auth.mfa.elevated_recovery": "Session elevated by the recovery code. Generate new codes when you can.",
+    "auth.mfa.elevated_stepup": "Session elevated. Proceed with the sensitive gesture.",
+    "auth.mfa.failure_enrolled": "This account already has a confirmed second factor. Enrollment never replaces a working factor.",
+    "auth.mfa.failure_generic": "The second factor did not answer. Try again with a fresh code.",
+    "auth.mfa.failure_invalid": "That code does not check out. Try the current code.",
+    "auth.mfa.failure_missing": "No pending enrollment. Start the enrollment before confirming.",
+    "auth.mfa.failure_not_enrolled": "This account has no confirmed second factor.",
+    "auth.mfa.failure_replayed": "That code was already used. A spent code is never worth again: enter the current one.",
+    "auth.mfa.failure_step_required": "The elevation lapsed. Elevate again to continue.",
+    "auth.mfa.heading": "Second factor",
+    "auth.mfa.intro": "The second factor guards this account's sensitive gestures. The secret and the codes appear exactly once: keep them now.",
+    "auth.mfa.recover_note": "The path of whoever lost the authenticator: a code spent here is worth exactly once and is recorded.",
+    "auth.mfa.recover_submit": "Use a recovery code",
+    "auth.mfa.secret_label": "Secret",
+    "auth.mfa.stepup_note": "Elevates only this browser's session for the sensitive gesture. It grants no role and frees no other account.",
+    "auth.mfa.stepup_submit": "Elevate this session",
+    "auth.mfa.uri_note": "Keep this authenticator setup address too; it appears exactly once.",
     "auth.nav.label": "Account navigation",
     "auth.nav.login": "Sign in",
     "auth.nav.logout": "Sign out",
@@ -1128,6 +1458,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.reset.notice_heading": "Check your email",
     "auth.reset.page_title": "Recover access — Regnovum",
     "auth.reset.submit": "Send code",
+    "auth.sessions.current_label": "This session",
+    "auth.sessions.empty": "No other active session.",
+    "auth.sessions.expires_at": "Expires on {instant}",
+    "auth.sessions.heading": "Your sessions",
+    "auth.sessions.intro": "The browsers with access to this account. End any you do not recognize.",
+    "auth.sessions.last_seen": "Last seen on {instant}",
+    "auth.sessions.other_label": "Another session",
+    "auth.sessions.revoke_confirm": "End the session {id}? This cannot be undone.",
+    "auth.sessions.revoke_submit": "End this session",
+    "auth.sessions.revoke_success": "Session ended.",
+    "auth.sessions.revoked_current": "You ended this browser's session. Sign in again to continue.",
+    "auth.sessions.rotate_submit": "Renew this session",
+    "auth.sessions.rotate_success": "Session renewed.",
+    "auth.sessions.unknown_session": "This session no longer exists.",
     "auth.shell.footer_note": "Regnovum — your account in simple, accessible pages.",
     "auth.shell.skip_link": "Skip to content",
     "auth.verify.busy": "Checking the code…",
@@ -1357,7 +1701,41 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.realm.arena": "Arena de debate — instância de controvérsia",
     "arenas.realm.kingdom": "Regnovum — o Reino",
     "arenas.realm.no_official_outcome": "Debates não têm vencedor nem verdade oficial",
+    "auth.account.checked_at": "Apurado em {instant}",
+    "auth.account.influenced_people": "Pessoas influenciadas: {count}",
+    "auth.account.locale_label": "Idioma da interface",
+    "auth.account.member_since": "Conta criada em {instant}",
+    "auth.account.private_heading": "Sua conta",
+    "auth.account.private_intro": "O que o servidor guarda sobre você nesta conta.",
+    "auth.account.public_heading": "Perfil público",
+    "auth.account.public_intro": "O que qualquer visitante pode ver.",
+    "auth.account.reputation_heading": "Reputação factual",
+    "auth.account.reputation_intro": "Contagens verificadas, sem placar nem classificação.",
+    "auth.account.unknown_user": "Este perfil não existe ou ainda não foi publicado.",
+    "auth.account.updated_at": "Perfil atualizado em {instant}",
+    "auth.account.username_label": "Nome de usuário",
+    "auth.account.valid_attributions": "Atribuições válidas: {count}",
     "auth.brand": "Regnovum",
+    "auth.deletion.cancel_note": "O cancelamento vale dentro da janela; depois de cumprida ou já cancelada, não há o que cancelar.",
+    "auth.deletion.cancel_submit": "Cancelar exclusão",
+    "auth.deletion.confirm": "Confirmo que li as consequências acima e quero abrir os 7 dias de espera.",
+    "auth.deletion.cooling": "7 dias de espera: você pode cancelar a qualquer momento dentro da janela.",
+    "auth.deletion.failure_generic": "A exclusão não respondeu. Tente de novo.",
+    "auth.deletion.failure_ineligible": "Esta conta não pode pedir exclusão por este caminho.",
+    "auth.deletion.failure_missing": "Nenhum pedido seu. Peça a exclusão antes de consultar ou cancelar.",
+    "auth.deletion.failure_terminal": "Este pedido já terminou: cumprido ou cancelado não volta.",
+    "auth.deletion.heading": "Excluir minha conta",
+    "auth.deletion.intro": "O pedido de exclusão é seu, da sua privacidade: abre 7 dias de espera, e só vale depois da sua confirmação explícita.",
+    "auth.deletion.not_sanction": "Isto não é sanção nem Inquisição: não apaga obrigações e não mexe no direito de recurso.",
+    "auth.deletion.placeholder": "A conta guarda só o identificador estável com um email opaco e nunca mais autentica.",
+    "auth.deletion.preserved": "Cobrança, livro-razão, passes, moderação e auditoria ficam, pelas obrigações de guarda.",
+    "auth.deletion.public_intact": "O conteúdo público continua intacto, com autor sem resolução.",
+    "auth.deletion.removed": "No fim da espera, os dados privados saem (perfil, histórico de nomes, credenciais, tokens, sessões).",
+    "auth.deletion.request_submit": "Pedir exclusão",
+    "auth.deletion.requested_at": "Pedido em {instant}",
+    "auth.deletion.status_canceled": "Exclusão cancelada: a conta segue valendo.",
+    "auth.deletion.status_executed": "Exclusão cumprida: esta conta não autentica mais.",
+    "auth.deletion.status_requested": "Exclusão pedida: a conta cai em 7 dias, salvo cancelamento.",
     "auth.errors.csrf_detail": "A proteção do formulário expirou. Recarregue a página e envie novamente.",
     "auth.errors.csrf_title": "A página perdeu a validade",
     "auth.errors.invalid_code": "O código é inválido, expirou ou já foi usado.",
@@ -1366,6 +1744,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.errors.required": "Preencha este campo.",
     "auth.errors.summary_title": "Corrija os campos indicados",
     "auth.errors.weak_password": "A senha deve ter pelo menos {min} caracteres.",
+    "auth.exports.download_submit": "Baixar arquivo",
+    "auth.exports.failure_forged": "Este comprovante não confere. Baixe só pelo pedido que você fez.",
+    "auth.exports.failure_generic": "A exportação não respondeu. Tente de novo.",
+    "auth.exports.failure_gone": "Este link não vale mais: usado, vencido ou de outra conta. Peça uma nova exportação.",
+    "auth.exports.failure_stale": "A sessão esfriou para este pedido. Entre de novo e peça outra vez.",
+    "auth.exports.heading": "Exportar meus dados",
+    "auth.exports.intro": "Peça um arquivo com os seus dados e baixe quando estiver pronto. O link de download vale uma única vez.",
+    "auth.exports.pending_heading": "Exportação pedida",
+    "auth.exports.pending_note": "O arquivo está sendo gerado. Peça de novo para reencontrar o pedido ativo; não há outro endereço de consulta.",
+    "auth.exports.ready_heading": "Exportação pronta",
+    "auth.exports.ready_note": "Baixe agora: o link vale uma única vez e expira em 24 horas.",
+    "auth.exports.request_submit": "Pedir exportação",
+    "auth.exports.revoke_note": "Depois de salvar, o endereço temporário do arquivo é revogado e nada fica no navegador.",
+    "auth.exports.stepup_note": "O pedido exige autenticação recente: se a sessão esfriou, entre de novo antes de pedir.",
     "auth.field.code_hint": "Cole o código que enviamos por email.",
     "auth.field.code_label": "Código",
     "auth.field.email_hint": "Usamos este endereço para confirmar a conta e avisar sobre mudanças nela.",
@@ -1409,6 +1801,30 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.logout.intro": "Encerrar a sessão neste navegador termina o acesso até você entrar novamente.",
     "auth.logout.page_title": "Encerrar sessão — Regnovum",
     "auth.logout.submit": "Encerrar sessão",
+    "auth.mfa.backup_heading": "Códigos de recuperação",
+    "auth.mfa.backup_note": "Guarde estes códigos agora: cada um vale uma única vez e esta é a única vez que aparecem.",
+    "auth.mfa.begin_note": "Vamos gerar um segredo pendente só para esta conta. Ele aparece uma única vez e nunca mais é mostrado.",
+    "auth.mfa.begin_submit": "Começar ativação",
+    "auth.mfa.code_hint": "Digite o código atual do seu aplicativo autenticador.",
+    "auth.mfa.code_label": "Código do autenticador",
+    "auth.mfa.confirm_submit": "Confirmar ativação",
+    "auth.mfa.elevated_recovery": "Sessão elevada pelo código de recuperação. Gere novos códigos quando possível.",
+    "auth.mfa.elevated_stepup": "Sessão elevada. Prossiga com o gesto sensível.",
+    "auth.mfa.failure_enrolled": "Esta conta já tem segundo fator confirmado. A ativação não substitui um fator que funciona.",
+    "auth.mfa.failure_generic": "O segundo fator não respondeu. Tente de novo com um código novo.",
+    "auth.mfa.failure_invalid": "Esse código não confere. Tente o código atual.",
+    "auth.mfa.failure_missing": "Nenhuma ativação pendente. Comece a ativação antes de confirmar.",
+    "auth.mfa.failure_not_enrolled": "Esta conta não tem segundo fator confirmado.",
+    "auth.mfa.failure_replayed": "Esse código já foi usado. Um código gasto nunca vale de novo: digite o atual.",
+    "auth.mfa.failure_step_required": "A elevação expirou. Eleve de novo para continuar.",
+    "auth.mfa.heading": "Segundo fator",
+    "auth.mfa.intro": "O segundo fator protege os gestos sensíveis desta conta. O segredo e os códigos aparecem uma única vez: guarde-os agora.",
+    "auth.mfa.recover_note": "O caminho de quem perdeu o autenticador: um código gasto aqui vale uma única vez e fica registrado.",
+    "auth.mfa.recover_submit": "Usar código de recuperação",
+    "auth.mfa.secret_label": "Segredo",
+    "auth.mfa.stepup_note": "Eleva somente a sessão deste navegador para o gesto sensível. Não concede cargo nem libera outra conta.",
+    "auth.mfa.stepup_submit": "Elevar esta sessão",
+    "auth.mfa.uri_note": "Guarde também este endereço de configuração do autenticador; ele aparece uma única vez.",
     "auth.nav.label": "Navegação da conta",
     "auth.nav.login": "Entrar",
     "auth.nav.logout": "Encerrar sessão",
@@ -1439,6 +1855,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.reset.notice_heading": "Confira seu email",
     "auth.reset.page_title": "Recuperar acesso — Regnovum",
     "auth.reset.submit": "Enviar código",
+    "auth.sessions.current_label": "Esta sessão",
+    "auth.sessions.empty": "Nenhuma outra sessão ativa.",
+    "auth.sessions.expires_at": "Expira em {instant}",
+    "auth.sessions.heading": "Suas sessões",
+    "auth.sessions.intro": "Os navegadores com acesso a esta conta. Encerre o que você não reconhece.",
+    "auth.sessions.last_seen": "Visto por último em {instant}",
+    "auth.sessions.other_label": "Outra sessão",
+    "auth.sessions.revoke_confirm": "Encerrar a sessão {id}? Esta ação não pode ser desfeita.",
+    "auth.sessions.revoke_submit": "Encerrar esta sessão",
+    "auth.sessions.revoke_success": "Sessão encerrada.",
+    "auth.sessions.revoked_current": "Você encerrou a sessão deste navegador. Entre novamente para continuar.",
+    "auth.sessions.rotate_submit": "Renovar esta sessão",
+    "auth.sessions.rotate_success": "Sessão renovada.",
+    "auth.sessions.unknown_session": "Esta sessão não existe mais.",
     "auth.shell.footer_note": "Regnovum — sua conta em páginas simples e acessíveis.",
     "auth.shell.skip_link": "Pular para o conteúdo",
     "auth.verify.busy": "Confirmando o código…",

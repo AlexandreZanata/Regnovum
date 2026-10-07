@@ -13,6 +13,11 @@ import { createArgumentsClient } from "../../src/core/clients/arguments.js";
 import { createArenasClient } from "../../src/core/clients/arenas.js";
 import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
+import { createDeletionClient } from "../../src/core/clients/deletion.js";
+import { createExportsClient } from "../../src/core/clients/exports.js";
+import { createMFAClient } from "../../src/core/clients/mfa.js";
+import { createProfilesClient } from "../../src/core/clients/profiles.js";
+import { createSessionsClient } from "../../src/core/clients/sessions.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -181,6 +186,115 @@ const expectations: readonly Expectation[] = [
     url: "https://arena.test/api/v1/me/arenas/arena-1/arguments",
     body: { relation: "support", content: "because", sources: [] },
     idempotent: true,
+  },
+  {
+    name: "profiles mine",
+    run: (core) => createProfilesClient(core).mine(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/profile",
+    idempotent: false,
+  },
+  {
+    name: "profiles by username",
+    run: (core) => createProfilesClient(core).byUsername("ada"),
+    method: "GET",
+    url: "https://arena.test/api/v1/profiles/ada",
+    idempotent: false,
+  },
+  {
+    name: "profiles reputation",
+    run: (core) => createProfilesClient(core).reputation("ada"),
+    method: "GET",
+    url: "https://arena.test/api/v1/profiles/ada/reputation",
+    idempotent: false,
+  },
+  {
+    name: "sessions list",
+    run: (core) => createSessionsClient(core).list(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/sessions",
+    idempotent: false,
+  },
+  {
+    name: "sessions rotate",
+    run: (core) => createSessionsClient(core).rotate(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/sessions/rotation",
+    idempotent: false,
+  },
+  {
+    name: "sessions revoke",
+    run: (core) => createSessionsClient(core).revoke({ session_id: "sess-2", password: "pw" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/sessions/revocation",
+    body: { session_id: "sess-2", password: "pw" },
+    idempotent: false,
+  },
+  {
+    name: "mfa begin",
+    run: (core) => createMFAClient(core).begin(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/mfa/enrollment",
+    idempotent: false,
+  },
+  {
+    name: "mfa confirm",
+    run: (core) => createMFAClient(core).confirm({ code: "123456" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/mfa/enrollment/confirm",
+    body: { code: "123456" },
+    idempotent: false,
+  },
+  {
+    name: "mfa step-up",
+    run: (core) => createMFAClient(core).stepUp({ code: "654321" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/mfa/step-up",
+    body: { code: "654321" },
+    idempotent: false,
+  },
+  {
+    name: "mfa recovery",
+    run: (core) => createMFAClient(core).recover({ code: "r1-first" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/mfa/recovery",
+    body: { code: "r1-first" },
+    idempotent: false,
+  },
+  {
+    name: "exports request",
+    run: (core) => createExportsClient(core).request(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/exports",
+    idempotent: false,
+  },
+  {
+    name: "exports download",
+    run: (core) => createExportsClient(core).download({ id: "exp-1", token: "t" }),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/exports/exp-1/download?token=t",
+    idempotent: false,
+  },
+  {
+    name: "deletion status",
+    run: (core) => createDeletionClient(core).status(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/deletion",
+    idempotent: false,
+  },
+  {
+    name: "deletion request",
+    run: (core) => createDeletionClient(core).request(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/deletion",
+    idempotent: false,
+  },
+  {
+    name: "deletion cancel",
+    run: (core) => createDeletionClient(core).cancel(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/deletion/cancel",
+    idempotent: false,
   },
   {
     name: "arguments reply",

@@ -849,17 +849,22 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "deletion",
+      "page": "deletion",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPJourneyRequestStatusCancel",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPOwnerIsolationAndUnknownRequest",
+        "web/tests/core/deletion.test.ts",
+        "web/tests/pages/deletion.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T05 reads the holder record in the browser through the deletion client and the deletion page (server-confirmed requested/canceled/executed, no fourth state); proven via deterministic web tests (owner record, missing and foreign 404, no-store) plus the in-memory HTTP journey (record reflection, owner isolation)."
     },
     {
       "method": "POST",
@@ -871,17 +876,21 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "deletion",
+      "page": "deletion",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPJourneyRequestStatusCancel",
+        "web/tests/core/deletion.test.ts",
+        "web/tests/pages/deletion.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T05 starts the cooling-off period in the browser through the deletion client and the deletion page (explicit confirmation of the rule consequences, no Idempotency-Key: replay is by account, not by key); proven via deterministic web tests (no-body 202, lost response never replayed by the core) plus the in-memory HTTP journey (202 receipt, replay marked Idempotency-Replayed, no-store)."
     },
     {
       "method": "POST",
@@ -893,17 +902,22 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "deletion",
+      "page": "deletion",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPJourneyRequestStatusCancel",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPOwnerIsolationAndUnknownRequest",
+        "web/tests/core/deletion.test.ts",
+        "web/tests/pages/deletion.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T05 cancels inside the window in the browser through the deletion client and the deletion page (no reason collected: restricted evidence; terminal 409 stays terminal); proven via deterministic web tests (no-body cancel, terminal conflict never retried) plus the in-memory HTTP journey (reason never echoed, second cancel 409 deletion_not_cancellable)."
     },
     {
       "method": "GET",
@@ -1020,17 +1034,22 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "exports",
+      "page": "exports",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyExportRequestReplayAndDownload"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyExportRequestReplayAndDownload",
+        "internal/profiles/adapters/http/export_test.go::TestExportHTTPRequiresAuthAndStepUp",
+        "internal/profiles/adapters/http/export_test.go::TestExportHTTPRequestResponseAndGoldenDownload",
+        "web/tests/core/exports.test.ts",
+        "web/tests/pages/exports.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T04 requests the job in the browser through the exports client and the exports page (pt/en catalogs, step-up notice, no polling: requested is pending, ready downloads); proven via deterministic web tests (no-body 202, stale step_up_required, no retry, no idempotency key) plus the in-memory HTTP journey (auth+step-up gate, exact receipt keys, golden download, no-store)."
     },
     {
       "method": "GET",
@@ -1042,17 +1061,23 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "exports",
+      "page": "exports",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyExportRequestReplayAndDownload"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyExportRequestReplayAndDownload",
+        "internal/profiles/adapters/http/export_test.go::TestExportHTTPRequestResponseAndGoldenDownload",
+        "internal/profiles/adapters/http/export_test.go::TestExportHTTPRejectsExpiredLinks",
+        "web/tests/core/exports.test.ts",
+        "web/tests/core/downloads.test.ts",
+        "web/tests/pages/exports.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T04 downloads the document in the browser through the exports client and the downloads port (address built from the contract template, token as query, no server URL honored; object URL revoked after the save); proven via deterministic web tests (template path, encoding, replayed/expired/foreign 404, forged 403, lost response never replays, open+revoke once) plus the in-memory HTTP journey (golden document, attachment without token, replay and expiry denied)."
     },
     {
       "method": "POST",
@@ -1146,19 +1171,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "mfa",
+      "page": "mfa",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/identity/adapters/http/mfa_http_test.go::TestMFAEnrollmentShowsTheSecretAndRotatesWhilePending",
+        "web/tests/core/mfa.test.ts",
+        "web/tests/pages/mfa.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T03 begins the enrollment in the browser through the mfa client and the mfa page (pt/en catalogs, numeric one-time-code field); proven via deterministic web tests (no-body begin, confirmed enrollment refused 409 never replaced, no retry, no idempotency key) plus the process journey over PG (secret shown once, rotation while pending). The secret lives in the begin answer alone: no log, no cache, no persistence."
     },
     {
       "method": "POST",
@@ -1168,19 +1196,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "mfa",
+      "page": "mfa",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/identity/adapters/http/mfa_http_test.go::TestMFAConfirmationSpendsTheCodeAndReturnsRecoveryCodesOnce",
+        "web/tests/core/mfa.test.ts",
+        "web/tests/pages/mfa.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T03 confirms the pending enrollment in the browser through the mfa client and the mfa page (one-time recovery codes, real server-code failures); proven via deterministic web tests (code body, invalid/replayed/missing kinds, no retry) plus the process journey over PG (confirming code spent, codes returned once, replay at step-up refused 403)."
     },
     {
       "method": "POST",
@@ -1190,19 +1221,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "mfa",
+      "page": "mfa",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/identity/adapters/http/mfa_http_test.go::TestMFARecoverySpendsTheCodeOnceAndRecordsIt",
+        "web/tests/core/mfa.test.ts",
+        "web/tests/pages/mfa.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T03 spends one backup code in the browser through the mfa client and the mfa page (lost-authenticator path, recorded recovery); proven via deterministic web tests (code body, spent code refused never replayed) plus the process journey over PG (code consumed once, audit recorded before elevation). Step-up grants no role."
     },
     {
       "method": "POST",
@@ -1212,19 +1246,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "mfa",
+      "page": "mfa",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/identity/adapters/http/mfa_http_test.go::TestMFAConfirmationSpendsTheCodeAndReturnsRecoveryCodesOnce",
+        "web/tests/core/mfa.test.ts",
+        "web/tests/pages/mfa.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T03 elevates the calling session in the browser through the mfa client and the mfa page (contextual step-up, lapsed elevation reported); proven via deterministic web tests (code body, replayed 403 never retried, lapsed elevation refused, 429 no replay) plus the process journey over PG (accepted step spent, replay refused 403 mfa_code_replayed even inside the window)."
     },
     {
       "method": "POST",
@@ -1346,17 +1383,20 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "profiles",
+      "page": "account",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate",
+        "web/tests/core/profiles.test.ts",
+        "web/tests/pages/account.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T01 read in the browser through the profiles client and the account page presentation (pt/en catalogs, Intl instants/counts); proven via deterministic web tests (contract paths, 401 private, 404 unknown without disclosure, factual counts without rank, no PII beyond the contract) plus the mounted process journey over the shared pool/security/session validator (owner-vs-other, no-store). No profile editor: the contract is GET-only."
     },
     {
       "method": "GET",
@@ -1450,19 +1490,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "sessions",
+      "page": "sessions",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout",
+        "web/tests/core/sessions.test.ts",
+        "web/tests/pages/sessions.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T02 reads the list in the browser through the sessions client and the sessions page presentation (pt/en catalogs, Intl instants, allowlisted metadata only); proven via deterministic web tests (contract paths, rotation no-retry, lost rotation no replay, 403/404/409 no retry, foreign 404, confirmation names target, own-session end leaves without loop) plus the mounted process journey over the shared pool/security/session validator (register-login-sessions-logout, 401, rotation, revocation). No token or cookie ever rendered."
     },
     {
       "method": "POST",
@@ -1472,19 +1515,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "sessions",
+      "page": "sessions",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout",
+        "web/tests/core/sessions.test.ts",
+        "web/tests/pages/sessions.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T02 revokes by opaque identifier with password re-authentication through the sessions client and the sessions page confirmation; proven via deterministic web tests (revoke body, 403/404/409 no retry, foreign 404 like missing, confirmation names target, other re-reads the list, current leaves for sign-in without loop or false success) plus the mounted process journey over the shared pool/security/session validator. No token or cookie ever rendered."
     },
     {
       "method": "POST",
@@ -1494,19 +1540,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "sessions",
+      "page": "sessions",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout",
+        "web/tests/core/sessions.test.ts",
+        "web/tests/pages/sessions.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T02 rotates the calling session through the sessions client (no body, no retry, no idempotency key: no backend-proven idempotent contract); proven via deterministic web tests (rotation path, lost rotation surfaces as failure, never replayed) plus the mounted process journey over the shared pool/security/session validator. No token or cookie ever rendered."
     },
     {
       "method": "GET",
@@ -1650,17 +1699,20 @@
       "audience": "public",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "profiles",
+      "page": "account",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate",
+        "web/tests/core/profiles.test.ts",
+        "web/tests/pages/account.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T01 read in the browser through the profiles client and the account page presentation (pt/en catalogs, Intl instants/counts); proven via deterministic web tests (contract paths, 401 private, 404 unknown without disclosure, factual counts without rank, no PII beyond the contract) plus the mounted process journey over the shared pool/security/session validator (owner-vs-other, no-store). No profile editor: the contract is GET-only."
     },
     {
       "method": "GET",
@@ -1672,17 +1724,20 @@
       "audience": "public",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "profiles",
+      "page": "account",
       "exclusion": null,
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation",
+        "web/tests/core/profiles.test.ts",
+        "web/tests/pages/account.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (factual reputation reflects the credit). Browser client/page lands in P51."
+      "note": "P51-T01 read in the browser through the profiles client and the account page presentation (pt/en catalogs, Intl instants/counts); proven via deterministic web tests (contract paths, 401 private, 404 unknown without disclosure, factual counts without rank, no PII beyond the contract) plus the mounted process journey over the shared pool/security/session validator (owner-vs-other, no-store). No profile editor: the contract is GET-only."
     },
     {
       "method": "GET",
