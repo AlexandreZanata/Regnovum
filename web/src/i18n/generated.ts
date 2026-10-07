@@ -481,6 +481,14 @@ export const messageKeys = {
     "moderation.report.intro",
     "moderation.report.rate_note",
     "moderation.report.replayed",
+    "moderation.workbench.claimed",
+    "moderation.workbench.decided",
+    "moderation.workbench.empty",
+    "moderation.workbench.heading",
+    "moderation.workbench.intro",
+    "moderation.workbench.row",
+    "moderation.workbench.signal",
+    "moderation.workbench.signals_head",
   ] as const,
   seasons: [
     "seasons.champions.empty",
@@ -979,6 +987,14 @@ export type MessageKey =
   | "moderation.report.intro"
   | "moderation.report.rate_note"
   | "moderation.report.replayed"
+  | "moderation.workbench.claimed"
+  | "moderation.workbench.decided"
+  | "moderation.workbench.empty"
+  | "moderation.workbench.heading"
+  | "moderation.workbench.intro"
+  | "moderation.workbench.row"
+  | "moderation.workbench.signal"
+  | "moderation.workbench.signals_head"
   | "seasons.champions.empty"
   | "seasons.champions.last_king"
   | "seasons.champions.richest"
@@ -1472,6 +1488,14 @@ export const messagePlaceholders = Object.freeze({
   "moderation.report.intro": [],
   "moderation.report.rate_note": [],
   "moderation.report.replayed": ["id"],
+  "moderation.workbench.claimed": ["holder", "status"],
+  "moderation.workbench.decided": ["action", "id"],
+  "moderation.workbench.empty": [],
+  "moderation.workbench.heading": [],
+  "moderation.workbench.intro": [],
+  "moderation.workbench.row": ["instant", "priority", "status", "target"],
+  "moderation.workbench.signal": ["counterpart", "counts", "kind"],
+  "moderation.workbench.signals_head": ["instant", "policy", "window"],
   "seasons.champions.empty": [],
   "seasons.champions.last_king": [],
   "seasons.champions.richest": [],
@@ -1966,6 +1990,14 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "moderation.report.intro": "A report contests an Arena, an argument or a profile with closed reasons. It never removes content by itself.",
     "moderation.report.rate_note": "Too many reports in a row. Wait before reporting again.",
     "moderation.report.replayed": "Report already filed: {id}",
+    "moderation.workbench.claimed": "Case with {holder} ({status})",
+    "moderation.workbench.decided": "{action} decision recorded: {id}",
+    "moderation.workbench.empty": "No cases in the queue",
+    "moderation.workbench.heading": "Moderation workbench",
+    "moderation.workbench.intro": "Triage queue for active moderators. Role and second factor are revalidated per call.",
+    "moderation.workbench.row": "{target} · {status} · {priority} priority on {instant}",
+    "moderation.workbench.signal": "{kind} signal with {counterpart}: {counts}",
+    "moderation.workbench.signals_head": "Signals of policy {policy}, {window}s window, read {instant}",
     "seasons.champions.empty": "No champions yet",
     "seasons.champions.last_king": "Last King",
     "seasons.champions.richest": "Richest at cutoff",
@@ -2457,6 +2489,14 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "moderation.report.intro": "A denúncia contesta uma Arena, um argumento ou um perfil com motivos fechados. Ela nunca remove conteúdo sozinha.",
     "moderation.report.rate_note": "Muitas denúncias seguidas. Aguarde antes de denunciar de novo.",
     "moderation.report.replayed": "Denúncia já registrada: {id}",
+    "moderation.workbench.claimed": "Caso com {holder} ({status})",
+    "moderation.workbench.decided": "Decisão {action} registrada: {id}",
+    "moderation.workbench.empty": "Nenhum caso na fila",
+    "moderation.workbench.heading": "Banca de moderação",
+    "moderation.workbench.intro": "Fila de triagem para moderadores ativos. Papel e segundo fator são revalidados a cada chamada.",
+    "moderation.workbench.row": "{target} · {status} · prioridade {priority} em {instant}",
+    "moderation.workbench.signal": "Sinal {kind} com {counterpart}: {counts}",
+    "moderation.workbench.signals_head": "Sinais da política {policy}, janela {window}s, lidos em {instant}",
     "seasons.champions.empty": "Nenhum campeão ainda",
     "seasons.champions.last_king": "Último Rei",
     "seasons.champions.richest": "Mais rico no corte",

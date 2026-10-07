@@ -12,6 +12,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { createModerationClient } from "../../src/core/clients/moderation.js";
+import type { HttpCore } from "../../src/core/http.js";
 import {
   bodyOf,
   captureApiError,
@@ -111,4 +112,122 @@ test("a stranger files as unauthorized and an invalid reason as validation", asy
   );
   assert.equal(invalidFailure.code, "invalid_request");
   assert.equal(invalidFailure.kind, "validation");
+});
+
+const QUEUE_PAGE = {
+  items: [
+    {
+      case_id: "case-1",
+      target_type: "argument",
+      target_id: "arg-1",
+      status: "open",
+      priority: "high",
+      created_at: "2026-10-05T10:00:00Z",
+    },
+  ],
+  next_cursor: "opaque-next",
+} as const;
+
+const CLAIM = { case_id: "case-1", status: "under_review", claimed_by: "mod-1" } as const;
+
+const DECISION = { action_id: "act-9", case_id: "case-1", action: "warning" } as const;
+
+const SIGNALS = {
+  author_id: "author-1",
+  policy_version: "v3",
+  window_seconds: 604800,
+  checked_at: "2026-10-05T10:00:00Z",
+  signals: [{ kind: "reciprocity", counterpart_id: "author-2", mutual_events: 12 }],
+} as const;
+
+test("the queue reads one routing page under the private cache policy", async () => {
+  const context = createTestContext({ responder: () => jsonResponse(QUEUE_PAGE) });
+
+  const page = await createModerationClient(context.core).queue({ status: "open", limit: 20 });
+
+  assert.equal(context.calls.length, 1);
+  assert.equal(context.lastCall().init.method, "GET");
+  assert.equal(context.lastCall().url, "https://arena.test/api/v1/moderation/cases?status=open&limit=20");
+  assert.equal(page.items.length, 1);
+  assert.equal(page.next_cursor, "opaque-next");
+  assert.equal(context.lastCall().init.cache, "no-store");
+});
+
+test("an owner without a role reads the queue as forbidden", async () => {
+  const context = createTestContext({ responder: () => problemResponse(403, "forbidden") });
+
+  const failure = await captureApiError(() => createModerationClient(context.core).queue());
+
+  assert.equal(failure.code, "forbidden");
+  assert.equal(failure.kind, "forbidden");
+  assert.equal(context.calls.length, 1);
+});
+
+test("a moderator without step-up claims as unauthorized", async () => {
+  const context = createTestContext({ responder: () => problemResponse(401, "step_up_required") });
+
+  const failure = await captureApiError(() => createModerationClient(context.core).claim("case-1"));
+
+  assert.equal(failure.code, "step_up_required");
+  assert.equal(failure.kind, "unauthorized");
+  assert.equal(context.calls.length, 1);
+});
+
+test("the claim takes the case under a server-owned lease", async () => {
+  const context = createTestContext({ responder: () => jsonResponse(CLAIM) });
+
+  const claim = await createModerationClient(context.core).claim("case-1");
+
+  assert.equal(context.lastCall().init.method, "POST");
+  assert.equal(context.lastCall().url, "https://arena.test/api/v1/moderation/cases/case-1/claim");
+  assert.equal(headerOf(context.lastCall(), "idempotency-key"), null);
+  assert.equal(claim.claimed_by, "mod-1");
+  assert.equal(context.lastCall().init.cache, "no-store");
+});
+
+test("a held lease and a second decision conflict without a false success", async () => {
+  for (const run of [
+    (core: HttpCore) => createModerationClient(core).claim("case-1"),
+    (core: HttpCore) =>
+      createModerationClient(core).decide("case-1", { action: "warning", rule: "R1", justification: "why" }),
+  ]) {
+    const context = createTestContext({ responder: () => problemResponse(409, "conflict") });
+    const failure = await captureApiError(() => run(context.core));
+    assert.equal(failure.code, "conflict");
+    assert.equal(failure.kind, "conflict");
+    assert.equal(context.calls.length, 1);
+  }
+});
+
+test("the decision records the untouched measure without its justification", async () => {
+  const context = createTestContext({ responder: () => jsonResponse(DECISION) });
+
+  const decision = await createModerationClient(context.core).decide("case-1", {
+    action: "warning",
+    rule: "R1",
+    justification: "why",
+  });
+
+  assert.equal(context.lastCall().init.method, "POST");
+  assert.equal(context.lastCall().url, "https://arena.test/api/v1/moderation/cases/case-1/decisions");
+  assert.deepEqual(bodyOf(context.lastCall()), { action: "warning", rule: "R1", justification: "why" });
+  assert.equal(headerOf(context.lastCall(), "idempotency-key"), null);
+  assert.equal(decision.action_id, "act-9");
+  assert.equal(context.lastCall().init.cache, "no-store");
+});
+
+test("the signals read prevention data with counts and no score", async () => {
+  const context = createTestContext({ responder: () => jsonResponse(SIGNALS) });
+
+  const assessment = await createModerationClient(context.core).signals("author-1");
+
+  assert.equal(context.calls.length, 1);
+  assert.equal(context.lastCall().init.method, "GET");
+  assert.equal(context.lastCall().url, "https://arena.test/api/v1/moderation/attribution-signals/author-1");
+  assert.equal(assessment.signals.length, 1);
+  assert.equal(context.lastCall().init.cache, "no-store");
+  const serialized = JSON.stringify(assessment).toLowerCase();
+  for (const marker of ["score", "severity", "weight"]) {
+    assert.ok(!serialized.includes(marker), `automated marker leaked: ${marker}`);
+  }
 });

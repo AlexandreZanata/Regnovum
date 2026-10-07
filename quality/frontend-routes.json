@@ -1696,17 +1696,20 @@
       "audience": "moderator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-persuasion",
-      "page": "planned-participation",
+      "client": "moderation",
+      "page": "workbench",
       "exclusion": null,
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateSignalsModeratorOnly"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateSignalsModeratorOnly",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/workbench.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the authorizer answered from the moderation role store; proven via process httptest+PG (moderator 200, plain account 403, anonymous 401). Restricted panel only, never a public client; case competence lands in P49-T07, panel in P55."
+      "note": "P49-T04 composed the signal port from the real role store; proven via process httptest+PG (403/401/200 by role). P55-T02 reads it in the browser through the moderation client and the workbench page (advisory counts only, no score/severity/weight, never on a public page, private no-store)."
     },
     {
       "method": "GET",
@@ -1718,17 +1721,20 @@
       "audience": "moderator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "workbench",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationQueueRequiresRoleAndStepUp"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationQueueRequiresRoleAndStepUp",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/workbench.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration with the shared cursor secret; proven via process httptest+PG (403 without role, 403 without/stale factor, 200 stepped up, 401 anonymous). Browser client/page lands in P55."
+      "note": "P49-T07 mounted the queue read in ComposeModeration with the admin gate and step-up over shared pool/security; proven via process httptest+PG (401/403/stale, filing, no-store). P55-T02 reads it in the browser through the moderation client and the workbench page (allowlisted lifecycle filter, opaque cursor page, routing rows with holder, merge by case id, private no-store)."
     },
     {
       "method": "POST",
@@ -1740,17 +1746,20 @@
       "audience": "moderator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "workbench",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/workbench.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (claim under lease, live-lease claim 409, private no-store). Browser client/page lands in P55."
+      "note": "P49-T07 mounted the claim in ComposeModeration with the bounded lease; proven via process httptest+PG (claim to warning with audit line, double claim and expired lease 409). P55-T02 claims in the browser through the moderation client and the workbench page (single-shot without an invented key, held lease 409 without false success, lease reclaimed only by claiming again)."
     },
     {
       "method": "POST",
@@ -1762,17 +1771,20 @@
       "audience": "moderator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-moderation",
-      "page": "planned-moderation-console",
+      "client": "moderation",
+      "page": "workbench",
       "exclusion": null,
       "tests": [
         "internal/moderation/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney"
+        "internal/bootstrap/moderation_restricted_test.go::TestModerationClaimDecideAuditJourney",
+        "web/tests/core/moderation.test.ts",
+        "web/tests/pages/workbench.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T07 mounted in ComposeModeration over shared pool/security/session validator; proven via process httptest+PG (warning settles with its audit row, second decision 409, lapsed lease 409, no evidence leak). Browser client/page lands in P55."
+      "note": "P49-T07 mounted the decision in ComposeModeration with rule, justification and audit in one transaction; proven via process httptest+PG (second decision 409). P55-T02 decides in the browser through the moderation client and the workbench page (11 closed actions untouched, justification never rendered back, single-shot without an invented key)."
     },
     {
       "method": "GET",

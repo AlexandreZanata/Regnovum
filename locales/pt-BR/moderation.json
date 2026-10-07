@@ -21,6 +21,16 @@
       "missing": "Este conteúdo ou sanção não existe mais.",
       "conflict": "Este pedido conflita com o estado atual.",
       "generic": "Não foi possível registrar. Confira e tente novamente."
+    },
+    "workbench": {
+      "heading": "Banca de moderação",
+      "intro": "Fila de triagem para moderadores ativos. Papel e segundo fator são revalidados a cada chamada.",
+      "empty": "Nenhum caso na fila",
+      "row": "{target} · {status} · prioridade {priority} em {instant}",
+      "claimed": "Caso com {holder} ({status})",
+      "decided": "Decisão {action} registrada: {id}",
+      "signal": "Sinal {kind} com {counterpart}: {counts}",
+      "signals_head": "Sinais da política {policy}, janela {window}s, lidos em {instant}"
     }
   }
 }

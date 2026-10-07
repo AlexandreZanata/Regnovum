@@ -411,6 +411,36 @@ const expectations: readonly Expectation[] = [
     idempotent: false,
   },
   {
+    name: "moderation queue",
+    run: (core) => createModerationClient(core).queue({ status: "open", limit: 20 }),
+    method: "GET",
+    url: "https://arena.test/api/v1/moderation/cases?status=open&limit=20",
+    idempotent: false,
+  },
+  {
+    name: "moderation claim",
+    run: (core) => createModerationClient(core).claim("case-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/moderation/cases/case-1/claim",
+    idempotent: false,
+  },
+  {
+    name: "moderation decide",
+    run: (core) =>
+      createModerationClient(core).decide("case-1", { action: "warning", rule: "R1", justification: "why" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/moderation/cases/case-1/decisions",
+    body: { action: "warning", rule: "R1", justification: "why" },
+    idempotent: false,
+  },
+  {
+    name: "moderation signals",
+    run: (core) => createModerationClient(core).signals("author-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/moderation/attribution-signals/author-1",
+    idempotent: false,
+  },
+  {
     name: "arguments reply",
     run: (core) => createArgumentsClient(core).reply("arena-1", "arg-1", { relation: "oppose", content: "reply", sources: [] }),
     method: "POST",
