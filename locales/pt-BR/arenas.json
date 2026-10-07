@@ -97,6 +97,10 @@
         "submit": "Registrar influência",
         "busy": "Registrando…"
       },
+      "history": {
+        "heading": "Histórico de posições",
+        "empty": "Nenhuma mudança registrada. A confirmação inicial é o começo do histórico."
+      },
       "notice": {
         "position_confirmed": "Posição inicial confirmada.",
         "position_changed": "Posição alterada.",
@@ -109,6 +113,7 @@
         "invalid_choice": "Escolha uma das posições listadas.",
         "invalid_relation": "Escolha uma das relações listadas.",
         "invalid_content": "Escreva um argumento de até {max} grafemas.",
+        "invalid_source": "Informe fontes com endereço http(s) válido e descrição de até 500 caracteres.",
         "immutable_position": "A posição inicial já foi confirmada com outro valor.",
         "version_conflict": "Sua posição mudou em outro lugar. Recarregue a página e envie de novo.",
         "insufficient_ink": "Seu saldo de INK não cobre esta publicação.",
@@ -116,8 +121,37 @@
         "argument_not_found": "Um dos argumentos escolhidos não está mais disponível.",
         "too_many_attributions": "Escolha no máximo {max} argumentos.",
         "csrf_title": "Formulário expirado",
-        "csrf_detail": "Recarregue a página e envie o formulário de novo."
+        "csrf_detail": "Recarregue a página e envie o formulário de novo.",
+        "position_missing": "Você ainda não confirmou uma posição nesta arena.",
+        "arena_closed": "Esta arena não aceita mais posições.",
+        "not_eligible": "Sua conta ainda não pode participar desta arena.",
+        "suspended": "Sua conta está suspensa e não pode participar.",
+        "same_position": "Escolha uma posição diferente da atual.",
+        "generic": "A posição não respondeu. Tente de novo."
       }
+    },
+    "arguments": {
+      "search_hint": "Digite o que procura nos argumentos publicados.",
+      "search_empty": "Nenhum argumento bate com esta busca.",
+      "withdrawn_note": "Este argumento foi retirado pelo autor. Só a identidade permanece.",
+      "failure_invalid_query": "A busca não passou. Confira o texto e o idioma.",
+      "failure_missing": "Este argumento não existe ou foi removido.",
+      "failure_generic": "O argumento não respondeu. Tente de novo.",
+      "replies_empty": "Ainda não há respostas para este argumento.",
+      "reply_to": "Em resposta a: “{content}”",
+      "withdraw_confirm": "Retirar o argumento “{content}”? O conteúdo sai da exibição, sem apagar o fato histórico e sem reembolso.",
+      "withdraw_submit": "Retirar argumento",
+      "failure_parent_missing": "O argumento de origem não existe mais.",
+      "failure_parent_unavailable": "O argumento de origem não aceita respostas.",
+      "failure_depth": "Respostas aceitam um nível: esta já é uma resposta.",
+      "failure_not_withdrawable": "Este argumento não pode ser retirado neste estado.",
+      "influence_valid": "Atribuições válidas: {count}",
+      "influence_people": "Pessoas que creditaram: {count}",
+      "failure_self": "Você não pode creditar o próprio argumento.",
+      "failure_duplicate": "Este argumento já foi creditado por esta mudança.",
+      "failure_cross_arena": "O argumento pertence a outra arena.",
+      "failure_ineligible": "Este argumento não é elegível para esta mudança.",
+      "failure_too_many": "Esta mudança já credita argumentos demais."
     },
     "feed": {
       "heading": "Arenas",

@@ -128,16 +128,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). P53-T02 lists in the browser through the arguments client and the arguments page (one relation newest-first, cancellable pages merged without duplication, late answers discarded, withdrawn and removed never appear)."
     },
     {
       "method": "GET",
@@ -175,16 +178,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 reads the public aggregate in the browser through the positions client and the aggregate presentation (pt/en catalogs, suppressed samples hide every count, visitor choice gates the UI never the API)."
     },
     {
       "method": "GET",
@@ -221,16 +228,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). P53-T02 reads in the browser through the arguments client and the arguments page (verbatim content, withdrawn resolves as a retracted placeholder, removed reads as not found)."
     },
     {
       "method": "GET",
@@ -242,17 +252,20 @@
       "audience": "public",
       "phase": "P53",
       "task": "P48-T01",
-      "client": "arguments",
-      "page": "planned-participation",
+      "client": "attributions",
+      "page": "attribution",
       "exclusion": null,
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation",
+        "web/tests/core/attributions.test.ts",
+        "web/tests/pages/attribution.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (public metrics reflect the credit). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (public metrics reflect the credit). P53-T05 reads the public counts in the browser through the attributions client and the attribution page (counts only, no identity, no scoreboard, cacheable)."
     },
     {
       "method": "GET",
@@ -265,16 +278,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (anonymous list finds the content, forged cursor refused). P53-T04 reads one reply level in the browser through the arguments client and the arguments page (newest-first cancellable pages, own empty state, depth forbids grandchildren)."
     },
     {
       "method": "POST",
@@ -597,16 +613,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "publication",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/publication.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). P53-T03 publishes in the browser through the arguments client and the publication page (explicit key with a single retry, replay resolves without charging again, insufficient INK writes nothing, count is feedback, no monetary preview)."
     },
     {
       "method": "POST",
@@ -619,16 +638,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). P53-T04 replies in the browser through the arguments client and the arguments page (parent named verbatim, cross-arena parent refused, depth and availability conflicts, shared publication failures)."
     },
     {
       "method": "POST",
@@ -666,16 +688,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 reads the owner projection in the browser through the positions client and the participation page (private head with version, no position yet reads as not found, stranger reads as not found, visitor holds none)."
     },
     {
       "method": "POST",
@@ -688,16 +714,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 confirms in the browser through the positions client and the participation page (contract body once, immutable initial history conflicts on a different value, replay resolves the recorded projection, closed arenas refuse)."
     },
     {
       "method": "GET",
@@ -710,16 +740,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 lists the private history in the browser through the positions client and the participation page (newest first as answered, never reordered, empty state named)."
     },
     {
       "method": "POST",
@@ -732,16 +766,20 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "positions",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/positions/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate"
+        "internal/bootstrap/debate_attribution_test.go::TestDebatePositionConfirmChangeAggregate",
+        "web/tests/core/positions.test.ts",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/aggregate.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (confirm, idempotent reconfirm, change, owner reads, public aggregate, stranger 404, anonymous 401). P53-T01 changes in the browser through the positions client and the participation page (201 with the change identifier, concurrent change conflicts without a write, same position conflicts, single-shot calls never replayed)."
     },
     {
       "method": "POST",
@@ -754,16 +792,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (withdraw retracts content, stranger 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (withdraw retracts content, stranger 404, anonymous 401). P53-T04 withdraws in the browser through the arguments client and the arguments page (confirmation names the content with no refund, bodiless single-shot call, stranger reads as not found, repeat resolves recorded, re-read renders the placeholder)."
     },
     {
       "method": "POST",
@@ -1395,17 +1436,20 @@
       "audience": "owner",
       "phase": "P53",
       "task": "P48-T01",
-      "client": "positions",
-      "page": "planned-participation",
+      "client": "attributions",
+      "page": "attribution",
       "exclusion": null,
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation",
+        "web/tests/core/attributions.test.ts",
+        "web/tests/pages/attribution.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (record, idempotent replay, foreign change 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (record, idempotent replay, foreign change 404, anonymous 401). P53-T05 records in the browser through the attributions client and the attribution page (eligible identifiers only, empty selection is a valid skip, single-shot call, replay resolves recorded, re-read renders the set)."
     },
     {
       "method": "GET",
@@ -1831,16 +1875,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "arguments",
       "exclusion": null,
       "tests": [
         "internal/search/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor"
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaFeedSearchCursor",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/arguments.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (anonymous search served, forged cursor refused; argument results land with debate reads in P53). Browser client/page lands in P53."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (anonymous search served, forged cursor refused; argument results land with debate reads in P53). P53-T02 searches in the browser through the arguments client and the arguments page (query verbatim for the server to judge, cancellable pages, result language rendered as-is, score never shown)."
     },
     {
       "method": "GET",
@@ -1876,15 +1923,16 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-participation",
+      "page": "publication",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "web/tests/pages/publication.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P53-T03 submits in the browser through the rendered document and the publication page (attempt key per render, double submit resolves recorded, refusal keeps the typed text)."
     },
     {
       "method": "POST",
@@ -1897,15 +1945,16 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-participation",
+      "page": "attribution",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "web/tests/pages/attribution.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P53-T05 submits in the browser through the rendered document and the attribution page (eligible selection bounded by the change policy, re-read after commit)."
     },
     {
       "method": "POST",
@@ -1918,15 +1967,17 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/submission.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P53-T01 submits in the browser through the rendered document and the participation page (local choice preselects from storage, single-flight busy guard, server validates the closed vocabulary)."
     },
     {
       "method": "POST",
@@ -1939,15 +1990,17 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/submission.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P53-T01 submits in the browser through the rendered document and the participation page (change form with the current named, single-flight busy guard, server validates the closed vocabulary)."
     },
     {
       "method": "GET",

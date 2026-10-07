@@ -97,6 +97,10 @@
         "submit": "Record influence",
         "busy": "Recording…"
       },
+      "history": {
+        "heading": "Position history",
+        "empty": "No changes recorded. The initial confirmation starts the history."
+      },
       "notice": {
         "position_confirmed": "Initial position confirmed.",
         "position_changed": "Position changed.",
@@ -109,6 +113,7 @@
         "invalid_choice": "Choose one of the listed positions.",
         "invalid_relation": "Choose one of the listed relations.",
         "invalid_content": "Write an argument of up to {max} graphemes.",
+        "invalid_source": "Provide sources with a valid http(s) address and a description of up to 500 characters.",
         "immutable_position": "The initial position was already confirmed with another value.",
         "version_conflict": "Your position changed elsewhere. Reload the page and submit again.",
         "insufficient_ink": "Your INK balance does not cover this publication.",
@@ -116,8 +121,37 @@
         "argument_not_found": "One of the chosen arguments is no longer available.",
         "too_many_attributions": "Choose at most {max} arguments.",
         "csrf_title": "Form expired",
-        "csrf_detail": "Reload the page and submit the form again."
+        "csrf_detail": "Reload the page and submit the form again.",
+        "position_missing": "You have not confirmed a position in this arena yet.",
+        "arena_closed": "This arena accepts no more positions.",
+        "not_eligible": "Your account cannot participate in this arena yet.",
+        "suspended": "Your account is suspended and cannot participate.",
+        "same_position": "Choose a position different from the current one.",
+        "generic": "The position did not answer. Try again."
       }
+    },
+    "arguments": {
+      "search_hint": "Type what you seek in the published arguments.",
+      "search_empty": "No arguments match this search.",
+      "withdrawn_note": "This argument was withdrawn by its author. Only its identity remains.",
+      "failure_invalid_query": "The search did not pass. Check the text and the language.",
+      "failure_missing": "This argument does not exist or was removed.",
+      "failure_generic": "The argument did not answer. Try again.",
+      "replies_empty": "No replies to this argument yet.",
+      "reply_to": "In reply to: “{content}”",
+      "withdraw_confirm": "Withdraw the argument “{content}”? The content leaves the display, without erasing the historical fact and without a refund.",
+      "withdraw_submit": "Withdraw argument",
+      "failure_parent_missing": "The parent argument no longer exists.",
+      "failure_parent_unavailable": "The parent argument accepts no replies.",
+      "failure_depth": "Replies accept one level: this one already is a reply.",
+      "failure_not_withdrawable": "This argument cannot be withdrawn in its current state.",
+      "influence_valid": "Valid attributions: {count}",
+      "influence_people": "People who credited: {count}",
+      "failure_self": "You cannot credit your own argument.",
+      "failure_duplicate": "This argument was already credited by this change.",
+      "failure_cross_arena": "The argument belongs to another arena.",
+      "failure_ineligible": "This argument is not eligible for this change.",
+      "failure_too_many": "This change already credits too many arguments."
     },
     "feed": {
       "heading": "Arenas",

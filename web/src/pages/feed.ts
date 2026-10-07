@@ -31,8 +31,12 @@ import type { ArenaFeedQuery, ArenaSearchQuery } from "../core/clients/arenas.js
 import type { Locale } from "../i18n/locale.js";
 import type { Translator } from "../i18n/translator.js";
 
-/** Content languages the contract declares for the feed and the search. */
-const FEED_LANGUAGES: readonly string[] = ["pt-BR", "en-US"];
+/**
+ * Content languages the contract declares for the feed and the search.
+ * Exported for the argument search (P53-T02): the vocabulary is the
+ * contract's, not each page's, so there is exactly one list.
+ */
+export const FEED_LANGUAGES: readonly string[] = ["pt-BR", "en-US"];
 
 /** Editorial categories the contract declares for the feed. */
 const FEED_CATEGORIES: readonly string[] = [
@@ -53,16 +57,22 @@ const FEED_STATUSES: readonly string[] = ["published", "closed", "restricted"];
 const FEED_LIMIT_MIN = 1;
 const FEED_LIMIT_MAX = 100;
 
-/** Keeps the value only when it belongs to the closed vocabulary. */
-function vocabularyValue(value: string | null, vocabulary: readonly string[]): string | undefined {
+/**
+ * Keeps the value only when it belongs to the closed vocabulary.
+ * Exported for the argument search (P53-T02): one allowlist reader.
+ */
+export function vocabularyValue(value: string | null, vocabulary: readonly string[]): string | undefined {
   if (value === null || value === "") {
     return undefined;
   }
   return vocabulary.includes(value) ? value : undefined;
 }
 
-/** Keeps the limit only inside the page the contract sizes. */
-function pageLimit(value: string | null): number | undefined {
+/**
+ * Keeps the limit only inside the page the contract sizes.
+ * Exported for the argument search (P53-T02): one page-size reader.
+ */
+export function pageLimit(value: string | null): number | undefined {
   if (value === null || value === "") {
     return undefined;
   }
@@ -73,8 +83,11 @@ function pageLimit(value: string | null): number | undefined {
   return parsed;
 }
 
-/** Keeps the cursor only when one travels: opaque, never parsed. */
-function opaqueCursor(value: string | null): string | undefined {
+/**
+ * Keeps the cursor only when one travels: opaque, never parsed.
+ * Exported for the argument search (P53-T02): one cursor reader.
+ */
+export function opaqueCursor(value: string | null): string | undefined {
   if (value === null || value === "") {
     return undefined;
   }
