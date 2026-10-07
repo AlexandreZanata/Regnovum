@@ -517,6 +517,31 @@ export const messageKeys = {
     "transparency.document.metric",
     "transparency.document.page_title",
     "transparency.document.period",
+    "transparency.document.rows.actions_recorded",
+    "transparency.document.rows.appeals_filed",
+    "transparency.document.rows.appeals_reversed",
+    "transparency.document.rows.arenas_closed",
+    "transparency.document.rows.arenas_published",
+    "transparency.document.rows.arenas_removed",
+    "transparency.document.rows.arenas_restricted",
+    "transparency.document.rows.arguments_published",
+    "transparency.document.rows.arguments_withdrawn",
+    "transparency.document.rows.attributions_invalidated",
+    "transparency.document.rows.attributions_valid",
+    "transparency.document.rows.eligible_accounts",
+    "transparency.document.rows.influenced_authors",
+    "transparency.document.rows.ink_admin_adjusted",
+    "transparency.document.rows.ink_free_consumed",
+    "transparency.document.rows.ink_free_expired",
+    "transparency.document.rows.ink_free_granted",
+    "transparency.document.rows.ink_purchased_consumed",
+    "transparency.document.rows.ink_purchased_granted",
+    "transparency.document.rows.ink_refunded",
+    "transparency.document.rows.passes_consumed",
+    "transparency.document.rows.passes_member_granted",
+    "transparency.document.rows.passes_purchase_granted",
+    "transparency.document.rows.position_changes",
+    "transparency.document.rows.reports_filed",
     "transparency.document.updated",
     "transparency.document.value",
     "transparency.metrics.circulation",
@@ -1027,6 +1052,31 @@ export type MessageKey =
   | "transparency.document.metric"
   | "transparency.document.page_title"
   | "transparency.document.period"
+  | "transparency.document.rows.actions_recorded"
+  | "transparency.document.rows.appeals_filed"
+  | "transparency.document.rows.appeals_reversed"
+  | "transparency.document.rows.arenas_closed"
+  | "transparency.document.rows.arenas_published"
+  | "transparency.document.rows.arenas_removed"
+  | "transparency.document.rows.arenas_restricted"
+  | "transparency.document.rows.arguments_published"
+  | "transparency.document.rows.arguments_withdrawn"
+  | "transparency.document.rows.attributions_invalidated"
+  | "transparency.document.rows.attributions_valid"
+  | "transparency.document.rows.eligible_accounts"
+  | "transparency.document.rows.influenced_authors"
+  | "transparency.document.rows.ink_admin_adjusted"
+  | "transparency.document.rows.ink_free_consumed"
+  | "transparency.document.rows.ink_free_expired"
+  | "transparency.document.rows.ink_free_granted"
+  | "transparency.document.rows.ink_purchased_consumed"
+  | "transparency.document.rows.ink_purchased_granted"
+  | "transparency.document.rows.ink_refunded"
+  | "transparency.document.rows.passes_consumed"
+  | "transparency.document.rows.passes_member_granted"
+  | "transparency.document.rows.passes_purchase_granted"
+  | "transparency.document.rows.position_changes"
+  | "transparency.document.rows.reports_filed"
   | "transparency.document.updated"
   | "transparency.document.value"
   | "transparency.metrics.circulation"
@@ -1536,6 +1586,31 @@ export const messagePlaceholders = Object.freeze({
   "transparency.document.metric": [],
   "transparency.document.page_title": [],
   "transparency.document.period": ["end", "start", "timezone"],
+  "transparency.document.rows.actions_recorded": [],
+  "transparency.document.rows.appeals_filed": [],
+  "transparency.document.rows.appeals_reversed": [],
+  "transparency.document.rows.arenas_closed": [],
+  "transparency.document.rows.arenas_published": [],
+  "transparency.document.rows.arenas_removed": [],
+  "transparency.document.rows.arenas_restricted": [],
+  "transparency.document.rows.arguments_published": [],
+  "transparency.document.rows.arguments_withdrawn": [],
+  "transparency.document.rows.attributions_invalidated": [],
+  "transparency.document.rows.attributions_valid": [],
+  "transparency.document.rows.eligible_accounts": [],
+  "transparency.document.rows.influenced_authors": [],
+  "transparency.document.rows.ink_admin_adjusted": [],
+  "transparency.document.rows.ink_free_consumed": [],
+  "transparency.document.rows.ink_free_expired": [],
+  "transparency.document.rows.ink_free_granted": [],
+  "transparency.document.rows.ink_purchased_consumed": [],
+  "transparency.document.rows.ink_purchased_granted": [],
+  "transparency.document.rows.ink_refunded": [],
+  "transparency.document.rows.passes_consumed": [],
+  "transparency.document.rows.passes_member_granted": [],
+  "transparency.document.rows.passes_purchase_granted": [],
+  "transparency.document.rows.position_changes": [],
+  "transparency.document.rows.reports_filed": [],
   "transparency.document.updated": ["at", "version"],
   "transparency.document.value": [],
   "transparency.metrics.circulation": ["total"],
@@ -2046,6 +2121,31 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.document.metric": "Metric",
     "transparency.document.page_title": "Transparency — Regnovum",
     "transparency.document.period": "Period: {start} – {end} ({timezone})",
+    "transparency.document.rows.actions_recorded": "Recorded sanctions",
+    "transparency.document.rows.appeals_filed": "Filed appeals",
+    "transparency.document.rows.appeals_reversed": "Reversed appeals",
+    "transparency.document.rows.arenas_closed": "Closed arenas",
+    "transparency.document.rows.arenas_published": "Published arenas",
+    "transparency.document.rows.arenas_removed": "Removed arenas",
+    "transparency.document.rows.arenas_restricted": "Restricted arenas",
+    "transparency.document.rows.arguments_published": "Published arguments",
+    "transparency.document.rows.arguments_withdrawn": "Withdrawn arguments",
+    "transparency.document.rows.attributions_invalidated": "Invalidated attributions",
+    "transparency.document.rows.attributions_valid": "Valid attributions",
+    "transparency.document.rows.eligible_accounts": "Eligible accounts",
+    "transparency.document.rows.influenced_authors": "Influenced authors",
+    "transparency.document.rows.ink_admin_adjusted": "Admin-adjusted INK",
+    "transparency.document.rows.ink_free_consumed": "Free INK consumed",
+    "transparency.document.rows.ink_free_expired": "Free INK expired",
+    "transparency.document.rows.ink_free_granted": "Free INK granted",
+    "transparency.document.rows.ink_purchased_consumed": "Purchased INK consumed",
+    "transparency.document.rows.ink_purchased_granted": "Purchased INK granted",
+    "transparency.document.rows.ink_refunded": "Refunded INK",
+    "transparency.document.rows.passes_consumed": "Passes consumed",
+    "transparency.document.rows.passes_member_granted": "Member passes granted",
+    "transparency.document.rows.passes_purchase_granted": "Purchase passes granted",
+    "transparency.document.rows.position_changes": "Position changes",
+    "transparency.document.rows.reports_filed": "Filed reports",
     "transparency.document.updated": "Updated at {at} · methodology v{version}",
     "transparency.document.value": "Value",
     "transparency.metrics.circulation": "In circulation: {total} thousandths of INK",
@@ -2553,6 +2653,31 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.document.metric": "Métrica",
     "transparency.document.page_title": "Transparência — Regnovum",
     "transparency.document.period": "Período: {start} – {end} ({timezone})",
+    "transparency.document.rows.actions_recorded": "Sanções registradas",
+    "transparency.document.rows.appeals_filed": "Recursos registrados",
+    "transparency.document.rows.appeals_reversed": "Recursos revertidos",
+    "transparency.document.rows.arenas_closed": "Arenas encerradas",
+    "transparency.document.rows.arenas_published": "Arenas publicadas",
+    "transparency.document.rows.arenas_removed": "Arenas removidas",
+    "transparency.document.rows.arenas_restricted": "Arenas restritas",
+    "transparency.document.rows.arguments_published": "Argumentos publicados",
+    "transparency.document.rows.arguments_withdrawn": "Argumentos retirados",
+    "transparency.document.rows.attributions_invalidated": "Atribuições invalidadas",
+    "transparency.document.rows.attributions_valid": "Atribuições válidas",
+    "transparency.document.rows.eligible_accounts": "Contas elegíveis",
+    "transparency.document.rows.influenced_authors": "Autores influenciados",
+    "transparency.document.rows.ink_admin_adjusted": "INK com ajuste administrativo",
+    "transparency.document.rows.ink_free_consumed": "INK livre consumido",
+    "transparency.document.rows.ink_free_expired": "INK livre expirado",
+    "transparency.document.rows.ink_free_granted": "INK livre concedido",
+    "transparency.document.rows.ink_purchased_consumed": "INK comprado consumido",
+    "transparency.document.rows.ink_purchased_granted": "INK comprado concedido",
+    "transparency.document.rows.ink_refunded": "INK reembolsado",
+    "transparency.document.rows.passes_consumed": "Passes consumidos",
+    "transparency.document.rows.passes_member_granted": "Passes Member concedidos",
+    "transparency.document.rows.passes_purchase_granted": "Passes de compra concedidos",
+    "transparency.document.rows.position_changes": "Mudanças de posição",
+    "transparency.document.rows.reports_filed": "Denúncias registradas",
     "transparency.document.updated": "Atualizado em {at} · metodologia v{version}",
     "transparency.document.value": "Valor",
     "transparency.metrics.circulation": "Em circulação: {total} milésimos de INK",

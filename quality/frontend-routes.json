@@ -1858,18 +1858,21 @@
       "audience": "public",
       "phase": "P55",
       "task": "P48-T01",
-      "client": "planned-transparency",
-      "page": "planned-transparency",
+      "client": "transparency",
+      "page": "transparency",
       "exclusion": null,
       "tests": [
         "internal/transparency/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
         "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsServesSuppressedSnapshot",
-        "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsDefaultWindow"
+        "internal/bootstrap/transparency_public_test.go::TestTransparencyMetricsDefaultWindow",
+        "web/tests/core/transparency.test.ts",
+        "web/tests/pages/transparency.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (suppressed small-sample counts, exact period echo, default trailing-30-day window, invalid period 400, public cache with ETag/304, no email in body). Browser client/page lands in P55."
+      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (suppressed small-sample counts, exact period echo, default trailing-30-day window, invalid period 400, public cache with ETag/304, no email in body). P55-T04 reads in the browser through the transparency client and the transparency page (anonymous GET with the window verbatim, browser cache with its ETag, no hand-assembled validator, invalid window as validation)."
     },
     {
       "method": "GET",
@@ -2330,16 +2333,19 @@
       "phase": "P55",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-transparency",
+      "page": "transparency",
       "exclusion": null,
       "tests": [
         "internal/transparency/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/transparency_public_test.go::TestTransparencyDocumentServesLocalizedHTML"
+        "internal/bootstrap/transparency_public_test.go::TestTransparencyDocumentServesLocalizedHTML",
+        "web/tests/core/transparency.test.ts",
+        "web/tests/pages/transparency.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (explicit locale wins, header negotiates against the allowlist, unknown locale falls back without reflection, Vary plus public cache with ETag/304, no email in body). Browser client/page lands in P55."
+      "note": "P49-T08 mounted in ComposeTransparency over the process pool/clock; proven via process httptest+PG (explicit locale wins, header negotiates against the allowlist, unknown locale falls back without reflection, Vary plus public cache with ETag/304, no email in body). P55-T04 presents in the browser through the transparency page (25 codes under localized labels, missing code renders no row, unsafe count refused, canonical link with allowlisted params only, no empty report fabricated)."
     },
     {
       "method": "GET",

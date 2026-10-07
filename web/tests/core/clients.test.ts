@@ -22,6 +22,7 @@ import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import { createSessionsClient } from "../../src/core/clients/sessions.js";
 import { createModerationClient } from "../../src/core/clients/moderation.js";
 import { createJobsClient } from "../../src/core/clients/jobs.js";
+import { createTransparencyClient } from "../../src/core/clients/transparency.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -461,6 +462,13 @@ const expectations: readonly Expectation[] = [
     method: "POST",
     url: "https://arena.test/api/v1/admin/jobs/job-1/retry",
     body: { reason: "provider was down" },
+    idempotent: false,
+  },
+  {
+    name: "transparency metrics",
+    run: (core) => createTransparencyClient(core).metrics(),
+    method: "GET",
+    url: "https://arena.test/api/v1/public/transparency",
     idempotent: false,
   },
   {
