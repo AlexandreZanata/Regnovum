@@ -144,7 +144,14 @@
       "failure_parent_missing": "O argumento de origem não existe mais.",
       "failure_parent_unavailable": "O argumento de origem não aceita respostas.",
       "failure_depth": "Respostas aceitam um nível: esta já é uma resposta.",
-      "failure_not_withdrawable": "Este argumento não pode ser retirado neste estado."
+      "failure_not_withdrawable": "Este argumento não pode ser retirado neste estado.",
+      "influence_valid": "Atribuições válidas: {count}",
+      "influence_people": "Pessoas que creditaram: {count}",
+      "failure_self": "Você não pode creditar o próprio argumento.",
+      "failure_duplicate": "Este argumento já foi creditado por esta mudança.",
+      "failure_cross_arena": "O argumento pertence a outra arena.",
+      "failure_ineligible": "Este argumento não é elegível para esta mudança.",
+      "failure_too_many": "Esta mudança já credita argumentos demais."
     },
     "feed": {
       "heading": "Arenas",

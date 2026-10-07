@@ -144,7 +144,14 @@
       "failure_parent_missing": "The parent argument no longer exists.",
       "failure_parent_unavailable": "The parent argument accepts no replies.",
       "failure_depth": "Replies accept one level: this one already is a reply.",
-      "failure_not_withdrawable": "This argument cannot be withdrawn in its current state."
+      "failure_not_withdrawable": "This argument cannot be withdrawn in its current state.",
+      "influence_valid": "Valid attributions: {count}",
+      "influence_people": "People who credited: {count}",
+      "failure_self": "You cannot credit your own argument.",
+      "failure_duplicate": "This argument was already credited by this change.",
+      "failure_cross_arena": "The argument belongs to another arena.",
+      "failure_ineligible": "This argument is not eligible for this change.",
+      "failure_too_many": "This change already credits too many arguments."
     },
     "feed": {
       "heading": "Arenas",

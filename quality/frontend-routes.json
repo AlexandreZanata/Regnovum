@@ -252,17 +252,20 @@
       "audience": "public",
       "phase": "P53",
       "task": "P48-T01",
-      "client": "arguments",
-      "page": "planned-participation",
+      "client": "attributions",
+      "page": "attribution",
       "exclusion": null,
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation",
+        "web/tests/core/attributions.test.ts",
+        "web/tests/pages/attribution.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (public metrics reflect the credit). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (public metrics reflect the credit). P53-T05 reads the public counts in the browser through the attributions client and the attribution page (counts only, no identity, no scoreboard, cacheable)."
     },
     {
       "method": "GET",
@@ -1433,17 +1436,20 @@
       "audience": "owner",
       "phase": "P53",
       "task": "P48-T01",
-      "client": "positions",
-      "page": "planned-participation",
+      "client": "attributions",
+      "page": "attribution",
       "exclusion": null,
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation",
+        "web/tests/core/attributions.test.ts",
+        "web/tests/pages/attribution.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (record, idempotent replay, foreign change 404, anonymous 401). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (record, idempotent replay, foreign change 404, anonymous 401). P53-T05 records in the browser through the attributions client and the attribution page (eligible identifiers only, empty selection is a valid skip, single-shot call, replay resolves recorded, re-read renders the set)."
     },
     {
       "method": "GET",
@@ -1939,15 +1945,16 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-participation",
+      "page": "attribution",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "web/tests/pages/attribution.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P53-T05 submits in the browser through the rendered document and the attribution page (eligible selection bounded by the change policy, re-read after commit)."
     },
     {
       "method": "POST",
@@ -1960,15 +1967,17 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/submission.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P53-T01 submits in the browser through the rendered document and the participation page (local choice preselects from storage, single-flight busy guard, server validates the closed vocabulary)."
     },
     {
       "method": "POST",
@@ -1981,15 +1990,17 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-participation",
+      "page": "participation",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "web/tests/pages/participation.test.ts",
+        "web/tests/pages/submission.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P53-T01 submits in the browser through the rendered document and the participation page (change form with the current named, single-flight busy guard, server validates the closed vocabulary)."
     },
     {
       "method": "GET",

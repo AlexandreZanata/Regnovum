@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { createArgumentsClient } from "../../src/core/clients/arguments.js";
+import { createAttributionsClient } from "../../src/core/clients/attributions.js";
 import { createArenasClient } from "../../src/core/clients/arenas.js";
 import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
@@ -374,6 +375,21 @@ const expectations: readonly Expectation[] = [
     run: (core) => createArgumentsClient(core).withdraw("arg-1"),
     method: "POST",
     url: "https://arena.test/api/v1/me/arguments/arg-1/withdraw",
+    idempotent: false,
+  },
+  {
+    name: "attributions record",
+    run: (core) => createAttributionsClient(core).record("change-1", { argument_ids: ["arg-1"] }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/position-changes/change-1/attributions",
+    body: { argument_ids: ["arg-1"] },
+    idempotent: false,
+  },
+  {
+    name: "attributions counts",
+    run: (core) => createAttributionsClient(core).counts("arg-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/arguments/arg-1/attributions",
     idempotent: false,
   },
   {
