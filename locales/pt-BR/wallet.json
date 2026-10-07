@@ -45,6 +45,21 @@
       "failure_forbidden": "Esta conta não pode comprar agora.",
       "failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
       "failure_generic": "Não foi possível criar a compra. Confira e tente novamente."
+    },
+    "subscription": {
+      "heading": "Member",
+      "intro": "Projeção da assinatura: ciclo e período, sem identificadores do provedor.",
+      "absent": "Sem assinatura ativa",
+      "state": "Assinatura {status} ({product}, {market})",
+      "period": "Período atual até {instant}",
+      "canceling": "Será cancelada ao fim do período atual.",
+      "benefit_note": "Benefícios vigentes e legados valem conforme as regras em vigor.",
+      "portal_note": "Você será levado ao portal do cliente. Ao voltar, reconsulte a assinatura.",
+      "unavailable": "Portal indisponível agora. Tente mais tarde.",
+      "failure_unauthorized": "Entre na conta para ver a assinatura.",
+      "failure_no_customer": "Nenhum cliente de cobrança nesta conta.",
+      "failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
+      "failure_generic": "Não foi possível carregar a assinatura. Confira e tente novamente."
     }
   }
 }

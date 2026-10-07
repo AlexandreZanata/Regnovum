@@ -45,6 +45,21 @@
       "failure_forbidden": "This account cannot buy right now.",
       "failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
       "failure_generic": "The purchase could not be created. Check and try again."
+    },
+    "subscription": {
+      "heading": "Member",
+      "intro": "Subscription projection: lifecycle and period, without provider identifiers.",
+      "absent": "No active subscription",
+      "state": "{status} subscription ({product}, {market})",
+      "period": "Current period until {instant}",
+      "canceling": "It will be canceled at the end of the current period.",
+      "benefit_note": "Current and legacy benefits apply as the rules in force declare.",
+      "portal_note": "You will be taken to the customer portal. When back, re-check the subscription.",
+      "unavailable": "Portal unavailable right now. Try later.",
+      "failure_unauthorized": "Sign in to see the subscription.",
+      "failure_no_customer": "No billing customer on this account.",
+      "failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+      "failure_generic": "The subscription could not be loaded. Check and try again."
     }
   }
 }

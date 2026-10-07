@@ -4,7 +4,9 @@
  * Only mutations with a backend-proven idempotent contract (arguments
  * publish/reply, mandatory `Idempotency-Key` in `api/openapi.json`) arrive
  * with a key; position transitions have no such contract and stay
- * non-retryable, so they send none.
+ * non-retryable, so they send none. Billing keys travel in the request
+ * body (`idempotency_key`), never as a header the contract does not
+ * declare, so they assert no header here.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -430,7 +432,22 @@ const expectations: readonly Expectation[] = [
     method: "POST",
     url: "https://arena.test/api/v1/me/billing/checkout",
     body: { market: "BR", product: "pass_1", idempotency_key: "op-1" },
-    idempotent: true,
+    idempotent: false,
+  },
+  {
+    name: "billing subscription",
+    run: (core) => createBillingClient(core).subscription(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/billing/subscription",
+    idempotent: false,
+  },
+  {
+    name: "billing portal",
+    run: (core) => createBillingClient(core).portal({ idempotencyKey: "op-1" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/billing/portal",
+    body: { idempotency_key: "op-1" },
+    idempotent: false,
   },
   {
     name: "arguments reply",

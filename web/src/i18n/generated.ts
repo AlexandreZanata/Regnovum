@@ -533,6 +533,19 @@ export const messageKeys = {
     "wallet.statement.entry",
     "wallet.statement.heading",
     "wallet.statement.intro",
+    "wallet.subscription.absent",
+    "wallet.subscription.benefit_note",
+    "wallet.subscription.canceling",
+    "wallet.subscription.failure_generic",
+    "wallet.subscription.failure_no_customer",
+    "wallet.subscription.failure_rate_limited",
+    "wallet.subscription.failure_unauthorized",
+    "wallet.subscription.heading",
+    "wallet.subscription.intro",
+    "wallet.subscription.period",
+    "wallet.subscription.portal_note",
+    "wallet.subscription.state",
+    "wallet.subscription.unavailable",
   ] as const,
 } as const;
 
@@ -1047,6 +1060,19 @@ export type MessageKey =
   | "wallet.statement.entry"
   | "wallet.statement.heading"
   | "wallet.statement.intro"
+  | "wallet.subscription.absent"
+  | "wallet.subscription.benefit_note"
+  | "wallet.subscription.canceling"
+  | "wallet.subscription.failure_generic"
+  | "wallet.subscription.failure_no_customer"
+  | "wallet.subscription.failure_rate_limited"
+  | "wallet.subscription.failure_unauthorized"
+  | "wallet.subscription.heading"
+  | "wallet.subscription.intro"
+  | "wallet.subscription.period"
+  | "wallet.subscription.portal_note"
+  | "wallet.subscription.state"
+  | "wallet.subscription.unavailable"
 ;
 
 /** Named placeholders per message key: the exact values one translation accepts. */
@@ -1560,6 +1586,19 @@ export const messagePlaceholders = Object.freeze({
   "wallet.statement.entry": ["bucket", "instant", "operation", "signed"],
   "wallet.statement.heading": [],
   "wallet.statement.intro": [],
+  "wallet.subscription.absent": [],
+  "wallet.subscription.benefit_note": [],
+  "wallet.subscription.canceling": [],
+  "wallet.subscription.failure_generic": [],
+  "wallet.subscription.failure_no_customer": [],
+  "wallet.subscription.failure_rate_limited": [],
+  "wallet.subscription.failure_unauthorized": [],
+  "wallet.subscription.heading": [],
+  "wallet.subscription.intro": [],
+  "wallet.subscription.period": ["instant"],
+  "wallet.subscription.portal_note": [],
+  "wallet.subscription.state": ["market", "product", "status"],
+  "wallet.subscription.unavailable": [],
 } as const satisfies Readonly<Record<string, readonly string[]>>);
 
 /** Localized messages per locale per key. */
@@ -2074,6 +2113,19 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "wallet.statement.entry": "{signed} INK — {operation} ({bucket}) on {instant}",
     "wallet.statement.heading": "Ledger statement",
     "wallet.statement.intro": "Entries newest first, in opaque cursor pages.",
+    "wallet.subscription.absent": "No active subscription",
+    "wallet.subscription.benefit_note": "Current and legacy benefits apply as the rules in force declare.",
+    "wallet.subscription.canceling": "It will be canceled at the end of the current period.",
+    "wallet.subscription.failure_generic": "The subscription could not be loaded. Check and try again.",
+    "wallet.subscription.failure_no_customer": "No billing customer on this account.",
+    "wallet.subscription.failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+    "wallet.subscription.failure_unauthorized": "Sign in to see the subscription.",
+    "wallet.subscription.heading": "Member",
+    "wallet.subscription.intro": "Subscription projection: lifecycle and period, without provider identifiers.",
+    "wallet.subscription.period": "Current period until {instant}",
+    "wallet.subscription.portal_note": "You will be taken to the customer portal. When back, re-check the subscription.",
+    "wallet.subscription.state": "{status} subscription ({product}, {market})",
+    "wallet.subscription.unavailable": "Portal unavailable right now. Try later.",
   }),
   "pt-BR": Object.freeze({
     "arenas.arguments.failure_cross_arena": "O argumento pertence a outra arena.",
@@ -2585,5 +2637,18 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "wallet.statement.entry": "{signed} INK — {operation} ({bucket}) em {instant}",
     "wallet.statement.heading": "Extrato do livro-razão",
     "wallet.statement.intro": "Lançamentos do mais novo ao mais antigo, em páginas de cursor opaco.",
+    "wallet.subscription.absent": "Sem assinatura ativa",
+    "wallet.subscription.benefit_note": "Benefícios vigentes e legados valem conforme as regras em vigor.",
+    "wallet.subscription.canceling": "Será cancelada ao fim do período atual.",
+    "wallet.subscription.failure_generic": "Não foi possível carregar a assinatura. Confira e tente novamente.",
+    "wallet.subscription.failure_no_customer": "Nenhum cliente de cobrança nesta conta.",
+    "wallet.subscription.failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
+    "wallet.subscription.failure_unauthorized": "Entre na conta para ver a assinatura.",
+    "wallet.subscription.heading": "Member",
+    "wallet.subscription.intro": "Projeção da assinatura: ciclo e período, sem identificadores do provedor.",
+    "wallet.subscription.period": "Período atual até {instant}",
+    "wallet.subscription.portal_note": "Você será levado ao portal do cliente. Ao voltar, reconsulte a assinatura.",
+    "wallet.subscription.state": "Assinatura {status} ({product}, {market})",
+    "wallet.subscription.unavailable": "Portal indisponível agora. Tente mais tarde.",
   }),
 });

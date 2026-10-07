@@ -842,17 +842,20 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "billing",
+      "page": "subscription",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/billing_writes_test.go::TestBillingPortalOpensForCustomer"
+        "internal/bootstrap/billing_writes_test.go::TestBillingPortalOpensForCustomer",
+        "web/tests/core/billing.test.ts",
+        "web/tests/pages/subscription.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T06 mounted in ComposeBillingWrites over shared pool/security/session validator; proven via process httptest+PG (portal opens for the stored customer, 404 without one, 401 anonymous, private no-store). Browser client/page lands in P54."
+      "note": "P49-T06 mounted the portal write in ComposeBillingWrites with the store idempotency and the hosted session; proven via process httptest+PG with synthetic gateway (owner opens, other answers 404 without a customer, anonymous 401, private no-store). P54-T04 opens it in the browser through the billing client and the subscription page (body token at most, single-shot without an invented header, hosted URL followed only when safe, return grants nothing)."
     },
     {
       "method": "GET",
@@ -864,17 +867,20 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "billing",
+      "page": "subscription",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/entitlement_read_test.go::TestEntitlementSubscriptionProjection"
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementSubscriptionProjection",
+        "web/tests/core/billing.test.ts",
+        "web/tests/pages/subscription.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (webhook-mirror projection, explicit absence for others, no provider identifier leaks, private no-store). Browser client/page lands in P54."
+      "note": "P49-T05 mounted the subscription read in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (projection without provider ids, absence explicit). P54-T04 reads it in the browser through the billing client and the subscription page (lifecycle verbatim, period localized, absence as state, benefit warning without new rules)."
     },
     {
       "method": "GET",
