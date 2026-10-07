@@ -137,6 +137,23 @@
     "failure": {
       "invalid_cursor": "This page expired. Go back to the start of the list.",
       "generic": "The list did not answer. Try again."
+    },
+    "drafts": {
+      "heading": "My drafts",
+      "intro": "Private drafts: only you see them, and creating one never spends a pass.",
+      "statement_label": "Controversy",
+      "statement_hint": "From 10 to 280 characters, counted by the server.",
+      "context_label": "Context (optional)",
+      "context_hint": "Up to 2000 characters.",
+      "category_label": "Category",
+      "language_label": "Content language",
+      "submit": "Save draft",
+      "saved": "Draft saved.",
+      "empty": "No drafts yet. Write the first controversy.",
+      "status_draft": "Draft",
+      "failure_invalid": "The formulation did not pass: check length, category and language.",
+      "failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+      "failure_generic": "The draft did not answer. Try again."
     }
   }
 }

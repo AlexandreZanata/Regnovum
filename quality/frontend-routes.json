@@ -437,17 +437,21 @@
       "audience": "owner",
       "phase": "P52",
       "task": "P48-T01",
-      "client": "arenas",
-      "page": "planned-arenas",
+      "client": "drafts",
+      "page": "drafts",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument"
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftOwnerStranger",
+        "web/tests/core/drafts.test.ts",
+        "web/tests/pages/drafts.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). P52-T03 lists in the browser through the drafts client and the drafts panel (server rows re-read, never optimistic, owner-scoped by the session)."
     },
     {
       "method": "POST",
@@ -459,17 +463,21 @@
       "audience": "owner",
       "phase": "P52",
       "task": "P48-T01",
-      "client": "arenas",
-      "page": "planned-arenas",
+      "client": "drafts",
+      "page": "drafts",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument"
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument",
+        "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftOwnerStranger",
+        "web/tests/core/drafts.test.ts",
+        "web/tests/pages/drafts.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). Browser client/page lands in P52."
+      "note": "P49-T03 mounted in ComposeArenaLifecycle over shared pool/security/session validator with cursor secret; proven via process httptest+PG (draft CRUD, publish spending one pass, idempotent close replay, feed/document, forged cursor refused). P52-T03 creates in the browser through the drafts client and the drafts panel (contract fields only, no debit value, single-flight guard, lost 201 never replayed by the core)."
     },
     {
       "method": "DELETE",

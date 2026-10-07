@@ -137,6 +137,23 @@
     "failure": {
       "invalid_cursor": "Esta página expirou. Volte ao começo da lista.",
       "generic": "A lista não respondeu. Tente de novo."
+    },
+    "drafts": {
+      "heading": "Meus rascunhos",
+      "intro": "Rascunhos privados: só você os vê, e criar um nunca consome passe.",
+      "statement_label": "Controvérsia",
+      "statement_hint": "De 10 a 280 caracteres, contados pelo servidor.",
+      "context_label": "Contexto (opcional)",
+      "context_hint": "Até 2000 caracteres.",
+      "category_label": "Categoria",
+      "language_label": "Idioma do conteúdo",
+      "submit": "Guardar rascunho",
+      "saved": "Rascunho guardado.",
+      "empty": "Nenhum rascunho ainda. Escreva a primeira controvérsia.",
+      "status_draft": "Rascunho",
+      "failure_invalid": "A formulação não passou: confira tamanho, categoria e idioma.",
+      "failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
+      "failure_generic": "O rascunho não respondeu. Tente de novo."
     }
   }
 }
