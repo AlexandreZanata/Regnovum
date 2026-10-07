@@ -89,6 +89,20 @@ export const messageKeys = {
     "arenas.realm.no_official_outcome",
   ] as const,
   auth: [
+    "auth.account.checked_at",
+    "auth.account.influenced_people",
+    "auth.account.locale_label",
+    "auth.account.member_since",
+    "auth.account.private_heading",
+    "auth.account.private_intro",
+    "auth.account.public_heading",
+    "auth.account.public_intro",
+    "auth.account.reputation_heading",
+    "auth.account.reputation_intro",
+    "auth.account.unknown_user",
+    "auth.account.updated_at",
+    "auth.account.username_label",
+    "auth.account.valid_attributions",
     "auth.brand",
     "auth.errors.csrf_detail",
     "auth.errors.csrf_title",
@@ -419,6 +433,20 @@ export type MessageKey =
   | "arenas.realm.arena"
   | "arenas.realm.kingdom"
   | "arenas.realm.no_official_outcome"
+  | "auth.account.checked_at"
+  | "auth.account.influenced_people"
+  | "auth.account.locale_label"
+  | "auth.account.member_since"
+  | "auth.account.private_heading"
+  | "auth.account.private_intro"
+  | "auth.account.public_heading"
+  | "auth.account.public_intro"
+  | "auth.account.reputation_heading"
+  | "auth.account.reputation_intro"
+  | "auth.account.unknown_user"
+  | "auth.account.updated_at"
+  | "auth.account.username_label"
+  | "auth.account.valid_attributions"
   | "auth.brand"
   | "auth.errors.csrf_detail"
   | "auth.errors.csrf_title"
@@ -732,6 +760,20 @@ export const messagePlaceholders = Object.freeze({
   "arenas.realm.arena": [],
   "arenas.realm.kingdom": [],
   "arenas.realm.no_official_outcome": [],
+  "auth.account.checked_at": ["instant"],
+  "auth.account.influenced_people": ["count"],
+  "auth.account.locale_label": [],
+  "auth.account.member_since": ["instant"],
+  "auth.account.private_heading": [],
+  "auth.account.private_intro": [],
+  "auth.account.public_heading": [],
+  "auth.account.public_intro": [],
+  "auth.account.reputation_heading": [],
+  "auth.account.reputation_intro": [],
+  "auth.account.unknown_user": [],
+  "auth.account.updated_at": ["instant"],
+  "auth.account.username_label": [],
+  "auth.account.valid_attributions": ["count"],
   "auth.brand": [],
   "auth.errors.csrf_detail": [],
   "auth.errors.csrf_title": [],
@@ -1046,6 +1088,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.realm.arena": "Debate arena — controversy instance",
     "arenas.realm.kingdom": "Regnovum — the Kingdom",
     "arenas.realm.no_official_outcome": "Debates carry no winner and no official truth",
+    "auth.account.checked_at": "Checked at {instant}",
+    "auth.account.influenced_people": "People influenced: {count}",
+    "auth.account.locale_label": "Interface language",
+    "auth.account.member_since": "Account created on {instant}",
+    "auth.account.private_heading": "Your account",
+    "auth.account.private_intro": "What the server keeps about you on this account.",
+    "auth.account.public_heading": "Public profile",
+    "auth.account.public_intro": "What any visitor can see.",
+    "auth.account.reputation_heading": "Factual reputation",
+    "auth.account.reputation_intro": "Verified counts, no score and no ranking.",
+    "auth.account.unknown_user": "This profile does not exist or is not published yet.",
+    "auth.account.updated_at": "Profile updated on {instant}",
+    "auth.account.username_label": "Username",
+    "auth.account.valid_attributions": "Valid attributions: {count}",
     "auth.brand": "Regnovum",
     "auth.errors.csrf_detail": "The form protection expired. Reload the page and submit it again.",
     "auth.errors.csrf_title": "The page is no longer valid",
@@ -1357,6 +1413,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.realm.arena": "Arena de debate — instância de controvérsia",
     "arenas.realm.kingdom": "Regnovum — o Reino",
     "arenas.realm.no_official_outcome": "Debates não têm vencedor nem verdade oficial",
+    "auth.account.checked_at": "Apurado em {instant}",
+    "auth.account.influenced_people": "Pessoas influenciadas: {count}",
+    "auth.account.locale_label": "Idioma da interface",
+    "auth.account.member_since": "Conta criada em {instant}",
+    "auth.account.private_heading": "Sua conta",
+    "auth.account.private_intro": "O que o servidor guarda sobre você nesta conta.",
+    "auth.account.public_heading": "Perfil público",
+    "auth.account.public_intro": "O que qualquer visitante pode ver.",
+    "auth.account.reputation_heading": "Reputação factual",
+    "auth.account.reputation_intro": "Contagens verificadas, sem placar nem classificação.",
+    "auth.account.unknown_user": "Este perfil não existe ou ainda não foi publicado.",
+    "auth.account.updated_at": "Perfil atualizado em {instant}",
+    "auth.account.username_label": "Nome de usuário",
+    "auth.account.valid_attributions": "Atribuições válidas: {count}",
     "auth.brand": "Regnovum",
     "auth.errors.csrf_detail": "A proteção do formulário expirou. Recarregue a página e envie novamente.",
     "auth.errors.csrf_title": "A página perdeu a validade",

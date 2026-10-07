@@ -1346,17 +1346,20 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "profiles",
+      "page": "account",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate",
+        "web/tests/core/profiles.test.ts",
+        "web/tests/pages/account.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T01 read in the browser through the profiles client and the account page presentation (pt/en catalogs, Intl instants/counts); proven via deterministic web tests (contract paths, 401 private, 404 unknown without disclosure, factual counts without rank, no PII beyond the contract) plus the mounted process journey over the shared pool/security/session validator (owner-vs-other, no-store). No profile editor: the contract is GET-only."
     },
     {
       "method": "GET",
@@ -1650,17 +1653,20 @@
       "audience": "public",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "profiles",
+      "page": "account",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyProfilesSeparatePublicFromPrivate",
+        "web/tests/core/profiles.test.ts",
+        "web/tests/pages/account.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T01 read in the browser through the profiles client and the account page presentation (pt/en catalogs, Intl instants/counts); proven via deterministic web tests (contract paths, 401 private, 404 unknown without disclosure, factual counts without rank, no PII beyond the contract) plus the mounted process journey over the shared pool/security/session validator (owner-vs-other, no-store). No profile editor: the contract is GET-only."
     },
     {
       "method": "GET",
@@ -1672,17 +1678,20 @@
       "audience": "public",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "profiles",
+      "page": "account",
       "exclusion": null,
       "tests": [
         "internal/persuasion/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateAttributionRecordMetricsReputation",
+        "web/tests/core/profiles.test.ts",
+        "web/tests/pages/account.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution over shared pool/security/session validator; proven via process httptest+PG (factual reputation reflects the credit). Browser client/page lands in P51."
+      "note": "P51-T01 read in the browser through the profiles client and the account page presentation (pt/en catalogs, Intl instants/counts); proven via deterministic web tests (contract paths, 401 private, 404 unknown without disclosure, factual counts without rank, no PII beyond the contract) plus the mounted process journey over the shared pool/security/session validator (owner-vs-other, no-store). No profile editor: the contract is GET-only."
     },
     {
       "method": "GET",

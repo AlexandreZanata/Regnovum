@@ -13,6 +13,7 @@ import { createArgumentsClient } from "../../src/core/clients/arguments.js";
 import { createArenasClient } from "../../src/core/clients/arenas.js";
 import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
+import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -181,6 +182,27 @@ const expectations: readonly Expectation[] = [
     url: "https://arena.test/api/v1/me/arenas/arena-1/arguments",
     body: { relation: "support", content: "because", sources: [] },
     idempotent: true,
+  },
+  {
+    name: "profiles mine",
+    run: (core) => createProfilesClient(core).mine(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/profile",
+    idempotent: false,
+  },
+  {
+    name: "profiles by username",
+    run: (core) => createProfilesClient(core).byUsername("ada"),
+    method: "GET",
+    url: "https://arena.test/api/v1/profiles/ada",
+    idempotent: false,
+  },
+  {
+    name: "profiles reputation",
+    run: (core) => createProfilesClient(core).reputation("ada"),
+    method: "GET",
+    url: "https://arena.test/api/v1/profiles/ada/reputation",
+    idempotent: false,
   },
   {
     name: "arguments reply",
