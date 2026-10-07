@@ -86,6 +86,8 @@ test("keeps the browser HTTP cache for public reads and no-store for account dat
   assert.equal(context.lastCall().init.cache, "no-store");
   await context.core.request({ method: "GET", path: "/api/v1/moderation/cases" });
   assert.equal(context.lastCall().init.cache, "no-store");
+  await context.core.request({ method: "GET", path: "/api/v1/admin/jobs/health" });
+  assert.equal(context.lastCall().init.cache, "no-store");
   assert.equal(context.lastCall().init.credentials, "same-origin");
   assert.equal(context.lastCall().init.redirect, "error");
 });

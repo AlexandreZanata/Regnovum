@@ -31,6 +31,16 @@
       "decided": "{action} decision recorded: {id}",
       "signal": "{kind} signal with {counterpart}: {counts}",
       "signals_head": "Signals of policy {policy}, {window}s window, read {instant}"
+    },
+    "operator": {
+      "heading": "Operator panel",
+      "intro": "Queue health and dead jobs for accounts with an active assignment. Nothing here is public.",
+      "counts": "Queue: {counts}",
+      "generated": "Read {instant}",
+      "dead_row": "{id} ({type}): {attempts}/{max} attempts, {age}s old, error {error}",
+      "dead_total": "{total} dead, read {instant}",
+      "retry_confirm": "Retry {id} ({type})?",
+      "retried": "{id} ({type}) back as {state}"
     }
   }
 }

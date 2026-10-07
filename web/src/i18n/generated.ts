@@ -476,6 +476,14 @@ export const messageKeys = {
     "moderation.failure.missing",
     "moderation.failure.step_up",
     "moderation.failure.unauthorized",
+    "moderation.operator.counts",
+    "moderation.operator.dead_row",
+    "moderation.operator.dead_total",
+    "moderation.operator.generated",
+    "moderation.operator.heading",
+    "moderation.operator.intro",
+    "moderation.operator.retried",
+    "moderation.operator.retry_confirm",
     "moderation.report.filed",
     "moderation.report.heading",
     "moderation.report.intro",
@@ -982,6 +990,14 @@ export type MessageKey =
   | "moderation.failure.missing"
   | "moderation.failure.step_up"
   | "moderation.failure.unauthorized"
+  | "moderation.operator.counts"
+  | "moderation.operator.dead_row"
+  | "moderation.operator.dead_total"
+  | "moderation.operator.generated"
+  | "moderation.operator.heading"
+  | "moderation.operator.intro"
+  | "moderation.operator.retried"
+  | "moderation.operator.retry_confirm"
   | "moderation.report.filed"
   | "moderation.report.heading"
   | "moderation.report.intro"
@@ -1483,6 +1499,14 @@ export const messagePlaceholders = Object.freeze({
   "moderation.failure.missing": [],
   "moderation.failure.step_up": [],
   "moderation.failure.unauthorized": [],
+  "moderation.operator.counts": ["counts"],
+  "moderation.operator.dead_row": ["age", "attempts", "error", "id", "max", "type"],
+  "moderation.operator.dead_total": ["instant", "total"],
+  "moderation.operator.generated": ["instant"],
+  "moderation.operator.heading": [],
+  "moderation.operator.intro": [],
+  "moderation.operator.retried": ["id", "state", "type"],
+  "moderation.operator.retry_confirm": ["id", "type"],
   "moderation.report.filed": ["id"],
   "moderation.report.heading": [],
   "moderation.report.intro": [],
@@ -1985,6 +2009,14 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "moderation.failure.missing": "This content or sanction no longer exists.",
     "moderation.failure.step_up": "Confirm your identity again to continue.",
     "moderation.failure.unauthorized": "Sign in to report or appeal.",
+    "moderation.operator.counts": "Queue: {counts}",
+    "moderation.operator.dead_row": "{id} ({type}): {attempts}/{max} attempts, {age}s old, error {error}",
+    "moderation.operator.dead_total": "{total} dead, read {instant}",
+    "moderation.operator.generated": "Read {instant}",
+    "moderation.operator.heading": "Operator panel",
+    "moderation.operator.intro": "Queue health and dead jobs for accounts with an active assignment. Nothing here is public.",
+    "moderation.operator.retried": "{id} ({type}) back as {state}",
+    "moderation.operator.retry_confirm": "Retry {id} ({type})?",
     "moderation.report.filed": "Report filed: {id}",
     "moderation.report.heading": "Report content",
     "moderation.report.intro": "A report contests an Arena, an argument or a profile with closed reasons. It never removes content by itself.",
@@ -2484,6 +2516,14 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "moderation.failure.missing": "Este conteúdo ou sanção não existe mais.",
     "moderation.failure.step_up": "Confirme sua identidade de novo para continuar.",
     "moderation.failure.unauthorized": "Entre na conta para denunciar ou recorrer.",
+    "moderation.operator.counts": "Fila: {counts}",
+    "moderation.operator.dead_row": "{id} ({type}): {attempts}/{max} tentativas, {age}s parado, erro {error}",
+    "moderation.operator.dead_total": "{total} mortos, lido em {instant}",
+    "moderation.operator.generated": "Lido em {instant}",
+    "moderation.operator.heading": "Painel do operador",
+    "moderation.operator.intro": "Saúde da fila e trabalhos mortos para contas com designação ativa. Nada aqui é público.",
+    "moderation.operator.retried": "{id} ({type}) de volta como {state}",
+    "moderation.operator.retry_confirm": "Repetir {id} ({type})?",
     "moderation.report.filed": "Denúncia registrada: {id}",
     "moderation.report.heading": "Denunciar conteúdo",
     "moderation.report.intro": "A denúncia contesta uma Arena, um argumento ou um perfil com motivos fechados. Ela nunca remove conteúdo sozinha.",

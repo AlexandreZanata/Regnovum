@@ -125,6 +125,7 @@ const RETRYABLE_STATUSES: readonly number[] = [429, 502, 503, 504];
 const SESSION_PATH_PREFIX = "/api/v1/me";
 const AUTH_PATH_PREFIX = "/api/v1/auth";
 const MODERATION_PATH_PREFIX = "/api/v1/moderation";
+const ADMIN_PATH_PREFIX = "/api/v1/admin";
 const NO_CONTENT_STATUSES: readonly number[] = [204, 205];
 
 /** Resolved retry policy of one request. */
@@ -536,13 +537,16 @@ function buildUrl(baseUrl: string, path: string, query?: Readonly<Record<string,
  * (`/api/v1/auth/*`: register, login, verify, password reset) and the
  * restricted moderation console (`/api/v1/moderation/*`: triage queue,
  * claims, decisions and abuse signals, all role-gated with a mandatory
- * private cache policy) are private.
+ * private cache policy) and the operator console (`/api/v1/admin/*`:
+ * jobs health, dead-job pages and retries, all assignment-gated with
+ * the same mandatory policy) are private.
  */
 function cacheModeFor(path: string): RequestCache {
   if (
     path.startsWith(SESSION_PATH_PREFIX) ||
     path.startsWith(AUTH_PATH_PREFIX) ||
-    path.startsWith(MODERATION_PATH_PREFIX)
+    path.startsWith(MODERATION_PATH_PREFIX) ||
+    path.startsWith(ADMIN_PATH_PREFIX)
   ) {
     return "no-store";
   }

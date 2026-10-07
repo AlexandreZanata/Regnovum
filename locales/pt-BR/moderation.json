@@ -31,6 +31,16 @@
       "decided": "Decisão {action} registrada: {id}",
       "signal": "Sinal {kind} com {counterpart}: {counts}",
       "signals_head": "Sinais da política {policy}, janela {window}s, lidos em {instant}"
+    },
+    "operator": {
+      "heading": "Painel do operador",
+      "intro": "Saúde da fila e trabalhos mortos para contas com designação ativa. Nada aqui é público.",
+      "counts": "Fila: {counts}",
+      "generated": "Lido em {instant}",
+      "dead_row": "{id} ({type}): {attempts}/{max} tentativas, {age}s parado, erro {error}",
+      "dead_total": "{total} mortos, lido em {instant}",
+      "retry_confirm": "Repetir {id} ({type})?",
+      "retried": "{id} ({type}) de volta como {state}"
     }
   }
 }

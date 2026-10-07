@@ -21,6 +21,7 @@ import { createMFAClient } from "../../src/core/clients/mfa.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import { createSessionsClient } from "../../src/core/clients/sessions.js";
 import { createModerationClient } from "../../src/core/clients/moderation.js";
+import { createJobsClient } from "../../src/core/clients/jobs.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -438,6 +439,28 @@ const expectations: readonly Expectation[] = [
     run: (core) => createModerationClient(core).signals("author-1"),
     method: "GET",
     url: "https://arena.test/api/v1/moderation/attribution-signals/author-1",
+    idempotent: false,
+  },
+  {
+    name: "jobs health",
+    run: (core) => createJobsClient(core).health(),
+    method: "GET",
+    url: "https://arena.test/api/v1/admin/jobs/health",
+    idempotent: false,
+  },
+  {
+    name: "jobs dead",
+    run: (core) => createJobsClient(core).dead(50),
+    method: "GET",
+    url: "https://arena.test/api/v1/admin/jobs/dead?limit=50",
+    idempotent: false,
+  },
+  {
+    name: "jobs retry",
+    run: (core) => createJobsClient(core).retry("job-1", { reason: "provider was down" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/admin/jobs/job-1/retry",
+    body: { reason: "provider was down" },
     idempotent: false,
   },
   {

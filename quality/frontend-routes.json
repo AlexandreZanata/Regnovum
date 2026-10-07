@@ -40,16 +40,20 @@
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": null,
-      "page": null,
-      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
+      "client": "jobs",
+      "page": "operator",
+      "exclusion": null,
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
-        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
+        "api/openapi.json",
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsHealthAndDeadServeForOperator",
+        "web/tests/core/jobs.test.ts",
+        "web/tests/pages/operator.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
+      "note": "P49-T09 mounted the dead listing in ComposeJobs with the cursor-free oldest-first page; proven via process httptest+PG (invalid limit 400, owner-vs-stranger). P55-T03 lists it in the browser through the jobs client and the operator panel (lifecycle columns only, no payload ever, 1..200 page allowlisted, private no-store)."
     },
     {
       "method": "GET",
@@ -61,16 +65,20 @@
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": null,
-      "page": null,
-      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
+      "client": "jobs",
+      "page": "operator",
+      "exclusion": null,
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
-        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
+        "api/openapi.json",
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsHealthAndDeadServeForOperator",
+        "web/tests/core/jobs.test.ts",
+        "web/tests/pages/operator.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
+      "note": "P49-T09 closed the jobs contract gap and mounted ComposeJobs over the same pool/security with operatorbridge, auditbridge and TxManager; proven via process httptest+PG (health/dead with invalid limit, 401 anonymous, 403 stranger and moderator, stale reads only, retry 200 with renewed budget and audit line without payload, double retry 409). P55-T03 reads it in the browser through the jobs client and the operator panel (counts and waits only, private no-store, never public)."
     },
     {
       "method": "POST",
@@ -82,16 +90,20 @@
       "audience": "operator",
       "phase": "P55",
       "task": "P48-T01",
-      "client": null,
-      "page": null,
-      "exclusion": "restricted operator panel with published contract; no public retry, no browser binding claimed here",
+      "client": "jobs",
+      "page": "operator",
+      "exclusion": null,
       "tests": [
         "internal/jobs/adapters/http/routes.go",
-        "internal/jobs/adapters/http/contract_test.go::TestRoutesMatchContract",
-        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits"
+        "api/openapi.json",
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/jobs_operations_test.go::TestJobsRetryRequeuesAndAudits",
+        "web/tests/core/jobs.test.ts",
+        "web/tests/pages/operator.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T09 closes the jobs contract gap (operator/role/step-up) and mounts ComposeJobs over the same pool/security with audit/lease; staged stays unmounted."
+      "note": "P49-T09 mounted the retry in ComposeJobs with step-up, allowlisted workloads and the transition auditing in one commit; proven via process httptest+PG (200 with stated reason, forged replay refused, provider down without credit). P55-T03 retries in the browser through the jobs client and the operator panel (manual confirmation naming the job, bounded reason only, single-shot without an invented key, duplicate 409 read instead of resent)."
     },
     {
       "method": "GET",
