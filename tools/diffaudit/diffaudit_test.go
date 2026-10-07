@@ -483,10 +483,63 @@ func TestTheAreasFollowThePolicyPrefixes(t *testing.T) {
 		{"tools/testaudit/scan.go", "tools/testaudit"},
 		{"cmd/arena/main.go", "cmd/arena"},
 		{"web/src/i18n/generated.ts", "web/src/i18n"},
+		{"web/tests/core/deletion.test.ts", "web/src/core"},
+		{"web/tests/pages/deletion.test.ts", "web/src/pages"},
 		{"README.md", "README.md"},
 	} {
 		if got := areaOf(fixture.path, document); got != fixture.want {
 			t.Errorf("areaOf(%q) = %q, want %q", fixture.path, got, fixture.want)
+		}
+	}
+}
+
+// TestTheMirrorPairsTheModuleNotAnyTest pins what the P51-T05 mirror states:
+// a new production file under web/src/<module> is satisfied by a test under
+// web/tests/<module> in the same change — and by nothing else. A test from
+// another module, or no test at all, is still refused: the mirror names which
+// tree a file exercises, it never waives the proof.
+func TestTheMirrorPairsTheModuleNotAnyTest(t *testing.T) {
+	t.Chdir("../..")
+	pol, err := readPolicy(".", policyPath)
+	if err != nil {
+		t.Fatalf("readPolicy = %v", err)
+	}
+	register, err := readProvenance(".")
+	if err != nil {
+		t.Fatalf("readProvenance = %v", err)
+	}
+	const production = "web/src/core/clients/probe.ts"
+	for _, fixture := range []struct {
+		name  string
+		paths []string
+		want  int
+	}{
+		{"a produção sozinha", []string{production}, 1},
+		{"a produção com o teste do módulo", []string{production, "web/tests/core/probe.test.ts"}, 0},
+		{"a produção com o teste de outro módulo", []string{production, "web/tests/pages/probe.test.ts"}, 1},
+	} {
+		files := []fileRecord{}
+		for _, path := range fixture.paths {
+			files = append(files, fileRecord{Status: newFile, Path: path})
+		}
+		document := changeDocument{Schema: changeSchemaVersion, Base: "base", Head: "head",
+			Commits: []commitRecord{{SHA: "aaaaaaa1", Message: "feat(web): probe the mirror", Files: files}}}
+		st, err := newState(".", document, pol, register)
+		if err != nil {
+			t.Fatalf("%s: newState = %v", fixture.name, err)
+		}
+		findings, _, err := judge(document, st)
+		if err != nil {
+			t.Fatalf("%s: judge = %v", fixture.name, err)
+		}
+		count := 0
+		for _, finding := range findings {
+			if finding.Rule == RuleProductionWithoutTest {
+				count++
+			}
+		}
+		if count != fixture.want {
+			t.Errorf("%s: achados de %s = %d, want %d (%v)", fixture.name, RuleProductionWithoutTest, count, fixture.want, findings)
 		}
 	}
 }

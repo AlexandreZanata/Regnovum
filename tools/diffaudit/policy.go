@@ -57,16 +57,29 @@ type bypass struct {
 	Tokens []string `json:"tokens"`
 }
 
-// areas is how an area is derived from a path: the first prefix that matches
-// decides the depth, and a path that matches none belongs to its own directory.
+// areas is how an area is derived from a path: mirrors rewrite a path into
+// the tree whose area it shares, then the first prefix that matches decides
+// the depth, and a path that matches none belongs to its own directory. A
+// mirror never widens a demand: it only states which tree a file exercises,
+// and a test outside the mirrored module still satisfies nothing.
 type areas struct {
-	Note     string     `json:"note"`
-	Prefixes []areaRule `json:"prefixes"`
+	Note     string       `json:"note"`
+	Prefixes []areaRule   `json:"prefixes"`
+	Mirrors  []areaMirror `json:"mirrors,omitempty"`
 }
 
 type areaRule struct {
 	Prefix string `json:"prefix"`
 	Depth  int    `json:"depth"`
+}
+
+// areaMirror declares that a path under Prefix exercises the module under
+// Target: the area is derived from the rewritten path, so the evidence and
+// the behavior share one area whatever their depth.
+type areaMirror struct {
+	Prefix string `json:"prefix"`
+	Target string `json:"target"`
+	Reason string `json:"reason"`
 }
 
 // kinds is the split of the catalog's evidence categories into the nominal

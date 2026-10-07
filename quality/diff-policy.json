@@ -16,13 +16,16 @@
     ]
   },
   "areas": {
-    "note": "Como a política deriva a área de um arquivo. A área é o que a demanda `same-area-test` compara: um arquivo novo de produção e um arquivo de teste estão na mesma área quando os dois apontam para o mesmo dono. O primeiro prefixo que casa decide a profundidade; o que não casa nenhum prefixo pertence à área do próprio diretório.",
+    "note": "Como a política deriva a área de um arquivo. A área é o que a demanda `same-area-test` compara: um arquivo novo de produção e um arquivo de teste estão na mesma área quando os dois apontam para o mesmo dono. Espelhos reescrevem o caminho antes da derivação: `web/tests/<módulo>/` exercita `web/src/<módulo>/`, então o teste do módulo satisfaz a produção do módulo seja qual for a profundidade (decisão P51-T05 do operador, 2026-10-07: sem o espelho nenhum teste da árvore web satisfazia produção web, e o portão recusava a faixa P51 inteira; o espelho não dispensa prova — teste fora do módulo espelhado continua sem satisfazer nada). O primeiro prefixo que casa decide a profundidade; o que não casa nenhum prefixo pertence à área do próprio diretório.",
     "prefixes": [
       { "prefix": "internal/", "depth": 2 },
       { "prefix": "tools/", "depth": 2 },
       { "prefix": "cmd/", "depth": 2 },
       { "prefix": "web/src/", "depth": 3 },
       { "prefix": "web/tests/", "depth": 3 }
+    ],
+    "mirrors": [
+      { "prefix": "web/tests/", "target": "web/src/", "reason": "A árvore web/tests espelha a árvore web/src por módulo (core, pages): o teste prova o comportamento do módulo que exercita, e é a área desse módulo que a demanda compara. Um teste fora do módulo espelhado continua sem satisfazer a demanda." }
     ]
   },
   "kinds": {
