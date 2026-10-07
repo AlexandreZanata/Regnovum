@@ -1,9 +1,12 @@
 /**
- * Arguments client (P18-T03; journey P18-T06).
+ * Arguments client (P18-T03; journey P18-T06; keys P50-T03).
  *
- * Public reads stay cache-friendly; publishing and replying are unsafe, so
- * they are retried only because the core attaches the `Idempotency-Key` the
- * contract requires for those two operations.
+ * Public reads stay cache-friendly. Publishing and replying carry the
+ * mandatory `Idempotency-Key` of their backend-proven contract
+ * (`api/openapi.json`: publishArgument, replyToArgument): the client names
+ * one key per attempt, the core replays it across the single retry, and a
+ * replay answers the recorded argument instead of charging again. The core
+ * never invents the key — it only sends what this client supplies.
  */
 import type {
   Argument,
@@ -42,6 +45,11 @@ const ME_ARENAS_PATH = "/api/v1/me/arenas";
 /** Two attempts: enough to survive a dropped response, never a hammer. */
 const MUTATION_RETRY = { maxAttempts: 2 } as const;
 
+/** One explicit key per mutation attempt; the core replays it on retry. */
+function newMutationKey(): string {
+  return globalThis.crypto.randomUUID();
+}
+
 /** createArgumentsClient binds the argument operations to a shared core. */
 export function createArgumentsClient(core: HttpCore): ArgumentsClient {
   return {
@@ -68,6 +76,7 @@ export function createArgumentsClient(core: HttpCore): ArgumentsClient {
         path: `${ME_ARENAS_PATH}/${encodeURIComponent(arenaId)}/arguments`,
         body: input,
         retry: MUTATION_RETRY,
+        idempotencyKey: newMutationKey(),
       }),
 
     reply: (arenaId: string, argumentId: string, input: ArgumentPublishRequest): Promise<ArgumentMutationResult> =>
@@ -76,6 +85,7 @@ export function createArgumentsClient(core: HttpCore): ArgumentsClient {
         path: `${ME_ARENAS_PATH}/${encodeURIComponent(arenaId)}/arguments/${encodeURIComponent(argumentId)}/replies`,
         body: input,
         retry: MUTATION_RETRY,
+        idempotencyKey: newMutationKey(),
       }),
   };
 }

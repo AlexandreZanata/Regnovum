@@ -73,7 +73,6 @@ export function createTestContext(options: TestContextOptions): TestContext {
   const observations: RequestObservation[] = [];
   const unauthorized: RequestSpec[] = [];
   let requestIds = 0;
-  let idempotencyKeys = 0;
   const cookies = options.cookies ?? {};
 
   const coreOptions: HttpCoreOptions = {
@@ -100,10 +99,6 @@ export function createTestContext(options: TestContextOptions): TestContext {
       newRequestId: () => {
         requestIds += 1;
         return `req-${requestIds}`;
-      },
-      newIdempotencyKey: () => {
-        idempotencyKeys += 1;
-        return `idem-${idempotencyKeys}`;
       },
       readCookie: (name: string) => cookies[name] ?? null,
     },

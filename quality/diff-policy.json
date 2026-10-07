@@ -88,10 +88,10 @@
     {
       "name": "evidence",
       "role": "evidence",
-      "reason": "O arquivo de teste, a fixture sob `testdata/` e o cenário k6 sob `tests/load/` são a evidência que a mudança de produção exige: eles são o que satisfaz a demanda, não o que a dispara.",
+      "reason": "O arquivo de teste, a fixture sob `testdata/`, o suporte de harness sob `web/tests/support/` e o cenário k6 sob `tests/load/` são a evidência que a mudança de produção exige: eles são o que satisfaz a demanda, não o que a dispara. O suporte de harness (P50-T04) é o fake `fetch` determinístico que os testes do core usam em vez de biblioteca de mock — classificá-lo é dar-lhe a classe que ele exerce, não dispensar prova.",
       "suffixes": ["_test.go", ".spec.js", ".test.ts"],
       "segments": ["testdata"],
-      "prefixes": ["tests/load/"]
+      "prefixes": ["tests/load/", "web/tests/support/"]
     },
     {
       "name": "migration",
@@ -134,6 +134,12 @@
       "role": "production",
       "reason": "Páginas web entregam comportamento provado por web/tests/pages (convenção do repositório desde P18, mesma impossibilidade estrutural dos componentes: o gate de arquitetura do frontend proíbe imports Node em fontes do browser e o executor Node só executa test-build/tests/**). Isenção autorizada pelo titular em 2026-09-30 para o PR #82, espelho da Opção A dos componentes; exigir testes na área src forçaria uma violação de gate para satisfazer outra.",
       "prefixes": ["web/src/pages/"]
+    },
+    {
+      "name": "web-styles",
+      "role": "production",
+      "reason": "Folhas CSS entregam comportamento provado por web/tests/ui e pelos orçamentos do `make audit-web` (convenção desde P18; P50-T01 cobre shell.css em web/tests/ui/styles.test.ts): teste executável na área src é estruturalmente impossível — o gate de arquitetura do frontend proíbe imports Node em fontes do browser, o executor Node só executa test-build/tests/** e CSS não é módulo executável. Classe autorizada pelo operador em 2026-10-07 no exit gate da P50, espelho das isenções de componentes/páginas; exigir teste na área src forçaria uma violação de gate para satisfazer outra.",
+      "prefixes": ["web/src/styles/"]
     },
     {
       "name": "production",

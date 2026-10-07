@@ -276,6 +276,7 @@ func pageManifest() assets.Manifest {
 		"styles/tokens.css",
 		"styles/base.css",
 		"styles/primitives.css",
+		"styles/shell.css",
 		"styles/auth.css",
 		"styles/arena.css",
 	} {

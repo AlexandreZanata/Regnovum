@@ -1936,10 +1936,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "POST",
@@ -1957,10 +1958,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "GET",
@@ -1978,10 +1980,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "POST",
@@ -1999,10 +2002,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "GET",
@@ -2020,10 +2024,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "POST",
@@ -2041,10 +2046,12 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed",
+        "internal/bootstrap/account_assets_test.go::TestAccountHTMLRefusalIsAPageNotJSON"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "GET",
@@ -2062,10 +2069,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "POST",
@@ -2083,10 +2091,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "GET",
@@ -2104,10 +2113,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "POST",
@@ -2125,10 +2135,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "GET",
@@ -2168,10 +2179,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     },
     {
       "method": "POST",
@@ -2189,10 +2201,11 @@
       "tests": [
         "internal/identity/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "internal/bootstrap/account_assets_test.go::TestAccountShellAndAuthAssetsAreServed"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form."
     }
   ]
 }

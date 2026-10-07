@@ -1,14 +1,20 @@
 /**
- * Native HTTP core (P18-T03).
+ * Native HTTP core (P18-T03; lifecycle P50-T03).
  *
  * One implementation of everything docs/FRONTEND.md section 6 requires:
  * base URL and API version, common headers and request ID, CSRF, timeout and
- * cancellation, Problem Details parsing, retry restricted to safe or
- * explicitly idempotent requests, uniform session-expired handling and
- * observation that never carries a private payload.
+ * cancellation, Problem Details parsing, retry restricted to safe requests or
+ * to mutations carrying an explicit idempotency key for a backend-proven
+ * idempotent contract, uniform session-expired handling and observation that
+ * never carries a private payload.
  *
- * Domain clients (auth, arenas, positions, arguments) compose this core and
- * expose typed contracts; components never call `fetch` themselves.
+ * The core never invents idempotence: a header alone does not make a replay
+ * safe, so an unsafe request without an explicit `idempotencyKey` is never
+ * retried, even when `retry` is requested. Callers cancel a stale request
+ * with the `signal` they passed; an aborted request never replaces newer
+ * state and is never retried. Domain clients (auth, arenas, positions,
+ * arguments) compose this core and expose typed contracts; components never
+ * call `fetch` themselves.
  */
 import type { Problem } from "../contracts/generated.js";
 import {
@@ -48,12 +54,16 @@ export interface RequestSpec {
   readonly body?: unknown;
   readonly signal?: AbortSignal;
   /**
-   * `false` disables retries; an object tunes them. On an unsafe method,
-   * asking for retries makes the core send an `Idempotency-Key`, so a replay
-   * is safe by contract.
+   * `false` disables retries; an object tunes them. Safe methods may retry;
+   * an unsafe method retries only when `idempotencyKey` names the
+   * backend-proven idempotent contract of that operation. Requesting retries
+   * without a key never enables a mutation retry and never sends a header.
    */
   readonly retry?: RetryOptions | false;
-  /** Explicit `Idempotency-Key`, for replays that must survive a reload. */
+  /**
+   * Explicit `Idempotency-Key`, for replays that must survive a reload.
+   * Required for any retry of an unsafe method; the core never invents one.
+   */
   readonly idempotencyKey?: string;
   /** Endpoints where 401 is a normal answer (login) never expire the session. */
   readonly tolerateUnauthorized?: boolean;
@@ -78,7 +88,6 @@ export interface HttpDependencies {
   readonly sleep: (delayMs: number, signal?: AbortSignal) => Promise<void>;
   readonly random: () => number;
   readonly newRequestId: () => string;
-  readonly newIdempotencyKey: () => string;
   readonly readCookie: (name: string) => string | null;
 }
 
@@ -114,6 +123,7 @@ const SAFE_METHODS: readonly HttpMethod[] = ["GET", "HEAD"];
 const KNOWN_METHODS: readonly HttpMethod[] = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"];
 const RETRYABLE_STATUSES: readonly number[] = [429, 502, 503, 504];
 const SESSION_PATH_PREFIX = "/api/v1/me";
+const AUTH_PATH_PREFIX = "/api/v1/auth";
 const NO_CONTENT_STATUSES: readonly number[] = [204, 205];
 
 /** Resolved retry policy of one request. */
@@ -185,7 +195,6 @@ export function createHttpCore(options: HttpCoreOptions = {}): HttpCore {
     sleep: options.dependencies?.sleep ?? defaultSleep,
     random: options.dependencies?.random ?? (() => Math.random()),
     newRequestId: options.dependencies?.newRequestId ?? (() => globalThis.crypto.randomUUID()),
-    newIdempotencyKey: options.dependencies?.newIdempotencyKey ?? (() => globalThis.crypto.randomUUID()),
     readCookie: options.dependencies?.readCookie ?? defaultReadCookie,
   };
 
@@ -305,7 +314,7 @@ export function createHttpCore(options: HttpCoreOptions = {}): HttpCore {
       const method = normalizeMethod(spec.method);
       const url = buildUrl(config.baseUrl, spec.path, spec.query);
       const retry = resolveRetryPolicy(spec, defaults);
-      const idempotencyKey = resolveIdempotencyKey(spec, method, retry, deps);
+      const idempotencyKey = resolveIdempotencyKey(spec);
 
       let lastFailure: ApiError | null = null;
       for (let attempt = 1; attempt <= retry.maxAttempts; attempt += 1) {
@@ -347,10 +356,11 @@ function resolveDefaults(retry: RetryOptions | undefined): Required<RetryOptions
 function resolveRetryPolicy(spec: RequestSpec, defaults: Required<RetryOptions>): ResolvedRetry {
   const requested = spec.retry;
   const safe = SAFE_METHODS.includes(spec.method);
-  // A mutation is retried only when it can be replayed without side effects:
-  // either the caller asked for retries (the core then sends an idempotency
-  // key) or supplied a key that survives the retry.
-  const allowed = requested !== false && (safe || requested !== undefined || spec.idempotencyKey !== undefined);
+  // A mutation is retried only when the caller names the backend-proven
+  // idempotent contract with an explicit key. A header alone never creates
+  // idempotence, so the core never invents a key and never retries an unsafe
+  // request that carries none — even when retries were requested.
+  const allowed = requested !== false && (safe || spec.idempotencyKey !== undefined);
   if (requested === undefined || requested === false) {
     return { ...defaults, allowed };
   }
@@ -362,15 +372,9 @@ function resolveRetryPolicy(spec: RequestSpec, defaults: Required<RetryOptions>)
   };
 }
 
-/** The `Idempotency-Key` value to send, or null when none is warranted. */
-function resolveIdempotencyKey(spec: RequestSpec, method: HttpMethod, retry: ResolvedRetry, deps: HttpDependencies): string | null {
-  if (spec.idempotencyKey !== undefined) {
-    return spec.idempotencyKey;
-  }
-  if (isUnsafeMethod(method) && retry.allowed) {
-    return deps.newIdempotencyKey();
-  }
-  return null;
+/** The `Idempotency-Key` value to send, or null when none was supplied. */
+function resolveIdempotencyKey(spec: RequestSpec): string | null {
+  return spec.idempotencyKey ?? null;
 }
 
 /** Backoff delay of the next attempt, or null when the retry must not happen. */
@@ -527,9 +531,14 @@ function buildUrl(baseUrl: string, path: string, query?: Readonly<Record<string,
 /**
  * Account-scoped responses are never cached (the browser must not replay a
  * former account's data); public reads keep the HTTP cache and its ETags.
+ * Both the session family (`/api/v1/me/*`) and the authentication family
+ * (`/api/v1/auth/*`: register, login, verify, password reset) are private.
  */
 function cacheModeFor(path: string): RequestCache {
-  return path.startsWith(SESSION_PATH_PREFIX) ? "no-store" : "default";
+  if (path.startsWith(SESSION_PATH_PREFIX) || path.startsWith(AUTH_PATH_PREFIX)) {
+    return "no-store";
+  }
+  return "default";
 }
 
 /** Rejects method spellings outside the vocabulary instead of guessing. */
