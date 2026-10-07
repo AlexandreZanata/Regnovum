@@ -607,16 +607,19 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "arguments",
-      "page": "planned-participation",
+      "page": "publication",
       "exclusion": null,
       "tests": [
         "internal/arguments/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw"
+        "internal/bootstrap/debate_attribution_test.go::TestDebateArgumentPublishReplyWithdraw",
+        "web/tests/core/arguments.test.ts",
+        "web/tests/pages/publication.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). Browser client/page lands in P53."
+      "note": "P49-T04 mounted in ComposeDebateAttribution with the shared cursor secret and the INK debit bridge; proven via process httptest+PG (publish spending INK, idempotent replay, forged cursor refused, insufficient INK rolls back). P53-T03 publishes in the browser through the arguments client and the publication page (explicit key with a single retry, replay resolves without charging again, insufficient INK writes nothing, count is feedback, no monetary preview)."
     },
     {
       "method": "POST",
@@ -1905,15 +1908,16 @@
       "phase": "P53",
       "task": "P48-T01",
       "client": "server-document",
-      "page": "planned-participation",
+      "page": "publication",
       "exclusion": null,
       "tests": [
         "internal/arenas/adapters/html/routes.go",
         "api/openapi.json",
-        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
+        "web/tests/pages/publication.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P53-T03 submits in the browser through the rendered document and the publication page (attempt key per render, double submit resolves recorded, refusal keeps the typed text)."
     },
     {
       "method": "POST",

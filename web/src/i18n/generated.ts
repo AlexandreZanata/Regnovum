@@ -93,6 +93,7 @@ export const messageKeys = {
     "arenas.participation.errors.invalid_choice",
     "arenas.participation.errors.invalid_content",
     "arenas.participation.errors.invalid_relation",
+    "arenas.participation.errors.invalid_source",
     "arenas.participation.errors.not_eligible",
     "arenas.participation.errors.position_missing",
     "arenas.participation.errors.required",
@@ -573,6 +574,7 @@ export type MessageKey =
   | "arenas.participation.errors.invalid_choice"
   | "arenas.participation.errors.invalid_content"
   | "arenas.participation.errors.invalid_relation"
+  | "arenas.participation.errors.invalid_source"
   | "arenas.participation.errors.not_eligible"
   | "arenas.participation.errors.position_missing"
   | "arenas.participation.errors.required"
@@ -1034,6 +1036,7 @@ export const messagePlaceholders = Object.freeze({
   "arenas.participation.errors.invalid_choice": [],
   "arenas.participation.errors.invalid_content": ["max"],
   "arenas.participation.errors.invalid_relation": [],
+  "arenas.participation.errors.invalid_source": [],
   "arenas.participation.errors.not_eligible": [],
   "arenas.participation.errors.position_missing": [],
   "arenas.participation.errors.required": [],
@@ -1496,6 +1499,7 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.participation.errors.invalid_choice": "Choose one of the listed positions.",
     "arenas.participation.errors.invalid_content": "Write an argument of up to {max} graphemes.",
     "arenas.participation.errors.invalid_relation": "Choose one of the listed relations.",
+    "arenas.participation.errors.invalid_source": "Provide sources with a valid http(s) address and a description of up to 500 characters.",
     "arenas.participation.errors.not_eligible": "Your account cannot participate in this arena yet.",
     "arenas.participation.errors.position_missing": "You have not confirmed a position in this arena yet.",
     "arenas.participation.errors.required": "Provide a value for this field.",
@@ -1955,6 +1959,7 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.participation.errors.invalid_choice": "Escolha uma das posições listadas.",
     "arenas.participation.errors.invalid_content": "Escreva um argumento de até {max} grafemas.",
     "arenas.participation.errors.invalid_relation": "Escolha uma das relações listadas.",
+    "arenas.participation.errors.invalid_source": "Informe fontes com endereço http(s) válido e descrição de até 500 caracteres.",
     "arenas.participation.errors.not_eligible": "Sua conta ainda não pode participar desta arena.",
     "arenas.participation.errors.position_missing": "Você ainda não confirmou uma posição nesta arena.",
     "arenas.participation.errors.required": "Informe um valor para este campo.",

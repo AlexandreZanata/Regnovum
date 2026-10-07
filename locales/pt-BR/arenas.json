@@ -113,6 +113,7 @@
         "invalid_choice": "Escolha uma das posições listadas.",
         "invalid_relation": "Escolha uma das relações listadas.",
         "invalid_content": "Escreva um argumento de até {max} grafemas.",
+        "invalid_source": "Informe fontes com endereço http(s) válido e descrição de até 500 caracteres.",
         "immutable_position": "A posição inicial já foi confirmada com outro valor.",
         "version_conflict": "Sua posição mudou em outro lugar. Recarregue a página e envie de novo.",
         "insufficient_ink": "Seu saldo de INK não cobre esta publicação.",
