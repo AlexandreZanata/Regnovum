@@ -12,6 +12,48 @@ export const messageKeys = {
     "arenas.document.status.closed",
     "arenas.document.status.published",
     "arenas.document.status.restricted",
+    "arenas.drafts.category_label",
+    "arenas.drafts.close_confirm",
+    "arenas.drafts.close_submit",
+    "arenas.drafts.closed",
+    "arenas.drafts.conflict_note",
+    "arenas.drafts.conflict_reload",
+    "arenas.drafts.context_hint",
+    "arenas.drafts.context_label",
+    "arenas.drafts.delete_confirm",
+    "arenas.drafts.delete_submit",
+    "arenas.drafts.deleted",
+    "arenas.drafts.edit_heading",
+    "arenas.drafts.edit_note",
+    "arenas.drafts.empty",
+    "arenas.drafts.export_empty",
+    "arenas.drafts.failure_conflict",
+    "arenas.drafts.failure_export_page",
+    "arenas.drafts.failure_generic",
+    "arenas.drafts.failure_invalid",
+    "arenas.drafts.failure_missing",
+    "arenas.drafts.failure_no_pass",
+    "arenas.drafts.failure_rate_limited",
+    "arenas.drafts.failure_status",
+    "arenas.drafts.heading",
+    "arenas.drafts.intro",
+    "arenas.drafts.language_label",
+    "arenas.drafts.publish_confirm",
+    "arenas.drafts.publish_cost",
+    "arenas.drafts.publish_submit",
+    "arenas.drafts.published",
+    "arenas.drafts.saved",
+    "arenas.drafts.statement_hint",
+    "arenas.drafts.statement_label",
+    "arenas.drafts.status_draft",
+    "arenas.drafts.submit",
+    "arenas.failure.generic",
+    "arenas.failure.invalid_cursor",
+    "arenas.feed.empty",
+    "arenas.feed.end",
+    "arenas.feed.heading",
+    "arenas.feed.intro",
+    "arenas.feed.load_more",
     "arenas.participation.aggregate.checked",
     "arenas.participation.aggregate.current",
     "arenas.participation.aggregate.heading",
@@ -87,6 +129,12 @@ export const messageKeys = {
     "arenas.realm.arena",
     "arenas.realm.kingdom",
     "arenas.realm.no_official_outcome",
+    "arenas.search.empty",
+    "arenas.search.end",
+    "arenas.search.heading",
+    "arenas.search.hint",
+    "arenas.search.intro",
+    "arenas.search.load_more",
   ] as const,
   auth: [
     "auth.account.checked_at",
@@ -430,6 +478,48 @@ export type MessageKey =
   | "arenas.document.status.closed"
   | "arenas.document.status.published"
   | "arenas.document.status.restricted"
+  | "arenas.drafts.category_label"
+  | "arenas.drafts.close_confirm"
+  | "arenas.drafts.close_submit"
+  | "arenas.drafts.closed"
+  | "arenas.drafts.conflict_note"
+  | "arenas.drafts.conflict_reload"
+  | "arenas.drafts.context_hint"
+  | "arenas.drafts.context_label"
+  | "arenas.drafts.delete_confirm"
+  | "arenas.drafts.delete_submit"
+  | "arenas.drafts.deleted"
+  | "arenas.drafts.edit_heading"
+  | "arenas.drafts.edit_note"
+  | "arenas.drafts.empty"
+  | "arenas.drafts.export_empty"
+  | "arenas.drafts.failure_conflict"
+  | "arenas.drafts.failure_export_page"
+  | "arenas.drafts.failure_generic"
+  | "arenas.drafts.failure_invalid"
+  | "arenas.drafts.failure_missing"
+  | "arenas.drafts.failure_no_pass"
+  | "arenas.drafts.failure_rate_limited"
+  | "arenas.drafts.failure_status"
+  | "arenas.drafts.heading"
+  | "arenas.drafts.intro"
+  | "arenas.drafts.language_label"
+  | "arenas.drafts.publish_confirm"
+  | "arenas.drafts.publish_cost"
+  | "arenas.drafts.publish_submit"
+  | "arenas.drafts.published"
+  | "arenas.drafts.saved"
+  | "arenas.drafts.statement_hint"
+  | "arenas.drafts.statement_label"
+  | "arenas.drafts.status_draft"
+  | "arenas.drafts.submit"
+  | "arenas.failure.generic"
+  | "arenas.failure.invalid_cursor"
+  | "arenas.feed.empty"
+  | "arenas.feed.end"
+  | "arenas.feed.heading"
+  | "arenas.feed.intro"
+  | "arenas.feed.load_more"
   | "arenas.participation.aggregate.checked"
   | "arenas.participation.aggregate.current"
   | "arenas.participation.aggregate.heading"
@@ -505,6 +595,12 @@ export type MessageKey =
   | "arenas.realm.arena"
   | "arenas.realm.kingdom"
   | "arenas.realm.no_official_outcome"
+  | "arenas.search.empty"
+  | "arenas.search.end"
+  | "arenas.search.heading"
+  | "arenas.search.hint"
+  | "arenas.search.intro"
+  | "arenas.search.load_more"
   | "auth.account.checked_at"
   | "auth.account.influenced_people"
   | "auth.account.locale_label"
@@ -829,6 +925,48 @@ export const messagePlaceholders = Object.freeze({
   "arenas.document.status.closed": [],
   "arenas.document.status.published": [],
   "arenas.document.status.restricted": [],
+  "arenas.drafts.category_label": [],
+  "arenas.drafts.close_confirm": ["statement"],
+  "arenas.drafts.close_submit": [],
+  "arenas.drafts.closed": [],
+  "arenas.drafts.conflict_note": [],
+  "arenas.drafts.conflict_reload": [],
+  "arenas.drafts.context_hint": [],
+  "arenas.drafts.context_label": [],
+  "arenas.drafts.delete_confirm": ["statement"],
+  "arenas.drafts.delete_submit": [],
+  "arenas.drafts.deleted": [],
+  "arenas.drafts.edit_heading": [],
+  "arenas.drafts.edit_note": ["version"],
+  "arenas.drafts.empty": [],
+  "arenas.drafts.export_empty": [],
+  "arenas.drafts.failure_conflict": [],
+  "arenas.drafts.failure_export_page": [],
+  "arenas.drafts.failure_generic": [],
+  "arenas.drafts.failure_invalid": [],
+  "arenas.drafts.failure_missing": [],
+  "arenas.drafts.failure_no_pass": [],
+  "arenas.drafts.failure_rate_limited": [],
+  "arenas.drafts.failure_status": [],
+  "arenas.drafts.heading": [],
+  "arenas.drafts.intro": [],
+  "arenas.drafts.language_label": [],
+  "arenas.drafts.publish_confirm": ["statement"],
+  "arenas.drafts.publish_cost": [],
+  "arenas.drafts.publish_submit": [],
+  "arenas.drafts.published": [],
+  "arenas.drafts.saved": [],
+  "arenas.drafts.statement_hint": [],
+  "arenas.drafts.statement_label": [],
+  "arenas.drafts.status_draft": [],
+  "arenas.drafts.submit": [],
+  "arenas.failure.generic": [],
+  "arenas.failure.invalid_cursor": [],
+  "arenas.feed.empty": [],
+  "arenas.feed.end": [],
+  "arenas.feed.heading": [],
+  "arenas.feed.intro": [],
+  "arenas.feed.load_more": [],
   "arenas.participation.aggregate.checked": ["instant"],
   "arenas.participation.aggregate.current": [],
   "arenas.participation.aggregate.heading": [],
@@ -904,6 +1042,12 @@ export const messagePlaceholders = Object.freeze({
   "arenas.realm.arena": [],
   "arenas.realm.kingdom": [],
   "arenas.realm.no_official_outcome": [],
+  "arenas.search.empty": [],
+  "arenas.search.end": [],
+  "arenas.search.heading": [],
+  "arenas.search.hint": [],
+  "arenas.search.intro": [],
+  "arenas.search.load_more": [],
   "auth.account.checked_at": ["instant"],
   "auth.account.influenced_people": ["count"],
   "auth.account.locale_label": [],
@@ -1229,6 +1373,48 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.document.status.closed": "Closed",
     "arenas.document.status.published": "Published",
     "arenas.document.status.restricted": "Restricted",
+    "arenas.drafts.category_label": "Category",
+    "arenas.drafts.close_confirm": "Close the arena “{statement}”?",
+    "arenas.drafts.close_submit": "Close arena",
+    "arenas.drafts.closed": "Arena closed.",
+    "arenas.drafts.conflict_note": "The draft changed since you read it. Your text is kept below; re-read before saving again.",
+    "arenas.drafts.conflict_reload": "Re-read draft",
+    "arenas.drafts.context_hint": "Up to 2000 characters.",
+    "arenas.drafts.context_label": "Context (optional)",
+    "arenas.drafts.delete_confirm": "Discard the draft “{statement}”? This cannot be undone.",
+    "arenas.drafts.delete_submit": "Discard draft",
+    "arenas.drafts.deleted": "Draft discarded.",
+    "arenas.drafts.edit_heading": "Edit draft",
+    "arenas.drafts.edit_note": "You edit version {version}. If the draft changes elsewhere, the server refuses and nothing is overwritten.",
+    "arenas.drafts.empty": "No drafts yet. Write the first controversy.",
+    "arenas.drafts.export_empty": "No public arguments in this export.",
+    "arenas.drafts.failure_conflict": "The draft changed elsewhere. Re-read and save again.",
+    "arenas.drafts.failure_export_page": "This export page expired. Start again from the first page.",
+    "arenas.drafts.failure_generic": "The draft did not answer. Try again.",
+    "arenas.drafts.failure_invalid": "The formulation did not pass: check length, category and language.",
+    "arenas.drafts.failure_missing": "This draft does not exist or is not yours.",
+    "arenas.drafts.failure_no_pass": "No Arena Pass available. Nothing was published or spent.",
+    "arenas.drafts.failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+    "arenas.drafts.failure_status": "This arena cannot change state right now.",
+    "arenas.drafts.heading": "My drafts",
+    "arenas.drafts.intro": "Private drafts: only you see them, and creating one never spends a pass.",
+    "arenas.drafts.language_label": "Content language",
+    "arenas.drafts.publish_confirm": "Publish the draft “{statement}”?",
+    "arenas.drafts.publish_cost": "Publication consumes exactly one Arena Pass. Without an available pass, nothing changes.",
+    "arenas.drafts.publish_submit": "Publish draft",
+    "arenas.drafts.published": "Arena published.",
+    "arenas.drafts.saved": "Draft saved.",
+    "arenas.drafts.statement_hint": "From 10 to 280 characters, counted by the server.",
+    "arenas.drafts.statement_label": "Controversy",
+    "arenas.drafts.status_draft": "Draft",
+    "arenas.drafts.submit": "Save draft",
+    "arenas.failure.generic": "The list did not answer. Try again.",
+    "arenas.failure.invalid_cursor": "This page expired. Go back to the start of the list.",
+    "arenas.feed.empty": "No arena here, with these filters.",
+    "arenas.feed.end": "You reached the end of the list.",
+    "arenas.feed.heading": "Arenas",
+    "arenas.feed.intro": "The published controversies, newest first.",
+    "arenas.feed.load_more": "Load more",
     "arenas.participation.aggregate.checked": "Derived at {instant}",
     "arenas.participation.aggregate.current": "Current position",
     "arenas.participation.aggregate.heading": "Aggregate result",
@@ -1304,6 +1490,12 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.realm.arena": "Debate arena — controversy instance",
     "arenas.realm.kingdom": "Regnovum — the Kingdom",
     "arenas.realm.no_official_outcome": "Debates carry no winner and no official truth",
+    "arenas.search.empty": "No arena matches this search.",
+    "arenas.search.end": "No more results.",
+    "arenas.search.heading": "Search arenas",
+    "arenas.search.hint": "Type what you seek to search.",
+    "arenas.search.intro": "Full-text search over the public arenas.",
+    "arenas.search.load_more": "Show more results",
     "auth.account.checked_at": "Checked at {instant}",
     "auth.account.influenced_people": "People influenced: {count}",
     "auth.account.locale_label": "Interface language",
@@ -1626,6 +1818,48 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.document.status.closed": "Fechada",
     "arenas.document.status.published": "Publicada",
     "arenas.document.status.restricted": "Restrita",
+    "arenas.drafts.category_label": "Categoria",
+    "arenas.drafts.close_confirm": "Encerrar a arena “{statement}”?",
+    "arenas.drafts.close_submit": "Encerrar arena",
+    "arenas.drafts.closed": "Arena encerrada.",
+    "arenas.drafts.conflict_note": "O rascunho mudou desde que você leu. Seu texto está guardado abaixo; releia antes de salvar de novo.",
+    "arenas.drafts.conflict_reload": "Reler rascunho",
+    "arenas.drafts.context_hint": "Até 2000 caracteres.",
+    "arenas.drafts.context_label": "Contexto (opcional)",
+    "arenas.drafts.delete_confirm": "Descartar o rascunho “{statement}”? Esta ação não pode ser desfeita.",
+    "arenas.drafts.delete_submit": "Descartar rascunho",
+    "arenas.drafts.deleted": "Rascunho descartado.",
+    "arenas.drafts.edit_heading": "Editar rascunho",
+    "arenas.drafts.edit_note": "Você edita a versão {version}. Se o rascunho mudar em outro lugar, o servidor recusa e nada é sobrescrito.",
+    "arenas.drafts.empty": "Nenhum rascunho ainda. Escreva a primeira controvérsia.",
+    "arenas.drafts.export_empty": "Nenhum argumento público nesta exportação.",
+    "arenas.drafts.failure_conflict": "O rascunho mudou em outro lugar. Releia e salve de novo.",
+    "arenas.drafts.failure_export_page": "Esta página da exportação expirou. Recomece da primeira página.",
+    "arenas.drafts.failure_generic": "O rascunho não respondeu. Tente de novo.",
+    "arenas.drafts.failure_invalid": "A formulação não passou: confira tamanho, categoria e idioma.",
+    "arenas.drafts.failure_missing": "Este rascunho não existe ou não é seu.",
+    "arenas.drafts.failure_no_pass": "Sem passe de arena disponível. Nada foi publicado ou consumido.",
+    "arenas.drafts.failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
+    "arenas.drafts.failure_status": "Esta arena não aceita esta mudança de estado agora.",
+    "arenas.drafts.heading": "Meus rascunhos",
+    "arenas.drafts.intro": "Rascunhos privados: só você os vê, e criar um nunca consome passe.",
+    "arenas.drafts.language_label": "Idioma do conteúdo",
+    "arenas.drafts.publish_confirm": "Publicar o rascunho “{statement}”?",
+    "arenas.drafts.publish_cost": "A publicação consome exatamente um passe de arena. Sem passe disponível, nada muda.",
+    "arenas.drafts.publish_submit": "Publicar rascunho",
+    "arenas.drafts.published": "Arena publicada.",
+    "arenas.drafts.saved": "Rascunho guardado.",
+    "arenas.drafts.statement_hint": "De 10 a 280 caracteres, contados pelo servidor.",
+    "arenas.drafts.statement_label": "Controvérsia",
+    "arenas.drafts.status_draft": "Rascunho",
+    "arenas.drafts.submit": "Guardar rascunho",
+    "arenas.failure.generic": "A lista não respondeu. Tente de novo.",
+    "arenas.failure.invalid_cursor": "Esta página expirou. Volte ao começo da lista.",
+    "arenas.feed.empty": "Nenhuma arena por aqui, com estes filtros.",
+    "arenas.feed.end": "Você chegou ao fim da lista.",
+    "arenas.feed.heading": "Arenas",
+    "arenas.feed.intro": "As controvérsias publicadas, das mais novas para as mais antigas.",
+    "arenas.feed.load_more": "Carregar mais",
     "arenas.participation.aggregate.checked": "Apurado em {instant}",
     "arenas.participation.aggregate.current": "Posição atual",
     "arenas.participation.aggregate.heading": "Resultado agregado",
@@ -1701,6 +1935,12 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.realm.arena": "Arena de debate — instância de controvérsia",
     "arenas.realm.kingdom": "Regnovum — o Reino",
     "arenas.realm.no_official_outcome": "Debates não têm vencedor nem verdade oficial",
+    "arenas.search.empty": "Nenhuma arena bate com esta busca.",
+    "arenas.search.end": "Sem mais resultados.",
+    "arenas.search.heading": "Buscar arenas",
+    "arenas.search.hint": "Digite o que procura para buscar.",
+    "arenas.search.intro": "Busca em texto integral sobre as arenas públicas.",
+    "arenas.search.load_more": "Mostrar mais resultados",
     "auth.account.checked_at": "Apurado em {instant}",
     "auth.account.influenced_people": "Pessoas influenciadas: {count}",
     "auth.account.locale_label": "Idioma da interface",

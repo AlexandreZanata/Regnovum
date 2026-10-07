@@ -14,6 +14,7 @@ import { createArenasClient } from "../../src/core/clients/arenas.js";
 import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
 import { createDeletionClient } from "../../src/core/clients/deletion.js";
+import { createDraftsClient } from "../../src/core/clients/drafts.js";
 import { createExportsClient } from "../../src/core/clients/exports.js";
 import { createMFAClient } from "../../src/core/clients/mfa.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
@@ -294,6 +295,71 @@ const expectations: readonly Expectation[] = [
     run: (core) => createDeletionClient(core).cancel(),
     method: "POST",
     url: "https://arena.test/api/v1/me/deletion/cancel",
+    idempotent: false,
+  },
+  {
+    name: "drafts list",
+    run: (core) => createDraftsClient(core).list(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/arena-drafts",
+    idempotent: false,
+  },
+  {
+    name: "drafts create",
+    run: (core) =>
+      createDraftsClient(core).create({ statement: "Machines, responsible?", category: "philosophy", language: "en-US" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/arena-drafts",
+    body: { statement: "Machines, responsible?", category: "philosophy", language: "en-US" },
+    idempotent: false,
+  },
+  {
+    name: "drafts get",
+    run: (core) => createDraftsClient(core).get("draft-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/arena-drafts/draft-1",
+    idempotent: false,
+  },
+  {
+    name: "drafts update",
+    run: (core) =>
+      createDraftsClient(core).update("draft-1", {
+        statement: "Machines, responsible?",
+        category: "philosophy",
+        language: "en-US",
+        expected_version: 1,
+      }),
+    method: "PATCH",
+    url: "https://arena.test/api/v1/me/arena-drafts/draft-1",
+    body: { statement: "Machines, responsible?", category: "philosophy", language: "en-US", expected_version: 1 },
+    idempotent: false,
+  },
+  {
+    name: "drafts remove",
+    run: (core) => createDraftsClient(core).remove("draft-1"),
+    method: "DELETE",
+    url: "https://arena.test/api/v1/me/arena-drafts/draft-1",
+    idempotent: false,
+  },
+  {
+    name: "drafts publish",
+    run: (core) => createDraftsClient(core).publish("draft-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/arena-drafts/draft-1/publish",
+    idempotent: false,
+  },
+  {
+    name: "drafts close",
+    run: (core) => createDraftsClient(core).close("arena-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/arenas/arena-1/close",
+    idempotent: false,
+  },
+  {
+    name: "arenas export",
+    run: (core) => createArenasClient(core).exportById("arena-1", { cursor: "c1", limit: 20 }),
+    method: "GET",
+    url: "https://arena.test/api/v1/arenas/arena-1/export?cursor=c1&limit=20",
     idempotent: false,
   },
   {

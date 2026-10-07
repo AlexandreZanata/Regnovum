@@ -118,6 +118,62 @@
         "csrf_title": "Formulário expirado",
         "csrf_detail": "Recarregue a página e envie o formulário de novo."
       }
+    },
+    "feed": {
+      "heading": "Arenas",
+      "intro": "As controvérsias publicadas, das mais novas para as mais antigas.",
+      "empty": "Nenhuma arena por aqui, com estes filtros.",
+      "load_more": "Carregar mais",
+      "end": "Você chegou ao fim da lista."
+    },
+    "search": {
+      "heading": "Buscar arenas",
+      "intro": "Busca em texto integral sobre as arenas públicas.",
+      "hint": "Digite o que procura para buscar.",
+      "empty": "Nenhuma arena bate com esta busca.",
+      "load_more": "Mostrar mais resultados",
+      "end": "Sem mais resultados."
+    },
+    "failure": {
+      "invalid_cursor": "Esta página expirou. Volte ao começo da lista.",
+      "generic": "A lista não respondeu. Tente de novo."
+    },
+    "drafts": {
+      "heading": "Meus rascunhos",
+      "intro": "Rascunhos privados: só você os vê, e criar um nunca consome passe.",
+      "statement_label": "Controvérsia",
+      "statement_hint": "De 10 a 280 caracteres, contados pelo servidor.",
+      "context_label": "Contexto (opcional)",
+      "context_hint": "Até 2000 caracteres.",
+      "category_label": "Categoria",
+      "language_label": "Idioma do conteúdo",
+      "submit": "Guardar rascunho",
+      "saved": "Rascunho guardado.",
+      "empty": "Nenhum rascunho ainda. Escreva a primeira controvérsia.",
+      "status_draft": "Rascunho",
+      "failure_invalid": "A formulação não passou: confira tamanho, categoria e idioma.",
+      "failure_rate_limited": "Muitos pedidos seguidos. Aguarde um momento e tente de novo.",
+      "failure_generic": "O rascunho não respondeu. Tente de novo.",
+      "edit_heading": "Editar rascunho",
+      "edit_note": "Você edita a versão {version}. Se o rascunho mudar em outro lugar, o servidor recusa e nada é sobrescrito.",
+      "delete_confirm": "Descartar o rascunho “{statement}”? Esta ação não pode ser desfeita.",
+      "delete_submit": "Descartar rascunho",
+      "deleted": "Rascunho descartado.",
+      "conflict_note": "O rascunho mudou desde que você leu. Seu texto está guardado abaixo; releia antes de salvar de novo.",
+      "conflict_reload": "Reler rascunho",
+      "failure_conflict": "O rascunho mudou em outro lugar. Releia e salve de novo.",
+      "failure_missing": "Este rascunho não existe ou não é seu.",
+      "publish_confirm": "Publicar o rascunho “{statement}”?",
+      "publish_cost": "A publicação consome exatamente um passe de arena. Sem passe disponível, nada muda.",
+      "publish_submit": "Publicar rascunho",
+      "published": "Arena publicada.",
+      "close_confirm": "Encerrar a arena “{statement}”?",
+      "close_submit": "Encerrar arena",
+      "closed": "Arena encerrada.",
+      "export_empty": "Nenhum argumento público nesta exportação.",
+      "failure_no_pass": "Sem passe de arena disponível. Nada foi publicado ou consumido.",
+      "failure_status": "Esta arena não aceita esta mudança de estado agora.",
+      "failure_export_page": "Esta página da exportação expirou. Recomece da primeira página."
     }
   }
 }

@@ -118,6 +118,62 @@
         "csrf_title": "Form expired",
         "csrf_detail": "Reload the page and submit the form again."
       }
+    },
+    "feed": {
+      "heading": "Arenas",
+      "intro": "The published controversies, newest first.",
+      "empty": "No arena here, with these filters.",
+      "load_more": "Load more",
+      "end": "You reached the end of the list."
+    },
+    "search": {
+      "heading": "Search arenas",
+      "intro": "Full-text search over the public arenas.",
+      "hint": "Type what you seek to search.",
+      "empty": "No arena matches this search.",
+      "load_more": "Show more results",
+      "end": "No more results."
+    },
+    "failure": {
+      "invalid_cursor": "This page expired. Go back to the start of the list.",
+      "generic": "The list did not answer. Try again."
+    },
+    "drafts": {
+      "heading": "My drafts",
+      "intro": "Private drafts: only you see them, and creating one never spends a pass.",
+      "statement_label": "Controversy",
+      "statement_hint": "From 10 to 280 characters, counted by the server.",
+      "context_label": "Context (optional)",
+      "context_hint": "Up to 2000 characters.",
+      "category_label": "Category",
+      "language_label": "Content language",
+      "submit": "Save draft",
+      "saved": "Draft saved.",
+      "empty": "No drafts yet. Write the first controversy.",
+      "status_draft": "Draft",
+      "failure_invalid": "The formulation did not pass: check length, category and language.",
+      "failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
+      "failure_generic": "The draft did not answer. Try again.",
+      "edit_heading": "Edit draft",
+      "edit_note": "You edit version {version}. If the draft changes elsewhere, the server refuses and nothing is overwritten.",
+      "delete_confirm": "Discard the draft “{statement}”? This cannot be undone.",
+      "delete_submit": "Discard draft",
+      "deleted": "Draft discarded.",
+      "conflict_note": "The draft changed since you read it. Your text is kept below; re-read before saving again.",
+      "conflict_reload": "Re-read draft",
+      "failure_conflict": "The draft changed elsewhere. Re-read and save again.",
+      "failure_missing": "This draft does not exist or is not yours.",
+      "publish_confirm": "Publish the draft “{statement}”?",
+      "publish_cost": "Publication consumes exactly one Arena Pass. Without an available pass, nothing changes.",
+      "publish_submit": "Publish draft",
+      "published": "Arena published.",
+      "close_confirm": "Close the arena “{statement}”?",
+      "close_submit": "Close arena",
+      "closed": "Arena closed.",
+      "export_empty": "No public arguments in this export.",
+      "failure_no_pass": "No Arena Pass available. Nothing was published or spent.",
+      "failure_status": "This arena cannot change state right now.",
+      "failure_export_page": "This export page expired. Start again from the first page."
     }
   }
 }
