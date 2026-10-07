@@ -18,6 +18,17 @@
       "invalid_limit": "This page size is not valid. Use a value from 1 to 100.",
       "unauthorized": "Sign in to see the wallet.",
       "generic": "The wallet could not be loaded. Check and try again."
+    },
+    "passes": {
+      "heading": "Arena passes",
+      "intro": "Contracted rights and real consumption. The browser never grants a pass nor renews any benefit.",
+      "empty": "No passes yet",
+      "available": "Available passes: {count}",
+      "checked": "Checked {instant}",
+      "lot_active": "{remaining} of {quantity} passes ({origin}), expires {instant}",
+      "lot_no_expiry": "{remaining} of {quantity} passes ({origin}), never expires",
+      "lot_expired": "{remaining} of {quantity} passes ({origin}), expired {instant}",
+      "entry": "{origin} pass in {arena} on {instant}"
     }
   }
 }

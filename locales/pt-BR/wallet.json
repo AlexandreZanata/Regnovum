@@ -18,6 +18,17 @@
       "invalid_limit": "Este tamanho de página não é válido. Use um valor de 1 a 100.",
       "unauthorized": "Entre na conta para ver a carteira.",
       "generic": "Não foi possível carregar a carteira. Confira e tente novamente."
+    },
+    "passes": {
+      "heading": "Passes de Arena",
+      "intro": "Direitos contratados e consumo real. O navegador nunca concede passe nem renova benefício.",
+      "empty": "Nenhum passe ainda",
+      "available": "Passes disponíveis: {count}",
+      "checked": "Verificado em {instant}",
+      "lot_active": "{remaining} de {quantity} passes ({origin}), vence em {instant}",
+      "lot_no_expiry": "{remaining} de {quantity} passes ({origin}), sem vencimento",
+      "lot_expired": "{remaining} de {quantity} passes ({origin}), vencido em {instant}",
+      "entry": "Passe {origin} em {arena} em {instant}"
     }
   }
 }

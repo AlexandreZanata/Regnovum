@@ -21,6 +21,7 @@ import { createMFAClient } from "../../src/core/clients/mfa.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import { createSessionsClient } from "../../src/core/clients/sessions.js";
 import { createWalletClient } from "../../src/core/clients/wallet.js";
+import { createPassesClient } from "../../src/core/clients/passes.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -405,6 +406,20 @@ const expectations: readonly Expectation[] = [
     run: (core) => createWalletClient(core).statement({ cursor: "c1", limit: 20 }),
     method: "GET",
     url: "https://arena.test/api/v1/me/wallet/transactions?cursor=c1&limit=20",
+    idempotent: false,
+  },
+  {
+    name: "passes summary",
+    run: (core) => createPassesClient(core).summary(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/passes",
+    idempotent: false,
+  },
+  {
+    name: "passes history",
+    run: (core) => createPassesClient(core).history({ cursor: "c1", limit: 20 }),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/passes/history?cursor=c1&limit=20",
     idempotent: false,
   },
   {

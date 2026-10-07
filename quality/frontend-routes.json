@@ -1392,17 +1392,22 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "passes",
+      "page": "passes",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped"
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementReloadGrantsNothing",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementHistoryCursorIsHonest",
+        "web/tests/core/passes.test.ts",
+        "web/tests/pages/passes.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, reload grants nothing, faithful per-lot projection, private no-store). Browser client/page lands in P54."
+      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, no grant on read, cursor guard, projection without provider ids). P54-T02 reads in the browser through the passes client and the passes page (derived total without expired lots, per-lot contracted rights with immutable expiration, MEMBER lots rendered as derived without renewal)."
     },
     {
       "method": "GET",
@@ -1414,17 +1419,22 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "passes",
+      "page": "passes",
       "exclusion": null,
       "tests": [
         "internal/billing/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/entitlement_read_test.go::TestEntitlementHistoryCursorIsHonest"
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementPassReadsAreOwnerScoped",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementReloadGrantsNothing",
+        "internal/bootstrap/entitlement_read_test.go::TestEntitlementHistoryCursorIsHonest",
+        "web/tests/core/passes.test.ts",
+        "web/tests/pages/passes.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T05 mounted in ComposeEntitlementReads with the shared cursor secret; proven via process httptest+PG (owner history, forged cursor refused, issued next cursor walks forward, private no-store). Browser client/page lands in P54."
+      "note": "P49-T05 mounted in ComposeEntitlementReads over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, cursor page, forged cursor 400, no-store). P54-T02 reads in the browser through the passes client and the passes page (opaque cursor passthrough, 1..100 page allowlisted in the address, merge deduped by consumption id, private history with reference verbatim)."
     },
     {
       "method": "POST",
