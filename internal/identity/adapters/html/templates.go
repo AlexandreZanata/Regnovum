@@ -43,12 +43,14 @@ const (
 	assetTokenCSS = "styles/tokens.css"
 	assetBaseCSS  = "styles/base.css"
 	assetPrimCSS  = "styles/primitives.css"
+	assetShellCSS = "styles/shell.css"
 	assetAuthCSS  = "styles/auth.css"
 )
 
 // requiredAssets is the exact set the pages load, in cascade order for the
-// sheets.
-var requiredAssets = []string{assetScript, assetResetCSS, assetTokenCSS, assetBaseCSS, assetPrimCSS, assetAuthCSS}
+// sheets: the shell chrome (skip link, current-page mark, footer) loads after
+// the primitives it marks and before the page layout it frames.
+var requiredAssets = []string{assetScript, assetResetCSS, assetTokenCSS, assetBaseCSS, assetPrimCSS, assetShellCSS, assetAuthCSS}
 
 // Field identifier suffixes. They are the contract between the server-rendered
 // markup and the client primitives: web/src/components/primitives/model.ts
@@ -67,9 +69,13 @@ const (
 type ActionLink struct {
 	Label string
 	Href  string
+	// Current marks the link of the address the visitor is on. It is decided
+	// by the server from the request path and rendered as `aria-current`, so
+	// the enhancer and the document agree before any script runs.
+	Current bool
 }
 
-// DocumentData is the chrome every page shares.
+// DocumentData is the chrome every page shares: the application shell.
 type DocumentData struct {
 	// Lang is the interface locale, also the document's `lang` attribute.
 	Lang string
@@ -81,6 +87,17 @@ type DocumentData struct {
 	NavLabel string
 	// Nav lists the account links of the header.
 	Nav []ActionLink
+	// SkipLabel is the localized skip-link text, pointing at the main landmark.
+	SkipLabel string
+	// FooterNote is the localized line closing the chrome.
+	FooterNote string
+	// CurrentPath is the normalized request path of this document, the stable
+	// address a reload, a deep link and the back button agree on.
+	CurrentPath string
+	// SignedIn reports whether the request carries a session token. It only
+	// chooses which links the chrome emphasizes; the server still enforces
+	// every transition, so hiding a link is never the authorization.
+	SignedIn bool
 }
 
 // FieldData is one rendered form control with its label, hint and error. The
@@ -242,6 +259,7 @@ const templateSources = `{{define "document_head"}}<head>
 	<link rel="stylesheet" href="{{asset "styles/tokens.css"}}" />
 	<link rel="stylesheet" href="{{asset "styles/base.css"}}" />
 	<link rel="stylesheet" href="{{asset "styles/primitives.css"}}" />
+	<link rel="stylesheet" href="{{asset "styles/shell.css"}}" />
 	<link rel="stylesheet" href="{{asset "styles/auth.css"}}" />
 	<script type="module" src="{{asset "pages/auth.js"}}"></script>
 </head>{{end}}
@@ -250,11 +268,15 @@ const templateSources = `{{define "document_head"}}<head>
 	<a class="ga-auth__brand" href="/">{{.Brand}}</a>
 	<nav aria-label="{{.NavLabel}}">
 		<ul class="ga-auth__nav">
-			{{range .Nav}}<li><a href="{{.Href}}">{{.Label}}</a></li>
+			{{range .Nav}}<li><a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a></li>
 			{{end}}
 		</ul>
 	</nav>
 </header>{{end}}
+
+{{define "document_footer"}}<footer class="ga-shell__footer">
+	<p>{{.FooterNote}}</p>
+</footer>{{end}}
 
 {{define "field"}}<ga-field name="{{.Name}}" label="{{.Label}}"{{if .Hint}} hint="{{.Hint}}"{{end}}{{if .Error}} error="{{.Error}}"{{end}}{{if .Required}} required="required"{{end}}>
 	<label for="{{.ControlID}}">{{.Label}}</label>
@@ -267,8 +289,9 @@ const templateSources = `{{define "document_head"}}<head>
 <html lang="{{.Lang}}" dir="{{dir .Lang}}">
 {{template "document_head" .}}
 <body>
+	<a class="ga-shell__skip" href="#main">{{.SkipLabel}}</a>
 	{{template "document_nav" .}}
-	<main id="main" class="ga-auth">
+	<main id="main" class="ga-auth" tabindex="-1">
 		<h1>{{.Heading}}</h1>
 		<p>{{.Intro}}</p>
 		<ga-error-summary{{if not .Summary}} hidden="hidden"{{end}}>
@@ -290,6 +313,7 @@ const templateSources = `{{define "document_head"}}<head>
 		{{if .After}}<p><a href="{{.After.Href}}">{{.After.Label}}</a></p>
 		{{end}}
 	</main>
+	{{template "document_footer" .}}
 </body>
 </html>{{end}}
 
@@ -297,13 +321,15 @@ const templateSources = `{{define "document_head"}}<head>
 <html lang="{{.Lang}}" dir="{{dir .Lang}}">
 {{template "document_head" .}}
 <body>
+	<a class="ga-shell__skip" href="#main">{{.SkipLabel}}</a>
 	{{template "document_nav" .}}
-	<main id="main" class="ga-auth">
+	<main id="main" class="ga-auth" tabindex="-1">
 		<h1>{{.Heading}}</h1>
 		<p>{{.Detail}}</p>
 		{{range .Actions}}<p><a href="{{.Href}}">{{.Label}}</a></p>
 		{{end}}
 	</main>
+	{{template "document_footer" .}}
 </body>
 </html>{{end}}
 `

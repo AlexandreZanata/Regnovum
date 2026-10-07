@@ -998,8 +998,15 @@ func summaryOf(fields []FieldData) []SummaryItem {
 	return items
 }
 
-// document is the shared chrome of one page: the request locale, the page title
-// of the journey and the account navigation.
+// document is the shared chrome of one page: the application shell holding
+// the request locale, the page title of the journey and the account
+// navigation.
+//
+// The navigation emphasizes the links of the session the browser holds: a
+// visitor is offered the entries, a signed-in browser the way out, while the
+// stable addresses (recovery, confirmation) stay reachable in both states.
+// Presence of the session cookie only chooses emphasis — the use cases still
+// enforce every transition, so a hidden address answers exactly as before.
 func (h *Handler) document(r *http.Request, titleKey string) (DocumentData, error) {
 	title, err := localized(r, titleKey, nil)
 	if err != nil {
@@ -1013,30 +1020,78 @@ func (h *Handler) document(r *http.Request, titleKey string) (DocumentData, erro
 	if err != nil {
 		return DocumentData{}, err
 	}
+	skipLabel, err := localized(r, "auth.shell.skip_link", nil)
+	if err != nil {
+		return DocumentData{}, err
+	}
+	footerNote, err := localized(r, "auth.shell.footer_note", nil)
+	if err != nil {
+		return DocumentData{}, err
+	}
+	current := shellPath(r)
+	signedIn := signedInSession(h, r)
 	links := []struct {
-		key  string
-		href string
+		key          string
+		href         string
+		guestOnly    bool
+		requiresAuth bool
 	}{
-		{key: "auth.nav.login", href: signInHref},
-		{key: "auth.nav.register", href: "/register"},
+		{key: "auth.nav.login", href: signInHref, guestOnly: true},
+		{key: "auth.nav.logout", href: "/logout", requiresAuth: true},
+		{key: "auth.nav.register", href: "/register", guestOnly: true},
 		{key: "auth.nav.verify", href: "/verify"},
 		{key: "auth.nav.reset", href: "/reset"},
 	}
 	nav := make([]ActionLink, 0, len(links))
 	for _, link := range links {
+		if link.guestOnly && signedIn {
+			continue
+		}
+		if link.requiresAuth && !signedIn {
+			continue
+		}
 		label, err := localized(r, link.key, nil)
 		if err != nil {
 			return DocumentData{}, err
 		}
-		nav = append(nav, ActionLink{Label: label, Href: link.href})
+		nav = append(nav, ActionLink{Label: label, Href: link.href, Current: link.href == current})
 	}
 	return DocumentData{
-		Lang:      requestLocale(r),
-		PageTitle: title,
-		Brand:     brand,
-		NavLabel:  navLabel,
-		Nav:       nav,
+		Lang:        requestLocale(r),
+		PageTitle:   title,
+		Brand:       brand,
+		NavLabel:    navLabel,
+		Nav:         nav,
+		SkipLabel:   skipLabel,
+		FooterNote:  footerNote,
+		CurrentPath: current,
+		SignedIn:    signedIn,
 	}, nil
+}
+
+// signedInSession reports whether the request carries a session token. The
+// token is never validated here: validity belongs to the use cases, and the
+// answer only chooses which navigation links the chrome emphasizes.
+func signedInSession(h *Handler, r *http.Request) bool {
+	_, err := h.security.Cookies().GetSessionToken(r)
+	return err == nil
+}
+
+// shellPath returns the stable address of one request: the path without a
+// trailing slash (except the root itself), so a reload, a deep link and the
+// back button mark the same navigation link.
+func shellPath(r *http.Request) string {
+	if r == nil || r.URL == nil {
+		return "/"
+	}
+	path := r.URL.Path
+	if path == "" || path == "/" {
+		return "/"
+	}
+	for len(path) > 1 && path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+	return path
 }
 
 // csrfToken returns the double-submit token the form must carry.

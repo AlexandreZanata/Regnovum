@@ -18,8 +18,13 @@
  * because the browser policy of this binary refuses inline code
  * (`script-src 'self'`, no nonce): the module is the only script a page of the
  * journey loads.
+ *
+ * The shell enhancer runs here too: the server already marked the current
+ * navigation link of the address it answered, and the module keeps that mark
+ * true across back-forward-cache restores without fetching anything.
  */
 import { registerPrimitives } from "../components/primitives/index.js";
+import { installShell } from "./shell.js";
 import {
   BUSY_ATTRIBUTE,
   BUSY_ELEMENT,
@@ -139,3 +144,4 @@ export function installSubmissionGuard(document: Document = globalThis.document)
 
 registerPrimitives();
 installSubmissionGuard();
+installShell();

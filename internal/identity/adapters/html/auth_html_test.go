@@ -38,6 +38,7 @@ func manifestFixture() assets.Manifest {
 		"styles/tokens.css",
 		"styles/base.css",
 		"styles/primitives.css",
+		"styles/shell.css",
 		"styles/auth.css",
 	}
 	records := make(map[string]assets.Record, len(names))
@@ -410,6 +411,7 @@ func TestReadPagesArePrivateAndCarryTheNoJavaScriptJourney(t *testing.T) {
 			`<ga-error-summary`,
 			`/assets/pages-auth.js`,
 			`/assets/styles-tokens.css`,
+			`/assets/styles-shell.css`,
 		} {
 			if !strings.Contains(document, marker) {
 				t.Errorf("GET %s does not render %q", page, marker)
@@ -422,6 +424,110 @@ func TestReadPagesArePrivateAndCarryTheNoJavaScriptJourney(t *testing.T) {
 				t.Errorf("GET %s renders %q, which the browser policy blocks", page, forbidden)
 			}
 		}
+	}
+}
+
+// The shell is the chrome every document shares (P50-T01): the skip link to
+// the main landmark, the header navigation with the current page marked, and
+// the footer. A visitor reads the entries; a browser carrying a session token
+// reads the way out instead. Hiding a link is never the authorization — the
+// use cases still enforce every transition — so these tests only prove which
+// links the chrome emphasizes, and that every address keeps answering.
+func TestShellChromeCarriesSkipLinkFooterAndCurrentPage(t *testing.T) {
+	t.Parallel()
+
+	built := newJourney(t)
+	recorder := built.get(t, "/login")
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("GET /login = %d, want 200", recorder.Code)
+	}
+	document := recorder.Body.String()
+
+	for _, marker := range []string{
+		`<a class="ga-shell__skip" href="#main">Pular para o conteúdo</a>`,
+		`<main id="main" class="ga-auth" tabindex="-1">`,
+		`<footer class="ga-shell__footer">`,
+		`Regnovum — sua conta em páginas simples e acessíveis.`,
+		`<a href="/login" aria-current="page">Entrar</a>`,
+	} {
+		if !strings.Contains(document, marker) {
+			t.Errorf("GET /login does not render %q", marker)
+		}
+	}
+	// The current page is marked once: no sibling link claims it.
+	if count := strings.Count(document, `aria-current="page"`); count != 1 {
+		t.Errorf("GET /login marks aria-current %d times, want exactly 1", count)
+	}
+	// A visitor is offered the entries, never the way out.
+	for _, hidden := range []string{`Encerrar sessão`, `/logout`} {
+		if strings.Contains(document, hidden) {
+			t.Errorf("GET /login renders %q, which a visitor must not be offered", hidden)
+		}
+	}
+}
+
+func TestShellNavigationDerivesVisibilityFromTheSession(t *testing.T) {
+	t.Parallel()
+
+	built := newJourney(t)
+	request := httptest.NewRequest(http.MethodGet, "/login", nil)
+	request.AddCookie(&http.Cookie{Name: "arena_session", Value: "opaque-token"})
+	recorder := httptest.NewRecorder()
+	built.mux.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("GET /login with a session = %d, want 200", recorder.Code)
+	}
+	document := recorder.Body.String()
+
+	// A signed-in browser is offered the way out, never the entries.
+	for _, marker := range []string{
+		`<a href="/logout">Encerrar sessão</a>`,
+		`<a class="ga-shell__skip" href="#main">`,
+		`<footer class="ga-shell__footer">`,
+	} {
+		if !strings.Contains(document, marker) {
+			t.Errorf("GET /login with a session does not render %q", marker)
+		}
+	}
+	// The entries leave the navigation (their addresses keep answering: the
+	// page the document shows is still /login, with its own submit control).
+	for _, hidden := range []string{`<a href="/login"`, `<a href="/register"`} {
+		if strings.Contains(document, hidden) {
+			t.Errorf("GET /login with a session renders %q, which a signed-in browser must not be offered", hidden)
+		}
+	}
+	// The address the visitor is on is not in their navigation, so nothing
+	// is marked: inventing a current link would be a lie about where they are.
+	if strings.Contains(document, `aria-current="page"`) {
+		t.Errorf("GET /login with a session marks a current page that is not in its navigation")
+	}
+}
+
+func TestShellDeepLinkMarksOnlyItsOwnAddress(t *testing.T) {
+	t.Parallel()
+
+	built := newJourney(t)
+
+	recorder := built.get(t, "/reset")
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("GET /reset = %d, want 200", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), `<a href="/reset" aria-current="page">`) {
+		t.Errorf("GET /reset does not mark its own navigation link")
+	}
+
+	// /reset/confirm is a deep link of the same journey, not the /reset page:
+	// the chrome stays, and no sibling claims to be current.
+	confirm := built.get(t, "/reset/confirm")
+	if confirm.Code != http.StatusOK {
+		t.Fatalf("GET /reset/confirm = %d, want 200", confirm.Code)
+	}
+	confirmDocument := confirm.Body.String()
+	if !strings.Contains(confirmDocument, `<a class="ga-shell__skip" href="#main">`) {
+		t.Errorf("GET /reset/confirm lost the shell chrome")
+	}
+	if strings.Contains(confirmDocument, `aria-current="page"`) {
+		t.Errorf("GET /reset/confirm marks a current page it does not name")
 	}
 }
 

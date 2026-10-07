@@ -18,6 +18,7 @@ const SHEETS: readonly string[] = [
   "src/styles/base.css",
   "src/styles/primitives.css",
   "src/styles/auth.css",
+  "src/styles/shell.css",
   "src/styles/arena.css",
 ];
 
@@ -159,6 +160,21 @@ test("the local choice shows the chosen button, in forced colors too", () => {
     /\[aria-pressed="true"\]/,
     "the chosen state must stay distinguishable when the palette is forced",
   );
+});
+
+test("the shell keeps its chrome reachable and direction-proof", () => {
+  const css = withoutComments(sheet("src/styles/shell.css"));
+
+  assert.match(css, /@layer layout\s*\{/, "the shell chrome lives in the layout layer");
+  assert.match(css, /\.ga-shell__skip/, "the skip link has a rule of its own");
+  assert.match(css, /\.ga-shell__skip:focus-visible/, "the skip link appears on focus");
+  assert.match(css, /\.ga-shell__footer/, "the footer has a rule of its own");
+  assert.match(css, /a\[aria-current="page"\]/, "the current page is marked, not coloured alone");
+  assert.match(css, /@container/, "the narrow layout queries the header, not the viewport");
+  assert.match(css, /@media \(forced-colors: active\)/, "the chrome carries a forced-colors block");
+  assert.match(css, /overflow-wrap\s*:/, "long words must wrap instead of overflowing the viewport");
+  assert.doesNotMatch(css, /(?:^|[^-\w])(?:margin|padding)-(?:left|right)\s*:/m, "no physical margin/padding");
+  assert.doesNotMatch(css, /(?:^|[^-\w])(?:left|top|right|bottom)\s*:/m, "no physical offsets");
 });
 
 test("the token sheet publishes the motion and zoom tokens the primitives rely on", () => {

@@ -1,0 +1,95 @@
+/* Application shell chrome (P50-T01).
+ *
+ * This sheet owns what the server-rendered chrome adds around every page of
+ * the journey: the skip link, the current-page mark of the navigation and the
+ * footer. Page layout (measure, forms) stays in auth.css; everything the
+ * primitives own stays in primitives.css. Tokens only, logical properties
+ * throughout, so the chrome follows the writing direction and survives a 200%
+ * zoom. The header is the container the navigation queries, which is what
+ * keeps the 360px layout honest without reading the viewport. */
+@layer layout {
+  .ga-auth__header {
+    container-type: inline-size;
+  }
+
+  /* The skip link is the first node of the body: visually hidden until it
+   * holds focus, then a plain action-coloured target. It never takes space
+   * from the layout while hidden. */
+  :where(.ga-shell__skip):not([hidden]) {
+    position: absolute;
+    inset-block-start: var(--ga-space-2);
+    inset-inline-start: var(--ga-space-2);
+    z-index: var(--ga-z-sticky);
+    padding-block: var(--ga-space-2);
+    padding-inline: var(--ga-space-4);
+    border-radius: var(--ga-radius-sm);
+    background-color: var(--ga-color-action);
+    color: var(--ga-color-action-contrast);
+    text-decoration: none;
+    transform: translateY(-500%);
+  }
+
+  :where(.ga-shell__skip:focus-visible) {
+    transform: none;
+    outline: 2px solid var(--ga-color-action-contrast);
+    outline-offset: 2px;
+  }
+
+  /* The current page is marked by the enhancer (`aria-current="page"`) and
+   * styled here: an underline the visitor can see without colour alone, since
+   * the weight carries the state when the palette is forced. */
+  :where(.ga-auth__nav a[aria-current="page"]) {
+    font-weight: var(--ga-font-weight-semibold);
+    text-decoration: underline;
+    text-underline-offset: 0.25rem;
+    text-decoration-thickness: 0.125rem;
+  }
+
+  /* The footer closes the chrome: muted, centred on the reading measure, set
+   * apart from the page by a border, wrapping long words instead of scrolling
+   * the viewport sideways. */
+  :where(.ga-shell__footer):not([hidden]) {
+    display: block;
+    max-inline-size: var(--ga-measure-max-inline-size);
+    margin-inline: auto;
+    margin-block-start: var(--ga-space-8);
+    padding-block: var(--ga-space-4);
+    padding-inline: var(--ga-space-4);
+    border-block-start: 1px solid var(--ga-color-border);
+    color: var(--ga-color-text-muted);
+    font-size: var(--ga-font-size-sm);
+    overflow-wrap: anywhere;
+  }
+
+  :where(.ga-shell__footer p) {
+    margin-block: 0;
+  }
+
+  /* Narrow chrome stacks the navigation under the brand instead of squeezing
+   * both into one row: the query reads the header, not the viewport, so the
+   * rule holds wherever the chrome is embedded. */
+  @container (max-inline-size: 28rem) {
+    :where(.ga-auth__header) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    :where(.ga-auth__nav) {
+      gap: var(--ga-space-2);
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where(.ga-shell__skip) {
+      border: 1px solid CanvasText;
+    }
+
+    :where(.ga-auth__nav a[aria-current="page"]) {
+      text-decoration-thickness: 0.25rem;
+    }
+
+    :where(.ga-shell__footer) {
+      border-block-start-color: CanvasText;
+    }
+  }
+}

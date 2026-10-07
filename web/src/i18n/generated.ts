@@ -143,6 +143,7 @@ export const messageKeys = {
     "auth.logout.submit",
     "auth.nav.label",
     "auth.nav.login",
+    "auth.nav.logout",
     "auth.nav.register",
     "auth.nav.reset",
     "auth.nav.verify",
@@ -170,6 +171,8 @@ export const messageKeys = {
     "auth.reset.notice_heading",
     "auth.reset.page_title",
     "auth.reset.submit",
+    "auth.shell.footer_note",
+    "auth.shell.skip_link",
     "auth.verify.busy",
     "auth.verify.heading",
     "auth.verify.intro",
@@ -470,6 +473,7 @@ export type MessageKey =
   | "auth.logout.submit"
   | "auth.nav.label"
   | "auth.nav.login"
+  | "auth.nav.logout"
   | "auth.nav.register"
   | "auth.nav.reset"
   | "auth.nav.verify"
@@ -497,6 +501,8 @@ export type MessageKey =
   | "auth.reset.notice_heading"
   | "auth.reset.page_title"
   | "auth.reset.submit"
+  | "auth.shell.footer_note"
+  | "auth.shell.skip_link"
   | "auth.verify.busy"
   | "auth.verify.heading"
   | "auth.verify.intro"
@@ -780,6 +786,7 @@ export const messagePlaceholders = Object.freeze({
   "auth.logout.submit": [],
   "auth.nav.label": [],
   "auth.nav.login": [],
+  "auth.nav.logout": [],
   "auth.nav.register": [],
   "auth.nav.reset": [],
   "auth.nav.verify": [],
@@ -807,6 +814,8 @@ export const messagePlaceholders = Object.freeze({
   "auth.reset.notice_heading": [],
   "auth.reset.page_title": [],
   "auth.reset.submit": [],
+  "auth.shell.footer_note": [],
+  "auth.shell.skip_link": [],
   "auth.verify.busy": [],
   "auth.verify.heading": [],
   "auth.verify.intro": [],
@@ -1091,6 +1100,7 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.logout.submit": "End session",
     "auth.nav.label": "Account navigation",
     "auth.nav.login": "Sign in",
+    "auth.nav.logout": "Sign out",
     "auth.nav.register": "Create account",
     "auth.nav.reset": "Recover access",
     "auth.nav.verify": "Confirm email",
@@ -1118,6 +1128,8 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.reset.notice_heading": "Check your email",
     "auth.reset.page_title": "Recover access — Regnovum",
     "auth.reset.submit": "Send code",
+    "auth.shell.footer_note": "Regnovum — your account in simple, accessible pages.",
+    "auth.shell.skip_link": "Skip to content",
     "auth.verify.busy": "Checking the code…",
     "auth.verify.heading": "Confirm email",
     "auth.verify.intro": "Enter the code we sent to your email to activate the account.",
@@ -1399,6 +1411,7 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.logout.submit": "Encerrar sessão",
     "auth.nav.label": "Navegação da conta",
     "auth.nav.login": "Entrar",
+    "auth.nav.logout": "Encerrar sessão",
     "auth.nav.register": "Criar conta",
     "auth.nav.reset": "Recuperar acesso",
     "auth.nav.verify": "Confirmar email",
@@ -1426,6 +1439,8 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.reset.notice_heading": "Confira seu email",
     "auth.reset.page_title": "Recuperar acesso — Regnovum",
     "auth.reset.submit": "Enviar código",
+    "auth.shell.footer_note": "Regnovum — sua conta em páginas simples e acessíveis.",
+    "auth.shell.skip_link": "Pular para o conteúdo",
     "auth.verify.busy": "Confirmando o código…",
     "auth.verify.heading": "Confirmar email",
     "auth.verify.intro": "Informe o código que enviamos para o seu email para ativar a conta.",
