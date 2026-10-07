@@ -1,0 +1,23 @@
+{
+  "wallet": {
+    "balance": {
+      "heading": "Carteira INK",
+      "intro": "Saldos derivados do livro-razão, em unidades inteiras de INK. O navegador nunca calcula preço nem concede benefício.",
+      "free": "INK livre: {amount}",
+      "purchased": "INK comprado: {amount}",
+      "total": "Total: {amount}"
+    },
+    "statement": {
+      "heading": "Extrato do livro-razão",
+      "intro": "Lançamentos do mais novo ao mais antigo, em páginas de cursor opaco.",
+      "empty": "Nenhum lançamento ainda",
+      "entry": "{signed} INK — {operation} ({bucket}) em {instant}"
+    },
+    "failure": {
+      "invalid_cursor": "Este cursor de extrato expirou. Recomece da primeira página.",
+      "invalid_limit": "Este tamanho de página não é válido. Use um valor de 1 a 100.",
+      "unauthorized": "Entre na conta para ver a carteira.",
+      "generic": "Não foi possível carregar a carteira. Confira e tente novamente."
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "wallet": {
+    "balance": {
+      "heading": "INK wallet",
+      "intro": "Balances derived from the ledger, in whole INK units. The browser never prices anything nor grants any benefit.",
+      "free": "Free INK: {amount}",
+      "purchased": "Purchased INK: {amount}",
+      "total": "Total: {amount}"
+    },
+    "statement": {
+      "heading": "Ledger statement",
+      "intro": "Entries newest first, in opaque cursor pages.",
+      "empty": "No entries yet",
+      "entry": "{signed} INK — {operation} ({bucket}) on {instant}"
+    },
+    "failure": {
+      "invalid_cursor": "This statement cursor expired. Start again from the first page.",
+      "invalid_limit": "This page size is not valid. Use a value from 1 to 100.",
+      "unauthorized": "Sign in to see the wallet.",
+      "generic": "The wallet could not be loaded. Check and try again."
+    }
+  }
+}

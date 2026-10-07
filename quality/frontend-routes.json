@@ -1645,17 +1645,21 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "wallet",
+      "page": "wallet",
       "exclusion": null,
       "tests": [
         "internal/wallet/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped",
+        "internal/wallet/adapters/http/wallet_http_test.go",
+        "web/tests/core/wallet.test.ts",
+        "web/tests/pages/wallet.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). P54-T01 reads in the browser through the wallet client and the wallet page (derived buckets as safe integers, opaque cursor page, reference verbatim, no legacy/seasonal split invented)."
     },
     {
       "method": "GET",
@@ -1667,17 +1671,21 @@
       "audience": "owner",
       "phase": "P54",
       "task": "P48-T01",
-      "client": "planned-wallet",
-      "page": "planned-wallet",
+      "client": "wallet",
+      "page": "wallet",
       "exclusion": null,
       "tests": [
         "internal/wallet/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyWalletReadsAreOwnerScoped",
+        "internal/wallet/adapters/http/wallet_http_test.go",
+        "web/tests/core/wallet.test.ts",
+        "web/tests/pages/wallet.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, cursor page, forged cursor 400, no-store). P54-T01 reads in the browser through the wallet client and the wallet page (opaque cursor passthrough, 1..100 page allowlisted in the address, merge deduped by transaction id, stale never rendered)."
     },
     {
       "method": "GET",

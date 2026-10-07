@@ -496,6 +496,21 @@ export const messageKeys = {
     "transparency.metrics.treasury",
     "transparency.metrics.window",
   ] as const,
+  wallet: [
+    "wallet.balance.free",
+    "wallet.balance.heading",
+    "wallet.balance.intro",
+    "wallet.balance.purchased",
+    "wallet.balance.total",
+    "wallet.failure.generic",
+    "wallet.failure.invalid_cursor",
+    "wallet.failure.invalid_limit",
+    "wallet.failure.unauthorized",
+    "wallet.statement.empty",
+    "wallet.statement.entry",
+    "wallet.statement.heading",
+    "wallet.statement.intro",
+  ] as const,
 } as const;
 
 /** Every message key across namespaces. */
@@ -973,6 +988,19 @@ export type MessageKey =
   | "transparency.metrics.title"
   | "transparency.metrics.treasury"
   | "transparency.metrics.window"
+  | "wallet.balance.free"
+  | "wallet.balance.heading"
+  | "wallet.balance.intro"
+  | "wallet.balance.purchased"
+  | "wallet.balance.total"
+  | "wallet.failure.generic"
+  | "wallet.failure.invalid_cursor"
+  | "wallet.failure.invalid_limit"
+  | "wallet.failure.unauthorized"
+  | "wallet.statement.empty"
+  | "wallet.statement.entry"
+  | "wallet.statement.heading"
+  | "wallet.statement.intro"
 ;
 
 /** Named placeholders per message key: the exact values one translation accepts. */
@@ -1450,6 +1478,19 @@ export const messagePlaceholders = Object.freeze({
   "transparency.metrics.title": [],
   "transparency.metrics.treasury": ["total"],
   "transparency.metrics.window": ["end", "start"],
+  "wallet.balance.free": ["amount"],
+  "wallet.balance.heading": [],
+  "wallet.balance.intro": [],
+  "wallet.balance.purchased": ["amount"],
+  "wallet.balance.total": ["amount"],
+  "wallet.failure.generic": [],
+  "wallet.failure.invalid_cursor": [],
+  "wallet.failure.invalid_limit": [],
+  "wallet.failure.unauthorized": [],
+  "wallet.statement.empty": [],
+  "wallet.statement.entry": ["bucket", "instant", "operation", "signed"],
+  "wallet.statement.heading": [],
+  "wallet.statement.intro": [],
 } as const satisfies Readonly<Record<string, readonly string[]>>);
 
 /** Localized messages per locale per key. */
@@ -1928,6 +1969,19 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.metrics.title": "Crumbs and reflux — weekly aggregate",
     "transparency.metrics.treasury": "Treasury: {total} thousandths of INK",
     "transparency.metrics.window": "Sealed window: {start} – {end} (UTC)",
+    "wallet.balance.free": "Free INK: {amount}",
+    "wallet.balance.heading": "INK wallet",
+    "wallet.balance.intro": "Balances derived from the ledger, in whole INK units. The browser never prices anything nor grants any benefit.",
+    "wallet.balance.purchased": "Purchased INK: {amount}",
+    "wallet.balance.total": "Total: {amount}",
+    "wallet.failure.generic": "The wallet could not be loaded. Check and try again.",
+    "wallet.failure.invalid_cursor": "This statement cursor expired. Start again from the first page.",
+    "wallet.failure.invalid_limit": "This page size is not valid. Use a value from 1 to 100.",
+    "wallet.failure.unauthorized": "Sign in to see the wallet.",
+    "wallet.statement.empty": "No entries yet",
+    "wallet.statement.entry": "{signed} INK — {operation} ({bucket}) on {instant}",
+    "wallet.statement.heading": "Ledger statement",
+    "wallet.statement.intro": "Entries newest first, in opaque cursor pages.",
   }),
   "pt-BR": Object.freeze({
     "arenas.arguments.failure_cross_arena": "O argumento pertence a outra arena.",
@@ -2403,5 +2457,18 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "transparency.metrics.title": "Migalhas e refluxo — agregado semanal",
     "transparency.metrics.treasury": "Tesouro: {total} milésimos de INK",
     "transparency.metrics.window": "Janela selada: {start} – {end} (UTC)",
+    "wallet.balance.free": "INK livre: {amount}",
+    "wallet.balance.heading": "Carteira INK",
+    "wallet.balance.intro": "Saldos derivados do livro-razão, em unidades inteiras de INK. O navegador nunca calcula preço nem concede benefício.",
+    "wallet.balance.purchased": "INK comprado: {amount}",
+    "wallet.balance.total": "Total: {amount}",
+    "wallet.failure.generic": "Não foi possível carregar a carteira. Confira e tente novamente.",
+    "wallet.failure.invalid_cursor": "Este cursor de extrato expirou. Recomece da primeira página.",
+    "wallet.failure.invalid_limit": "Este tamanho de página não é válido. Use um valor de 1 a 100.",
+    "wallet.failure.unauthorized": "Entre na conta para ver a carteira.",
+    "wallet.statement.empty": "Nenhum lançamento ainda",
+    "wallet.statement.entry": "{signed} INK — {operation} ({bucket}) em {instant}",
+    "wallet.statement.heading": "Extrato do livro-razão",
+    "wallet.statement.intro": "Lançamentos do mais novo ao mais antigo, em páginas de cursor opaco.",
   }),
 });
