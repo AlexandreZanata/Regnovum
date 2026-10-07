@@ -118,6 +118,25 @@
         "csrf_title": "Formulário expirado",
         "csrf_detail": "Recarregue a página e envie o formulário de novo."
       }
+    },
+    "feed": {
+      "heading": "Arenas",
+      "intro": "As controvérsias publicadas, das mais novas para as mais antigas.",
+      "empty": "Nenhuma arena por aqui, com estes filtros.",
+      "load_more": "Carregar mais",
+      "end": "Você chegou ao fim da lista."
+    },
+    "search": {
+      "heading": "Buscar arenas",
+      "intro": "Busca em texto integral sobre as arenas públicas.",
+      "hint": "Digite o que procura para buscar.",
+      "empty": "Nenhuma arena bate com esta busca.",
+      "load_more": "Mostrar mais resultados",
+      "end": "Sem mais resultados."
+    },
+    "failure": {
+      "invalid_cursor": "Esta página expirou. Volte ao começo da lista.",
+      "generic": "A lista não respondeu. Tente de novo."
     }
   }
 }

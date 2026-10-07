@@ -12,6 +12,13 @@ export const messageKeys = {
     "arenas.document.status.closed",
     "arenas.document.status.published",
     "arenas.document.status.restricted",
+    "arenas.failure.generic",
+    "arenas.failure.invalid_cursor",
+    "arenas.feed.empty",
+    "arenas.feed.end",
+    "arenas.feed.heading",
+    "arenas.feed.intro",
+    "arenas.feed.load_more",
     "arenas.participation.aggregate.checked",
     "arenas.participation.aggregate.current",
     "arenas.participation.aggregate.heading",
@@ -87,6 +94,12 @@ export const messageKeys = {
     "arenas.realm.arena",
     "arenas.realm.kingdom",
     "arenas.realm.no_official_outcome",
+    "arenas.search.empty",
+    "arenas.search.end",
+    "arenas.search.heading",
+    "arenas.search.hint",
+    "arenas.search.intro",
+    "arenas.search.load_more",
   ] as const,
   auth: [
     "auth.account.checked_at",
@@ -430,6 +443,13 @@ export type MessageKey =
   | "arenas.document.status.closed"
   | "arenas.document.status.published"
   | "arenas.document.status.restricted"
+  | "arenas.failure.generic"
+  | "arenas.failure.invalid_cursor"
+  | "arenas.feed.empty"
+  | "arenas.feed.end"
+  | "arenas.feed.heading"
+  | "arenas.feed.intro"
+  | "arenas.feed.load_more"
   | "arenas.participation.aggregate.checked"
   | "arenas.participation.aggregate.current"
   | "arenas.participation.aggregate.heading"
@@ -505,6 +525,12 @@ export type MessageKey =
   | "arenas.realm.arena"
   | "arenas.realm.kingdom"
   | "arenas.realm.no_official_outcome"
+  | "arenas.search.empty"
+  | "arenas.search.end"
+  | "arenas.search.heading"
+  | "arenas.search.hint"
+  | "arenas.search.intro"
+  | "arenas.search.load_more"
   | "auth.account.checked_at"
   | "auth.account.influenced_people"
   | "auth.account.locale_label"
@@ -829,6 +855,13 @@ export const messagePlaceholders = Object.freeze({
   "arenas.document.status.closed": [],
   "arenas.document.status.published": [],
   "arenas.document.status.restricted": [],
+  "arenas.failure.generic": [],
+  "arenas.failure.invalid_cursor": [],
+  "arenas.feed.empty": [],
+  "arenas.feed.end": [],
+  "arenas.feed.heading": [],
+  "arenas.feed.intro": [],
+  "arenas.feed.load_more": [],
   "arenas.participation.aggregate.checked": ["instant"],
   "arenas.participation.aggregate.current": [],
   "arenas.participation.aggregate.heading": [],
@@ -904,6 +937,12 @@ export const messagePlaceholders = Object.freeze({
   "arenas.realm.arena": [],
   "arenas.realm.kingdom": [],
   "arenas.realm.no_official_outcome": [],
+  "arenas.search.empty": [],
+  "arenas.search.end": [],
+  "arenas.search.heading": [],
+  "arenas.search.hint": [],
+  "arenas.search.intro": [],
+  "arenas.search.load_more": [],
   "auth.account.checked_at": ["instant"],
   "auth.account.influenced_people": ["count"],
   "auth.account.locale_label": [],
@@ -1229,6 +1268,13 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.document.status.closed": "Closed",
     "arenas.document.status.published": "Published",
     "arenas.document.status.restricted": "Restricted",
+    "arenas.failure.generic": "The list did not answer. Try again.",
+    "arenas.failure.invalid_cursor": "This page expired. Go back to the start of the list.",
+    "arenas.feed.empty": "No arena here, with these filters.",
+    "arenas.feed.end": "You reached the end of the list.",
+    "arenas.feed.heading": "Arenas",
+    "arenas.feed.intro": "The published controversies, newest first.",
+    "arenas.feed.load_more": "Load more",
     "arenas.participation.aggregate.checked": "Derived at {instant}",
     "arenas.participation.aggregate.current": "Current position",
     "arenas.participation.aggregate.heading": "Aggregate result",
@@ -1304,6 +1350,12 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.realm.arena": "Debate arena — controversy instance",
     "arenas.realm.kingdom": "Regnovum — the Kingdom",
     "arenas.realm.no_official_outcome": "Debates carry no winner and no official truth",
+    "arenas.search.empty": "No arena matches this search.",
+    "arenas.search.end": "No more results.",
+    "arenas.search.heading": "Search arenas",
+    "arenas.search.hint": "Type what you seek to search.",
+    "arenas.search.intro": "Full-text search over the public arenas.",
+    "arenas.search.load_more": "Show more results",
     "auth.account.checked_at": "Checked at {instant}",
     "auth.account.influenced_people": "People influenced: {count}",
     "auth.account.locale_label": "Interface language",
@@ -1626,6 +1678,13 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.document.status.closed": "Fechada",
     "arenas.document.status.published": "Publicada",
     "arenas.document.status.restricted": "Restrita",
+    "arenas.failure.generic": "A lista não respondeu. Tente de novo.",
+    "arenas.failure.invalid_cursor": "Esta página expirou. Volte ao começo da lista.",
+    "arenas.feed.empty": "Nenhuma arena por aqui, com estes filtros.",
+    "arenas.feed.end": "Você chegou ao fim da lista.",
+    "arenas.feed.heading": "Arenas",
+    "arenas.feed.intro": "As controvérsias publicadas, das mais novas para as mais antigas.",
+    "arenas.feed.load_more": "Carregar mais",
     "arenas.participation.aggregate.checked": "Apurado em {instant}",
     "arenas.participation.aggregate.current": "Posição atual",
     "arenas.participation.aggregate.heading": "Resultado agregado",
@@ -1701,6 +1760,12 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "arenas.realm.arena": "Arena de debate — instância de controvérsia",
     "arenas.realm.kingdom": "Regnovum — o Reino",
     "arenas.realm.no_official_outcome": "Debates não têm vencedor nem verdade oficial",
+    "arenas.search.empty": "Nenhuma arena bate com esta busca.",
+    "arenas.search.end": "Sem mais resultados.",
+    "arenas.search.heading": "Buscar arenas",
+    "arenas.search.hint": "Digite o que procura para buscar.",
+    "arenas.search.intro": "Busca em texto integral sobre as arenas públicas.",
+    "arenas.search.load_more": "Mostrar mais resultados",
     "auth.account.checked_at": "Apurado em {instant}",
     "auth.account.influenced_people": "Pessoas influenciadas: {count}",
     "auth.account.locale_label": "Idioma da interface",

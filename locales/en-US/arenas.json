@@ -118,6 +118,25 @@
         "csrf_title": "Form expired",
         "csrf_detail": "Reload the page and submit the form again."
       }
+    },
+    "feed": {
+      "heading": "Arenas",
+      "intro": "The published controversies, newest first.",
+      "empty": "No arena here, with these filters.",
+      "load_more": "Load more",
+      "end": "You reached the end of the list."
+    },
+    "search": {
+      "heading": "Search arenas",
+      "intro": "Full-text search over the public arenas.",
+      "hint": "Type what you seek to search.",
+      "empty": "No arena matches this search.",
+      "load_more": "Show more results",
+      "end": "No more results."
+    },
+    "failure": {
+      "invalid_cursor": "This page expired. Go back to the start of the list.",
+      "generic": "The list did not answer. Try again."
     }
   }
 }
