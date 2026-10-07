@@ -12,6 +12,7 @@ import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
+import { readPackageFile } from "../support/paths.js";
 
 /** One expected call of a client operation. */
 interface Expectation {
@@ -30,6 +31,13 @@ const expectations: readonly Expectation[] = [
     method: "POST",
     url: "https://arena.test/api/v1/auth/register",
     body: { email: "ada@example.test", password: "pw" },
+    idempotent: false,
+  },
+  {
+    name: "auth verify",
+    run: (core) => createAuthClient(core).verify("single-use-token"),
+    method: "GET",
+    url: "https://arena.test/api/v1/auth/verify?token=single-use-token",
     idempotent: false,
   },
   {
@@ -222,4 +230,57 @@ test("login answers 401 without expiring the session", async () => {
   assert.equal(failure.code, "invalid_credentials");
   assert.equal(failure.kind, "unauthorized");
   assert.equal(context.unauthorized.length, 0);
+});
+
+test("verify consumes the single-use token and reports the verified status", async () => {
+  const context = createTestContext({ responder: () => jsonResponse({ status: "verified" }) });
+
+  const answer = await createAuthClient(context.core).verify("single-use-token");
+  assert.equal(answer.status, "verified");
+  assert.equal(context.calls.length, 1);
+  assert.equal(context.unauthorized.length, 0);
+});
+
+test("verify refuses a spent or unknown token as validation, never as a session event", async () => {
+  const context = createTestContext({ responder: () => problemResponse(400, "invalid_token") });
+
+  const failure = await captureApiError(() => createAuthClient(context.core).verify("spent-token"));
+  assert.equal(failure.code, "invalid_token");
+  assert.equal(failure.kind, "validation");
+  assert.equal(failure.retryable, false);
+  assert.equal(context.unauthorized.length, 0, "a refused token is not an expired session");
+});
+
+test("verify retries a spent rate-limit budget and then verifies", async () => {
+  const context = createTestContext({
+    responder: (_call, index) =>
+      index < 2 ? problemResponse(429, "rate_limited", { "retry-after": "1" }) : jsonResponse({ status: "verified" }),
+  });
+
+  const answer = await createAuthClient(context.core).verify("single-use-token");
+  assert.equal(answer.status, "verified");
+  assert.equal(context.calls.length, 3, "a safe verification may be replayed after the budget returns");
+  assert.equal(context.unauthorized.length, 0);
+});
+
+test("verify answers an unexpected 401 by expiring the session", async () => {
+  const context = createTestContext({ responder: () => problemResponse(401, "session_expired") });
+
+  const failure = await captureApiError(() => createAuthClient(context.core).verify("single-use-token"));
+  assert.equal(failure.code, "session_expired");
+  assert.equal(context.unauthorized.length, 1);
+  assert.equal(context.unauthorized[0]?.path, "/api/v1/auth/verify");
+});
+
+test("the auth client stores no token and no password", () => {
+  // Comments document the rule, so they are stripped before the scan — the
+  // same precedent `tools/webaudit` uses before refusing a forbidden sink.
+  // What is measured is the behaviour, not its documentation.
+  const source = readPackageFile("src/core/clients/auth.ts")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|\s)\/\/.*$/gm, "$1");
+
+  for (const storage of ["localStorage", "sessionStorage", "document.cookie"]) {
+    assert.ok(!source.includes(storage), `auth.ts must never reach ${storage}: the session lives in cookies the server sets`);
+  }
 });
