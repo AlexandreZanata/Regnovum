@@ -13,6 +13,7 @@ import { createArgumentsClient } from "../../src/core/clients/arguments.js";
 import { createArenasClient } from "../../src/core/clients/arenas.js";
 import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
+import { createExportsClient } from "../../src/core/clients/exports.js";
 import { createMFAClient } from "../../src/core/clients/mfa.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
 import { createSessionsClient } from "../../src/core/clients/sessions.js";
@@ -257,6 +258,20 @@ const expectations: readonly Expectation[] = [
     method: "POST",
     url: "https://arena.test/api/v1/me/mfa/recovery",
     body: { code: "r1-first" },
+    idempotent: false,
+  },
+  {
+    name: "exports request",
+    run: (core) => createExportsClient(core).request(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/exports",
+    idempotent: false,
+  },
+  {
+    name: "exports download",
+    run: (core) => createExportsClient(core).download({ id: "exp-1", token: "t" }),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/exports/exp-1/download?token=t",
     idempotent: false,
   },
   {

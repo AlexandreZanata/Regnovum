@@ -1020,17 +1020,22 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "exports",
+      "page": "exports",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyExportRequestReplayAndDownload"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyExportRequestReplayAndDownload",
+        "internal/profiles/adapters/http/export_test.go::TestExportHTTPRequiresAuthAndStepUp",
+        "internal/profiles/adapters/http/export_test.go::TestExportHTTPRequestResponseAndGoldenDownload",
+        "web/tests/core/exports.test.ts",
+        "web/tests/pages/exports.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T04 requests the job in the browser through the exports client and the exports page (pt/en catalogs, step-up notice, no polling: requested is pending, ready downloads); proven via deterministic web tests (no-body 202, stale step_up_required, no retry, no idempotency key) plus the in-memory HTTP journey (auth+step-up gate, exact receipt keys, golden download, no-store)."
     },
     {
       "method": "GET",
@@ -1042,17 +1047,23 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "exports",
+      "page": "exports",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyExportRequestReplayAndDownload"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyExportRequestReplayAndDownload",
+        "internal/profiles/adapters/http/export_test.go::TestExportHTTPRequestResponseAndGoldenDownload",
+        "internal/profiles/adapters/http/export_test.go::TestExportHTTPRejectsExpiredLinks",
+        "web/tests/core/exports.test.ts",
+        "web/tests/core/downloads.test.ts",
+        "web/tests/pages/exports.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T04 downloads the document in the browser through the exports client and the downloads port (address built from the contract template, token as query, no server URL honored; object URL revoked after the save); proven via deterministic web tests (template path, encoding, replayed/expired/foreign 404, forged 403, lost response never replays, open+revoke once) plus the in-memory HTTP journey (golden document, attachment without token, replay and expiry denied)."
     },
     {
       "method": "POST",

@@ -112,6 +112,20 @@ export const messageKeys = {
     "auth.errors.required",
     "auth.errors.summary_title",
     "auth.errors.weak_password",
+    "auth.exports.download_submit",
+    "auth.exports.failure_forged",
+    "auth.exports.failure_generic",
+    "auth.exports.failure_gone",
+    "auth.exports.failure_stale",
+    "auth.exports.heading",
+    "auth.exports.intro",
+    "auth.exports.pending_heading",
+    "auth.exports.pending_note",
+    "auth.exports.ready_heading",
+    "auth.exports.ready_note",
+    "auth.exports.request_submit",
+    "auth.exports.revoke_note",
+    "auth.exports.stepup_note",
     "auth.field.code_hint",
     "auth.field.code_label",
     "auth.field.email_hint",
@@ -494,6 +508,20 @@ export type MessageKey =
   | "auth.errors.required"
   | "auth.errors.summary_title"
   | "auth.errors.weak_password"
+  | "auth.exports.download_submit"
+  | "auth.exports.failure_forged"
+  | "auth.exports.failure_generic"
+  | "auth.exports.failure_gone"
+  | "auth.exports.failure_stale"
+  | "auth.exports.heading"
+  | "auth.exports.intro"
+  | "auth.exports.pending_heading"
+  | "auth.exports.pending_note"
+  | "auth.exports.ready_heading"
+  | "auth.exports.ready_note"
+  | "auth.exports.request_submit"
+  | "auth.exports.revoke_note"
+  | "auth.exports.stepup_note"
   | "auth.field.code_hint"
   | "auth.field.code_label"
   | "auth.field.email_hint"
@@ -859,6 +887,20 @@ export const messagePlaceholders = Object.freeze({
   "auth.errors.required": [],
   "auth.errors.summary_title": [],
   "auth.errors.weak_password": ["min"],
+  "auth.exports.download_submit": [],
+  "auth.exports.failure_forged": [],
+  "auth.exports.failure_generic": [],
+  "auth.exports.failure_gone": [],
+  "auth.exports.failure_stale": [],
+  "auth.exports.heading": [],
+  "auth.exports.intro": [],
+  "auth.exports.pending_heading": [],
+  "auth.exports.pending_note": [],
+  "auth.exports.ready_heading": [],
+  "auth.exports.ready_note": [],
+  "auth.exports.request_submit": [],
+  "auth.exports.revoke_note": [],
+  "auth.exports.stepup_note": [],
   "auth.field.code_hint": [],
   "auth.field.code_label": [],
   "auth.field.email_hint": [],
@@ -1225,6 +1267,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.errors.required": "Fill in this field.",
     "auth.errors.summary_title": "Fix the fields below",
     "auth.errors.weak_password": "The password must be at least {min} characters long.",
+    "auth.exports.download_submit": "Download file",
+    "auth.exports.failure_forged": "This receipt does not check out. Download only through the request you made.",
+    "auth.exports.failure_generic": "The export did not answer. Try again.",
+    "auth.exports.failure_gone": "This link is worth no more: used, expired, or of another account. Request a new export.",
+    "auth.exports.failure_stale": "The session went stale for this request. Sign in again and ask once more.",
+    "auth.exports.heading": "Export my data",
+    "auth.exports.intro": "Request a file with your data and download it when it is ready. The download link is worth exactly once.",
+    "auth.exports.pending_heading": "Export requested",
+    "auth.exports.pending_note": "The file is being generated. Ask again to meet the active request; there is no other status address.",
+    "auth.exports.ready_heading": "Export ready",
+    "auth.exports.ready_note": "Download now: the link is worth exactly once and expires in 24 hours.",
+    "auth.exports.request_submit": "Request export",
+    "auth.exports.revoke_note": "After saving, the temporary file address is revoked and nothing stays in the browser.",
+    "auth.exports.stepup_note": "The request needs a recent authentication: if the session went stale, sign in again before requesting.",
     "auth.field.code_hint": "Paste the code we sent by email.",
     "auth.field.code_label": "Code",
     "auth.field.email_hint": "We use this address to confirm the account and to tell you when it changes.",
@@ -1588,6 +1644,20 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.errors.required": "Preencha este campo.",
     "auth.errors.summary_title": "Corrija os campos indicados",
     "auth.errors.weak_password": "A senha deve ter pelo menos {min} caracteres.",
+    "auth.exports.download_submit": "Baixar arquivo",
+    "auth.exports.failure_forged": "Este comprovante não confere. Baixe só pelo pedido que você fez.",
+    "auth.exports.failure_generic": "A exportação não respondeu. Tente de novo.",
+    "auth.exports.failure_gone": "Este link não vale mais: usado, vencido ou de outra conta. Peça uma nova exportação.",
+    "auth.exports.failure_stale": "A sessão esfriou para este pedido. Entre de novo e peça outra vez.",
+    "auth.exports.heading": "Exportar meus dados",
+    "auth.exports.intro": "Peça um arquivo com os seus dados e baixe quando estiver pronto. O link de download vale uma única vez.",
+    "auth.exports.pending_heading": "Exportação pedida",
+    "auth.exports.pending_note": "O arquivo está sendo gerado. Peça de novo para reencontrar o pedido ativo; não há outro endereço de consulta.",
+    "auth.exports.ready_heading": "Exportação pronta",
+    "auth.exports.ready_note": "Baixe agora: o link vale uma única vez e expira em 24 horas.",
+    "auth.exports.request_submit": "Pedir exportação",
+    "auth.exports.revoke_note": "Depois de salvar, o endereço temporário do arquivo é revogado e nada fica no navegador.",
+    "auth.exports.stepup_note": "O pedido exige autenticação recente: se a sessão esfriou, entre de novo antes de pedir.",
     "auth.field.code_hint": "Cole o código que enviamos por email.",
     "auth.field.code_label": "Código",
     "auth.field.email_hint": "Usamos este endereço para confirmar a conta e avisar sobre mudanças nela.",
