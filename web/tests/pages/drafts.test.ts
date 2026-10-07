@@ -1,10 +1,13 @@
 /**
- * Tests of the drafts panel presentation (P52-T03).
+ * Tests of the drafts panel presentation (P52-T03; editing P52-T04).
  *
  * They run the real generated catalogs in both locales: the form
  * carries exactly the contract fields with the bounds as hints, rows
  * render saved drafts verbatim, the single-flight guard refuses a
- * second press while one creation flies, and failures name only the
+ * second press while one creation flies, the edit view carries the
+ * server text with the version it must name back, a conflict keeps
+ * the unsent text and offers only re-reading, the delete
+ * confirmation names the statement, and failures name only the
  * server codes the backend really emits.
  */
 import assert from "node:assert/strict";
@@ -12,10 +15,14 @@ import { test } from "node:test";
 
 import {
   createCreationGuard,
+  draftConflictView,
+  draftDeleteView,
+  draftEditView,
   draftFailure,
   draftFormView,
   draftListView,
   draftRow,
+  failureField,
 } from "../../src/pages/drafts.js";
 import { createTranslator } from "../../src/i18n/translator.js";
 import type { PrivateArena, PrivateArenaList } from "../../src/contracts/generated.js";
@@ -140,9 +147,66 @@ test("failures name the real server codes and fall back otherwise", () => {
     );
   }
   assert.ok(draftFailure(translator, "rate_limited").includes("Too many requests"));
+  assert.ok(draftFailure(translator, "version_conflict").includes("changed elsewhere"));
+  assert.ok(draftFailure(translator, "arena_not_found").includes("not yours"));
   assert.equal(
     draftFailure(translator, "draft_too_many"),
     draftFailure(translator, "something-the-backend-never-emits"),
     "an unknown code must fall back to the generic sentence",
   );
+});
+
+test("the edit view carries the server text with the version it must name back", () => {
+  const view = draftEditView(translatorOf("pt-BR"), DRAFT);
+
+  assert.equal(view.heading, "Editar rascunho");
+  assert.equal(view.statement, "Máquinas podem ser responsáveis?");
+  assert.equal(view.context, "Contexto oferecido pelo autor.");
+  assert.equal(view.category, "philosophy");
+  assert.equal(view.expectedVersion, 1);
+  assert.ok(view.versionNote.includes("1"), "the version under edit must be named");
+});
+
+test("the edit view renders in en-US with a missing context", () => {
+  const view = draftEditView(translatorOf("en-US"), { ...DRAFT, context: null, version: 3 });
+
+  assert.equal(view.heading, "Edit draft");
+  assert.equal(view.context, null);
+  assert.equal(view.expectedVersion, 3);
+});
+
+test("a conflict keeps the unsent text and offers only re-reading", () => {
+  const view = draftConflictView(translatorOf("pt-BR"), {
+    statement: "Nova formulação ainda não enviada?",
+    context: null,
+  });
+
+  assert.ok(view.note.length > 0, "the conflict must explain itself");
+  assert.equal(view.unsentStatement, "Nova formulação ainda não enviada?");
+  assert.equal(view.unsentContext, null);
+  assert.equal(view.reload, "Reler rascunho");
+  const serialized = JSON.stringify(view);
+  assert.ok(!serialized.includes("publish"), "no implicit publish hides in the conflict");
+});
+
+test("the delete confirmation names the statement and nothing else", () => {
+  const view = draftDeleteView(translatorOf("pt-BR"), DRAFT);
+
+  assert.ok(view.confirmation.includes("Máquinas podem ser responsáveis?"), `unexpected: ${view.confirmation}`);
+  assert.equal(view.submit, "Descartar rascunho");
+  assert.ok(!JSON.stringify(view).includes("publish"), "publishing never hides in a deletion");
+
+  const en = draftDeleteView(translatorOf("en-US"), DRAFT);
+  assert.ok(en.confirmation.includes("Máquinas podem ser responsáveis?"));
+});
+
+test("failures focus the field the person fixes", () => {
+  assert.equal(failureField("arena_statement_too_short"), "statement");
+  assert.equal(failureField("arena_statement_too_long"), "statement");
+  assert.equal(failureField("arena_context_too_long"), "context");
+  assert.equal(failureField("arena_invalid_category"), "category");
+  assert.equal(failureField("arena_invalid_language"), "language");
+  assert.equal(failureField("version_conflict"), null, "a conflict belongs to the form, not to a field");
+  assert.equal(failureField("arena_not_found"), null);
+  assert.equal(failureField("something-the-backend-never-emits"), null);
 });

@@ -121,6 +121,113 @@ test("a lost creation is a failure, never a second draft by replay", async () =>
   assert.equal(failure.retryable, false);
 });
 
+test("reading addresses the opaque identifier and nothing else", async () => {
+  const context = createTestContext({ responder: () => jsonResponse(DRAFT) });
+
+  const answer = await createDraftsClient(context.core).get("018f6b2a-0000-7000-8000-000000000001");
+
+  assert.equal(context.calls.length, 1);
+  assert.equal(context.lastCall().init.method, "GET");
+  assert.equal(
+    context.lastCall().url,
+    "https://arena.test/api/v1/me/arena-drafts/018f6b2a-0000-7000-8000-000000000001",
+  );
+  assert.equal(answer.version, 1);
+  assert.equal(context.lastCall().init.cache, "no-store");
+});
+
+test("another account reads exactly like a missing draft", async () => {
+  const context = createTestContext({ responder: () => problemResponse(404, "arena_not_found") });
+
+  const failure = await captureApiError(() => createDraftsClient(context.core).get("someone-elses-draft"));
+
+  assert.equal(failure.code, "arena_not_found");
+  assert.equal(failure.kind, "not_found");
+});
+
+test("updating sends the replacement with the version it read", async () => {
+  const updated = { ...DRAFT, statement: "Nova formulação da controvérsia?", version: 2 };
+  const context = createTestContext({ responder: () => jsonResponse(updated) });
+
+  const answer = await createDraftsClient(context.core).update("018f6b2a-0000-7000-8000-000000000001", {
+    statement: "Nova formulação da controvérsia?",
+    category: "science",
+    language: "pt-BR",
+    expected_version: 1,
+  });
+
+  assert.equal(context.calls.length, 1);
+  assert.equal(context.lastCall().init.method, "PATCH");
+  assert.equal(
+    context.lastCall().url,
+    "https://arena.test/api/v1/me/arena-drafts/018f6b2a-0000-7000-8000-000000000001",
+  );
+  assert.deepEqual(bodyOf(context.lastCall()), {
+    statement: "Nova formulação da controvérsia?",
+    category: "science",
+    language: "pt-BR",
+    expected_version: 1,
+  });
+  assert.equal(headerOf(context.lastCall(), "idempotency-key"), null);
+  assert.equal(answer.version, 2);
+});
+
+test("updating publishes nothing: the body carries no transition", async () => {
+  const context = createTestContext({ responder: () => jsonResponse({ ...DRAFT, version: 2 }) });
+
+  await createDraftsClient(context.core).update("draft-1", {
+    statement: "Nova formulação da controvérsia?",
+    category: "science",
+    language: "pt-BR",
+    expected_version: 1,
+  });
+
+  const keys = Object.keys(bodyOf(context.lastCall()) as Record<string, unknown>).sort();
+  assert.deepEqual(keys, ["category", "expected_version", "language", "statement"]);
+});
+
+test("a stale version fails without a write and without a retry", async () => {
+  const context = createTestContext({ responder: () => problemResponse(409, "version_conflict") });
+
+  const failure = await captureApiError(() =>
+    createDraftsClient(context.core).update("draft-1", {
+      statement: "Nova formulação da controvérsia?",
+      category: "science",
+      language: "pt-BR",
+      expected_version: 1,
+    }),
+  );
+
+  assert.equal(failure.code, "version_conflict");
+  assert.equal(failure.kind, "conflict");
+  assert.equal(failure.retryable, false);
+  assert.equal(context.calls.length, 1, "a conflicted replacement must never replay");
+});
+
+test("deleting answers no body and is never replayed", async () => {
+  const context = createTestContext({ responder: () => new Response(null, { status: 204 }) });
+
+  await createDraftsClient(context.core).remove("018f6b2a-0000-7000-8000-000000000001");
+
+  assert.equal(context.calls.length, 1);
+  assert.equal(context.lastCall().init.method, "DELETE");
+  assert.equal(
+    context.lastCall().url,
+    "https://arena.test/api/v1/me/arena-drafts/018f6b2a-0000-7000-8000-000000000001",
+  );
+  assert.equal(headerOf(context.lastCall(), "idempotency-key"), null);
+});
+
+test("deleting a missing or foreign draft reads as not found", async () => {
+  const context = createTestContext({ responder: () => problemResponse(404, "arena_not_found") });
+
+  const failure = await captureApiError(() => createDraftsClient(context.core).remove("gone-or-foreign"));
+
+  assert.equal(failure.code, "arena_not_found");
+  assert.equal(failure.kind, "not_found");
+  assert.equal(context.calls.length, 1);
+});
+
 test("a rate limit is a failure the person answers, never a replay", async () => {
   const context = createTestContext({ responder: () => problemResponse(429, "rate_limited") });
 

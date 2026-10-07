@@ -314,6 +314,34 @@ const expectations: readonly Expectation[] = [
     idempotent: false,
   },
   {
+    name: "drafts get",
+    run: (core) => createDraftsClient(core).get("draft-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/arena-drafts/draft-1",
+    idempotent: false,
+  },
+  {
+    name: "drafts update",
+    run: (core) =>
+      createDraftsClient(core).update("draft-1", {
+        statement: "Machines, responsible?",
+        category: "philosophy",
+        language: "en-US",
+        expected_version: 1,
+      }),
+    method: "PATCH",
+    url: "https://arena.test/api/v1/me/arena-drafts/draft-1",
+    body: { statement: "Machines, responsible?", category: "philosophy", language: "en-US", expected_version: 1 },
+    idempotent: false,
+  },
+  {
+    name: "drafts remove",
+    run: (core) => createDraftsClient(core).remove("draft-1"),
+    method: "DELETE",
+    url: "https://arena.test/api/v1/me/arena-drafts/draft-1",
+    idempotent: false,
+  },
+  {
     name: "arguments reply",
     run: (core) => createArgumentsClient(core).reply("arena-1", "arg-1", { relation: "oppose", content: "reply", sources: [] }),
     method: "POST",

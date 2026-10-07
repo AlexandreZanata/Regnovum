@@ -124,6 +124,85 @@ export function draftListView(
   return { state: "ready", rows: list.items.map((draft) => draftRow(translator, locale, draft)) };
 }
 
+/** Everything the page renders for editing one saved draft. */
+export interface DraftEditView {
+  readonly heading: string;
+  /** Names the version under edit; the save carries it back. */
+  readonly versionNote: string;
+  /** The server text, editable in memory only — never stored. */
+  readonly statement: string;
+  readonly context: string | null;
+  readonly category: string;
+  readonly language: string;
+  /** The version the save must name, or the server refuses. */
+  readonly expectedVersion: number;
+  readonly submit: string;
+}
+
+/**
+ * draftEditView projects one server record for editing. The text lives
+ * in the view alone: unsent edits are ephemeral memory the page never
+ * persists, and the version travels back so a concurrent change is
+ * refused instead of overwritten.
+ */
+export function draftEditView(translator: Translator, draft: PrivateArena): DraftEditView {
+  return {
+    heading: translator.translate("arenas.drafts.edit_heading"),
+    versionNote: translator.translate("arenas.drafts.edit_note", { version: draft.version }),
+    statement: draft.statement,
+    context: draft.context ?? null,
+    category: draft.category,
+    language: draft.language,
+    expectedVersion: draft.version,
+    submit: translator.translate("arenas.drafts.submit"),
+  };
+}
+
+/** Everything the page confirms before discarding one draft. */
+export interface DraftDeleteView {
+  /** Names the statement and nothing else — no metadata, no reason. */
+  readonly confirmation: string;
+  readonly submit: string;
+}
+
+/**
+ * draftDeleteView projects the sentence the page confirms with: it
+ * names the draft statement the server recorded. Only drafts are
+ * deletable; publishing never hides in this confirmation.
+ */
+export function draftDeleteView(translator: Translator, draft: PrivateArena): DraftDeleteView {
+  return {
+    confirmation: translator.translate("arenas.drafts.delete_confirm", { statement: draft.statement }),
+    submit: translator.translate("arenas.drafts.delete_submit"),
+  };
+}
+
+/** What the page renders when a save meets a newer version. */
+export interface DraftConflictView {
+  readonly note: string;
+  /** The unsent text, preserved verbatim for the next attempt. */
+  readonly unsentStatement: string;
+  readonly unsentContext: string | null;
+  readonly reload: string;
+}
+
+/**
+ * draftConflictView projects a version conflict: the unsent text stays
+ * on screen for the person to keep, and the only way forward is
+ * re-reading the server record — never overwriting it blind.
+ */
+export function draftConflictView(
+  translator: Translator,
+  unsent: { readonly statement: string; readonly context: string | null },
+): DraftConflictView {
+  return {
+    note: translator.translate("arenas.drafts.conflict_note"),
+    unsentStatement: unsent.statement,
+    unsentContext: unsent.context,
+    reload: translator.translate("arenas.drafts.conflict_reload"),
+  };
+}
+
 /**
  * A single-flight guard for one creation: the first press while idle
  * opens the flight, any press inside it is refused, and the answer —
@@ -155,6 +234,30 @@ export function createCreationGuard(): CreationGuard {
 }
 
 /**
+ * failureField names the form field a refusal belongs to, so the
+ * renderer can focus the error where the person fixes it. Only fields
+ * the form renders are named; anything else answers null and the
+ * error stays at the form.
+ */
+export function failureField(serverCode: string): "statement" | "context" | "category" | "language" | null {
+  switch (serverCode) {
+    case "arena_statement_too_short":
+    case "arena_statement_too_long":
+    case "arena_invalid_statement":
+      return "statement";
+    case "arena_context_too_long":
+    case "arena_invalid_context":
+      return "context";
+    case "arena_invalid_category":
+      return "category";
+    case "arena_invalid_language":
+      return "language";
+    default:
+      return null;
+  }
+}
+
+/**
  * draftFailure translates a refusal by the server code the backend
  * really emits. Codes the backend never emits are not named here: they
  * fall back to the generic sentence instead of inventing a meaning.
@@ -169,6 +272,10 @@ export function draftFailure(translator: Translator, serverCode: string): string
       return translator.translate("arenas.drafts.failure_invalid");
     case "rate_limited":
       return translator.translate("arenas.drafts.failure_rate_limited");
+    case "version_conflict":
+      return translator.translate("arenas.drafts.failure_conflict");
+    case "arena_not_found":
+      return translator.translate("arenas.drafts.failure_missing");
     default:
       return translator.translate("arenas.drafts.failure_generic");
   }

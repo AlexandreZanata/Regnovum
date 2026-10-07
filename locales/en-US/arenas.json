@@ -153,7 +153,16 @@
       "status_draft": "Draft",
       "failure_invalid": "The formulation did not pass: check length, category and language.",
       "failure_rate_limited": "Too many requests in a row. Wait a moment and try again.",
-      "failure_generic": "The draft did not answer. Try again."
+      "failure_generic": "The draft did not answer. Try again.",
+      "edit_heading": "Edit draft",
+      "edit_note": "You edit version {version}. If the draft changes elsewhere, the server refuses and nothing is overwritten.",
+      "delete_confirm": "Discard the draft “{statement}”? This cannot be undone.",
+      "delete_submit": "Discard draft",
+      "deleted": "Draft discarded.",
+      "conflict_note": "The draft changed since you read it. Your text is kept below; re-read before saving again.",
+      "conflict_reload": "Re-read draft",
+      "failure_conflict": "The draft changed elsewhere. Re-read and save again.",
+      "failure_missing": "This draft does not exist or is not yours."
     }
   }
 }

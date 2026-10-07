@@ -16,7 +16,12 @@
  * single-flight guard of the drafts page — not a replay — is what
  * keeps a double submit from recording twice.
  */
-import type { ArenaDraftRequest, PrivateArena, PrivateArenaList } from "../../contracts/generated.js";
+import type {
+  ArenaDraftRequest,
+  ArenaDraftUpdateRequest,
+  PrivateArena,
+  PrivateArenaList,
+} from "../../contracts/generated.js";
 import type { HttpCore } from "../http.js";
 
 /** Owner draft operations the authorship journey needs. */
@@ -25,6 +30,23 @@ export interface DraftsClient {
   list(): Promise<PrivateArenaList>;
   /** Creates one private draft from the contract fields alone. */
   create(input: ArenaDraftRequest): Promise<PrivateArena>;
+  /**
+   * Reads one owned draft by its opaque identifier. A missing draft
+   * and another account's read exactly alike: not found.
+   */
+  get(id: string): Promise<PrivateArena>;
+  /**
+   * Replaces one draft under the optimistic version check. A stale
+   * expected_version fails with version_conflict and no write happens;
+   * the operation is never retried and carries no idempotency key, so
+   * a lost response is a failure the person answers by reading again.
+   */
+  update(id: string, input: ArenaDraftUpdateRequest): Promise<PrivateArena>;
+  /**
+   * Discards one draft. Only drafts are deletable; the answer has no
+   * body. Never retried: a lost 204 is re-read, never replayed blind.
+   */
+  remove(id: string): Promise<void>;
 }
 
 const DRAFTS_PATH = "/api/v1/me/arena-drafts";
@@ -40,6 +62,24 @@ export function createDraftsClient(core: HttpCore): DraftsClient {
         method: "POST",
         path: DRAFTS_PATH,
         body: input,
+        retry: false,
+      }),
+
+    get: (id: string): Promise<PrivateArena> =>
+      core.request<PrivateArena>({ method: "GET", path: `${DRAFTS_PATH}/${encodeURIComponent(id)}` }),
+
+    update: (id: string, input: ArenaDraftUpdateRequest): Promise<PrivateArena> =>
+      core.request<PrivateArena>({
+        method: "PATCH",
+        path: `${DRAFTS_PATH}/${encodeURIComponent(id)}`,
+        body: input,
+        retry: false,
+      }),
+
+    remove: (id: string): Promise<void> =>
+      core.request<void>({
+        method: "DELETE",
+        path: `${DRAFTS_PATH}/${encodeURIComponent(id)}`,
         retry: false,
       }),
   };
