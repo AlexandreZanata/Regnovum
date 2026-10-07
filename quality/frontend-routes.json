@@ -849,17 +849,22 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "deletion",
+      "page": "deletion",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPJourneyRequestStatusCancel",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPOwnerIsolationAndUnknownRequest",
+        "web/tests/core/deletion.test.ts",
+        "web/tests/pages/deletion.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T05 reads the holder record in the browser through the deletion client and the deletion page (server-confirmed requested/canceled/executed, no fourth state); proven via deterministic web tests (owner record, missing and foreign 404, no-store) plus the in-memory HTTP journey (record reflection, owner isolation)."
     },
     {
       "method": "POST",
@@ -871,17 +876,21 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "deletion",
+      "page": "deletion",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPJourneyRequestStatusCancel",
+        "web/tests/core/deletion.test.ts",
+        "web/tests/pages/deletion.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T05 starts the cooling-off period in the browser through the deletion client and the deletion page (explicit confirmation of the rule consequences, no Idempotency-Key: replay is by account, not by key); proven via deterministic web tests (no-body 202, lost response never replayed by the core) plus the in-memory HTTP journey (202 receipt, replay marked Idempotency-Replayed, no-store)."
     },
     {
       "method": "POST",
@@ -893,17 +902,22 @@
       "audience": "owner",
       "phase": "P51",
       "task": "P48-T01",
-      "client": "planned-account",
-      "page": "planned-account",
+      "client": "deletion",
+      "page": "deletion",
       "exclusion": null,
       "tests": [
         "internal/profiles/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow"
+        "internal/bootstrap/account_privacy_test.go::TestPrivacyDeletionRequestCancelWorkflow",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPJourneyRequestStatusCancel",
+        "internal/profiles/adapters/http/deletion_test.go::TestDeletionHTTPOwnerIsolationAndUnknownRequest",
+        "web/tests/core/deletion.test.ts",
+        "web/tests/pages/deletion.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T02 mounted in ComposeAccountPrivacy over shared pool/security/session validator; proven via process httptest+PG (owner-vs-other, replay idempotence, no-store, single-use download). Browser client/page lands in P51/P54."
+      "note": "P51-T05 cancels inside the window in the browser through the deletion client and the deletion page (no reason collected: restricted evidence; terminal 409 stays terminal); proven via deterministic web tests (no-body cancel, terminal conflict never retried) plus the in-memory HTTP journey (reason never echoed, second cancel 409 deletion_not_cancellable)."
     },
     {
       "method": "GET",

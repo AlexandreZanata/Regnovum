@@ -13,6 +13,7 @@ import { createArgumentsClient } from "../../src/core/clients/arguments.js";
 import { createArenasClient } from "../../src/core/clients/arenas.js";
 import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
+import { createDeletionClient } from "../../src/core/clients/deletion.js";
 import { createExportsClient } from "../../src/core/clients/exports.js";
 import { createMFAClient } from "../../src/core/clients/mfa.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
@@ -272,6 +273,27 @@ const expectations: readonly Expectation[] = [
     run: (core) => createExportsClient(core).download({ id: "exp-1", token: "t" }),
     method: "GET",
     url: "https://arena.test/api/v1/me/exports/exp-1/download?token=t",
+    idempotent: false,
+  },
+  {
+    name: "deletion status",
+    run: (core) => createDeletionClient(core).status(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/deletion",
+    idempotent: false,
+  },
+  {
+    name: "deletion request",
+    run: (core) => createDeletionClient(core).request(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/deletion",
+    idempotent: false,
+  },
+  {
+    name: "deletion cancel",
+    run: (core) => createDeletionClient(core).cancel(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/deletion/cancel",
     idempotent: false,
   },
   {
