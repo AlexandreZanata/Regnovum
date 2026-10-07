@@ -1453,19 +1453,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "sessions",
+      "page": "sessions",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout",
+        "web/tests/core/sessions.test.ts",
+        "web/tests/pages/sessions.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T02 reads the list in the browser through the sessions client and the sessions page presentation (pt/en catalogs, Intl instants, allowlisted metadata only); proven via deterministic web tests (contract paths, rotation no-retry, lost rotation no replay, 403/404/409 no retry, foreign 404, confirmation names target, own-session end leaves without loop) plus the mounted process journey over the shared pool/security/session validator (register-login-sessions-logout, 401, rotation, revocation). No token or cookie ever rendered."
     },
     {
       "method": "POST",
@@ -1475,19 +1478,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "sessions",
+      "page": "sessions",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout",
+        "web/tests/core/sessions.test.ts",
+        "web/tests/pages/sessions.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T02 revokes by opaque identifier with password re-authentication through the sessions client and the sessions page confirmation; proven via deterministic web tests (revoke body, 403/404/409 no retry, foreign 404 like missing, confirmation names target, other re-reads the list, current leaves for sign-in without loop or false success) plus the mounted process journey over the shared pool/security/session validator. No token or cookie ever rendered."
     },
     {
       "method": "POST",
@@ -1497,19 +1503,22 @@
       "declaration": "internal/identity/adapters/http/routes.go",
       "readiness": "published",
       "audience": "owner",
-      "phase": "P50",
+      "phase": "P51",
       "task": "P48-T01",
-      "client": "auth",
-      "page": "planned-account-security",
+      "client": "sessions",
+      "page": "sessions",
       "exclusion": null,
       "tests": [
         "internal/identity/adapters/http/routes.go",
         "api/openapi.json",
         "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes",
-        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout"
+        "internal/bootstrap/account_json_test.go::TestAccountJSONRegisterLoginSessionsLogout",
+        "web/tests/core/sessions.test.ts",
+        "web/tests/pages/sessions.test.ts",
+        "web/tests/core/clients.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P49-T01 mounted in ComposeAccount over shared pool/security/CSRF; proven via process httptest+PG (register-login-sessions-logout, 401, rotation, revocation). Browser client/page lands in P50."
+      "note": "P51-T02 rotates the calling session through the sessions client (no body, no retry, no idempotency key: no backend-proven idempotent contract); proven via deterministic web tests (rotation path, lost rotation surfaces as failure, never replayed) plus the mounted process journey over the shared pool/security/session validator. No token or cookie ever rendered."
     },
     {
       "method": "GET",

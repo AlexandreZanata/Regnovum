@@ -14,6 +14,7 @@ import { createArenasClient } from "../../src/core/clients/arenas.js";
 import { createAuthClient } from "../../src/core/clients/auth.js";
 import { createPositionsClient } from "../../src/core/clients/positions.js";
 import { createProfilesClient } from "../../src/core/clients/profiles.js";
+import { createSessionsClient } from "../../src/core/clients/sessions.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -202,6 +203,28 @@ const expectations: readonly Expectation[] = [
     run: (core) => createProfilesClient(core).reputation("ada"),
     method: "GET",
     url: "https://arena.test/api/v1/profiles/ada/reputation",
+    idempotent: false,
+  },
+  {
+    name: "sessions list",
+    run: (core) => createSessionsClient(core).list(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/sessions",
+    idempotent: false,
+  },
+  {
+    name: "sessions rotate",
+    run: (core) => createSessionsClient(core).rotate(),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/sessions/rotation",
+    idempotent: false,
+  },
+  {
+    name: "sessions revoke",
+    run: (core) => createSessionsClient(core).revoke({ session_id: "sess-2", password: "pw" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/sessions/revocation",
+    body: { session_id: "sess-2", password: "pw" },
     idempotent: false,
   },
   {
