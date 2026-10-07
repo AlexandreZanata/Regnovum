@@ -1,10 +1,14 @@
 /**
- * Arenas client (P18-T03; journey P18-T06).
+ * Arenas client (P18-T03; journey P18-T06; versioned export P52-T05).
  *
  * Public reads only. Everything here is a safe method, so the core applies
  * its retry policy, and the HTTP cache keeps the ETags the backend sends.
+ * The versioned export revalidates through that same cache: the page
+ * never assembles an `If-None-Match` validator itself, and only public
+ * data ever serializes — no individual position, change history or
+ * attributor identity is part of the document.
  */
-import type { ArenaFeed, PublicArena, SearchArenaPage } from "../../contracts/generated.js";
+import type { ArenaExport, ArenaFeed, PublicArena, SearchArenaPage } from "../../contracts/generated.js";
 import type { HttpCore } from "../http.js";
 
 /** Feed filters of `GET /api/v1/arenas`; cursor pages stay opaque. */
@@ -24,11 +28,25 @@ export interface ArenaSearchQuery {
   readonly limit?: number;
 }
 
+/** Page window of `GET /api/v1/arenas/{id}/export`; the cursor stays opaque. */
+export interface ArenaExportQuery {
+  readonly cursor?: string;
+  readonly limit?: number;
+}
+
 /** Read operations the arena pages need. */
 export interface ArenasClient {
   feed(query?: ArenaFeedQuery): Promise<ArenaFeed>;
   bySlug(slug: string): Promise<PublicArena>;
   search(query: ArenaSearchQuery): Promise<SearchArenaPage>;
+  /**
+   * One page of the versioned public export of one Arena by its
+   * stable identifier. Unknown, draft and removed Arenas read as
+   * not found. The page size travels as asked — the 1..100 bounds
+   * are the server's to enforce — and the cursor is never built or
+   * shaped here.
+   */
+  exportById(id: string, query?: ArenaExportQuery): Promise<ArenaExport>;
 }
 
 const ARENAS_PATH = "/api/v1/arenas";
@@ -54,6 +72,13 @@ export function createArenasClient(core: HttpCore): ArenasClient {
         method: "GET",
         path: SEARCH_PATH,
         query: { q: query.q, language: query.language, cursor: query.cursor, limit: query.limit },
+      }),
+
+    exportById: (id: string, query?: ArenaExportQuery): Promise<ArenaExport> =>
+      core.request<ArenaExport>({
+        method: "GET",
+        path: `${ARENAS_PATH}/${encodeURIComponent(id)}/export`,
+        ...(query === undefined ? {} : { query: { cursor: query.cursor, limit: query.limit } }),
       }),
   };
 }

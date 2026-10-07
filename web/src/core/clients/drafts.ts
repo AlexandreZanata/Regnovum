@@ -1,5 +1,5 @@
 /**
- * Arena drafts client (P52-T03).
+ * Arena drafts client (P52-T03; publication and closure P52-T05).
  *
  * The owner lists their private drafts and creates new ones. Creation
  * sends exactly the fields the contract declares — statement,
@@ -15,6 +15,18 @@
  * surfaces as a failure the person answers by asking again, and the
  * single-flight guard of the drafts page — not a replay — is what
  * keeps a double submit from recording twice.
+ *
+ * Publication and closure close the same authorship journey on the
+ * same opaque identifier. Publishing consumes exactly one Arena Pass
+ * in the server transaction — the browser computes no price and
+ * sends no payment — and without an available pass nothing is
+ * written. Both transitions are single-shot calls, never retried
+ * with no idempotency key: the contract declares no `Idempotency-Key`
+ * parameter for either, and the server itself resolves a replay by
+ * state, answering the already published or already closed Arena
+ * without consuming or transitioning again. A lost answer is a
+ * failure the person answers by reading again, never a replay the
+ * core invents.
  */
 import type {
   ArenaDraftRequest,
@@ -47,9 +59,25 @@ export interface DraftsClient {
    * body. Never retried: a lost 204 is re-read, never replayed blind.
    */
   remove(id: string): Promise<void>;
+  /**
+   * Publishes one draft, spending exactly one Arena Pass in the
+   * server transaction. Without an available pass nothing is written
+   * and the refusal names no_pass_available. A replay answers the
+   * published Arena without spending again; the browser publishes
+   * once and reads the answer, never assuming success.
+   */
+  publish(id: string): Promise<PrivateArena>;
+  /**
+   * Closes one published Arena of the same owner. Only the creator
+   * may close and only a published Arena can be closed; a stranger
+   * reads as not found and a draft as an invalid transition. A
+   * replay answers the closed Arena without a second transition.
+   */
+  close(id: string): Promise<PrivateArena>;
 }
 
 const DRAFTS_PATH = "/api/v1/me/arena-drafts";
+const OWN_ARENAS_PATH = "/api/v1/me/arenas";
 
 /** createDraftsClient binds the draft operations to a shared core. */
 export function createDraftsClient(core: HttpCore): DraftsClient {
@@ -80,6 +108,20 @@ export function createDraftsClient(core: HttpCore): DraftsClient {
       core.request<void>({
         method: "DELETE",
         path: `${DRAFTS_PATH}/${encodeURIComponent(id)}`,
+        retry: false,
+      }),
+
+    publish: (id: string): Promise<PrivateArena> =>
+      core.request<PrivateArena>({
+        method: "POST",
+        path: `${DRAFTS_PATH}/${encodeURIComponent(id)}/publish`,
+        retry: false,
+      }),
+
+    close: (id: string): Promise<PrivateArena> =>
+      core.request<PrivateArena>({
+        method: "POST",
+        path: `${OWN_ARENAS_PATH}/${encodeURIComponent(id)}/close`,
         retry: false,
       }),
   };

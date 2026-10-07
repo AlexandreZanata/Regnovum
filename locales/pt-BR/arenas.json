@@ -162,7 +162,18 @@
       "conflict_note": "O rascunho mudou desde que você leu. Seu texto está guardado abaixo; releia antes de salvar de novo.",
       "conflict_reload": "Reler rascunho",
       "failure_conflict": "O rascunho mudou em outro lugar. Releia e salve de novo.",
-      "failure_missing": "Este rascunho não existe ou não é seu."
+      "failure_missing": "Este rascunho não existe ou não é seu.",
+      "publish_confirm": "Publicar o rascunho “{statement}”?",
+      "publish_cost": "A publicação consome exatamente um passe de arena. Sem passe disponível, nada muda.",
+      "publish_submit": "Publicar rascunho",
+      "published": "Arena publicada.",
+      "close_confirm": "Encerrar a arena “{statement}”?",
+      "close_submit": "Encerrar arena",
+      "closed": "Arena encerrada.",
+      "export_empty": "Nenhum argumento público nesta exportação.",
+      "failure_no_pass": "Sem passe de arena disponível. Nada foi publicado ou consumido.",
+      "failure_status": "Esta arena não aceita esta mudança de estado agora.",
+      "failure_export_page": "Esta página da exportação expirou. Recomece da primeira página."
     }
   }
 }

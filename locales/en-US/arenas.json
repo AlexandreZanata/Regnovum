@@ -162,7 +162,18 @@
       "conflict_note": "The draft changed since you read it. Your text is kept below; re-read before saving again.",
       "conflict_reload": "Re-read draft",
       "failure_conflict": "The draft changed elsewhere. Re-read and save again.",
-      "failure_missing": "This draft does not exist or is not yours."
+      "failure_missing": "This draft does not exist or is not yours.",
+      "publish_confirm": "Publish the draft “{statement}”?",
+      "publish_cost": "Publication consumes exactly one Arena Pass. Without an available pass, nothing changes.",
+      "publish_submit": "Publish draft",
+      "published": "Arena published.",
+      "close_confirm": "Close the arena “{statement}”?",
+      "close_submit": "Close arena",
+      "closed": "Arena closed.",
+      "export_empty": "No public arguments in this export.",
+      "failure_no_pass": "No Arena Pass available. Nothing was published or spent.",
+      "failure_status": "This arena cannot change state right now.",
+      "failure_export_page": "This export page expired. Start again from the first page."
     }
   }
 }

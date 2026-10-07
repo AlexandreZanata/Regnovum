@@ -342,6 +342,27 @@ const expectations: readonly Expectation[] = [
     idempotent: false,
   },
   {
+    name: "drafts publish",
+    run: (core) => createDraftsClient(core).publish("draft-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/arena-drafts/draft-1/publish",
+    idempotent: false,
+  },
+  {
+    name: "drafts close",
+    run: (core) => createDraftsClient(core).close("arena-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/arenas/arena-1/close",
+    idempotent: false,
+  },
+  {
+    name: "arenas export",
+    run: (core) => createArenasClient(core).exportById("arena-1", { cursor: "c1", limit: 20 }),
+    method: "GET",
+    url: "https://arena.test/api/v1/arenas/arena-1/export?cursor=c1&limit=20",
+    idempotent: false,
+  },
+  {
     name: "arguments reply",
     run: (core) => createArgumentsClient(core).reply("arena-1", "arg-1", { relation: "oppose", content: "reply", sources: [] }),
     method: "POST",

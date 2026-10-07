@@ -21,7 +21,7 @@
  * the core confirmed joins the list.
  */
 import { formatInstant } from "../i18n/formats.js";
-import type { PrivateArena, PrivateArenaList } from "../contracts/generated.js";
+import type { ArenaExport, PrivateArena, PrivateArenaList } from "../contracts/generated.js";
 import type { Locale } from "../i18n/locale.js";
 import type { Translator } from "../i18n/translator.js";
 
@@ -177,6 +177,118 @@ export function draftDeleteView(translator: Translator, draft: PrivateArena): Dr
   };
 }
 
+/** Everything the page confirms before publishing one draft. */
+export interface DraftPublishView {
+  /** Names the statement under publish, and nothing else. */
+  readonly confirmation: string;
+  /**
+   * The server's cost fact: exactly one Arena Pass is consumed. The
+   * browser computes no price and sends no payment; it only repeats
+   * what the contract declares.
+   */
+  readonly costNote: string;
+  readonly submit: string;
+}
+
+/**
+ * draftPublishView projects the sentence the page confirms with: it
+ * names the draft statement the server recorded and the single pass
+ * the publication spends. A refused publish changes nothing, so the
+ * confirmation promises no outcome — only the cost of trying.
+ */
+export function draftPublishView(translator: Translator, draft: PrivateArena): DraftPublishView {
+  return {
+    confirmation: translator.translate("arenas.drafts.publish_confirm", { statement: draft.statement }),
+    costNote: translator.translate("arenas.drafts.publish_cost"),
+    submit: translator.translate("arenas.drafts.publish_submit"),
+  };
+}
+
+/** Everything the page confirms before closing one published Arena. */
+export interface DraftCloseView {
+  /** Names the statement under closure, and nothing else. */
+  readonly confirmation: string;
+  readonly submit: string;
+}
+
+/**
+ * draftCloseView projects the sentence the page confirms with: it
+ * names the Arena statement the server recorded. Only the creator's
+ * own published Arena is closable; a stranger's reads as not found
+ * and a draft as an invalid transition, both before this screen.
+ */
+export function draftCloseView(translator: Translator, draft: PrivateArena): DraftCloseView {
+  return {
+    confirmation: translator.translate("arenas.drafts.close_confirm", { statement: draft.statement }),
+    submit: translator.translate("arenas.drafts.close_submit"),
+  };
+}
+
+/** One public argument inside the versioned export. */
+export interface ArenaExportArgumentView {
+  readonly id: string;
+  /** Editorial code, verbatim: the page translates no taxonomy. */
+  readonly relation: string;
+  /** The content, verbatim — or null when moderation withdrew it. */
+  readonly content: string | null;
+  readonly status: string;
+}
+
+/** Everything the page renders for one versioned public export. */
+export interface ArenaExportView {
+  /** The statement, verbatim: the title translates nothing. */
+  readonly statement: string;
+  readonly status: string;
+  /** Editorial code, verbatim: the page translates no taxonomy. */
+  readonly category: string;
+  readonly language: string;
+  readonly published: string;
+  readonly participants: number;
+  readonly changes: number;
+  /**
+   * The low-count suppression sentence when the aggregates hide,
+   * else null: counts stay hidden rather than guessed.
+   */
+  readonly suppressedNote: string | null;
+  readonly validAttributions: number;
+  readonly influencedAuthors: number;
+  readonly emptyArguments: string;
+  readonly arguments: readonly ArenaExportArgumentView[];
+  /** The opaque cursor of the next page, or null at the end. */
+  readonly nextCursor: string | null;
+}
+
+/**
+ * arenaExportView projects one export page for one translator. Only
+ * public data renders: identity and state, aggregate counts, valid
+ * influence counts and the public arguments with their sources left
+ * out — sources travel in the document the downloader keeps, never
+ * as rendered attribution. Withdrawn content stays null, never
+ * reconstructed; the cursor is carried, never shaped.
+ */
+export function arenaExportView(translator: Translator, locale: Locale, doc: ArenaExport): ArenaExportView {
+  return {
+    statement: doc.arena.statement,
+    status: translator.translate(`arenas.document.status.${doc.arena.status}`),
+    category: doc.arena.category,
+    language: doc.arena.language,
+    published: formatInstant(locale, doc.arena.published_at, { dateStyle: "long", timeStyle: "short" }),
+    participants: doc.positions.participants_total,
+    changes: doc.positions.position_changes,
+    suppressedNote: doc.positions.suppressed ? translator.translate("arenas.participation.aggregate.suppressed") : null,
+    validAttributions: doc.influence.valid_attributions,
+    influencedAuthors: doc.influence.influenced_authors,
+    emptyArguments: translator.translate("arenas.drafts.export_empty"),
+    arguments: doc.arguments.items.map((item) => ({
+      id: item.id,
+      relation: item.relation,
+      content: item.content,
+      status: item.status,
+    })),
+    nextCursor: doc.arguments.next_cursor,
+  };
+}
+
 /** What the page renders when a save meets a newer version. */
 export interface DraftConflictView {
   readonly note: string;
@@ -276,6 +388,12 @@ export function draftFailure(translator: Translator, serverCode: string): string
       return translator.translate("arenas.drafts.failure_conflict");
     case "arena_not_found":
       return translator.translate("arenas.drafts.failure_missing");
+    case "no_pass_available":
+      return translator.translate("arenas.drafts.failure_no_pass");
+    case "invalid_status_change":
+      return translator.translate("arenas.drafts.failure_status");
+    case "invalid_cursor":
+      return translator.translate("arenas.drafts.failure_export_page");
     default:
       return translator.translate("arenas.drafts.failure_generic");
   }
