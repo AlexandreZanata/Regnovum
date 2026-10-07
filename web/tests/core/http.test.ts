@@ -1,7 +1,9 @@
 /**
- * Tests of the native HTTP core (P18-T03) against a fake transport: every
- * validation the task names — abort, 401, 409, 429, invalid JSON and retry —
- * plus URL composition, CSRF, request ID, cache mode and observation.
+ * Tests of the native HTTP core (P18-T03; lifecycle P50-T03) against a fake
+ * transport: deterministic 401/403/409/422/429/5xx, empty/illegible bodies,
+ * timeout/abort, out-of-order navigation, Problem Details, deadlines and the
+ * strict mutation rule — an unsafe request retries only with an explicit
+ * idempotency key for a backend-proven contract; the core never invents one.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -75,6 +77,12 @@ test("keeps the browser HTTP cache for public reads and no-store for account dat
   assert.equal(context.lastCall().init.cache, "default");
 
   await context.core.request({ method: "GET", path: "/api/v1/me/profile" });
+  assert.equal(context.lastCall().init.cache, "no-store");
+  await context.core.request({ method: "GET", path: "/api/v1/me/sessions" });
+  assert.equal(context.lastCall().init.cache, "no-store");
+  await context.core.request({ method: "POST", path: "/api/v1/auth/login", body: {} });
+  assert.equal(context.lastCall().init.cache, "no-store");
+  await context.core.request({ method: "GET", path: "/api/v1/auth/verify", query: { token: "t" } });
   assert.equal(context.lastCall().init.cache, "no-store");
   assert.equal(context.lastCall().init.credentials, "same-origin");
   assert.equal(context.lastCall().init.redirect, "error");
@@ -225,20 +233,91 @@ test("retries a network failure only when the request is safe", async () => {
   assert.deepEqual(unsafe.delays, []);
 });
 
-test("makes a retried mutation idempotent and replays the same key", async () => {
+test("never retries a mutation without an explicit key and never invents one", async () => {
+  const context = createTestContext({
+    responder: () => problemResponse(503, "unavailable"),
+  });
+
+  const failure = await captureApiError(() =>
+    context.core.request({ method: "POST", path: "/api/v1/me/arenas/x/arguments", body: { content: "c" }, retry: { maxAttempts: 3 } }),
+  );
+  assert.equal(failure.code, "unavailable");
+  assert.equal(failure.retryable, false);
+  assert.equal(failure.attempts, 1);
+  assert.equal(context.calls.length, 1);
+  assert.equal(headerOf(context.lastCall(), "idempotency-key"), null);
+  assert.deepEqual(context.delays, []);
+});
+
+test("retries a mutation only with an explicit key and replays the same key", async () => {
   const context = createTestContext({
     responder: (_call, index) => (index === 0 ? problemResponse(503, "unavailable") : jsonResponse({ argument: { id: "a1" } })),
   });
 
-  await context.core.request({ method: "POST", path: "/api/v1/me/arenas/x/arguments", body: { content: "c" }, retry: { maxAttempts: 2 } });
+  await context.core.request({
+    method: "POST",
+    path: "/api/v1/me/arenas/x/arguments",
+    body: { content: "c" },
+    retry: { maxAttempts: 2 },
+    idempotencyKey: "arg-1",
+  });
   assert.equal(context.calls.length, 2);
-  const first = headerOf(context.calls[0]!, "idempotency-key");
-  const second = headerOf(context.calls[1]!, "idempotency-key");
-  assert.equal(first, "idem-1");
-  assert.equal(second, first, "a retry must replay the same key");
+  assert.equal(headerOf(context.calls[0]!, "idempotency-key"), "arg-1");
+  assert.equal(headerOf(context.calls[1]!, "idempotency-key"), "arg-1", "a retry must replay the same key");
+});
 
-  await context.core.request({ method: "POST", path: "/api/v1/me/arenas/x/arguments", body: { content: "c" }, retry: { maxAttempts: 2 } });
-  assert.equal(headerOf(context.lastCall(), "idempotency-key"), "idem-2");
+test("maps 403/422 to their kinds and never retries them", async () => {
+  for (const [status, code, kind] of [[403, "forbidden_action", "forbidden"], [422, "invalid_content", "validation"]] as const) {
+    const context = createTestContext({ responder: () => problemResponse(status, code) });
+    const failure = await captureApiError(() =>
+      context.core.request({ method: "POST", path: "/api/v1/me/arenas/x/arguments", body: {}, retry: { maxAttempts: 3 }, idempotencyKey: "k" }),
+    );
+    assert.equal(failure.code, code);
+    assert.equal(failure.kind, kind);
+    assert.equal(failure.status, status);
+    assert.equal(failure.retryable, false);
+    assert.equal(context.calls.length, 1);
+    assert.deepEqual(context.delays, []);
+  }
+});
+
+test("never retries a 500 and keeps retrying only 502/503/504/429", async () => {
+  const fatal = createTestContext({ responder: () => problemResponse(500, "broken") });
+  const fatalFailure = await captureApiError(() => fatal.core.request({ method: "GET", path: "/api/v1/arenas" }));
+  assert.equal(fatalFailure.code, "broken");
+  assert.equal(fatalFailure.kind, "internal");
+  assert.equal(fatalFailure.retryable, false);
+  assert.equal(fatal.calls.length, 1);
+
+  const transient = createTestContext({
+    responder: (_call, index) => (index === 0 ? problemResponse(502, "bad_gateway") : jsonResponse({ ok: true })),
+  });
+  await transient.core.request({ method: "GET", path: "/api/v1/arenas" });
+  assert.equal(transient.calls.length, 2);
+});
+
+test("a cancelled navigation never replaces the newer answer", async () => {
+  const previous = new AbortController();
+  const context = createTestContext({
+    responder: (call, index) => {
+      // The core wraps the caller signal in a per-attempt deadline, so the
+      // stale call is recognized by order, not by signal identity.
+      if (index === 0) {
+        return hangingResponse(call);
+      }
+      return jsonResponse({ id: "newest" });
+    },
+  });
+
+  const stale = captureApiError(() => context.core.request({ method: "GET", path: "/api/v1/arenas", signal: previous.signal }));
+  const newest = await context.core.request<{ readonly id: string }>({ method: "GET", path: "/api/v1/arenas" });
+  previous.abort();
+  const staleFailure = await stale;
+
+  assert.equal(newest.id, "newest");
+  assert.equal(staleFailure.code, "aborted");
+  assert.equal(staleFailure.retryable, false);
+  assert.equal(context.calls.length, 2);
 });
 
 test("honours an explicit idempotency key and surfaces the replay header", async () => {

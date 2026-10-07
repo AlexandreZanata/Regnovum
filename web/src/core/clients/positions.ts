@@ -31,12 +31,9 @@ export interface PositionsClient {
 const ARENAS_PATH = "/api/v1/arenas";
 const ME_ARENAS_PATH = "/api/v1/me/arenas";
 
-/**
- * Mutations are retried only because the core attaches an `Idempotency-Key`:
- * a replay after a lost response returns the original result instead of
- * charging or recording a second time.
- */
-const MUTATION_RETRY = { maxAttempts: 2 } as const;
+// Position transitions have no backend-proven idempotent contract (P50-T03):
+// a replay is not safe by header alone, so mutations are never retried.
+// A lost response surfaces as a failure the person can retry deliberately.
 
 /** createPositionsClient binds the position operations to a shared core. */
 export function createPositionsClient(core: HttpCore): PositionsClient {
@@ -58,7 +55,7 @@ export function createPositionsClient(core: HttpCore): PositionsClient {
         method: "POST",
         path: `${ME_ARENAS_PATH}/${encodeURIComponent(arenaId)}/position`,
         body: input,
-        retry: MUTATION_RETRY,
+        retry: false,
       }),
 
     change: (arenaId: string, input: PositionRequest): Promise<PositionChangeRecord> =>
@@ -66,7 +63,7 @@ export function createPositionsClient(core: HttpCore): PositionsClient {
         method: "POST",
         path: `${ME_ARENAS_PATH}/${encodeURIComponent(arenaId)}/position/changes`,
         body: input,
-        retry: MUTATION_RETRY,
+        retry: false,
       }),
 
     changes: (arenaId: string): Promise<PositionChangeHistory> =>

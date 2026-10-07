@@ -1,7 +1,10 @@
 /**
- * Tests of the domain clients (P18-T03): each operation must speak the path,
- * method, query and body the versioned contract declares, and every unsafe
- * mutation must arrive with an `Idempotency-Key`.
+ * Tests of the domain clients (P18-T03; keys P50-T03): each operation must
+ * speak the path, method, query and body the versioned contract declares.
+ * Only mutations with a backend-proven idempotent contract (arguments
+ * publish/reply, mandatory `Idempotency-Key` in `api/openapi.json`) arrive
+ * with a key; position transitions have no such contract and stay
+ * non-retryable, so they send none.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -126,7 +129,7 @@ const expectations: readonly Expectation[] = [
     method: "POST",
     url: "https://arena.test/api/v1/me/arenas/arena-1/position",
     body: { position: "agree" },
-    idempotent: true,
+    idempotent: false,
   },
   {
     name: "positions change",
@@ -134,7 +137,7 @@ const expectations: readonly Expectation[] = [
     method: "POST",
     url: "https://arena.test/api/v1/me/arenas/arena-1/position/changes",
     body: { position: "disagree" },
-    idempotent: true,
+    idempotent: false,
   },
   {
     name: "positions change history",
