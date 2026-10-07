@@ -25,6 +25,10 @@
       "path": "/assets/styles/primitives-d73c96be7ed6.css",
       "sha256": "d73c96be7ed6a59d24b4318e2a0e0011fa5771db2724d6147d77e7a6c0ce9e08"
     },
+    "styles/shell.css": {
+      "path": "/assets/styles/shell-3c68fa47d345.css",
+      "sha256": "3c68fa47d34505b92d6067a78d21645da36294c192a7a2cc97b3145b51929674"
+    },
     "styles/auth.css": {
       "path": "/assets/styles/auth-53f96aba637c.css",
       "sha256": "53f96aba637c4ad7ce628a0fd585d0626e9aefd9eb143d7d321598025d9d2d3c"
