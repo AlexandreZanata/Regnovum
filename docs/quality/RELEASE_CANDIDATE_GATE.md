@@ -46,11 +46,15 @@ de 1 milliINK congela antes da próxima mutação.
 - Matriz integral, DAST completa, carga de milhões, PITR-WAL e
   suíte financeira integral: só no SHA final pós-merge, duas
   execuções independentes, artifacts imutáveis por SHA.
+- Revisão humana do en-US pendente (pré-release; paridade automática
+  não certifica idioma) e integração dos gates de frontend à matriz
+  (P59-T02): ver [FRONTEND_COMPLETION_READINESS.md](FRONTEND_COMPLETION_READINESS.md).
 
 ## 4. Roteiro exato pós-merge (gate da fase, não microtarefa)
 
-1. Confirmar P23–P45, P46/P47 e paralelos mergeados; congelar o SHA
-   final de `main` com árvore limpa. Faltando algo, parar sem tag.
+1. Confirmar P23–P58 e paralelos mergeados (inclui o frontend P48–P58
+   com aceite em [FRONTEND_COMPLETION_READINESS.md](FRONTEND_COMPLETION_READINESS.md));
+   congelar o SHA final de `main` com árvore limpa. Faltando algo, parar sem tag.
 2. Nesse SHA, em dois ambientes limpos: `make verify`, `make
    quality-certify`, `make economy-certify` e todos os portões da
    matriz (E2E/i18n, DAST/scans, mutação, flake, race, carga,

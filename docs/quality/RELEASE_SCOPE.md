@@ -38,9 +38,23 @@ regra por inferência.
 | P43 patentes/produtos diferidos | #314 | `8a6261d` |
 | P47 riqueza/sucessão da Coroa | #325 | `6941768` |
 | P44 certificação econômica | #339 | `c876378` |
+| P45 certificação da release | #344 | `3f4522b` |
+| P48 inventário de rotas | #403 | `4d411ed` |
+| P49 superfícies no servidor | #404 | `7ee634c` |
+| P50 shell e autenticação | #405 | `16a950a` |
+| P51 conta e privacidade | #406 | `e99c042` |
+| P52 descoberta das Arenas | #407 | `7f26bc4` |
+| P53 debate e persuasão | #408 | `21e78d1` |
+| P54 carteira e cobrança | #409 | `a5b171b` |
+| P55 moderação e operação | #410 | `50b5dd6` |
+| P56 staged e harness | #412 | `1a90261` |
+| P57 temporadas e contratos privados | #413 | `5774244` |
+| P58 aceite do frontend | #414 | `9c3b49a` |
 
-Zero issues abertas, zero PRs abertos (conferido via `gh issue/pr
-list`). Branches laterais sem PR (`chore/fix-main-ci`,
+Zero PRs abertos (conferido via `gh pr list`). Issues abertas de
+acompanhamento do plano: #397 (P58-T05) e #398–#401 (P59-T01–T04),
+todas `needs-ai-review` — são as próprias tarefas de preparação, não
+defeitos do produto. Branches laterais sem PR (`chore/fix-main-ci`,
 `codex/*`, `docs/wiki-history`, `frontend-b-mvp`) são restos de
 trabalhos já mergeados (#64, #82), fora do escopo da versão; nenhum
 deles integra este candidato.
@@ -50,8 +64,8 @@ deles integra este candidato.
 - 38 pacotes em `internal/` (arenas → wallet, incluindo
   `economy`, `seasons`, `crown`, `commerce`, `crumbs`, `metering`,
   `patents`, `inquisition`, `disputes`, `charter`, `reputation`).
-- 61 migrations (`00001`–`00061`, última
-  `00061_seasonal_sovereign_succession.sql`); manifesto de schema
+- 62 migrations (`00001`–`00062`, última
+  `00062_dispute_case_records.sql`); manifesto de schema
   julgado por `schema_manifest_test.go`.
 - Toolchains pinadas em `quality/toolchain.json` (go 1.27.1,
   postgres 18.4, typescript 7.0.2, staticcheck v0.8.1).
@@ -96,6 +110,19 @@ por país ausente; matriz DAST completa, carga de milhões,
 PITR-WAL integral e suíte financeira integral ficam para a matriz
 pós-merge desta fase; `economy-decisions-check` falha por desenho.
 
+## 7. Frontend (P48–P58, medido em `9c3b49a`)
+
+- 100 rotas no inventário (`quality/frontend-routes.json`): 85 publicadas
+  com client+página+prova browser (postura complete segura),
+  15 staged sob `planned-staged-harness` sem ativação, probes excluídos.
+- Superfícies P50–P57 montadas no servidor com SSR-first e progressively
+enhanced; jornadas reais por família em `tools/e2e/specs/` (22/22,
+  pt-BR + en-US), documento de aceite em
+  [FRONTEND_COMPLETION_READINESS.md](FRONTEND_COMPLETION_READINESS.md).
+- Orçamentos docs/FRONTEND.md §11: JS inicial por página ≤50 KB (arena
+  47.739 B), CSS total 6.290/40.000 B (`make audit-web` verde).
+
 **Veredito do inventário: COMPLETO PARA PREPARAR, NÃO CERTIFICADO.**
-Nenhuma fase/PR pendente; nenhuma regra não ratificada escondida;
-nenhuma flag ativa. Próximo: matriz de evidências (P45-T02).
+Nenhuma fase/PR pendente além das tarefas P59 (issues #398–#401, a
+própria preparação); nenhuma regra não ratificada escondida;
+nenhuma flag ativa. Próximo: integração dos gates ao manifesto (P59-T02).
