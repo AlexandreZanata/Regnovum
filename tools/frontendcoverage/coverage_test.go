@@ -123,11 +123,15 @@ func TestPlanningPassesOnRealTree(t *testing.T) {
 	requireClean(t, Judge(repoRoot(t), loadGreen(t), greenSources(t), ModePlanning))
 }
 
-func TestCompleteRefusesPlanningTree(t *testing.T) {
-	// Complete never fakes coverage: the same tree that passes
-	// planning fails complete with the honest browser gap.
-	findings := Judge(repoRoot(t), loadGreen(t), greenSources(t), ModeComplete)
-	requireRule(t, findings, RuleCoverageGap)
+func TestCompletePassesOnRealTree(t *testing.T) {
+	// P58-T01 earned the complete posture on the real tree: every
+	// route carries a bound client, a page and a resolving
+	// browser proof. This test guards the earned posture — a
+	// broken binding or proof fails here. Refusals that prove
+	// complete never fakes coverage live in
+	// TestCompleteRefusesUnverifiedInventory and
+	// TestEnvSelectsComplete.
+	requireClean(t, Judge(repoRoot(t), loadGreen(t), greenSources(t), ModeComplete))
 }
 
 func TestDuplicateRouteFails(t *testing.T) {
@@ -200,17 +204,21 @@ func TestContractDriftFails(t *testing.T) {
 }
 
 func TestContractGapFails(t *testing.T) {
-	// A contract gap must stay an explicit null-operation gap: a
-	// job route carrying an operationId is a contradiction.
+	// P55 closed every contract gap, so the refusal resurrects
+	// one: a login route flipped to missing-contract while
+	// carrying its operationId is a contradiction, and the tallies
+	// move with it so the refusal stays focused on the gap.
 	findings := judgeGreen(t, func(inventory *Inventory) {
-		entry := findEntry(inventory, "POST", "/api/v1/admin/jobs/{id}/retry")
+		entry := findEntry(inventory, "POST", "/api/v1/auth/login")
 		if entry == nil {
-			t.Fatal("fixture gap POST /api/v1/admin/jobs/{id}/retry is gone")
+			t.Fatal("fixture entry POST /api/v1/auth/login is gone")
 		}
-		if entry.OperationID != nil {
-			t.Fatal("fixture gap already carries an operation")
+		if entry.Readiness != "published" || entry.OperationID == nil {
+			t.Fatal("fixture entry is no published contracted route")
 		}
-		entry.OperationID = strptr("retryJob")
+		entry.Readiness = "missing-contract"
+		inventory.Counts.Published--
+		inventory.Counts.MissingPublishedContract++
 	})
 	requireRule(t, findings, RuleContractGap)
 }
@@ -271,12 +279,26 @@ func TestEvidenceUnknownFails(t *testing.T) {
 func TestTestOnlyAsProductionFails(t *testing.T) {
 	// Declaring production on contract tests alone — without a
 	// browser proof — fails in planning too: planning records
-	// pending work, it never certifies it.
+	// pending work, it never certifies it. P58-T01 earned browser
+	// proofs for the arena feed, so the refusal strips them first.
 	findings := judgeGreen(t, func(inventory *Inventory) {
 		entry := findEntry(inventory, "GET", "/api/v1/arenas")
 		if entry == nil {
 			t.Fatal("fixture entry GET /api/v1/arenas is gone")
 		}
+		kept := entry.Tests[:0]
+		proofs := 0
+		for _, ref := range entry.Tests {
+			if isBrowserProof(ref) {
+				proofs++
+				continue
+			}
+			kept = append(kept, ref)
+		}
+		if proofs == 0 {
+			t.Fatal("fixture entry carries no browser proof to strip")
+		}
+		entry.Tests = kept
 		entry.EvidenceState = EvidenceDone
 	})
 	requireRule(t, findings, RuleTestOnlyAsProduction)
@@ -332,10 +354,10 @@ func TestBrowserAPIExclusionFails(t *testing.T) {
 
 func TestCountsMismatchFails(t *testing.T) {
 	findings := judgeGreen(t, func(inventory *Inventory) {
-		if inventory.Counts.Published != 82 {
+		if inventory.Counts.Published != 85 {
 			t.Fatalf("fixture counts drifted: %d", inventory.Counts.Published)
 		}
-		inventory.Counts.Published = 81
+		inventory.Counts.Published = 84
 	})
 	requireRule(t, findings, RuleCountsMismatch)
 }
@@ -362,10 +384,11 @@ func TestInventoryUnreadableFails(t *testing.T) {
 	requireRule(t, findings, RuleInventoryUnreadable)
 }
 
-func TestCompletePassesOnVerifiedInventory(t *testing.T) {
-	// Complete mode can pass: one browser-verified entry with a
-	// resolving browser proof and matching sources holds every
-	// rule, so the posture is enforceable when P58 earns it.
+// verifiedInventory builds one browser-verified entry with a
+// resolving browser proof and matching sources, the posture P58
+// must earn for every route.
+func verifiedInventory(t *testing.T) (*Inventory, *Sources) {
+	t.Helper()
 	root := repoRoot(t)
 	proof := "web/tests/pages/participation.test.ts"
 	if _, err := os.Stat(filepath.Join(root, proof)); err != nil {
@@ -394,7 +417,30 @@ func TestCompletePassesOnVerifiedInventory(t *testing.T) {
 		Published:    map[string]string{"GET /api/v1/arenas": operation},
 		Staged:       map[string]StagedOperation{},
 	}
-	requireClean(t, Judge(root, inventory, sources, ModeComplete))
+	return inventory, sources
+}
+
+func TestCompletePassesOnVerifiedInventory(t *testing.T) {
+	// Complete mode can pass: one browser-verified entry with a
+	// resolving browser proof and matching sources holds every
+	// rule, so the posture is enforceable when P58 earns it.
+	inventory, sources := verifiedInventory(t)
+	requireClean(t, Judge(repoRoot(t), inventory, sources, ModeComplete))
+}
+
+func TestCompleteRefusesUnverifiedInventory(t *testing.T) {
+	// VERIFIED without a resolving browser proof is a claim, not
+	// a proof: the entry collapses to an unbound client and
+	// complete names the gap instead of passing quietly.
+	inventory, sources := verifiedInventory(t)
+	entry := findEntry(inventory, "GET", "/api/v1/arenas")
+	if entry == nil {
+		t.Fatal("verified fixture entry GET /api/v1/arenas is gone")
+	}
+	entry.Tests = entry.Tests[:len(entry.Tests)-1]
+	entry.Page = nil
+	findings := Judge(repoRoot(t), inventory, sources, ModeComplete)
+	requireRule(t, findings, RuleCoverageGap)
 }
 
 func TestDefaultModeIsPlanning(t *testing.T) {
@@ -409,23 +455,18 @@ func TestDefaultModeIsPlanning(t *testing.T) {
 }
 
 func TestEnvSelectsComplete(t *testing.T) {
-	// FRONTEND_COVERAGE_MODE=complete judges the planning tree as
-	// complete: the honest gap fails instead of passing quietly.
+	// FRONTEND_COVERAGE_MODE=complete judges the real tree as
+	// complete: P58-T01 earned the posture, so the earned tree
+	// holds. Refusals proving complete never fakes coverage live
+	// in TestCompleteRefusesUnverifiedInventory.
 	t.Setenv(modeEnv, ModeComplete)
 	var stdout, stderr bytes.Buffer
-	if got := run([]string{"-root", repoRoot(t)}, &stdout, &stderr); got != exitAudit {
+	if got := run([]string{"-root", repoRoot(t)}, &stdout, &stderr); got != exitOK {
 		t.Fatalf("env complete exit = %d: %s %s", got, stdout.String(), stderr.String())
 	}
-	found := false
-	for _, line := range strings.Split(stdout.String(), "\n") {
-		if strings.HasPrefix(line, RuleCoverageGap) {
-			found = true
-		}
+	if !strings.Contains(stdout.String(), "mode=complete") {
+		t.Fatalf("env complete verdict does not name complete: %q", stdout.String())
 	}
-	if !found {
-		t.Fatalf("env complete did not name %q: %q", RuleCoverageGap, stdout.String())
-	}
-	mark(RuleCoverageGap)
 }
 
 func TestModeFlagRejectsUnknown(t *testing.T) {
