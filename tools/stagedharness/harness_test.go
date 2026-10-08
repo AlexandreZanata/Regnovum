@@ -37,6 +37,7 @@ import (
 	commercepg "github.com/AlexandreZanata/Regnovum/internal/commerce/adapters/postgres"
 	commerceapp "github.com/AlexandreZanata/Regnovum/internal/commerce/application"
 	disputeshttp "github.com/AlexandreZanata/Regnovum/internal/disputes/adapters/http"
+	disputepg "github.com/AlexandreZanata/Regnovum/internal/disputes/adapters/postgres"
 	disputesapp "github.com/AlexandreZanata/Regnovum/internal/disputes/application"
 	disputesdomain "github.com/AlexandreZanata/Regnovum/internal/disputes/domain"
 	economypg "github.com/AlexandreZanata/Regnovum/internal/economy/adapters/postgres"
@@ -207,27 +208,6 @@ func fundStagedCitizen(t *testing.T, ctx context.Context, db *dbtest.TestDB, gen
 	}); err != nil {
 		t.Fatalf("fund citizen: %v", err)
 	}
-}
-
-// stagedMemoryCases is the disputes record store: memory only, like the
-// per-module suite — persistent disputes storage is P56-T03, and this
-// harness must not mask its absence with a fixture that pretends to
-// persist.
-type stagedMemoryCases struct {
-	files map[string]disputesapp.CaseRecord
-}
-
-func (m *stagedMemoryCases) Get(key string) (disputesapp.CaseRecord, error) {
-	record, ok := m.files[key]
-	if !ok {
-		return disputesapp.CaseRecord{}, disputesdomain.ErrUnknownCase
-	}
-	return record, nil
-}
-
-func (m *stagedMemoryCases) Put(record disputesapp.CaseRecord) error {
-	m.files[record.Proposal.Key] = record
-	return nil
 }
 
 func stagedPropose(t *testing.T, key string, deadline time.Time) disputesdomain.Proposal {
@@ -432,7 +412,12 @@ func (b *stagedBuilder) setupDisputes() *disputeshttp.Handler {
 	b.identify(stagedClaimantToken, "requerente")
 	b.identify(stagedRespondentToken, "requerida")
 	b.identify(stagedStrangerToken, "estranha")
-	stores := &stagedMemoryCases{files: map[string]disputesapp.CaseRecord{}}
+	// P56-T03: the harness files through the persisted bridge, so
+	// every accept, defense and appeal below survives a reload.
+	stores, err := disputepg.NewRepository(b.pool)
+	if err != nil {
+		b.t.Fatalf("NewRepository: %v", err)
+	}
 	disputeNow := time.Date(2026, time.October, 4, 12, 0, 0, 0, time.UTC)
 	disputeClk := stagedClock{now: disputeNow.Add(time.Hour)}
 	proposal, err := stagedPropose(b.t, "caso-proposta", disputeNow.Add(48*time.Hour)).Accept("requerente", disputeNow)
