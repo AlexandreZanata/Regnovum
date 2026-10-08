@@ -30,6 +30,7 @@ import { createPassesClient } from "../../src/core/clients/passes.js";
 import { createBillingClient } from "../../src/core/clients/billing.js";
 import { createMeteringClient } from "../../src/core/clients/metering.js";
 import { createCommerceClient } from "../../src/core/clients/commerce.js";
+import { createDisputesClient } from "../../src/core/clients/disputes.js";
 import { createSeasonsClient } from "../../src/core/clients/seasons.js";
 import { createStagedClient } from "../../src/core/clients/staged.js";
 import type { HttpCore } from "../../src/core/http.js";
@@ -692,6 +693,43 @@ const expectations: readonly Expectation[] = [
     run: (core) => createStagedClient(core).readTradeStatement(),
     method: "GET",
     url: "https://arena.test/api/v1/me/commerce/statement",
+    idempotent: false,
+  },
+  {
+    name: "disputes readPrivateCaseFile",
+    run: (core) => createDisputesClient(core).readPrivateCaseFile("caso-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1",
+    idempotent: false,
+  },
+  {
+    name: "disputes acceptPrivateCaseTerms",
+    run: (core) => createDisputesClient(core).acceptPrivateCaseTerms("caso-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/accepts",
+    idempotent: false,
+  },
+  {
+    name: "disputes filePrivateCaseDefense",
+    run: (core) => createDisputesClient(core).filePrivateCaseDefense("caso-1", { digest: "resumo-1" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/defenses",
+    body: { digest: "resumo-1" },
+    idempotent: false,
+  },
+  {
+    name: "disputes readPrivateCaseRuling",
+    run: (core) => createDisputesClient(core).readPrivateCaseRuling("caso-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/ruling",
+    idempotent: false,
+  },
+  {
+    name: "disputes appealPrivateCaseRuling",
+    run: (core) => createDisputesClient(core).appealPrivateCaseRuling("caso-1", { reason: "recurso honesto" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/appeals",
+    body: { reason: "recurso honesto" },
     idempotent: false,
   },
   {

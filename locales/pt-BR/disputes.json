@@ -6,14 +6,18 @@
       "accepted": "{count} de 2 aceites",
       "defenses": "{count} defesas",
       "decided": "Decidido em {date}",
-      "appeal_due": "Recurso até {date}"
+      "appeal_due": "Recurso até {date}",
+      "expires": "Expira em {date}",
+      "accept_action": "Aceitar termos",
+      "appeal_action": "Abrir recurso"
     },
     "notice": {
       "proposal": "Proposta selada",
       "accept": "Aceite registrado",
       "defense": "Defesa apresentada",
       "ruling": "Sentença fundamentada",
-      "appeal": "Recurso aberto"
+      "appeal": "Recurso aberto",
+      "line": "{event}: {title}"
     },
     "ruling": {
       "title": "Sentença do rito",
@@ -21,7 +25,19 @@
     },
     "failure": {
       "title": "Caso indisponível",
-      "detail": "Confira os dados e tente novamente."
+      "detail": "Confira os dados e tente novamente.",
+      "unauthorized": "Entre na conta para ver o caso.",
+      "missing": "Este caso não existe para esta conta.",
+      "forbidden": "Só uma parte nomeada move o próprio caso.",
+      "conflict": "O rito recusou este passo no estado atual.",
+      "invalid": "Este pedido do caso não é válido.",
+      "generic": "Confira os dados e tente novamente."
+    },
+    "defense": {
+      "digest_label": "Resumo da prova"
+    },
+    "appeal": {
+      "reason_label": "Motivo do recurso"
     }
   }
 }
