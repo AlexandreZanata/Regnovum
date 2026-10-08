@@ -49,14 +49,14 @@
  * the mechanism, and the first message that needs them declares them where the
  * other messages live.
  */
-import { messageKeys, messagePlaceholders, messages } from "./generated.js";
+import { messagePlaceholders, messages, namespaces } from "./generated.js";
 import type { MessageKey } from "./generated.js";
 import { formatNumber, pluralCategory } from "./formats.js";
 import { defaultLocale } from "./locale.js";
 import type { Locale } from "./locale.js";
 
 /** The catalog namespaces, as the generator declares them. */
-export type Namespace = keyof typeof messageKeys;
+export type Namespace = (typeof namespaces)[number];
 
 /** A value a message may interpolate: text, or a number to format. */
 export type PlaceholderValue = string | number;
@@ -146,10 +146,12 @@ export class MissingPlaceholderError extends Error {
 const generatedCatalog: CatalogSource = { messages, placeholders: messagePlaceholders };
 
 /**
- * Every namespace of the catalogs. Derived from the generated keys rather than
- * listed by hand, so a new namespace is usable the day it exists.
+ * Every namespace of the catalogs. The generated list rather than the key
+ * table, so a new namespace is usable the day it exists without shipping
+ * every key string to the browser (P58-T04: the key table cost ~3.7 KB
+ * compressed on every page for nothing its runtime ever read).
  */
-export const allNamespaces: readonly Namespace[] = Object.keys(messageKeys) as readonly Namespace[];
+export const allNamespaces: readonly Namespace[] = namespaces;
 
 /** Placeholders are `{name}`, lowercase, as the generator validates them. */
 const PLACEHOLDER_PATTERN = /\{([a-z0-9_]+)\}/g;
