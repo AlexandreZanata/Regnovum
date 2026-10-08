@@ -463,6 +463,32 @@ isso é a confirmação do bypass.
 foi aplicada (uma regra por host é uma regra que pode faltar num host novo).
 `make caddy-verify` é a re-prova de que o spoof de header continua rejeitado.
 
+## R10 — Smoke do frontend com e sem JavaScript
+
+**Sinal.** Release tocando `web/` ou incidente de renderização. O desenho é:
+o backend serve HTML semântico íntegro sem JS (progressive enhancement), e o
+harness do plano de fechamento prova a jornada com JS — as duas metades têm
+prova própria, e nenhuma é inferida da outra.
+
+**Com JavaScript (harness).** Executar `make frontend-coverage` com
+`FRONTEND_BASE_URL` apontando ao ambiente. Verde exige: rotas/áreas cobertas
+sem queda, jornada real (navegação + formulário válido com sucesso visível),
+jornada negativa (submissão inválida com erro anunciado) e os 15 staged
+recusados nominalmente.
+
+**Sem JavaScript (degradação).** Com JS desabilitado, cada rota principal
+deve entregar HTML semântico legível: conteúdo principal presente, navegação
+por links funcional, formulários submetem via POST nativo e erros do servidor
+voltam como HTML com o resumo de erros. `ga-toast` ausente é esperado (é
+transiente); `ga-error-summary` e `ga-busy` têm equivalente SSR e devem
+aparecer.
+
+**Threshold inicial.** **P1** com qualquer rota em branco sem JS, formulário
+que só funciona com JS, ou erro sem anúncio — release bloqueado.
+
+**Correção.** Registrar em `docs/HISTORY.md`; re-prova é o smoke R10 verde
+nas duas metades.
+
 ## 4. Tabletop
 
 Exercício de mesa executado em 2026-09-22, com os comandos **não destrutivos**
@@ -630,3 +656,23 @@ Um *threshold* inicial é uma hipótese com data. Ele muda quando:
 Mudar um threshold **não** é sucesso de gate: é decisão operacional e fica
 registrada com a medição que a motivou. Nunca reduza um *threshold* para "ficar
 verde".
+
+## 6. Gates de ativação futura (staged e economia)
+
+Dois portões separados, ambos bloqueados até as aprovações humanas e
+jurídicas de [EXTERNAL_APPROVALS.md](quality/EXTERNAL_APPROVALS.md). Nenhum
+passo aqui é executado por inferência do agente.
+
+**Ativação de rotas staged (15 rotas).** Pré-condições: Q/TEMP ratificadas,
+jurídico por mercado, IREV sem achados bloqueadores, smoke R10 verde no
+ambiente-alvo. Passos: ativar uma rota por vez no harness sintético separado
+(nunca pelo tráfego real); conferir jornada real e negativa da rota;
+registrar a ativação em `docs/HISTORY.md`. Reversão: voltar a rota a staged
+e repetir o smoke.
+
+**Ativação de economia real (INK/moeda).** Pré-condições: as mesmas acima,
+mais credenciais de provider via Secrets (item 6 de EXTERNAL_APPROVALS) e
+`economycertify` verde no ambiente-alvo. Passos: liberar em janela de
+observação; conciliar ledger append-only contra extratos; qualquer
+divergência = reversão imediata e incidente P0. Valores sempre em minor units
+com ISO de moeda; nenhuma operação financeira sem transação explícita.
