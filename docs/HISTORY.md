@@ -76,7 +76,7 @@ evidência que a fase produziu.
 | P19 | Operação de produção | Imagem distroless, topologia Compose, deploy/rollback, backup/PITR, ingress Caddy e o workflow de verificação (`Dockerfile`, `compose.production.yaml`, `deploy/`, [CI.md](CI.md)). | `make image-verify`, `make compose-verify`, `make deploy-verify`, `make backup-verify`, `make caddy-verify` | [#51](https://github.com/AlexandreZanata/Goyim-Arena/pull/51) (2026-09-22) |
 | P20 | Prontidão de release | Auditorias finais e o release candidate local: migrations, segurança, desastre/carga, privacidade, i18n, verificação reproduzível e handoff. | [MIGRATION_AUDIT.md](MIGRATION_AUDIT.md), [SECURITY_AUDIT.md](SECURITY_AUDIT.md), [DISASTER_DRILL.md](DISASTER_DRILL.md), [PRIVACY_AUDIT.md](PRIVACY_AUDIT.md), [I18N_AUDIT.md](I18N_AUDIT.md), [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | [#62](https://github.com/AlexandreZanata/Goyim-Arena/pull/62) (2026-09-22) |
 
-## Fases de qualidade, economia e frontend (P21–P58)
+## Fases de qualidade, economia e frontend (P21–P59)
 
 Cada fase abaixo está mergeada em `main`; a coluna do PR aponta o merge (a
 prova é o próprio merge: hash + PR). Em 2026-09-23 o repositório foi renomeado
@@ -123,6 +123,7 @@ links antigos nesta página ainda apontam o nome anterior, os novos usam o atual
 | P56 | Staged e harness | 15 contratos staged com harness real, sem ativação | `tools/e2e/specs/staged.spec.js` | [#412](https://github.com/AlexandreZanata/Regnovum/pull/412) (2026-10-08) |
 | P57 | Temporadas e contratos privados | Seasons, metering, commerce e disputes staged com client+UI+teste | 15/15 staged com prova | [#413](https://github.com/AlexandreZanata/Regnovum/pull/413) (2026-10-08) |
 | P58 | Aceite do frontend | Cobertura complete, a11y, i18n/XSS, budgets e este aceite | [FRONTEND_COMPLETION_READINESS.md](quality/FRONTEND_COMPLETION_READINESS.md) | [#414](https://github.com/AlexandreZanata/Regnovum/pull/414) (2026-10-08) |
+| P59 | Candidato final com frontend | Escopo final P48–P58, gates frontend na matriz (G23/G24), aprovações externas, runbooks R10/ativação e handoff de certificação | [FULL_PRODUCT_CERTIFICATION_HANDOFF.md](quality/FULL_PRODUCT_CERTIFICATION_HANDOFF.md) | [#415](https://github.com/AlexandreZanata/Regnovum/pull/415) (2026-10-08) |
 
 ## Estado atual e pendências
 
@@ -151,6 +152,7 @@ links antigos nesta página ainda apontam o nome anterior, os novos usam o atual
   família `staged-contracts` sem o par, P56), 2 testes PG deletion em profiles
   e a revisão humana do en-US — todos pré-release, nenhum escondido. A
   certificação volta na P59 com o gate final pós-merge que reutiliza a P45.
+- **2026-10-08 (P59)** — candidato final mergeado em `7fb3010` ([PR #415](https://github.com/AlexandreZanata/Regnovum/pull/415)): inventário P48–P58 com SHAs reais, matriz com 24 portões (G23 complete, G24 budgets), 7 aprovações externas nomeadas sem concessão, smoke R10 com/sem JS e gates de ativação futura. Preparação concluída, certificação **não** concedida — próximo passo é o gate final pós-merge que reutiliza a P45 no novo SHA.
 
 ## Como registrar
 
