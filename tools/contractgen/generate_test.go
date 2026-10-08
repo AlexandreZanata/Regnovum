@@ -183,6 +183,33 @@ func TestCommittedArtifactMatchesTheContract(t *testing.T) {
 	}
 }
 
+func TestStagedArtifactsMatchTheirFragments(t *testing.T) {
+	t.Parallel()
+
+	// P56-T01: every staged transport is reproduced from its fragment by
+	// the same renderer, so drift in either side fails here and in the
+	// directed `contractgen -check -contract FILE -out FILE` runs.
+	pairs := map[string]string{
+		"../../internal/seasons/adapters/http/openapi.fragment.json":  "../../web/src/contracts/staged/seasons.ts",
+		"../../internal/metering/adapters/http/openapi.fragment.json": "../../web/src/contracts/staged/metering.ts",
+		"../../internal/commerce/adapters/http/openapi.fragment.json": "../../web/src/contracts/staged/commerce.ts",
+		"../../internal/disputes/adapters/http/openapi.fragment.json": "../../web/src/contracts/staged/disputes.ts",
+	}
+	for contract, artifact := range pairs {
+		source, err := Render(contract)
+		if err != nil {
+			t.Fatalf("render %s: %v", contract, err)
+		}
+		drifted, err := HasDrift(artifact, source)
+		if err != nil {
+			t.Fatalf("compare %s: %v", artifact, err)
+		}
+		if drifted {
+			t.Fatalf("%s is stale for %s; regenerate with contractgen", artifact, contract)
+		}
+	}
+}
+
 func TestUnsupportedConstructsFailWithKeywordAndPath(t *testing.T) {
 	t.Parallel()
 

@@ -82,6 +82,33 @@ func TestRunWritesChecksAndDetectsDrift(t *testing.T) {
 	}
 }
 
+func TestStagedFragmentNamesItsOwnContract(t *testing.T) {
+	t.Parallel()
+
+	directory := t.TempDir()
+	contractPath := filepath.Join(directory, "openapi.fragment.json")
+	targetPath := filepath.Join(directory, "staged", "module.ts")
+	if err := os.WriteFile(contractPath, []byte(tinyContract), 0o644); err != nil {
+		t.Fatalf("write contract: %v", err)
+	}
+	if err := run([]string{"-contract", contractPath, "-out", targetPath}, io.Discard); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	written, err := os.ReadFile(targetPath)
+	if err != nil {
+		t.Fatalf("read artifact: %v", err)
+	}
+	if !strings.Contains(string(written), "from "+contractPath) {
+		t.Fatalf("staged artifact does not name its fragment contract:\n%s", written)
+	}
+	if strings.Contains(string(written), "from api/openapi.json") {
+		t.Fatal("staged artifact claims the published contract as its source")
+	}
+	if err := run([]string{"-check", "-contract", contractPath, "-out", targetPath}, io.Discard); err != nil {
+		t.Fatalf("run -check: %v", err)
+	}
+}
+
 func TestRunRejectsInvalidInvocations(t *testing.T) {
 	t.Parallel()
 
