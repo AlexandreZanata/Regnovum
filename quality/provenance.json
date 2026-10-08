@@ -12,9 +12,10 @@
         "kind": "i18ngen",
         "root": "locales",
         "goPackage": "i18n"
-      },"sources": [
-          {
-            "path": "internal/i18ngen/",
+      },
+      "sources": [
+        {
+          "path": "internal/i18ngen/",
           "include": [
             "*.go"
           ],
