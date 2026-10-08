@@ -28,6 +28,7 @@ import { createTransparencyClient } from "../../src/core/clients/transparency.js
 import { createWalletClient } from "../../src/core/clients/wallet.js";
 import { createPassesClient } from "../../src/core/clients/passes.js";
 import { createBillingClient } from "../../src/core/clients/billing.js";
+import { createMeteringClient } from "../../src/core/clients/metering.js";
 import { createSeasonsClient } from "../../src/core/clients/seasons.js";
 import { createStagedClient } from "../../src/core/clients/staged.js";
 import type { HttpCore } from "../../src/core/http.js";
@@ -592,6 +593,41 @@ const expectations: readonly Expectation[] = [
     run: (core) => createStagedClient(core).readSeasonChampions("temporada-harness-b"),
     method: "GET",
     url: "https://arena.test/api/v1/me/seasons/temporada-harness-b/champions",
+    idempotent: false,
+  },
+  {
+    name: "metering previewMeteringQuote",
+    run: (core) => createMeteringClient(core).previewMeteringQuote({ content: "texto final", service: "argument-publish" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/metering/quotes",
+    body: { content: "texto final", service: "argument-publish" },
+    idempotent: false,
+  },
+  {
+    name: "metering confirmMeteringPublication",
+    run: (core) =>
+      createMeteringClient(core).confirmMeteringPublication({
+        intention_key: "intencao-1",
+        content: "texto final",
+        service: "argument-publish",
+      }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/metering/publications",
+    body: { intention_key: "intencao-1", content: "texto final", service: "argument-publish" },
+    idempotent: false,
+  },
+  {
+    name: "metering readMeteringReceipt",
+    run: (core) => createMeteringClient(core).readMeteringReceipt("00000000-0000-4000-8000-000000000001"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/metering/publications/00000000-0000-4000-8000-000000000001",
+    idempotent: false,
+  },
+  {
+    name: "metering readMeteringStatement",
+    run: (core) => createMeteringClient(core).readMeteringStatement(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/metering/statement",
     idempotent: false,
   },
   {

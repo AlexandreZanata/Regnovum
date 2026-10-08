@@ -449,10 +449,18 @@ export const messageKeys = {
     "kingdom.season.title",
   ] as const,
   metering: [
+    "metering.failure.conflict",
     "metering.failure.detail",
+    "metering.failure.expired",
+    "metering.failure.generic",
+    "metering.failure.mismatch",
+    "metering.failure.missing",
     "metering.failure.title",
+    "metering.failure.unauthorized",
+    "metering.quote.changed",
     "metering.quote.confirm",
     "metering.quote.expires",
+    "metering.quote.lapsed",
     "metering.quote.retry",
     "metering.quote.title",
     "metering.quote.total",
@@ -1054,10 +1062,18 @@ export type MessageKey =
   | "kingdom.receipt.title"
   | "kingdom.season.cutoff"
   | "kingdom.season.title"
+  | "metering.failure.conflict"
   | "metering.failure.detail"
+  | "metering.failure.expired"
+  | "metering.failure.generic"
+  | "metering.failure.mismatch"
+  | "metering.failure.missing"
   | "metering.failure.title"
+  | "metering.failure.unauthorized"
+  | "metering.quote.changed"
   | "metering.quote.confirm"
   | "metering.quote.expires"
+  | "metering.quote.lapsed"
   | "metering.quote.retry"
   | "metering.quote.title"
   | "metering.quote.total"
@@ -1650,10 +1666,18 @@ export const messagePlaceholders = Object.freeze({
   "kingdom.receipt.title": [],
   "kingdom.season.cutoff": ["date", "season"],
   "kingdom.season.title": [],
+  "metering.failure.conflict": [],
   "metering.failure.detail": [],
+  "metering.failure.expired": [],
+  "metering.failure.generic": [],
+  "metering.failure.mismatch": [],
+  "metering.failure.missing": [],
   "metering.failure.title": [],
+  "metering.failure.unauthorized": [],
+  "metering.quote.changed": [],
   "metering.quote.confirm": [],
   "metering.quote.expires": ["date"],
+  "metering.quote.lapsed": [],
   "metering.quote.retry": [],
   "metering.quote.title": [],
   "metering.quote.total": ["total", "units"],
@@ -2247,10 +2271,18 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "kingdom.receipt.title": "Receipt",
     "kingdom.season.cutoff": "Season {season} cutoff on {date}",
     "kingdom.season.title": "Season",
+    "metering.failure.conflict": "This key already settled different terms.",
     "metering.failure.detail": "Check the data and request a new quote.",
+    "metering.failure.expired": "The quote lapsed: request a new one.",
+    "metering.failure.generic": "Check the data and request a new quote.",
+    "metering.failure.mismatch": "This acceptance binds another account or content.",
+    "metering.failure.missing": "This publication does not exist for this account.",
     "metering.failure.title": "Charge unavailable",
+    "metering.failure.unauthorized": "Sign in to see the charge.",
+    "metering.quote.changed": "Content changed: request a new quote.",
     "metering.quote.confirm": "Confirm publication",
     "metering.quote.expires": "Acceptance valid until {date}",
+    "metering.quote.lapsed": "Quote lapsed: request a new quote.",
     "metering.quote.retry": "Request a new quote",
     "metering.quote.title": "INK metering price",
     "metering.quote.total": "{total} thousandths of INK for {units} graphemes",
@@ -2841,10 +2873,18 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "kingdom.receipt.title": "Recibo",
     "kingdom.season.cutoff": "Corte da temporada {season} em {date}",
     "kingdom.season.title": "Temporada",
+    "metering.failure.conflict": "Esta chave já liquidou outros termos.",
     "metering.failure.detail": "Confira os dados e peça uma nova cotação.",
+    "metering.failure.expired": "A cotação venceu: peça uma nova.",
+    "metering.failure.generic": "Confira os dados e peça uma nova cotação.",
+    "metering.failure.mismatch": "Este aceite pertence a outra conta ou conteúdo.",
+    "metering.failure.missing": "Esta publicação não existe para esta conta.",
     "metering.failure.title": "Cobrança indisponível",
+    "metering.failure.unauthorized": "Entre na conta para ver a cobrança.",
+    "metering.quote.changed": "Conteúdo alterado: peça uma nova cotação.",
     "metering.quote.confirm": "Confirmar publicação",
     "metering.quote.expires": "Aceite válido até {date}",
+    "metering.quote.lapsed": "Cotação vencida: peça uma nova cotação.",
     "metering.quote.retry": "Pedir nova cotação",
     "metering.quote.title": "Preço de medição de INK",
     "metering.quote.total": "{total} milésimos de INK por {units} grafemas",
