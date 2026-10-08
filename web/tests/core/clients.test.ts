@@ -29,6 +29,7 @@ import { createWalletClient } from "../../src/core/clients/wallet.js";
 import { createPassesClient } from "../../src/core/clients/passes.js";
 import { createBillingClient } from "../../src/core/clients/billing.js";
 import { createMeteringClient } from "../../src/core/clients/metering.js";
+import { createCommerceClient } from "../../src/core/clients/commerce.js";
 import { createSeasonsClient } from "../../src/core/clients/seasons.js";
 import { createStagedClient } from "../../src/core/clients/staged.js";
 import type { HttpCore } from "../../src/core/http.js";
@@ -663,6 +664,20 @@ const expectations: readonly Expectation[] = [
     run: (core) => createStagedClient(core).readMeteringStatement(),
     method: "GET",
     url: "https://arena.test/api/v1/me/metering/statement",
+    idempotent: false,
+  },
+  {
+    name: "commerce readTradeReceipt",
+    run: (core) => createCommerceClient(core).readTradeReceipt("00000000-0000-4000-8000-000000000002"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/commerce/contracts/00000000-0000-4000-8000-000000000002",
+    idempotent: false,
+  },
+  {
+    name: "commerce readTradeStatement",
+    run: (core) => createCommerceClient(core).readTradeStatement(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/commerce/statement",
     idempotent: false,
   },
   {
