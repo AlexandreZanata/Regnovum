@@ -110,3 +110,25 @@ test("the view takes no session and branches on none", () => {
 
   assert.deepEqual(holder, visitor);
 });
+
+test("switching the interface never translates the content language", () => {
+  const foreign: PublicArena = {
+    ...ARENA,
+    slug: "can-machines-be-responsible",
+    statement: "Can machines be responsible?",
+    context: "Context offered by the author.",
+    language: "en-US",
+  };
+
+  const read = documentView(translatorOf("pt-BR"), "pt-BR", foreign);
+  assert.equal(read.contentLanguage, "en-US", "the document keeps the Arena language");
+  assert.equal(read.title, "Can machines be responsible?", "the statement stays verbatim");
+  assert.equal(read.context, "Context offered by the author.", "the context stays verbatim");
+  assert.equal(read.status, "Publicada", "the chrome follows the interface");
+  assert.ok(!read.published.includes("2026-09-20T10:00:00Z"), "raw instant leaked");
+
+  const mirrored = documentView(translatorOf("en-US"), "en-US", ARENA);
+  assert.equal(mirrored.contentLanguage, "pt-BR", "the document keeps the Arena language");
+  assert.equal(mirrored.title, "Máquinas podem ser responsáveis?", "the statement stays verbatim");
+  assert.equal(mirrored.status, "Published", "the chrome follows the interface");
+});
