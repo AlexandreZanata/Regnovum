@@ -903,7 +903,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T03",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -920,10 +920,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/commerce.ts",
+        "web/src/pages/commerce.ts",
+        "web/tests/core/commerce.test.ts",
+        "web/tests/pages/commerce.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T03 dedicated commerce client/page over the staged transport (reads only, no POST invented; verbatim parties/status/amounts, accepted terminal policy explained without deciding, extract in server order, staged gate: production off sends nothing); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "GET",
@@ -934,7 +938,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T03",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -951,10 +955,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/commerce.ts",
+        "web/src/pages/commerce.ts",
+        "web/tests/core/commerce.test.ts",
+        "web/tests/pages/commerce.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T03 dedicated commerce client/page over the staged transport (reads only, no POST invented; verbatim parties/status/amounts, accepted terminal policy explained without deciding, extract in server order, staged gate: production off sends nothing); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "GET",
@@ -1045,7 +1053,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T04",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1063,10 +1071,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/disputes.ts",
+        "web/src/pages/disputes.ts",
+        "web/tests/core/disputes.test.ts",
+        "web/tests/pages/disputes.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T04 dedicated disputes client/page over the staged transport reusing disputes/case (version/consent/deadline/notices, digest/reason never echoed, stable ruling with capped award, single appeal with window, staged gate: production off sends nothing); harness proof in web tests + stagedharness PG reload, no browser proof in production."
     },
     {
       "method": "POST",
@@ -1077,7 +1089,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T04",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1095,10 +1107,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/disputes.ts",
+        "web/src/pages/disputes.ts",
+        "web/tests/core/disputes.test.ts",
+        "web/tests/pages/disputes.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T04 dedicated disputes client/page over the staged transport reusing disputes/case (version/consent/deadline/notices, digest/reason never echoed, stable ruling with capped award, single appeal with window, staged gate: production off sends nothing); harness proof in web tests + stagedharness PG reload, no browser proof in production."
     },
     {
       "method": "POST",
@@ -1109,7 +1125,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T04",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1127,10 +1143,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/disputes.ts",
+        "web/src/pages/disputes.ts",
+        "web/tests/core/disputes.test.ts",
+        "web/tests/pages/disputes.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T04 dedicated disputes client/page over the staged transport reusing disputes/case (version/consent/deadline/notices, digest/reason never echoed, stable ruling with capped award, single appeal with window, staged gate: production off sends nothing); harness proof in web tests + stagedharness PG reload, no browser proof in production."
     },
     {
       "method": "POST",
@@ -1141,7 +1161,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T04",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1159,10 +1179,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/disputes.ts",
+        "web/src/pages/disputes.ts",
+        "web/tests/core/disputes.test.ts",
+        "web/tests/pages/disputes.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T04 dedicated disputes client/page over the staged transport reusing disputes/case (version/consent/deadline/notices, digest/reason never echoed, stable ruling with capped award, single appeal with window, staged gate: production off sends nothing); harness proof in web tests + stagedharness PG reload, no browser proof in production."
     },
     {
       "method": "GET",
@@ -1173,7 +1197,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T04",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1191,10 +1215,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/disputes.ts",
+        "web/src/pages/disputes.ts",
+        "web/tests/core/disputes.test.ts",
+        "web/tests/pages/disputes.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T03 disputes file through the persisted PG bridge (reload-proof); no browser proof. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T04 dedicated disputes client/page over the staged transport reusing disputes/case (version/consent/deadline/notices, digest/reason never echoed, stable ruling with capped award, single appeal with window, staged gate: production off sends nothing); harness proof in web tests + stagedharness PG reload, no browser proof in production."
     },
     {
       "method": "POST",
@@ -1260,7 +1288,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T02",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1277,10 +1305,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/metering.ts",
+        "web/src/pages/metering.ts",
+        "web/tests/core/metering.test.ts",
+        "web/tests/pages/metering.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T02 dedicated metering client/page over the staged transport (exact quote/window, altered bytes price anew, explicit single-flight confirm with body intention_key, original receipt check, journal balance only, staged gate: production off never confirms); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "GET",
@@ -1291,7 +1323,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T02",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1308,10 +1340,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/metering.ts",
+        "web/src/pages/metering.ts",
+        "web/tests/core/metering.test.ts",
+        "web/tests/pages/metering.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T02 dedicated metering client/page over the staged transport (exact quote/window, altered bytes price anew, explicit single-flight confirm with body intention_key, original receipt check, journal balance only, staged gate: production off never confirms); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "POST",
@@ -1322,7 +1358,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T02",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1339,10 +1375,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/metering.ts",
+        "web/src/pages/metering.ts",
+        "web/tests/core/metering.test.ts",
+        "web/tests/pages/metering.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T02 dedicated metering client/page over the staged transport (exact quote/window, altered bytes price anew, explicit single-flight confirm with body intention_key, original receipt check, journal balance only, staged gate: production off never confirms); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "GET",
@@ -1353,7 +1393,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T02",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1370,10 +1410,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/metering.ts",
+        "web/src/pages/metering.ts",
+        "web/tests/core/metering.test.ts",
+        "web/tests/pages/metering.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T02 dedicated metering client/page over the staged transport (exact quote/window, altered bytes price anew, explicit single-flight confirm with body intention_key, original receipt check, journal balance only, staged gate: production off never confirms); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "POST",
@@ -1639,7 +1683,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T01",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1656,10 +1700,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/seasons.ts",
+        "web/src/pages/seasons.ts",
+        "web/tests/core/seasons.test.ts",
+        "web/tests/pages/seasons.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T01 dedicated seasons client/page over the staged transport (UTC dates, expiry without extension, history without balance, redacted champions via champions/model, staged gate: production off sends nothing); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "GET",
@@ -1670,7 +1718,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T01",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1687,10 +1735,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/seasons.ts",
+        "web/src/pages/seasons.ts",
+        "web/tests/core/seasons.test.ts",
+        "web/tests/pages/seasons.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T01 dedicated seasons client/page over the staged transport (UTC dates, expiry without extension, history without balance, redacted champions via champions/model, staged gate: production off sends nothing); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "GET",
@@ -1701,7 +1753,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T01",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1718,10 +1770,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/seasons.ts",
+        "web/src/pages/seasons.ts",
+        "web/tests/core/seasons.test.ts",
+        "web/tests/pages/seasons.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T01 dedicated seasons client/page over the staged transport (UTC dates, expiry without extension, history without balance, redacted champions via champions/model, staged gate: production off sends nothing); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "GET",
@@ -1732,7 +1788,7 @@
       "readiness": "staged",
       "audience": "owner",
       "phase": "P57",
-      "task": "P48-T01",
+      "task": "P57-T01",
       "client": "planned-staged-harness",
       "page": "planned-staged-harness",
       "exclusion": null,
@@ -1749,10 +1805,14 @@
         "web/src/pages/staged.ts",
         "web/tests/core/staged.test.ts",
         "web/tests/pages/staged.test.ts",
-        "web/tests/core/clients.test.ts"
+        "web/tests/core/clients.test.ts",
+        "web/src/core/clients/seasons.ts",
+        "web/src/pages/seasons.ts",
+        "web/tests/core/seasons.test.ts",
+        "web/tests/pages/seasons.test.ts"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder. P56-T04 staged capabilities allowlisted from composition (production empty: honest unavailability, no mutation) with typed harness-only clients/pages; DOM/capability/URL forgery never enables the backend; delivered server keeps the 404 placeholder. P57-T01 dedicated seasons client/page over the staged transport (UTC dates, expiry without extension, history without balance, redacted champions via champions/model, staged gate: production off sends nothing); harness proof in web tests + stagedharness, no browser proof in production."
     },
     {
       "method": "GET",

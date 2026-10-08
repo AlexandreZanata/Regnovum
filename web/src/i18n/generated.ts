@@ -348,28 +348,49 @@ export const messageKeys = {
   ] as const,
   commerce: [
     "commerce.failure.detail",
+    "commerce.failure.generic",
+    "commerce.failure.invalid",
+    "commerce.failure.missing",
     "commerce.failure.title",
+    "commerce.failure.unauthorized",
+    "commerce.receipt.blocked_note",
     "commerce.receipt.gross",
     "commerce.receipt.net",
+    "commerce.receipt.pending_note",
     "commerce.receipt.posted",
+    "commerce.receipt.role_line",
     "commerce.receipt.settled",
+    "commerce.receipt.settled_note",
+    "commerce.receipt.status_line",
     "commerce.receipt.tithe",
     "commerce.receipt.title",
     "commerce.statement.empty",
     "commerce.statement.title",
   ] as const,
   disputes: [
+    "disputes.appeal.reason_label",
+    "disputes.case.accept_action",
     "disputes.case.accepted",
+    "disputes.case.appeal_action",
     "disputes.case.appeal_due",
     "disputes.case.decided",
     "disputes.case.defenses",
+    "disputes.case.expires",
     "disputes.case.proposal",
     "disputes.case.title",
+    "disputes.defense.digest_label",
+    "disputes.failure.conflict",
     "disputes.failure.detail",
+    "disputes.failure.forbidden",
+    "disputes.failure.generic",
+    "disputes.failure.invalid",
+    "disputes.failure.missing",
     "disputes.failure.title",
+    "disputes.failure.unauthorized",
     "disputes.notice.accept",
     "disputes.notice.appeal",
     "disputes.notice.defense",
+    "disputes.notice.line",
     "disputes.notice.proposal",
     "disputes.notice.ruling",
     "disputes.ruling.title",
@@ -449,10 +470,18 @@ export const messageKeys = {
     "kingdom.season.title",
   ] as const,
   metering: [
+    "metering.failure.conflict",
     "metering.failure.detail",
+    "metering.failure.expired",
+    "metering.failure.generic",
+    "metering.failure.mismatch",
+    "metering.failure.missing",
     "metering.failure.title",
+    "metering.failure.unauthorized",
+    "metering.quote.changed",
     "metering.quote.confirm",
     "metering.quote.expires",
+    "metering.quote.lapsed",
     "metering.quote.retry",
     "metering.quote.title",
     "metering.quote.total",
@@ -499,15 +528,28 @@ export const messageKeys = {
     "moderation.workbench.signals_head",
   ] as const,
   seasons: [
+    "seasons.champions.cutoff",
     "seasons.champions.empty",
+    "seasons.champions.holder",
     "seasons.champions.last_king",
     "seasons.champions.richest",
     "seasons.champions.title",
     "seasons.current.title",
+    "seasons.detail.expired",
+    "seasons.detail.ordinal",
+    "seasons.detail.period",
     "seasons.detail.state",
+    "seasons.detail.state_line",
     "seasons.detail.title",
+    "seasons.failure.archived",
+    "seasons.failure.closed",
     "seasons.failure.detail",
+    "seasons.failure.generic",
+    "seasons.failure.mismatch",
+    "seasons.failure.missing",
     "seasons.failure.title",
+    "seasons.failure.unauthorized",
+    "seasons.history.count",
     "seasons.history.empty",
     "seasons.history.title",
   ] as const,
@@ -950,26 +992,47 @@ export type MessageKey =
   | "auth.verify.success_detail"
   | "auth.verify.success_heading"
   | "commerce.failure.detail"
+  | "commerce.failure.generic"
+  | "commerce.failure.invalid"
+  | "commerce.failure.missing"
   | "commerce.failure.title"
+  | "commerce.failure.unauthorized"
+  | "commerce.receipt.blocked_note"
   | "commerce.receipt.gross"
   | "commerce.receipt.net"
+  | "commerce.receipt.pending_note"
   | "commerce.receipt.posted"
+  | "commerce.receipt.role_line"
   | "commerce.receipt.settled"
+  | "commerce.receipt.settled_note"
+  | "commerce.receipt.status_line"
   | "commerce.receipt.tithe"
   | "commerce.receipt.title"
   | "commerce.statement.empty"
   | "commerce.statement.title"
+  | "disputes.appeal.reason_label"
+  | "disputes.case.accept_action"
   | "disputes.case.accepted"
+  | "disputes.case.appeal_action"
   | "disputes.case.appeal_due"
   | "disputes.case.decided"
   | "disputes.case.defenses"
+  | "disputes.case.expires"
   | "disputes.case.proposal"
   | "disputes.case.title"
+  | "disputes.defense.digest_label"
+  | "disputes.failure.conflict"
   | "disputes.failure.detail"
+  | "disputes.failure.forbidden"
+  | "disputes.failure.generic"
+  | "disputes.failure.invalid"
+  | "disputes.failure.missing"
   | "disputes.failure.title"
+  | "disputes.failure.unauthorized"
   | "disputes.notice.accept"
   | "disputes.notice.appeal"
   | "disputes.notice.defense"
+  | "disputes.notice.line"
   | "disputes.notice.proposal"
   | "disputes.notice.ruling"
   | "disputes.ruling.title"
@@ -1041,10 +1104,18 @@ export type MessageKey =
   | "kingdom.receipt.title"
   | "kingdom.season.cutoff"
   | "kingdom.season.title"
+  | "metering.failure.conflict"
   | "metering.failure.detail"
+  | "metering.failure.expired"
+  | "metering.failure.generic"
+  | "metering.failure.mismatch"
+  | "metering.failure.missing"
   | "metering.failure.title"
+  | "metering.failure.unauthorized"
+  | "metering.quote.changed"
   | "metering.quote.confirm"
   | "metering.quote.expires"
+  | "metering.quote.lapsed"
   | "metering.quote.retry"
   | "metering.quote.title"
   | "metering.quote.total"
@@ -1087,15 +1158,28 @@ export type MessageKey =
   | "moderation.workbench.row"
   | "moderation.workbench.signal"
   | "moderation.workbench.signals_head"
+  | "seasons.champions.cutoff"
   | "seasons.champions.empty"
+  | "seasons.champions.holder"
   | "seasons.champions.last_king"
   | "seasons.champions.richest"
   | "seasons.champions.title"
   | "seasons.current.title"
+  | "seasons.detail.expired"
+  | "seasons.detail.ordinal"
+  | "seasons.detail.period"
   | "seasons.detail.state"
+  | "seasons.detail.state_line"
   | "seasons.detail.title"
+  | "seasons.failure.archived"
+  | "seasons.failure.closed"
   | "seasons.failure.detail"
+  | "seasons.failure.generic"
+  | "seasons.failure.mismatch"
+  | "seasons.failure.missing"
   | "seasons.failure.title"
+  | "seasons.failure.unauthorized"
+  | "seasons.history.count"
   | "seasons.history.empty"
   | "seasons.history.title"
   | "transparency.document.heading"
@@ -1533,26 +1617,47 @@ export const messagePlaceholders = Object.freeze({
   "auth.verify.success_detail": [],
   "auth.verify.success_heading": [],
   "commerce.failure.detail": [],
+  "commerce.failure.generic": [],
+  "commerce.failure.invalid": [],
+  "commerce.failure.missing": [],
   "commerce.failure.title": [],
+  "commerce.failure.unauthorized": [],
+  "commerce.receipt.blocked_note": [],
   "commerce.receipt.gross": ["total"],
   "commerce.receipt.net": ["total"],
+  "commerce.receipt.pending_note": [],
   "commerce.receipt.posted": ["date"],
+  "commerce.receipt.role_line": ["role"],
   "commerce.receipt.settled": ["date"],
+  "commerce.receipt.settled_note": [],
+  "commerce.receipt.status_line": ["status"],
   "commerce.receipt.tithe": ["total"],
   "commerce.receipt.title": [],
   "commerce.statement.empty": [],
   "commerce.statement.title": [],
+  "disputes.appeal.reason_label": [],
+  "disputes.case.accept_action": [],
   "disputes.case.accepted": ["count"],
+  "disputes.case.appeal_action": [],
   "disputes.case.appeal_due": ["date"],
   "disputes.case.decided": ["date"],
   "disputes.case.defenses": ["count"],
+  "disputes.case.expires": ["date"],
   "disputes.case.proposal": ["key", "version"],
   "disputes.case.title": [],
+  "disputes.defense.digest_label": [],
+  "disputes.failure.conflict": [],
   "disputes.failure.detail": [],
+  "disputes.failure.forbidden": [],
+  "disputes.failure.generic": [],
+  "disputes.failure.invalid": [],
+  "disputes.failure.missing": [],
   "disputes.failure.title": [],
+  "disputes.failure.unauthorized": [],
   "disputes.notice.accept": [],
   "disputes.notice.appeal": [],
   "disputes.notice.defense": [],
+  "disputes.notice.line": ["event", "title"],
   "disputes.notice.proposal": [],
   "disputes.notice.ruling": [],
   "disputes.ruling.title": [],
@@ -1624,10 +1729,18 @@ export const messagePlaceholders = Object.freeze({
   "kingdom.receipt.title": [],
   "kingdom.season.cutoff": ["date", "season"],
   "kingdom.season.title": [],
+  "metering.failure.conflict": [],
   "metering.failure.detail": [],
+  "metering.failure.expired": [],
+  "metering.failure.generic": [],
+  "metering.failure.mismatch": [],
+  "metering.failure.missing": [],
   "metering.failure.title": [],
+  "metering.failure.unauthorized": [],
+  "metering.quote.changed": [],
   "metering.quote.confirm": [],
   "metering.quote.expires": ["date"],
+  "metering.quote.lapsed": [],
   "metering.quote.retry": [],
   "metering.quote.title": [],
   "metering.quote.total": ["total", "units"],
@@ -1670,15 +1783,28 @@ export const messagePlaceholders = Object.freeze({
   "moderation.workbench.row": ["instant", "priority", "status", "target"],
   "moderation.workbench.signal": ["counterpart", "counts", "kind"],
   "moderation.workbench.signals_head": ["instant", "policy", "window"],
+  "seasons.champions.cutoff": ["revision"],
   "seasons.champions.empty": [],
+  "seasons.champions.holder": ["holder", "title"],
   "seasons.champions.last_king": [],
   "seasons.champions.richest": [],
   "seasons.champions.title": [],
   "seasons.current.title": [],
+  "seasons.detail.expired": [],
+  "seasons.detail.ordinal": ["ordinal"],
+  "seasons.detail.period": ["end", "start"],
   "seasons.detail.state": [],
+  "seasons.detail.state_line": ["state"],
   "seasons.detail.title": [],
+  "seasons.failure.archived": [],
+  "seasons.failure.closed": [],
   "seasons.failure.detail": [],
+  "seasons.failure.generic": [],
+  "seasons.failure.mismatch": [],
+  "seasons.failure.missing": [],
   "seasons.failure.title": [],
+  "seasons.failure.unauthorized": [],
+  "seasons.history.count": ["count"],
   "seasons.history.empty": [],
   "seasons.history.title": [],
   "transparency.document.heading": [],
@@ -2117,26 +2243,47 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.verify.success_detail": "Your account is active and you can sign in.",
     "auth.verify.success_heading": "Email confirmed",
     "commerce.failure.detail": "Check the data and try again.",
+    "commerce.failure.generic": "Check the data and try again.",
+    "commerce.failure.invalid": "This receipt request is not valid.",
+    "commerce.failure.missing": "This contract does not exist for this account.",
     "commerce.failure.title": "Receipt unavailable",
+    "commerce.failure.unauthorized": "Sign in to see the receipt.",
+    "commerce.receipt.blocked_note": "Insufficient data: custody preserved, no new judgment.",
     "commerce.receipt.gross": "{total} thousandths of INK (gross)",
     "commerce.receipt.net": "{total} thousandths of INK (net)",
+    "commerce.receipt.pending_note": "Custody in course: the decision belongs to the competent authority, never to the browser.",
     "commerce.receipt.posted": "Posted {date}",
+    "commerce.receipt.role_line": "Role: {role}",
     "commerce.receipt.settled": "Settled {date}",
+    "commerce.receipt.settled_note": "Terminal contract: no new effect; the receipt is preserved.",
+    "commerce.receipt.status_line": "State: {status}",
     "commerce.receipt.tithe": "{total} thousandths of INK (tithe)",
     "commerce.receipt.title": "Trade receipt",
     "commerce.statement.empty": "No trades yet",
     "commerce.statement.title": "Trade statement",
+    "disputes.appeal.reason_label": "Appeal reason",
+    "disputes.case.accept_action": "Accept terms",
     "disputes.case.accepted": "{count} of 2 acceptances",
+    "disputes.case.appeal_action": "Open appeal",
     "disputes.case.appeal_due": "Appeal until {date}",
     "disputes.case.decided": "Decided {date}",
     "disputes.case.defenses": "{count} defenses",
+    "disputes.case.expires": "Expires {date}",
     "disputes.case.proposal": "Proposal {key} · version {version}",
     "disputes.case.title": "Private case",
+    "disputes.defense.digest_label": "Proof digest",
+    "disputes.failure.conflict": "The rite refused this step in the current state.",
     "disputes.failure.detail": "Check the data and try again.",
+    "disputes.failure.forbidden": "Only a named party moves its own case.",
+    "disputes.failure.generic": "Check the data and try again.",
+    "disputes.failure.invalid": "This case request is not valid.",
+    "disputes.failure.missing": "This case does not exist for this account.",
     "disputes.failure.title": "Case unavailable",
+    "disputes.failure.unauthorized": "Sign in to see the case.",
     "disputes.notice.accept": "Acceptance recorded",
     "disputes.notice.appeal": "Appeal opened",
     "disputes.notice.defense": "Defense filed",
+    "disputes.notice.line": "{event} — {title}",
     "disputes.notice.proposal": "Sealed proposal",
     "disputes.notice.ruling": "Reasoned ruling",
     "disputes.ruling.title": "Rite ruling",
@@ -2208,10 +2355,18 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "kingdom.receipt.title": "Receipt",
     "kingdom.season.cutoff": "Season {season} cutoff on {date}",
     "kingdom.season.title": "Season",
+    "metering.failure.conflict": "This key already settled different terms.",
     "metering.failure.detail": "Check the data and request a new quote.",
+    "metering.failure.expired": "The quote lapsed: request a new one.",
+    "metering.failure.generic": "Check the data and request a new quote.",
+    "metering.failure.mismatch": "This acceptance binds another account or content.",
+    "metering.failure.missing": "This publication does not exist for this account.",
     "metering.failure.title": "Charge unavailable",
+    "metering.failure.unauthorized": "Sign in to see the charge.",
+    "metering.quote.changed": "Content changed: request a new quote.",
     "metering.quote.confirm": "Confirm publication",
     "metering.quote.expires": "Acceptance valid until {date}",
+    "metering.quote.lapsed": "Quote lapsed: request a new quote.",
     "metering.quote.retry": "Request a new quote",
     "metering.quote.title": "INK metering price",
     "metering.quote.total": "{total} thousandths of INK for {units} graphemes",
@@ -2254,15 +2409,28 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "moderation.workbench.row": "{target} · {status} · {priority} priority on {instant}",
     "moderation.workbench.signal": "{kind} signal with {counterpart}: {counts}",
     "moderation.workbench.signals_head": "Signals of policy {policy}, {window}s window, read {instant}",
+    "seasons.champions.cutoff": "Cutoff {revision}",
     "seasons.champions.empty": "No champions yet",
+    "seasons.champions.holder": "{title}: {holder}",
     "seasons.champions.last_king": "Last King",
     "seasons.champions.richest": "Richest at cutoff",
     "seasons.champions.title": "Season champions",
     "seasons.current.title": "Current season",
+    "seasons.detail.expired": "This season ended at the server cutoff.",
+    "seasons.detail.ordinal": "Edition {ordinal}",
+    "seasons.detail.period": "Period: {start} – {end}",
     "seasons.detail.state": "Lifecycle state",
+    "seasons.detail.state_line": "Lifecycle state: {state}",
     "seasons.detail.title": "Season",
+    "seasons.failure.archived": "Predecessor archived: the successor is not open yet.",
+    "seasons.failure.closed": "No active season: closing is still draining.",
     "seasons.failure.detail": "Check the data and try again.",
+    "seasons.failure.generic": "Check the data and try again.",
+    "seasons.failure.mismatch": "This book uses another namespace and does not open here.",
+    "seasons.failure.missing": "This season does not exist for this account.",
     "seasons.failure.title": "Season unavailable",
+    "seasons.failure.unauthorized": "Sign in to see the season.",
+    "seasons.history.count": "Seasons: {count}",
     "seasons.history.empty": "No seasons yet",
     "seasons.history.title": "Season history",
     "transparency.document.heading": "Platform transparency",
@@ -2698,26 +2866,47 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "auth.verify.success_detail": "Sua conta está ativa e você já pode entrar.",
     "auth.verify.success_heading": "Email confirmado",
     "commerce.failure.detail": "Confira os dados e tente novamente.",
+    "commerce.failure.generic": "Confira os dados e tente novamente.",
+    "commerce.failure.invalid": "Este pedido de recibo não é válido.",
+    "commerce.failure.missing": "Este contrato não existe para esta conta.",
     "commerce.failure.title": "Recibo indisponível",
+    "commerce.failure.unauthorized": "Entre na conta para ver o recibo.",
+    "commerce.receipt.blocked_note": "Sem dados suficientes: custódia preservada, sem novo julgamento.",
     "commerce.receipt.gross": "{total} milésimos de INK (bruto)",
     "commerce.receipt.net": "{total} milésimos de INK (líquido)",
+    "commerce.receipt.pending_note": "Custódia em curso: a decisão cabe à autoridade competente, nunca ao navegador.",
     "commerce.receipt.posted": "Publicado em {date}",
+    "commerce.receipt.role_line": "Papel: {role}",
     "commerce.receipt.settled": "Liquidado em {date}",
+    "commerce.receipt.settled_note": "Contrato terminal: nenhum novo efeito; o recibo é preservado.",
+    "commerce.receipt.status_line": "Estado: {status}",
     "commerce.receipt.tithe": "{total} milésimos de INK (dízimo)",
     "commerce.receipt.title": "Recibo de comércio",
     "commerce.statement.empty": "Nenhum comércio ainda",
     "commerce.statement.title": "Extrato de comércio",
+    "disputes.appeal.reason_label": "Motivo do recurso",
+    "disputes.case.accept_action": "Aceitar termos",
     "disputes.case.accepted": "{count} de 2 aceites",
+    "disputes.case.appeal_action": "Abrir recurso",
     "disputes.case.appeal_due": "Recurso até {date}",
     "disputes.case.decided": "Decidido em {date}",
     "disputes.case.defenses": "{count} defesas",
+    "disputes.case.expires": "Expira em {date}",
     "disputes.case.proposal": "Proposta {key} · versão {version}",
     "disputes.case.title": "Caso privado",
+    "disputes.defense.digest_label": "Resumo da prova",
+    "disputes.failure.conflict": "O rito recusou este passo no estado atual.",
     "disputes.failure.detail": "Confira os dados e tente novamente.",
+    "disputes.failure.forbidden": "Só uma parte nomeada move o próprio caso.",
+    "disputes.failure.generic": "Confira os dados e tente novamente.",
+    "disputes.failure.invalid": "Este pedido do caso não é válido.",
+    "disputes.failure.missing": "Este caso não existe para esta conta.",
     "disputes.failure.title": "Caso indisponível",
+    "disputes.failure.unauthorized": "Entre na conta para ver o caso.",
     "disputes.notice.accept": "Aceite registrado",
     "disputes.notice.appeal": "Recurso aberto",
     "disputes.notice.defense": "Defesa apresentada",
+    "disputes.notice.line": "{event}: {title}",
     "disputes.notice.proposal": "Proposta selada",
     "disputes.notice.ruling": "Sentença fundamentada",
     "disputes.ruling.title": "Sentença do rito",
@@ -2789,10 +2978,18 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "kingdom.receipt.title": "Recibo",
     "kingdom.season.cutoff": "Corte da temporada {season} em {date}",
     "kingdom.season.title": "Temporada",
+    "metering.failure.conflict": "Esta chave já liquidou outros termos.",
     "metering.failure.detail": "Confira os dados e peça uma nova cotação.",
+    "metering.failure.expired": "A cotação venceu: peça uma nova.",
+    "metering.failure.generic": "Confira os dados e peça uma nova cotação.",
+    "metering.failure.mismatch": "Este aceite pertence a outra conta ou conteúdo.",
+    "metering.failure.missing": "Esta publicação não existe para esta conta.",
     "metering.failure.title": "Cobrança indisponível",
+    "metering.failure.unauthorized": "Entre na conta para ver a cobrança.",
+    "metering.quote.changed": "Conteúdo alterado: peça uma nova cotação.",
     "metering.quote.confirm": "Confirmar publicação",
     "metering.quote.expires": "Aceite válido até {date}",
+    "metering.quote.lapsed": "Cotação vencida: peça uma nova cotação.",
     "metering.quote.retry": "Pedir nova cotação",
     "metering.quote.title": "Preço de medição de INK",
     "metering.quote.total": "{total} milésimos de INK por {units} grafemas",
@@ -2835,15 +3032,28 @@ export const messages: Readonly<Record<string, Readonly<Record<string, string>>>
     "moderation.workbench.row": "{target} · {status} · prioridade {priority} em {instant}",
     "moderation.workbench.signal": "Sinal {kind} com {counterpart}: {counts}",
     "moderation.workbench.signals_head": "Sinais da política {policy}, janela {window}s, lidos em {instant}",
+    "seasons.champions.cutoff": "Corte {revision}",
     "seasons.champions.empty": "Nenhum campeão ainda",
+    "seasons.champions.holder": "{title}: {holder}",
     "seasons.champions.last_king": "Último Rei",
     "seasons.champions.richest": "Mais rico no corte",
     "seasons.champions.title": "Campeões da temporada",
     "seasons.current.title": "Temporada atual",
+    "seasons.detail.expired": "Esta temporada terminou no corte do servidor.",
+    "seasons.detail.ordinal": "Edição {ordinal}",
+    "seasons.detail.period": "Período: {start} – {end}",
     "seasons.detail.state": "Estado do ciclo",
+    "seasons.detail.state_line": "Estado do ciclo: {state}",
     "seasons.detail.title": "Temporada",
+    "seasons.failure.archived": "Temporada anterior arquivada: a sucessora ainda não abriu.",
+    "seasons.failure.closed": "Sem temporada ativa: o fechamento ainda está em curso.",
     "seasons.failure.detail": "Confira os dados e tente novamente.",
+    "seasons.failure.generic": "Confira os dados e tente novamente.",
+    "seasons.failure.mismatch": "Este livro usa outro espaço de nomes e não abre aqui.",
+    "seasons.failure.missing": "Esta temporada não existe para esta conta.",
     "seasons.failure.title": "Temporada indisponível",
+    "seasons.failure.unauthorized": "Entre na conta para ver a temporada.",
+    "seasons.history.count": "Temporadas: {count}",
     "seasons.history.empty": "Nenhuma temporada ainda",
     "seasons.history.title": "Histórico de temporadas",
     "transparency.document.heading": "Transparência da plataforma",

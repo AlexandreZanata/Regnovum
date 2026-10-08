@@ -5,7 +5,9 @@
       "total": "{total} milésimos de INK por {units} grafemas",
       "expires": "Aceite válido até {date}",
       "confirm": "Confirmar publicação",
-      "retry": "Pedir nova cotação"
+      "retry": "Pedir nova cotação",
+      "changed": "Conteúdo alterado: peça uma nova cotação.",
+      "lapsed": "Cotação vencida: peça uma nova cotação."
     },
     "receipt": {
       "title": "Recibo de INK",
@@ -20,7 +22,13 @@
     },
     "failure": {
       "title": "Cobrança indisponível",
-      "detail": "Confira os dados e peça uma nova cotação."
+      "detail": "Confira os dados e peça uma nova cotação.",
+      "unauthorized": "Entre na conta para ver a cobrança.",
+      "mismatch": "Este aceite pertence a outra conta ou conteúdo.",
+      "expired": "A cotação venceu: peça uma nova.",
+      "conflict": "Esta chave já liquidou outros termos.",
+      "missing": "Esta publicação não existe para esta conta.",
+      "generic": "Confira os dados e peça uma nova cotação."
     }
   }
 }

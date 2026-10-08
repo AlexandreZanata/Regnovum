@@ -6,7 +6,12 @@
       "tithe": "{total} milésimos de INK (dízimo)",
       "net": "{total} milésimos de INK (líquido)",
       "posted": "Publicado em {date}",
-      "settled": "Liquidado em {date}"
+      "settled": "Liquidado em {date}",
+      "status_line": "Estado: {status}",
+      "role_line": "Papel: {role}",
+      "settled_note": "Contrato terminal: nenhum novo efeito; o recibo é preservado.",
+      "pending_note": "Custódia em curso: a decisão cabe à autoridade competente, nunca ao navegador.",
+      "blocked_note": "Sem dados suficientes: custódia preservada, sem novo julgamento."
     },
     "statement": {
       "title": "Extrato de comércio",
@@ -14,7 +19,11 @@
     },
     "failure": {
       "title": "Recibo indisponível",
-      "detail": "Confira os dados e tente novamente."
+      "detail": "Confira os dados e tente novamente.",
+      "unauthorized": "Entre na conta para ver o recibo.",
+      "missing": "Este contrato não existe para esta conta.",
+      "invalid": "Este pedido de recibo não é válido.",
+      "generic": "Confira os dados e tente novamente."
     }
   }
 }

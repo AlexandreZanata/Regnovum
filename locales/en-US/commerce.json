@@ -6,7 +6,12 @@
       "tithe": "{total} thousandths of INK (tithe)",
       "net": "{total} thousandths of INK (net)",
       "posted": "Posted {date}",
-      "settled": "Settled {date}"
+      "settled": "Settled {date}",
+      "status_line": "State: {status}",
+      "role_line": "Role: {role}",
+      "settled_note": "Terminal contract: no new effect; the receipt is preserved.",
+      "pending_note": "Custody in course: the decision belongs to the competent authority, never to the browser.",
+      "blocked_note": "Insufficient data: custody preserved, no new judgment."
     },
     "statement": {
       "title": "Trade statement",
@@ -14,7 +19,11 @@
     },
     "failure": {
       "title": "Receipt unavailable",
-      "detail": "Check the data and try again."
+      "detail": "Check the data and try again.",
+      "unauthorized": "Sign in to see the receipt.",
+      "missing": "This contract does not exist for this account.",
+      "invalid": "This receipt request is not valid.",
+      "generic": "Check the data and try again."
     }
   }
 }

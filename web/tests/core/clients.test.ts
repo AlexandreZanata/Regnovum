@@ -28,6 +28,10 @@ import { createTransparencyClient } from "../../src/core/clients/transparency.js
 import { createWalletClient } from "../../src/core/clients/wallet.js";
 import { createPassesClient } from "../../src/core/clients/passes.js";
 import { createBillingClient } from "../../src/core/clients/billing.js";
+import { createMeteringClient } from "../../src/core/clients/metering.js";
+import { createCommerceClient } from "../../src/core/clients/commerce.js";
+import { createDisputesClient } from "../../src/core/clients/disputes.js";
+import { createSeasonsClient } from "../../src/core/clients/seasons.js";
 import { createStagedClient } from "../../src/core/clients/staged.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
@@ -538,6 +542,34 @@ const expectations: readonly Expectation[] = [
     idempotent: true,
   },
   {
+    name: "seasons readCurrentSeason",
+    run: (core) => createSeasonsClient(core).readCurrentSeason(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/current",
+    idempotent: false,
+  },
+  {
+    name: "seasons readSeasonHistory",
+    run: (core) => createSeasonsClient(core).readSeasonHistory(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/history",
+    idempotent: false,
+  },
+  {
+    name: "seasons readSeason",
+    run: (core) => createSeasonsClient(core).readSeason("temporada-harness-b"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/temporada-harness-b",
+    idempotent: false,
+  },
+  {
+    name: "seasons readSeasonChampions",
+    run: (core) => createSeasonsClient(core).readSeasonChampions("temporada-harness-b"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/temporada-harness-b/champions",
+    idempotent: false,
+  },
+  {
     name: "staged readCurrentSeason",
     run: (core) => createStagedClient(core).readCurrentSeason(),
     method: "GET",
@@ -563,6 +595,41 @@ const expectations: readonly Expectation[] = [
     run: (core) => createStagedClient(core).readSeasonChampions("temporada-harness-b"),
     method: "GET",
     url: "https://arena.test/api/v1/me/seasons/temporada-harness-b/champions",
+    idempotent: false,
+  },
+  {
+    name: "metering previewMeteringQuote",
+    run: (core) => createMeteringClient(core).previewMeteringQuote({ content: "texto final", service: "argument-publish" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/metering/quotes",
+    body: { content: "texto final", service: "argument-publish" },
+    idempotent: false,
+  },
+  {
+    name: "metering confirmMeteringPublication",
+    run: (core) =>
+      createMeteringClient(core).confirmMeteringPublication({
+        intention_key: "intencao-1",
+        content: "texto final",
+        service: "argument-publish",
+      }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/metering/publications",
+    body: { intention_key: "intencao-1", content: "texto final", service: "argument-publish" },
+    idempotent: false,
+  },
+  {
+    name: "metering readMeteringReceipt",
+    run: (core) => createMeteringClient(core).readMeteringReceipt("00000000-0000-4000-8000-000000000001"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/metering/publications/00000000-0000-4000-8000-000000000001",
+    idempotent: false,
+  },
+  {
+    name: "metering readMeteringStatement",
+    run: (core) => createMeteringClient(core).readMeteringStatement(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/metering/statement",
     idempotent: false,
   },
   {
@@ -601,6 +668,20 @@ const expectations: readonly Expectation[] = [
     idempotent: false,
   },
   {
+    name: "commerce readTradeReceipt",
+    run: (core) => createCommerceClient(core).readTradeReceipt("00000000-0000-4000-8000-000000000002"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/commerce/contracts/00000000-0000-4000-8000-000000000002",
+    idempotent: false,
+  },
+  {
+    name: "commerce readTradeStatement",
+    run: (core) => createCommerceClient(core).readTradeStatement(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/commerce/statement",
+    idempotent: false,
+  },
+  {
     name: "staged readTradeReceipt",
     run: (core) => createStagedClient(core).readTradeReceipt("00000000-0000-4000-8000-000000000002"),
     method: "GET",
@@ -612,6 +693,43 @@ const expectations: readonly Expectation[] = [
     run: (core) => createStagedClient(core).readTradeStatement(),
     method: "GET",
     url: "https://arena.test/api/v1/me/commerce/statement",
+    idempotent: false,
+  },
+  {
+    name: "disputes readPrivateCaseFile",
+    run: (core) => createDisputesClient(core).readPrivateCaseFile("caso-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1",
+    idempotent: false,
+  },
+  {
+    name: "disputes acceptPrivateCaseTerms",
+    run: (core) => createDisputesClient(core).acceptPrivateCaseTerms("caso-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/accepts",
+    idempotent: false,
+  },
+  {
+    name: "disputes filePrivateCaseDefense",
+    run: (core) => createDisputesClient(core).filePrivateCaseDefense("caso-1", { digest: "resumo-1" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/defenses",
+    body: { digest: "resumo-1" },
+    idempotent: false,
+  },
+  {
+    name: "disputes readPrivateCaseRuling",
+    run: (core) => createDisputesClient(core).readPrivateCaseRuling("caso-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/ruling",
+    idempotent: false,
+  },
+  {
+    name: "disputes appealPrivateCaseRuling",
+    run: (core) => createDisputesClient(core).appealPrivateCaseRuling("caso-1", { reason: "recurso honesto" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/appeals",
+    body: { reason: "recurso honesto" },
     idempotent: false,
   },
   {

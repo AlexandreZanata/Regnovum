@@ -6,14 +6,18 @@
       "accepted": "{count} of 2 acceptances",
       "defenses": "{count} defenses",
       "decided": "Decided {date}",
-      "appeal_due": "Appeal until {date}"
+      "appeal_due": "Appeal until {date}",
+      "expires": "Expires {date}",
+      "accept_action": "Accept terms",
+      "appeal_action": "Open appeal"
     },
     "notice": {
       "proposal": "Sealed proposal",
       "accept": "Acceptance recorded",
       "defense": "Defense filed",
       "ruling": "Reasoned ruling",
-      "appeal": "Appeal opened"
+      "appeal": "Appeal opened",
+      "line": "{event} — {title}"
     },
     "ruling": {
       "title": "Rite ruling",
@@ -21,7 +25,19 @@
     },
     "failure": {
       "title": "Case unavailable",
-      "detail": "Check the data and try again."
+      "detail": "Check the data and try again.",
+      "unauthorized": "Sign in to see the case.",
+      "missing": "This case does not exist for this account.",
+      "forbidden": "Only a named party moves its own case.",
+      "conflict": "The rite refused this step in the current state.",
+      "invalid": "This case request is not valid.",
+      "generic": "Check the data and try again."
+    },
+    "defense": {
+      "digest_label": "Proof digest"
+    },
+    "appeal": {
+      "reason_label": "Appeal reason"
     }
   }
 }
