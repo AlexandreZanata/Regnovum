@@ -171,6 +171,62 @@ type AppAuditEvent struct {
 	CorrelationID pgtype.Text
 }
 
+// Gateway charge verdicts per purchase intent: paid or failed facts the reconciliation compares, append-only
+type AppBillingInkChargeEvent struct {
+	ID          pgtype.UUID
+	EventID     string
+	IntentKey   string
+	AccountID   pgtype.UUID
+	AmountMinor int64
+	Currency    string
+	Status      string
+	ReceivedAt  pgtype.Timestamptz
+}
+
+// Reversed INK liquidations: holder revocation plus treasury cover per provider dispute, append-only
+type AppBillingInkChargeback struct {
+	ID            pgtype.UUID
+	SettlementID  pgtype.UUID
+	EventID       string
+	DisputedMinor int64
+	// MilliINK taken back from the defrauding holder balance, never below zero
+	InkRevoked int64
+	// MilliINK the operator covered from commercial stock when the holder balance fell short
+	TreasuryCovered int64
+	ReceivedAt      pgtype.Timestamptz
+}
+
+// Accepted INK purchase intents: buyer, sealed quotation, server-derived amounts, terms hash and backing hold, append-only
+type AppBillingInkIntent struct {
+	ID pgtype.UUID
+	// Caller operation token scoped by account: a retry replays instead of provisioning twice
+	IntentKey string
+	AccountID pgtype.UUID
+	QuoteID   pgtype.UUID
+	FiatMinor int64
+	InkMilli  int64
+	TermsHash string
+	Status    string
+	// Commercial-stock hold backing the intent, written by the same transaction
+	HoldID    pgtype.UUID
+	DecidedAt pgtype.Timestamptz
+	// Book identity of this purchase: vault, hold and legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace
+	SeasonKey string
+}
+
+// Paid INK purchase liquidations: one row per settled intent with its provider event, append-only
+type AppBillingInkSettlement struct {
+	ID       pgtype.UUID
+	IntentID pgtype.UUID
+	// Provider event identifier: redeliveries replay instead of settling again
+	EventID     string
+	AmountMinor int64
+	Currency    string
+	SettledAt   pgtype.Timestamptz
+	// Book identity of this liquidation: the receipt never leaves its book; pre-season rows bind the explicitly inactive compat-legacy namespace
+	SeasonKey string
+}
+
 // Divergences found between the local state and the provider; recorded so they are reviewed instead of silently corrected
 type AppBillingReconciliationFinding struct {
 	ID    pgtype.UUID
@@ -262,6 +318,125 @@ type AppCheckoutIntent struct {
 	ClosedAt pgtype.Timestamptz
 }
 
+// Funded formal trade contracts: idempotency key, service object, parties, exact amount, sealed terms and locking transfer, append-only
+type AppCommerceContract struct {
+	ID pgtype.UUID
+	// Caller operation token scoped by buyer: a retry replays instead of locking twice
+	ContractKey string
+	Kind        string
+	BuyerID     pgtype.UUID
+	ProviderID  pgtype.UUID
+	Object      string
+	AmountMilli int64
+	TermsHash   string
+	// Journal transfer that locked the buyer amount in exclusive escrow
+	EscrowTransferID pgtype.UUID
+	ExpiresAt        pgtype.Timestamptz
+	PostedAt         pgtype.Timestamptz
+	// Book identity of this escrow: the locked legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace
+	SeasonKey string
+	// Terminal clause reference of section 5.1: versioned policy accepted by both parties before funding; empty on legacy contracts without the clause
+	TerminalPolicyRef string
+	// Digest of the terminal clause (64 lowercase hex) bound at funding; empty on legacy contracts without the clause
+	TerminalPolicyHash string
+	// Buyer accept evidence recorded before funding; empty on legacy contracts without the clause
+	BuyerAcceptRef string
+	// Provider accept evidence recorded before funding; empty on legacy contracts without the clause
+	ProviderAcceptRef string
+}
+
+// Flagged gifts under review for disguised trade: caller token, closed reason, minimized evidence digest and reporter, append-only, never moves value
+type AppCommerceDisguiseReview struct {
+	ID         pgtype.UUID
+	TransferID pgtype.UUID
+	// Caller operation token scoped by transfer: a retry replays instead of reviewing twice
+	ReviewKey string
+	Reason    string
+	// Minimized proof digest (64 lowercase hex): no PII content ever stored
+	EvidenceHash string
+	Reporter     string
+	PostedAt     pgtype.Timestamptz
+}
+
+// Review lifecycle steps: party contest, false-positive dismissal and confirmed act with basis, trail, explicit charge and appeal window, append-only, never moves value
+type AppCommerceDisguiseStep struct {
+	ID        pgtype.UUID
+	ReviewID  pgtype.UUID
+	Action    string
+	DecidedBy string
+	// Contractual basis of a confirmed act: required only for confirm, never for contest or dismissal
+	Basis     pgtype.Text
+	TrailHash pgtype.Text
+	// Explicit floor(10%) charge owed on confirmation: recorded debt with appeal, never an automatic debit
+	ChargeMilli pgtype.Int8
+	AppealUntil pgtype.Timestamptz
+	PostedAt    pgtype.Timestamptz
+}
+
+// Explicit shortfall debts: at most one per service refund, naming the provider debtor, the buyer creditor and the uncovered share, append-only
+type AppCommerceRefundObligation struct {
+	ID          pgtype.UUID
+	RefundID    pgtype.UUID
+	DebtorID    pgtype.UUID
+	CreditorID  pgtype.UUID
+	AmountMilli int64
+	PostedAt    pgtype.Timestamptz
+}
+
+// Sanctioned accounts blocked from paying and receiving: rows are managed by governance, read by settlement
+type AppCommerceSanction struct {
+	// Blocked account: payer and payee checks run in the settling transaction
+	AccountID pgtype.UUID
+	Reason    string
+	DecidedAt pgtype.Timestamptz
+}
+
+// Proportional service refunds linked to their liquidated payment: idempotency key, total returned, tithe reversal, provider share, explicit shortfall and moving transfer, append-only
+type AppCommerceServiceRefund struct {
+	ID         pgtype.UUID
+	ContractID pgtype.UUID
+	// Caller operation token scoped by contract: a retry replays instead of compensating twice
+	RefundKey          string
+	AmountMilli        int64
+	TitheReversalMilli int64
+	ProviderShareMilli int64
+	// Shortfall the provider could not cover: explicit debt to the buyer, never a hidden negative balance
+	ObligationMilli int64
+	// Journal transfer moving provider share and tithe reversal to the buyer; NULL only when dust plus a broke provider moves nothing and the full share becomes obligation
+	TransferID pgtype.UUID
+	PostedAt   pgtype.Timestamptz
+}
+
+// Escrow lifecycle steps: acceptance, provider payment, buyer refund, lapse marking and competent resolutions, append-only
+type AppCommerceSettlement struct {
+	ID         pgtype.UUID
+	ContractID pgtype.UUID
+	// Lifecycle step: accept and expire move no legs; release, refund and resolutions move under new transfers
+	Action     string
+	TransferID pgtype.UUID
+	DecidedBy  pgtype.Text
+	PostedAt   pgtype.Timestamptz
+}
+
+// Settled voluntary transfers: idempotency key, immutable kind, payer, payee, exact amount, consent reference and journal transfer, append-only
+type AppCommerceTransfer struct {
+	ID pgtype.UUID
+	// Caller operation token scoped by payer: a retry replays instead of paying twice
+	IntentionKey string
+	// Business kind sealed at acceptance: gifts, formal trades, refunds and treasury movements never interchange
+	Kind        string
+	PayerID     pgtype.UUID
+	PayeeID     pgtype.UUID
+	AmountMilli int64
+	ConsentRef  string
+	PayloadHash string
+	// Journal transfer moving the exact amount: row and legs share one intention
+	TransferID pgtype.UUID
+	PostedAt   pgtype.Timestamptz
+	// Book identity of this transfer: the legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace
+	SeasonKey string
+}
+
 // Explicit communication opt-ins per account; marketing defaults to false and is never opted in implicitly
 type AppCommunicationPreference struct {
 	AccountID pgtype.UUID
@@ -314,6 +489,140 @@ type AppDebatePosition struct {
 	UpdatedAt pgtype.Timestamptz
 }
 
+// Staged private case records: one sealed CaseRecord envelope per negotiation key (P56-T03)
+type AppDisputeCase struct {
+	// Negotiation key the parties address, at most 128 characters
+	Key string
+	// Sealed CaseRecord envelope: proposal, entry, hearing and decision as filed
+	Record    []byte
+	UpdatedAt pgtype.Timestamptz
+}
+
+// Versioned charter verdicts per account: acceptance unlocks new activities, refusal preserves history, export, recourse and settlement
+type AppEconomyCharterConsent struct {
+	AccountID pgtype.UUID
+	// Charter version as vN: acceptances never carry across versions silently
+	CharterVersion string
+	Decision       string
+	DecidedAt      pgtype.Timestamptz
+}
+
+// Genesis custody accounts: exactly one home per unit of INK, never renamed or removed
+type AppEconomyCustody struct {
+	ID pgtype.UUID
+	// Custody class: treasury, user, escrow, contract or title; closed vocabulary
+	Kind string
+	// Stable custody name within its kind; unique per kind
+	Label     string
+	CreatedAt pgtype.Timestamptz
+	// Holder account of this custody, set once at creation; NULL marks a system custody no private statement may read
+	OwnerAccountID pgtype.UUID
+	// Book identity of this custody: the same label in another book is another custody; pre-season rows bind the explicitly inactive compat-legacy namespace
+	SeasonKey string
+}
+
+// Double-entry legs of Genesis transfers: debit/credit pairs sharing one transfer_id, append-only
+type AppEconomyEntry struct {
+	ID pgtype.UUID
+	// Business intention carried by every leg of the transfer; replayed intentions reuse it instead of duplicating legs
+	TransferID pgtype.UUID
+	CustodyID  pgtype.UUID
+	Direction  string
+	// Leg amount in milliINK subunits: 1..S, never zero, negative or beyond supply
+	AmountMilli int64
+	CreatedAt   pgtype.Timestamptz
+	// Book of this leg: the composite key refuses legs mixing a custody of another book
+	SeasonKey string
+}
+
+// Single Genesis attestation: one event key, the Treasury custody and exactly S milliINK; every second event is refused
+type AppEconomyGenesi struct {
+	// Idempotency key of the creation event: replays resolve to this row instead of minting again
+	GenesisKey        string
+	TreasuryCustodyID pgtype.UUID
+	AmountMilli       int64
+	// Always true and unique: the constraint that makes a second Genesis impossible
+	Singleton bool
+	CreatedAt pgtype.Timestamptz
+	// Book identity of this Genesis: one Genesis per season, never twice in one book
+	SeasonKey string
+}
+
+// Generic value holds: owner funds locked in a dedicated hold custody until an explicit release or capture; expiry alone moves nothing
+type AppEconomyHold struct {
+	ID pgtype.UUID
+	// Custody the funds were reserved from; its spendable balance excludes active and expired-unsettled holds
+	OwnerCustodyID pgtype.UUID
+	// Dedicated escrow-kind custody holding the locked amount; one hold per custody
+	HoldCustodyID pgtype.UUID
+	AmountMilli   int64
+	Purpose       string
+	ExpiresAt     pgtype.Timestamptz
+	// Closed machine: active settles to released, captured or expired; expired still settles to released or captured
+	Status    string
+	CreatedAt pgtype.Timestamptz
+	ClosedAt  pgtype.Timestamptz
+	// Book of this hold: owner and hold custodies must live in the same book
+	SeasonKey string
+}
+
+// Audit trail of conservation breaks and their compensated resolutions; rows are never edited or erased
+type AppEconomyIncident struct {
+	ID     pgtype.UUID
+	Reason string
+	Detail string
+	// Incident this resolution closes; NULL marks the break itself
+	Resolves  pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+}
+
+// Exactly-once registry of monetary intentions: one triple, one payload hash, one settled transfer with its persisted response
+type AppEconomyIntention struct {
+	IntentionKey string
+	Actor        string
+	Operation    string
+	// SHA-256 hex of the canonical transfer payload: a different payload under the same triple is a conflict
+	PayloadHash string
+	// Transfer settled by this intention; unique so one transfer answers exactly one intention
+	TransferID  pgtype.UUID
+	AmountMilli int64
+	CreatedAt   pgtype.Timestamptz
+	// Book of this intention: replays resolve per book, never redirecting another book outcome
+	SeasonKey string
+}
+
+// Single read-only flag of the economy: mutations recheck it, reads never do
+type AppEconomyMode struct {
+	Singleton bool
+	Frozen    bool
+	// Break that froze the book, or the last one after a compensated resolution
+	IncidentID pgtype.UUID
+	UpdatedAt  pgtype.Timestamptz
+}
+
+// Explicit economic opt-in intents: quantity, conversion rate and validity recorded verbatim for exact matching at conversion; one intent per account and charter version
+type AppEconomyOptin struct {
+	ID             pgtype.UUID
+	AccountID      pgtype.UUID
+	CharterVersion string
+	QuantityMilli  int64
+	// Conversion rate numerator in milliINK per legacy INK unit, with rate_den: exact rational, never rounded
+	RateNum int64
+	// Conversion rate denominator in legacy INK units
+	RateDen    int64
+	ValidUntil pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+}
+
+// Exclusive sub-partitions of one custody: reserve, stock, cash, obligations and encumbrances never double-count
+type AppEconomyPartition struct {
+	ID pgtype.UUID
+	// Owning custody; restricted from deletion while partitions exist
+	CustodyID pgtype.UUID
+	Name      string
+	CreatedAt pgtype.Timestamptz
+}
+
 // Single-use cryptographic token hashes for email verification
 type AppEmailVerificationToken struct {
 	ID        pgtype.UUID
@@ -352,6 +661,41 @@ type AppJob struct {
 	LastErrorDetail pgtype.Text
 	CreatedAt       pgtype.Timestamptz
 	UpdatedAt       pgtype.Timestamptz
+}
+
+// Settled INK publication charges: idempotency key, publisher, sealed price terms, canonical hashes, journal transfer and database posted instant, append-only
+type AppMeteringPublication struct {
+	ID pgtype.UUID
+	// Caller operation token scoped by account: a retry replays instead of charging twice
+	IntentionKey string
+	AccountLabel string
+	Service      string
+	PriceVersion int32
+	Units        int32
+	AmountMilli  int64
+	ContentHash  string
+	QuoteHash    string
+	PayloadHash  string
+	// Journal transfer moving the exact quoted cost: statement and content share one intention
+	TransferID pgtype.UUID
+	// Database clock at write, visible only after commit: never a request or browser instant
+	PostedAt pgtype.Timestamptz
+	// Book identity of this publication: the legs settle in the same book; pre-season rows bind the explicitly inactive compat-legacy namespace
+	SeasonKey string
+}
+
+// Publication compensations: refund key, owner, compensated publication, reversed amount, compensating transfer and database posted instant, append-only
+type AppMeteringRefund struct {
+	ID           pgtype.UUID
+	RefundKey    string
+	AccountLabel string
+	// Compensated publication: the cause the correction links to without editing
+	OriginalID  pgtype.UUID
+	AmountMilli int64
+	TransferID  pgtype.UUID
+	Reason      string
+	// Database clock at write, always current: corrections never backdate into closed periods
+	PostedAt pgtype.Timestamptz
 }
 
 // One-time recovery codes of an MFA enrollment, stored hashed and spent exactly once (P16-T05)
@@ -484,6 +828,29 @@ type AppPositionChange struct {
 	ChangedAt pgtype.Timestamptz
 }
 
+// Accepted BTC/BRL quotation snapshots: integer price, observed/accepted/expiry instants and content hash, append-only
+type AppPricingQuote struct {
+	ID pgtype.UUID
+	// Guarded median in integer minor units (centavos per BTC): never float
+	PriceMinor int64
+	ObservedAt pgtype.Timestamptz
+	AcceptedAt pgtype.Timestamptz
+	ExpiresAt  pgtype.Timestamptz
+	// Canonical hash binding price, ordered sources and instants: tampering is detectable by recomputation
+	QuoteHash string
+	// Book identity of this quotation: expiry is capped by the book end at acceptance; pre-season rows bind the explicitly inactive compat-legacy namespace
+	SeasonKey string
+}
+
+// One sighting per source and quote: the frozen source set the acceptance judged
+type AppPricingQuoteSource struct {
+	QuoteID     pgtype.UUID
+	Source      string
+	PriceMinor  int64
+	ObservedAt  pgtype.Timestamptz
+	PayloadHash string
+}
+
 // Account profiles: public username and interface locale, without email or payment identifiers
 type AppProfile struct {
 	AccountID pgtype.UUID
@@ -539,6 +906,181 @@ type AppSchemaMetadatum struct {
 	VersionID int64
 	IsApplied bool
 	Tstamp    pgtype.Timestamp
+}
+
+// Immutable season plan registry: key, ordinal, exact ninety-day UTC window, charter, policy, initial holder data and sealed manifesto; never activated here
+type AppSeason struct {
+	// Immutable book identity (INK@season_id): pre-season technical data uses the explicitly inactive compat-legacy namespace
+	SeasonKey string
+	// Calendar order from 1; 0 is reserved for the explicitly inactive pre-season compatibility namespace
+	Ordinal  int32
+	StartsAt pgtype.Timestamptz
+	// Exclusive end, always starts_at plus 7776000 seconds: civil months and DST never enter the calendar
+	EndsAt         pgtype.Timestamptz
+	CharterVersion string
+	PolicyRef      string
+	InitialMonarch string
+	Regent         string
+	// Sealed manifesto digest (64 lowercase hex): altered manifests never open a season
+	ManifestHash string
+	CreatedAt    pgtype.Timestamptz
+}
+
+// Sealed book receipts: cutoff, seal instant, Genesis S, leg and intention counts and manifesto digest; one row per archived book, never rewritten
+type AppSeasonArchive struct {
+	// Archived book: one receipt per sealed book, so two openers archive exactly once
+	SeasonKey string
+	// Barrier instant on the database clock carried from the close run
+	CutoffAt pgtype.Timestamptz
+	// Seal instant from the lifecycle sealed stage
+	SealedAt pgtype.Timestamptz
+	// Book Genesis S at the seal: opening requires it byte-equal, so nothing mints and nothing crosses
+	SnapshotMilli      int64
+	SnapshotLegs       int64
+	SnapshotIntentions int64
+	// Sealed manifesto digest (64 lowercase hex): adulterated manifests never open a successor
+	ManifestHash string
+	CreatedAt    pgtype.Timestamptz
+}
+
+// Seasonal closing barrier runs: one fenced run per book with generation, lease, checkpoint cursors and the cutoff conservation snapshot; money never moves here
+type AppSeasonCloseRun struct {
+	// Book under closing: one run per book, so two closers open exactly one barrier
+	SeasonKey string
+	// Monotonic fence: every drain write carries it, stale workers move nothing, takeover bumps it by one past an expired lease
+	Generation int64
+	// Opaque worker holding the book until leased_until on the database clock
+	LeaseOwner  string
+	LeasedUntil pgtype.Timestamptz
+	State       string
+	// Barrier instant on the database clock: admissions checked after it refuse, admitted in-flight work still completes once
+	CutoffAt pgtype.Timestamptz
+	// Checkpoint cursor over economy holds in key order: crash before commit replays, crash after resumes past it
+	LastHoldKey string
+	// Checkpoint cursor over commerce escrows in key order, with the same replay promise
+	LastEscrowKey string
+	Drained       int64
+	Blocked       int64
+	// Book Genesis S at the barrier: Seal requires it byte-equal, so nothing mints and nothing crosses
+	SnapshotMilli      int64
+	SnapshotLegs       int64
+	SnapshotIntentions int64
+	ErrorCode          string
+	ErrorDetail        string
+	UpdatedAt          pgtype.Timestamptz
+}
+
+// Append-only season stage events: state derives from the latest event, never by rewriting; at most one active season exists
+type AppSeasonLifecycle struct {
+	ID        pgtype.UUID
+	SeasonKey string
+	// Previous stage, NULL on the opening prepared event
+	FromState pgtype.Text
+	// New stage: a second active season dies on the partial unique index
+	ToState    string
+	DecidedAt  pgtype.Timestamptz
+	RecordedAt pgtype.Timestamptz
+}
+
+// Sovereign reigns: records active and historical monarchs/regents per season with strict single-active constraint
+type AppSeasonalReign struct {
+	ID pgtype.UUID
+	// Season book identity
+	SeasonID string
+	// Investiture sequence number within the season (starts at 1)
+	ReignVersion int32
+	// Account identifier of the reigning monarch or regent
+	HolderSubject      string
+	IsRegent           bool
+	Reason             string
+	InstitutionalC     int64
+	WinningWealth      int64
+	AttainedRevision   int64
+	TransitionRevision int64
+	Predecessor        string
+	// True if this reign is the currently invested authority in this season
+	IsActive  bool
+	StartedAt pgtype.Timestamptz
+	EndedAt   pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+// Evaluator checkpoint and worker lease tracking for linearizable succession processing
+type AppSeasonalSuccessionEvaluator struct {
+	SeasonID              string
+	LastEvaluatedRevision int64
+	ActiveWorkerID        string
+	LeaseExpiresAt        pgtype.Timestamptz
+	UpdatedAt             pgtype.Timestamptz
+}
+
+// Linearizable notification outbox for sovereign successions, written atomically with reign transitions
+type AppSeasonalSuccessionEvent struct {
+	ID                 pgtype.UUID
+	SeasonID           string
+	ReignVersion       int32
+	EventKind          string
+	SuccessorSubject   string
+	PredecessorSubject string
+	InstitutionalC     int64
+	WinningWealth      int64
+	TransitionRevision int64
+	Payload            []byte
+	CreatedAt          pgtype.Timestamptz
+}
+
+// Checkpoint tracking last processed revision and integrity hash per season book
+type AppSeasonalWealthCheckpoint struct {
+	SeasonID       string
+	LastRevision   int64
+	CheckpointHash string
+	Frozen         bool
+	UpdatedAt      pgtype.Timestamptz
+}
+
+// Linearizable outbox of committed wealth changes, updated within financial transactions
+type AppSeasonalWealthEvent struct {
+	ID               pgtype.UUID
+	SeasonID         string
+	Revision         int64
+	SubjectID        string
+	BeneficiaryKind  string
+	EventKind        string
+	DeltaAssets      int64
+	DeltaLiabilities int64
+	SourceRef        string
+	CreatedAt        pgtype.Timestamptz
+}
+
+// Confirmed registered seasonal debts and obligations contributing to L(b)
+type AppSeasonalWealthObligation struct {
+	ID              pgtype.UUID
+	SeasonID        string
+	DebtorSubject   string
+	ObligationKind  string
+	AmountMilli     int64
+	AlreadyDeducted bool
+	SourceRef       string
+	CreatedAt       pgtype.Timestamptz
+}
+
+// Rebuildable seasonal wealth projections: indexes W(b) without replacing the authoritative journal
+type AppSeasonalWealthProjection struct {
+	// Season book identity
+	SeasonID string
+	// Beneficiary subject account identifier
+	SubjectID        string
+	BeneficiaryKind  string
+	AssetsMilli      int64
+	LiabilitiesMilli int64
+	// Derived beneficial wealth W(b) = max(0, assets - liabilities)
+	Wealth int64
+	// Revision when current wealth level was attained; breaks ties by seniority
+	AttainedRevision int64
+	Frozen           bool
+	Eligible         bool
+	SourceWatermark  pgtype.Timestamptz
+	UpdatedAt        pgtype.Timestamptz
 }
 
 // Opaque server-side session store with revocation and inactivity tracking
@@ -623,6 +1165,22 @@ type AppTransparencyStatProjection struct {
 	SourceWatermark pgtype.Timestamptz
 	Stats           []byte
 	RebuiltAt       pgtype.Timestamptz
+}
+
+// Governed Treasury disbursement acts: allowlisted purpose, origin vault, beneficiary, two distinct approvers and settling transfer, append-only
+type AppTreasuryDisbursement struct {
+	ID pgtype.UUID
+	// Idempotency anchor of the act: a duplicated approval replays instead of paying twice
+	DisbursementKey      string
+	OriginVault          string
+	BeneficiaryAccountID pgtype.UUID
+	Purpose              string
+	AmountMilli          int64
+	ApproverOne          pgtype.UUID
+	ApproverTwo          pgtype.UUID
+	// Journal transfer that moved the amount: every row carries its legs
+	TransferID pgtype.UUID
+	DecidedAt  pgtype.Timestamptz
 }
 
 // Audit trail of every username set or changed by an account (P05-T02 requires auditable history)

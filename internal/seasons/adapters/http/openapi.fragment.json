@@ -12,7 +12,13 @@
         "summary": "Read the current active season with dates and state",
         "security": [{ "sessionCookie": [] }],
         "responses": {
-          "200": { "description": "Current season document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Current season document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeasonDocument" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "409": { "description": "No active season: closing suspension or archived predecessor" }
         }
@@ -24,7 +30,13 @@
         "summary": "Read the allowlisted season history with dates and states",
         "security": [{ "sessionCookie": [] }],
         "responses": {
-          "200": { "description": "History document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "History document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeasonHistoryDocument" } }
+            }
+          },
           "401": { "description": "Missing authentication" }
         }
       }
@@ -38,7 +50,13 @@
           { "name": "season_key", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
-          "200": { "description": "Season document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Season document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeasonDocument" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "403": { "description": "Inactive namespace requested as live" },
           "404": { "description": "Unknown season for this account" },
@@ -55,11 +73,63 @@
           { "name": "season_key", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
-          "200": { "description": "Champions document with pseudonyms, no exact wealth", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Champions document with pseudonyms, no exact wealth",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeasonChampionsDocument" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "403": { "description": "Inactive namespace requested as live" },
           "404": { "description": "Unknown season for this account" },
           "409": { "description": "No active season or archived predecessor" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SeasonDocument": {
+        "type": "object",
+        "required": ["title", "season_key", "ordinal", "starts_at", "ends_at", "state"],
+        "properties": {
+          "title": { "type": "string" },
+          "season_key": { "type": "string" },
+          "ordinal": { "type": "integer" },
+          "starts_at": { "type": "string", "format": "date-time" },
+          "ends_at": { "type": "string", "format": "date-time" },
+          "state": { "type": "string" }
+        }
+      },
+      "SeasonHistoryDocument": {
+        "type": "object",
+        "required": ["title", "seasons"],
+        "properties": {
+          "title": { "type": "string" },
+          "seasons": { "type": "array", "items": { "$ref": "#/components/schemas/SeasonDocument" } }
+        }
+      },
+      "SeasonChampionLeader": {
+        "type": "object",
+        "required": ["subject", "display"],
+        "properties": {
+          "subject": { "type": "string" },
+          "display": { "type": "string" }
+        }
+      },
+      "SeasonChampionsDocument": {
+        "type": "object",
+        "required": ["title", "season_key", "cutoff_revision", "hash", "richest_title", "last_king_title", "last_king", "leaders"],
+        "properties": {
+          "title": { "type": "string" },
+          "season_key": { "type": "string" },
+          "cutoff_revision": { "type": "integer", "format": "int64" },
+          "hash": { "type": "string" },
+          "richest_title": { "type": "string" },
+          "last_king_title": { "type": "string" },
+          "last_king": { "type": "string" },
+          "leaders": { "type": "array", "items": { "$ref": "#/components/schemas/SeasonChampionLeader" } }
         }
       }
     }

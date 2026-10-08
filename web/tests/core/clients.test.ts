@@ -28,6 +28,7 @@ import { createTransparencyClient } from "../../src/core/clients/transparency.js
 import { createWalletClient } from "../../src/core/clients/wallet.js";
 import { createPassesClient } from "../../src/core/clients/passes.js";
 import { createBillingClient } from "../../src/core/clients/billing.js";
+import { createStagedClient } from "../../src/core/clients/staged.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
 import { readPackageFile } from "../support/paths.js";
@@ -535,6 +536,120 @@ const expectations: readonly Expectation[] = [
     url: "https://arena.test/api/v1/me/arenas/arena-1/arguments/arg-1/replies",
     body: { relation: "oppose", content: "reply", sources: [] },
     idempotent: true,
+  },
+  {
+    name: "staged readCurrentSeason",
+    run: (core) => createStagedClient(core).readCurrentSeason(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/current",
+    idempotent: false,
+  },
+  {
+    name: "staged readSeasonHistory",
+    run: (core) => createStagedClient(core).readSeasonHistory(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/history",
+    idempotent: false,
+  },
+  {
+    name: "staged readSeason",
+    run: (core) => createStagedClient(core).readSeason("temporada-harness-b"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/temporada-harness-b",
+    idempotent: false,
+  },
+  {
+    name: "staged readSeasonChampions",
+    run: (core) => createStagedClient(core).readSeasonChampions("temporada-harness-b"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/temporada-harness-b/champions",
+    idempotent: false,
+  },
+  {
+    name: "staged previewMeteringQuote",
+    run: (core) => createStagedClient(core).previewMeteringQuote({ content: "texto final", service: "argument-publish" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/metering/quotes",
+    body: { content: "texto final", service: "argument-publish" },
+    idempotent: false,
+  },
+  {
+    name: "staged confirmMeteringPublication",
+    run: (core) =>
+      createStagedClient(core).confirmMeteringPublication({
+        intention_key: "intencao-1",
+        content: "texto final",
+        service: "argument-publish",
+      }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/metering/publications",
+    body: { intention_key: "intencao-1", content: "texto final", service: "argument-publish" },
+    idempotent: false,
+  },
+  {
+    name: "staged readMeteringReceipt",
+    run: (core) => createStagedClient(core).readMeteringReceipt("00000000-0000-4000-8000-000000000001"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/metering/publications/00000000-0000-4000-8000-000000000001",
+    idempotent: false,
+  },
+  {
+    name: "staged readMeteringStatement",
+    run: (core) => createStagedClient(core).readMeteringStatement(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/metering/statement",
+    idempotent: false,
+  },
+  {
+    name: "staged readTradeReceipt",
+    run: (core) => createStagedClient(core).readTradeReceipt("00000000-0000-4000-8000-000000000002"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/commerce/contracts/00000000-0000-4000-8000-000000000002",
+    idempotent: false,
+  },
+  {
+    name: "staged readTradeStatement",
+    run: (core) => createStagedClient(core).readTradeStatement(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/commerce/statement",
+    idempotent: false,
+  },
+  {
+    name: "staged readPrivateCaseFile",
+    run: (core) => createStagedClient(core).readPrivateCaseFile("caso-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1",
+    idempotent: false,
+  },
+  {
+    name: "staged acceptPrivateCaseTerms",
+    run: (core) => createStagedClient(core).acceptPrivateCaseTerms("caso-1"),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/accepts",
+    idempotent: false,
+  },
+  {
+    name: "staged filePrivateCaseDefense",
+    run: (core) => createStagedClient(core).filePrivateCaseDefense("caso-1", { digest: "resumo-1" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/defenses",
+    body: { digest: "resumo-1" },
+    idempotent: false,
+  },
+  {
+    name: "staged readPrivateCaseRuling",
+    run: (core) => createStagedClient(core).readPrivateCaseRuling("caso-1"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/ruling",
+    idempotent: false,
+  },
+  {
+    name: "staged appealPrivateCaseRuling",
+    run: (core) => createStagedClient(core).appealPrivateCaseRuling("caso-1", { reason: "recurso honesto" }),
+    method: "POST",
+    url: "https://arena.test/api/v1/me/disputes/cases/caso-1/appeals",
+    body: { reason: "recurso honesto" },
+    idempotent: false,
   },
 ];
 
