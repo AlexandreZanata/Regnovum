@@ -69,7 +69,7 @@ var requiredAreas = []string{
 	"verify", "quality-certify", "unit", "integration", "contract",
 	"security", "privacy", "e2e", "i18n", "dast", "mutation",
 	"flake", "race", "load", "restore", "upgrade", "operations",
-	"supply-chain",
+	"supply-chain", "frontend",
 }
 
 // Manifest is the versioned release evidence matrix.

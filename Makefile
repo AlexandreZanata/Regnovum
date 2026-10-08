@@ -607,6 +607,14 @@ frontend-coverage:
 	$(GO) run ./tools/frontendcoverage -root .
 	@echo "frontend-coverage: ok"
 
+# frontend-coverage-complete é a postura de release do mesmo portão
+# (P59-T02): exige zero lacuna browser e zero falta de contrato
+# obrigatória, sem aceitar pendência declarada. Alvo do manifesto de
+# release (P45-G23); fora do quick-verify como o modo planning.
+frontend-coverage-complete:
+	FRONTEND_COVERAGE_MODE=complete $(GO) run ./tools/frontendcoverage -root .
+	@echo "frontend-coverage-complete: ok"
+
 # audit-toolchain julga os pinos de produção contra quality/toolchain.json
 # (P29-T08): qualquer versão fora do pin falha. Alvo standalone, fora do
 # quick-verify como os demais portões de fase.

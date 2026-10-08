@@ -95,8 +95,8 @@ func TestDeliveredManifestPasses(t *testing.T) {
 	if len(findings) != 0 {
 		t.Fatalf("green manifest unreadable: %v", findings)
 	}
-	if len(manifest.Gates) != 22 {
-		t.Fatalf("gates = %d, want 22", len(manifest.Gates))
+	if len(manifest.Gates) != 24 {
+		t.Fatalf("gates = %d, want 24", len(manifest.Gates))
 	}
 	if got := JudgeManifest(root, manifest); len(got) != 0 {
 		t.Fatalf("green manifest findings = %v", got)
@@ -111,6 +111,7 @@ func TestManifestMutationsRefuse(t *testing.T) {
 	mutate(t, `"area": "supply-chain",`, `"area": "supply-magic",`, RuleAreaUnknown+":supply-magic")
 	mutate(t, `"owner": "supply-chain",`, `"owner": "",`, RuleMissingField+":gates.P45-G20.owner")
 	mutate(t, `"command": "make image-scan",`, `"command": "make nope-missing-target",`, RuleCommandMissing+":P45-G22")
+	mutate(t, `"command": "make frontend-coverage-complete",`, `"command": "make nope-missing-target",`, RuleCommandMissing+":P45-G23")
 	mutate(t, `"evidence": "image-scan.json"`, `"evidence": "vuln.json"`, RuleEvidenceDuplicate+":vuln.json:P45-G20+P45-G22")
 	mutate(t, `"path": "release-evidence/{commit}/{gate}.json",`, `"path": "release-evidence/latest.json",`, RuleArtifactTemplate)
 	mutate(t, `"allowedFor": []`, `"allowedFor": ["load"]`, RuleSkipAllowed)
@@ -151,6 +152,63 @@ func TestAreaCoverageRefusesDroppedGate(t *testing.T) {
 	}
 	if !found {
 		t.Fatalf("findings = %v, want %q", got, rule)
+	}
+}
+
+// TestFrontendAreaRefusesDroppedGates removes the two frontend gates:
+// the area they cover alone must fail as uncovered, so the release
+// can never go quiet about the browser it ships.
+func TestFrontendAreaRefusesDroppedGates(t *testing.T) {
+	text := greenText(t)
+	start := strings.Index(text, `,
+    {
+      "id": "P45-G23",`)
+	if start < 0 {
+		t.Fatal("gate P45-G23 block gone")
+	}
+	end := strings.Index(text[start:], `      "evidence": "audit-web.json"
+    }`)
+	if end < 0 {
+		t.Fatal("gate P45-G24 block end gone")
+	}
+	// From the comma that closes G22 to the close of G24: dropping
+	// trailing blocks must take the separator, or the array dangles.
+	block := text[start : start+end+len("      \"evidence\": \"audit-web.json\"\n    }")]
+	dir := t.TempDir()
+	path := filepath.Join(dir, "release-matrix.json")
+	if err := os.WriteFile(path, []byte(strings.Replace(text, block, "", 1)), 0o644); err != nil {
+		t.Fatalf("write dropped manifest: %v", err)
+	}
+	manifest, findings := LoadManifest(path)
+	if len(findings) != 0 {
+		t.Fatalf("dropped manifest unreadable: %v", findings)
+	}
+	requireFinding(t, JudgeManifest(repoRoot(t), manifest), RuleAreaUncovered+":frontend")
+}
+
+// TestFrontendCoverageLocksStagedOutOfProduction pins the committed
+// G23 row to its refusal: a complete posture that certified staged
+// as production would pass every structural rule while meaning the
+// opposite, so the criterion names staged and fails it by name.
+func TestFrontendCoverageLocksStagedOutOfProduction(t *testing.T) {
+	manifest, findings := LoadManifest(filepath.Join(repoRoot(t), "quality", "release-matrix.json"))
+	if len(findings) != 0 {
+		t.Fatalf("green manifest unreadable: %v", findings)
+	}
+	var coverage *Gate
+	for i := range manifest.Gates {
+		if manifest.Gates[i].ID == "P45-G23" {
+			coverage = &manifest.Gates[i]
+		}
+	}
+	if coverage == nil {
+		t.Fatal("gate P45-G23 gone")
+	}
+	if coverage.Command != "make frontend-coverage-complete" {
+		t.Fatalf("P45-G23 command = %q, want the complete posture", coverage.Command)
+	}
+	if !strings.Contains(coverage.Fail, "staged") {
+		t.Fatalf("P45-G23 fail criterion = %q, want staged refused by name", coverage.Fail)
 	}
 }
 
@@ -299,6 +357,10 @@ func TestResultsRefuse(t *testing.T) {
 	manifest, dir = greenResults(t)
 	breakResult(t, dir, "P45-G14", func(result *Result) { result.Skipped = true })
 	requireFinding(t, JudgeResults(manifest, dir, frozenSHA), RuleGateSkipped+":P45-G14")
+
+	manifest, dir = greenResults(t)
+	breakResult(t, dir, "P45-G23", func(result *Result) { result.Skipped = true })
+	requireFinding(t, JudgeResults(manifest, dir, frozenSHA), RuleGateSkipped+":P45-G23")
 
 	manifest, dir = greenResults(t)
 	breakResult(t, dir, "P45-G13", func(result *Result) { result.ExitCode = 1 })

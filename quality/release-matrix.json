@@ -102,7 +102,7 @@
       "owner": "jornadas",
       "command": "make test-e2e",
       "environment": "navegador real, runner pinado, harness descartável",
-      "inputs": ["web/src", "locales"],
+      "inputs": ["web/src", "locales", "tools/e2e/specs/accessibility.spec.js"],
       "outputs": ["release-evidence/{commit}/e2e.json"],
       "pass": "jornadas críticas verdes nos dois locales",
       "fail": "jornada falha, runner vazando para o bundle ou skip",
@@ -275,6 +275,30 @@
       "pass": "zero critical/high na imagem",
       "fail": "critical/high na imagem ou scan não executado",
       "evidence": "image-scan.json"
+    },
+    {
+      "id": "P45-G23",
+      "area": "frontend",
+      "owner": "frontend",
+      "command": "make frontend-coverage-complete",
+      "environment": "checkout limpo",
+      "inputs": ["quality/frontend-routes.json", "api/openapi.json", "web/src", "web/tests", "tools/e2e/specs"],
+      "outputs": ["release-evidence/{commit}/frontend-coverage.json"],
+      "pass": "zero lacuna browser e zero falta de contrato; staged só em harness",
+      "fail": "rota sem binding browser, staged certificado como produção ou skip",
+      "evidence": "frontend-coverage.json"
+    },
+    {
+      "id": "P45-G24",
+      "area": "frontend",
+      "owner": "frontend",
+      "command": "make audit-web",
+      "environment": "build entregue em web/dist",
+      "inputs": ["web/dist", "docs/FRONTEND.md"],
+      "outputs": ["release-evidence/{commit}/audit-web.json"],
+      "pass": "orçamentos e dependências do build respeitados",
+      "fail": "página acima de 50 KB, CSS acima de 40 KB, dependência externa ou sink inseguro",
+      "evidence": "audit-web.json"
     }
   ]
 }
