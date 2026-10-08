@@ -5,21 +5,34 @@
     },
     "history": {
       "title": "Season history",
-      "empty": "No seasons yet"
+      "empty": "No seasons yet",
+      "count": "Seasons: {count}"
     },
     "detail": {
       "title": "Season",
-      "state": "Lifecycle state"
+      "state": "Lifecycle state",
+      "ordinal": "Edition {ordinal}",
+      "period": "Period: {start} – {end}",
+      "expired": "This season ended at the server cutoff.",
+      "state_line": "Lifecycle state: {state}"
     },
     "failure": {
       "title": "Season unavailable",
-      "detail": "Check the data and try again."
+      "detail": "Check the data and try again.",
+      "unauthorized": "Sign in to see the season.",
+      "mismatch": "This book uses another namespace and does not open here.",
+      "missing": "This season does not exist for this account.",
+      "closed": "No active season: closing is still draining.",
+      "archived": "Predecessor archived: the successor is not open yet.",
+      "generic": "Check the data and try again."
     },
     "champions": {
       "title": "Season champions",
       "richest": "Richest at cutoff",
       "last_king": "Last King",
-      "empty": "No champions yet"
+      "empty": "No champions yet",
+      "cutoff": "Cutoff {revision}",
+      "holder": "{title}: {holder}"
     }
   }
 }

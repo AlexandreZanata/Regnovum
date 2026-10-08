@@ -28,6 +28,7 @@ import { createTransparencyClient } from "../../src/core/clients/transparency.js
 import { createWalletClient } from "../../src/core/clients/wallet.js";
 import { createPassesClient } from "../../src/core/clients/passes.js";
 import { createBillingClient } from "../../src/core/clients/billing.js";
+import { createSeasonsClient } from "../../src/core/clients/seasons.js";
 import { createStagedClient } from "../../src/core/clients/staged.js";
 import type { HttpCore } from "../../src/core/http.js";
 import { bodyOf, captureApiError, createTestContext, headerOf, jsonResponse, problemResponse } from "../support/harness.js";
@@ -536,6 +537,34 @@ const expectations: readonly Expectation[] = [
     url: "https://arena.test/api/v1/me/arenas/arena-1/arguments/arg-1/replies",
     body: { relation: "oppose", content: "reply", sources: [] },
     idempotent: true,
+  },
+  {
+    name: "seasons readCurrentSeason",
+    run: (core) => createSeasonsClient(core).readCurrentSeason(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/current",
+    idempotent: false,
+  },
+  {
+    name: "seasons readSeasonHistory",
+    run: (core) => createSeasonsClient(core).readSeasonHistory(),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/history",
+    idempotent: false,
+  },
+  {
+    name: "seasons readSeason",
+    run: (core) => createSeasonsClient(core).readSeason("temporada-harness-b"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/temporada-harness-b",
+    idempotent: false,
+  },
+  {
+    name: "seasons readSeasonChampions",
+    run: (core) => createSeasonsClient(core).readSeasonChampions("temporada-harness-b"),
+    method: "GET",
+    url: "https://arena.test/api/v1/me/seasons/temporada-harness-b/champions",
+    idempotent: false,
   },
   {
     name: "staged readCurrentSeason",

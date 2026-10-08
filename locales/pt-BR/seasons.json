@@ -5,21 +5,34 @@
     },
     "history": {
       "title": "Histórico de temporadas",
-      "empty": "Nenhuma temporada ainda"
+      "empty": "Nenhuma temporada ainda",
+      "count": "Temporadas: {count}"
     },
     "detail": {
       "title": "Temporada",
-      "state": "Estado do ciclo"
+      "state": "Estado do ciclo",
+      "ordinal": "Edição {ordinal}",
+      "period": "Período: {start} – {end}",
+      "expired": "Esta temporada terminou no corte do servidor.",
+      "state_line": "Estado do ciclo: {state}"
     },
     "failure": {
       "title": "Temporada indisponível",
-      "detail": "Confira os dados e tente novamente."
+      "detail": "Confira os dados e tente novamente.",
+      "unauthorized": "Entre na conta para ver a temporada.",
+      "mismatch": "Este livro usa outro espaço de nomes e não abre aqui.",
+      "missing": "Esta temporada não existe para esta conta.",
+      "closed": "Sem temporada ativa: o fechamento ainda está em curso.",
+      "archived": "Temporada anterior arquivada: a sucessora ainda não abriu.",
+      "generic": "Confira os dados e tente novamente."
     },
     "champions": {
       "title": "Campeões da temporada",
       "richest": "Mais rico no corte",
       "last_king": "Último Rei",
-      "empty": "Nenhum campeão ainda"
+      "empty": "Nenhum campeão ainda",
+      "cutoff": "Corte {revision}",
+      "holder": "{title}: {holder}"
     }
   }
 }
