@@ -15,7 +15,13 @@
           { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
         ],
         "responses": {
-          "200": { "description": "Case file document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Case file document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PrivateCaseFile" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "404": { "description": "Unknown case for this account" }
         }
@@ -30,7 +36,13 @@
           { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
         ],
         "responses": {
-          "200": { "description": "Case file document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Case file document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PrivateCaseFile" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "403": { "description": "Account is not a named party" },
           "404": { "description": "Unknown case for this account" },
@@ -46,8 +58,22 @@
         "parameters": [
           { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PrivateCaseDefenseInput" }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Case file document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Case file document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PrivateCaseFile" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "403": { "description": "Account is not a named party" },
           "404": { "description": "Unknown case for this account" },
@@ -64,7 +90,13 @@
           { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
         ],
         "responses": {
-          "200": { "description": "Ruling document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Ruling document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PrivateCaseRuling" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "404": { "description": "Unknown case or no ruling yet for this account" }
         }
@@ -78,12 +110,92 @@
         "parameters": [
           { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "maxLength": 128 } }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PrivateCaseAppealInput" }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Case file document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Case file document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PrivateCaseFile" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "403": { "description": "Account is not a named party" },
           "404": { "description": "Unknown case for this account" },
           "409": { "description": "Second appeal over the same ruling" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PrivateCaseNotice": {
+        "type": "object",
+        "required": ["event", "title"],
+        "properties": {
+          "event": { "type": "string" },
+          "title": { "type": "string" }
+        }
+      },
+      "PrivateCaseFile": {
+        "type": "object",
+        "required": ["title", "key", "version", "kind", "status", "role", "object", "value_milli", "escrow_ref", "accepts", "defenses", "appealed", "expires_at", "notices"],
+        "properties": {
+          "title": { "type": "string" },
+          "key": { "type": "string" },
+          "version": { "type": "integer" },
+          "kind": { "type": "string" },
+          "status": { "type": "string" },
+          "role": { "type": "string" },
+          "object": { "type": "string" },
+          "value_milli": { "type": "integer", "format": "int64" },
+          "escrow_ref": { "type": "string" },
+          "accepts": { "type": "integer" },
+          "defenses": { "type": "integer" },
+          "verdict": { "type": "string" },
+          "award_milli": { "type": "integer", "format": "int64" },
+          "decided_at": { "type": "string", "format": "date-time" },
+          "appeal_due_at": { "type": "string", "format": "date-time" },
+          "appealed": { "type": "boolean" },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "opened_at": { "type": "string", "format": "date-time" },
+          "notices": { "type": "array", "items": { "$ref": "#/components/schemas/PrivateCaseNotice" } }
+        }
+      },
+      "PrivateCaseDefenseInput": {
+        "type": "object",
+        "required": ["digest"],
+        "properties": {
+          "digest": { "type": "string" }
+        }
+      },
+      "PrivateCaseRuling": {
+        "type": "object",
+        "required": ["title", "key", "decision_code", "terms_hash", "verdict", "award_milli", "decided_at", "appeal_due_at", "appealed"],
+        "properties": {
+          "title": { "type": "string" },
+          "key": { "type": "string" },
+          "decision_code": { "type": "string" },
+          "terms_hash": { "type": "string" },
+          "verdict": { "type": "string" },
+          "award_milli": { "type": "integer", "format": "int64" },
+          "decided_at": { "type": "string", "format": "date-time" },
+          "appeal_due_at": { "type": "string", "format": "date-time" },
+          "appealed": { "type": "boolean" }
+        }
+      },
+      "PrivateCaseAppealInput": {
+        "type": "object",
+        "required": ["reason"],
+        "properties": {
+          "reason": { "type": "string" }
         }
       }
     }

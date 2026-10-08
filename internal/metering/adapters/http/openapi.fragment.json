@@ -27,7 +27,12 @@
           }
         },
         "responses": {
-          "200": { "description": "Priced preview with rule version, hashes and acceptance window" },
+          "200": {
+            "description": "Priced preview with rule version, hashes and acceptance window",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/MeteringQuote" } }
+            }
+          },
           "400": { "description": "Validation or unavailable price" },
           "401": { "description": "Missing authentication" },
           "403": { "description": "Missing CSRF token" }
@@ -56,7 +61,12 @@
           }
         },
         "responses": {
-          "200": { "description": "Settlement document, replayed when retried" },
+          "200": {
+            "description": "Settlement document, replayed when retried",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/MeteringPublication" } }
+            }
+          },
           "400": { "description": "Validation or lapsed acceptance" },
           "401": { "description": "Missing authentication" },
           "403": { "description": "Missing CSRF token or foreign acceptance" },
@@ -73,7 +83,13 @@
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
         ],
         "responses": {
-          "200": { "description": "Receipt document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Receipt document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/MeteringReceipt" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "404": { "description": "Unknown publication for this account" }
         }
@@ -85,8 +101,102 @@
         "summary": "Read the owner extract with the journal-derived balance",
         "security": [{ "sessionCookie": [] }],
         "responses": {
-          "200": { "description": "Extract document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Extract document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/MeteringStatement" } }
+            }
+          },
           "401": { "description": "Missing authentication" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MeteringQuote": {
+        "type": "object",
+        "required": ["title", "units", "price_milli", "total_milli", "version", "content_hash", "quote_hash", "accepted_at", "expires_at"],
+        "properties": {
+          "title": { "type": "string" },
+          "units": { "type": "integer" },
+          "price_milli": { "type": "integer", "format": "int64" },
+          "total_milli": { "type": "integer", "format": "int64" },
+          "version": { "type": "integer" },
+          "content_hash": { "type": "string" },
+          "quote_hash": { "type": "string" },
+          "accepted_at": { "type": "string", "format": "date-time" },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MeteringPublication": {
+        "type": "object",
+        "required": ["title", "publication_id", "transfer_id", "total_milli", "posted_at", "replayed"],
+        "properties": {
+          "title": { "type": "string" },
+          "publication_id": { "type": "string", "format": "uuid" },
+          "transfer_id": { "type": "string", "format": "uuid" },
+          "total_milli": { "type": "integer", "format": "int64" },
+          "posted_at": { "type": "string", "format": "date-time" },
+          "replayed": { "type": "boolean" }
+        }
+      },
+      "MeteringLeg": {
+        "type": "object",
+        "required": ["direction", "kind", "label", "amount_milli"],
+        "properties": {
+          "direction": { "type": "string" },
+          "kind": { "type": "string" },
+          "label": { "type": "string" },
+          "amount_milli": { "type": "integer", "format": "int64" }
+        }
+      },
+      "MeteringRefund": {
+        "type": "object",
+        "required": ["refund_id", "amount_milli", "transfer_id", "posted_at"],
+        "properties": {
+          "refund_id": { "type": "string", "format": "uuid" },
+          "amount_milli": { "type": "integer", "format": "int64" },
+          "transfer_id": { "type": "string", "format": "uuid" },
+          "posted_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MeteringReceipt": {
+        "type": "object",
+        "required": ["title", "publication_id", "service", "version", "units", "total_milli", "content_hash", "transfer_id", "posted_at", "legs"],
+        "properties": {
+          "title": { "type": "string" },
+          "publication_id": { "type": "string", "format": "uuid" },
+          "service": { "type": "string" },
+          "version": { "type": "integer" },
+          "units": { "type": "integer" },
+          "total_milli": { "type": "integer", "format": "int64" },
+          "content_hash": { "type": "string" },
+          "transfer_id": { "type": "string", "format": "uuid" },
+          "posted_at": { "type": "string", "format": "date-time" },
+          "legs": { "type": "array", "items": { "$ref": "#/components/schemas/MeteringLeg" } },
+          "refund": { "$ref": "#/components/schemas/MeteringRefund" }
+        }
+      },
+      "MeteringStatementEntry": {
+        "type": "object",
+        "required": ["publication_id", "service", "total_milli", "posted_at", "refunded"],
+        "properties": {
+          "publication_id": { "type": "string", "format": "uuid" },
+          "service": { "type": "string" },
+          "total_milli": { "type": "integer", "format": "int64" },
+          "posted_at": { "type": "string", "format": "date-time" },
+          "refunded": { "type": "boolean" }
+        }
+      },
+      "MeteringStatement": {
+        "type": "object",
+        "required": ["title", "entries", "balance_milli"],
+        "properties": {
+          "title": { "type": "string" },
+          "entries": { "type": "array", "items": { "$ref": "#/components/schemas/MeteringStatementEntry" } },
+          "balance_milli": { "type": "integer", "format": "int64" }
         }
       }
     }

@@ -15,7 +15,13 @@
           { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
         ],
         "responses": {
-          "200": { "description": "Receipt document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Receipt document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/TradeReceipt" } }
+            }
+          },
           "401": { "description": "Missing authentication" },
           "404": { "description": "Unknown contract for this account" }
         }
@@ -27,8 +33,72 @@
         "summary": "Read the participant extract with owned trade lines",
         "security": [{ "sessionCookie": [] }],
         "responses": {
-          "200": { "description": "Extract document", "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } } },
+          "200": {
+            "description": "Extract document",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "enum": ["no-store"] } } },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/TradeStatement" } }
+            }
+          },
           "401": { "description": "Missing authentication" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TradeRefund": {
+        "type": "object",
+        "required": ["refund_key", "amount_milli", "tithe_reversal_milli", "provider_share_milli", "obligation_milli", "posted_at"],
+        "properties": {
+          "refund_key": { "type": "string" },
+          "amount_milli": { "type": "integer", "format": "int64" },
+          "tithe_reversal_milli": { "type": "integer", "format": "int64" },
+          "provider_share_milli": { "type": "integer", "format": "int64" },
+          "obligation_milli": { "type": "integer", "format": "int64" },
+          "posted_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TradeReceipt": {
+        "type": "object",
+        "required": ["title", "contract_id", "contract_key", "role", "object", "gross_milli", "tithe_milli", "net_milli", "status", "expires_at", "posted_at", "escrow_transfer_id", "refunds", "refunded_milli"],
+        "properties": {
+          "title": { "type": "string" },
+          "contract_id": { "type": "string", "format": "uuid" },
+          "contract_key": { "type": "string" },
+          "role": { "type": "string" },
+          "object": { "type": "string" },
+          "gross_milli": { "type": "integer", "format": "int64" },
+          "tithe_milli": { "type": "integer", "format": "int64" },
+          "net_milli": { "type": "integer", "format": "int64" },
+          "status": { "type": "string" },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "posted_at": { "type": "string", "format": "date-time" },
+          "settled_at": { "type": "string", "format": "date-time" },
+          "escrow_transfer_id": { "type": "string" },
+          "settlement_transfer_id": { "type": "string" },
+          "refunds": { "type": "array", "items": { "$ref": "#/components/schemas/TradeRefund" } },
+          "refunded_milli": { "type": "integer", "format": "int64" }
+        }
+      },
+      "TradeStatementEntry": {
+        "type": "object",
+        "required": ["contract_id", "contract_key", "role", "gross_milli", "status", "posted_at"],
+        "properties": {
+          "contract_id": { "type": "string", "format": "uuid" },
+          "contract_key": { "type": "string" },
+          "role": { "type": "string" },
+          "gross_milli": { "type": "integer", "format": "int64" },
+          "status": { "type": "string" },
+          "posted_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TradeStatement": {
+        "type": "object",
+        "required": ["title", "entries"],
+        "properties": {
+          "title": { "type": "string" },
+          "entries": { "type": "array", "items": { "$ref": "#/components/schemas/TradeStatementEntry" } }
         }
       }
     }
