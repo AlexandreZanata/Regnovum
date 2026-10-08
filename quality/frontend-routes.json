@@ -911,10 +911,13 @@
         "internal/commerce/adapters/http/routes.go",
         "internal/commerce/adapters/http/openapi.fragment.json",
         "internal/commerce/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/commerce.ts"
+        "web/src/contracts/staged/commerce.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
@@ -933,10 +936,13 @@
         "internal/commerce/adapters/http/routes.go",
         "internal/commerce/adapters/http/openapi.fragment.json",
         "internal/commerce/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/commerce.ts"
+        "web/src/contracts/staged/commerce.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
@@ -1035,10 +1041,13 @@
         "internal/disputes/adapters/http/routes.go",
         "internal/disputes/adapters/http/openapi.fragment.json",
         "internal/disputes/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/disputes.ts"
+        "web/src/contracts/staged/disputes.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "POST",
@@ -1057,10 +1066,13 @@
         "internal/disputes/adapters/http/routes.go",
         "internal/disputes/adapters/http/openapi.fragment.json",
         "internal/disputes/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/disputes.ts"
+        "web/src/contracts/staged/disputes.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "POST",
@@ -1079,10 +1091,13 @@
         "internal/disputes/adapters/http/routes.go",
         "internal/disputes/adapters/http/openapi.fragment.json",
         "internal/disputes/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/disputes.ts"
+        "web/src/contracts/staged/disputes.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "POST",
@@ -1101,10 +1116,13 @@
         "internal/disputes/adapters/http/routes.go",
         "internal/disputes/adapters/http/openapi.fragment.json",
         "internal/disputes/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/disputes.ts"
+        "web/src/contracts/staged/disputes.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
@@ -1123,10 +1141,13 @@
         "internal/disputes/adapters/http/routes.go",
         "internal/disputes/adapters/http/openapi.fragment.json",
         "internal/disputes/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/disputes.ts"
+        "web/src/contracts/staged/disputes.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "POST",
@@ -1200,10 +1221,13 @@
         "internal/metering/adapters/http/routes.go",
         "internal/metering/adapters/http/openapi.fragment.json",
         "internal/metering/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/metering.ts"
+        "web/src/contracts/staged/metering.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
@@ -1222,10 +1246,13 @@
         "internal/metering/adapters/http/routes.go",
         "internal/metering/adapters/http/openapi.fragment.json",
         "internal/metering/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/metering.ts"
+        "web/src/contracts/staged/metering.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "POST",
@@ -1244,10 +1271,13 @@
         "internal/metering/adapters/http/routes.go",
         "internal/metering/adapters/http/openapi.fragment.json",
         "internal/metering/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/metering.ts"
+        "web/src/contracts/staged/metering.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
@@ -1266,10 +1296,13 @@
         "internal/metering/adapters/http/routes.go",
         "internal/metering/adapters/http/openapi.fragment.json",
         "internal/metering/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/metering.ts"
+        "web/src/contracts/staged/metering.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "POST",
@@ -1543,10 +1576,13 @@
         "internal/seasons/adapters/http/routes.go",
         "internal/seasons/adapters/http/openapi.fragment.json",
         "internal/seasons/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/seasons.ts"
+        "web/src/contracts/staged/seasons.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
@@ -1565,10 +1601,13 @@
         "internal/seasons/adapters/http/routes.go",
         "internal/seasons/adapters/http/openapi.fragment.json",
         "internal/seasons/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/seasons.ts"
+        "web/src/contracts/staged/seasons.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
@@ -1587,10 +1626,13 @@
         "internal/seasons/adapters/http/routes.go",
         "internal/seasons/adapters/http/openapi.fragment.json",
         "internal/seasons/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/seasons.ts"
+        "web/src/contracts/staged/seasons.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
@@ -1609,10 +1651,13 @@
         "internal/seasons/adapters/http/routes.go",
         "internal/seasons/adapters/http/openapi.fragment.json",
         "internal/seasons/adapters/http/contract_test.go::TestRoutesMatchFragment",
-        "web/src/contracts/staged/seasons.ts"
+        "web/src/contracts/staged/seasons.ts",
+        "tools/stagedharness/harness_test.go",
+        "tools/stagedharness/isolation_test.go",
+        "tools/e2e/specs/staged.spec.js"
       ],
       "evidence_state": "NOT_VERIFIED",
-      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof."
+      "note": "P48-T01 inventory; planned binding is not usage proof; browser mounting is validated in P48-T02/T03 and P49+. P56-T01 staged transport generated (typed module contract, harness-only); no browser proof. P56-T02 isolated harness reaches all 15 handlers; delivered server keeps the placeholder."
     },
     {
       "method": "GET",
