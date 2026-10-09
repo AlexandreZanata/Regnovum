@@ -105,11 +105,11 @@ func composeAccountJSONHandler(options Options, deps accountJSONDeps) (*identity
 	return identityhttp.NewHandler(identityhttp.HandlerConfig{
 		RegisterUseCase: identityapp.NewRegisterAccountUseCase(
 			repository, repository, deps.hasher, deps.emails, options.Clock, options.Random, identitydomain.DefaultVerificationPolicy(),
-		),
+		).WithKeyRepository(repository),
 		VerifyEmailUseCase: identityapp.NewVerifyEmailUseCase(repository, repository, options.Clock),
 		LoginUseCase: identityapp.NewLoginUseCase(
 			repository, repository, repository, deps.hasher, options.Clock, options.Random, policy,
-		),
+		).WithKeyRepository(repository),
 		LogoutUseCase: identityapp.NewLogoutUseCase(repository),
 		RequestPasswordResetUseCase: identityapp.NewRequestPasswordResetUseCase(
 			repository, repository, deps.emails, options.Clock, options.Random, identitydomain.DefaultPasswordResetPolicy(),

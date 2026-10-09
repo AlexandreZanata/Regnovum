@@ -142,6 +142,54 @@ export function installSubmissionGuard(document: Document = globalThis.document)
   });
 }
 
+/**
+ * Installs clipboard copy handlers on elements carrying `data-ga-copy-key`.
+ */
+export function installCopyKey(document: Document = globalThis.document): void {
+  for (const button of document.querySelectorAll("[data-ga-copy-key]")) {
+    if (button.hasAttribute("data-ga-copy-installed")) {
+      continue;
+    }
+    button.setAttribute("data-ga-copy-installed", "");
+    button.addEventListener("click", (): void => {
+      const key = button.getAttribute("data-ga-copy-key");
+      if (!key) {
+        return;
+      }
+      const notifySuccess = (): void => {
+        const originalText = button.textContent;
+        button.textContent = "Copiado!";
+        button.setAttribute("data-ga-copied", "true");
+        globalThis.setTimeout((): void => {
+          button.textContent = originalText;
+          button.removeAttribute("data-ga-copied");
+        }, 2500);
+      };
+
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        void navigator.clipboard.writeText(key).then(notifySuccess, (): void => {
+          // writeText failed or rejected
+        });
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = key;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+          document.execCommand("copy");
+          notifySuccess();
+        } finally {
+          textarea.remove();
+        }
+      }
+    });
+  }
+}
+
 registerPrimitives();
 installSubmissionGuard();
+installCopyKey();
 installShell();

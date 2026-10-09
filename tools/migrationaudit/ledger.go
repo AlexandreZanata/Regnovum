@@ -84,6 +84,7 @@ var cascadeLedger = map[string]string{
 	"communication_preferences.communication_preferences_account_id_fkey":               "a preference of a deleted account cannot be honoured and is not evidence",
 	"communication_preference_history.communication_preference_history_account_id_fkey": "the preference history is the account's own trail, kept only as long as the account",
 	"arena_public_stat_projections.arena_public_stat_projections_arena_id_fkey":         "the projection of an arena is derived data: it is rebuilt from the events it summarises (migration 31)",
+	"account_key_credentials.account_key_credentials_account_id_fkey":                   "an account key credential without its account authenticates nobody and is a secret that should not outlive it",
 }
 
 // appendOnlyTables names the tables the runtime may only read and append to:

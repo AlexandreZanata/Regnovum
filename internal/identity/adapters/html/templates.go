@@ -142,16 +142,20 @@ type SummaryItem struct {
 // the submission failed, the summary of what to fix.
 type FormPageData struct {
 	DocumentData
-	Heading      string
-	Intro        string
-	Action       string
-	Method       string
-	CSRFName     string
-	CSRFToken    string
-	SummaryTitle string
-	Summary      []SummaryItem
-	Fields       []FieldData
-	SubmitLabel  string
+	Heading       string
+	Intro         string
+	Action        string
+	Method        string
+	CSRFName      string
+	CSRFToken     string
+	SummaryTitle  string
+	Summary       []SummaryItem
+	KeyField      *FieldData
+	KeySubmit     string
+	KeyHeading    string
+	LegacyHeading string
+	Fields        []FieldData
+	SubmitLabel   string
 	// BusyLabel is the status text announced while a submission is in flight
 	// and the client module is present. It is never the only feedback: the
 	// server always answers a document.
@@ -166,9 +170,13 @@ type FormPageData struct {
 // a recovery code was sent, and the pages that report a refusal.
 type NoticePageData struct {
 	DocumentData
-	Heading string
-	Detail  string
-	Actions []ActionLink
+	Heading        string
+	Detail         string
+	AccountKey     string
+	KeyInstruction string
+	KeyWarning     string
+	CopyLabel      string
+	Actions        []ActionLink
 }
 
 // Templates owns the compiled documents of the browser journey.
@@ -301,6 +309,19 @@ const templateSources = `{{define "document_head"}}<head>
 				{{end}}
 			</ul>
 		</ga-error-summary>
+		{{if .KeyField}}<div class="ga-auth__key-section">
+			{{if .KeyHeading}}<h2>{{.KeyHeading}}</h2>{{end}}
+			<form class="ga-auth__form" method="{{.Method}}" action="{{.Action}}">
+				<input type="hidden" name="{{.CSRFName}}" value="{{.CSRFToken}}" />
+				{{template "field" .KeyField}}
+				<ga-busy label="{{.BusyLabel}}">
+					<span data-ga-indicator="true" hidden="hidden" aria-hidden="true"></span>
+					<span data-ga-status="true" hidden="hidden" role="status" aria-live="polite" aria-atomic="true"></span>
+					<button type="submit">{{if .KeySubmit}}{{.KeySubmit}}{{else}}{{.SubmitLabel}}{{end}}</button>
+				</ga-busy>
+			</form>
+		</div>
+		{{if .LegacyHeading}}<div class="ga-auth__divider"><span>{{.LegacyHeading}}</span></div>{{end}}{{end}}
 		<form class="ga-auth__form" method="{{.Method}}" action="{{.Action}}">
 			<input type="hidden" name="{{.CSRFName}}" value="{{.CSRFToken}}" />
 			{{range .Fields}}{{template "field" .}}
@@ -326,6 +347,14 @@ const templateSources = `{{define "document_head"}}<head>
 	<main id="main" class="ga-auth" tabindex="-1">
 		<h1>{{.Heading}}</h1>
 		<p>{{.Detail}}</p>
+		{{if .AccountKey}}<div class="ga-auth__key-card" role="region">
+			{{if .KeyInstruction}}<p class="ga-auth__key-instruction">{{.KeyInstruction}}</p>{{end}}
+			<div class="ga-auth__key-row">
+				<code class="ga-auth__key-code" id="ga-account-key">{{.AccountKey}}</code>
+				<button type="button" class="ga-auth__key-copy" data-ga-copy-key="{{.AccountKey}}">{{.CopyLabel}}</button>
+			</div>
+			{{if .KeyWarning}}<p class="ga-auth__key-warning" role="note">{{.KeyWarning}}</p>{{end}}
+		</div>{{end}}
 		{{range .Actions}}<p><a href="{{.Href}}">{{.Label}}</a></p>
 		{{end}}
 	</main>

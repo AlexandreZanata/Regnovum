@@ -194,11 +194,11 @@ func ComposeAccount(options Options) (*AccountSurface, error) {
 	handler, err := identityhtml.NewHandler(identityhtml.HandlerConfig{
 		Register: identityapp.NewRegisterAccountUseCase(
 			repository, repository, hasher, emails, options.Clock, options.Random, identitydomain.DefaultVerificationPolicy(),
-		),
+		).WithKeyRepository(repository),
 		Verify: identityapp.NewVerifyEmailUseCase(repository, repository, options.Clock),
 		Login: identityapp.NewLoginUseCase(
 			repository, repository, repository, hasher, options.Clock, options.Random, identitydomain.DefaultSessionPolicy(),
-		),
+		).WithKeyRepository(repository),
 		Logout: identityapp.NewLogoutUseCase(repository),
 		RequestPasswordReset: identityapp.NewRequestPasswordResetUseCase(
 			repository, repository, emails, options.Clock, options.Random, identitydomain.DefaultPasswordResetPolicy(),
