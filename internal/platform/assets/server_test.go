@@ -33,8 +33,10 @@ func build(t *testing.T) (string, assets.Manifest) {
 	manifest := assets.Manifest{Version: 1, Assets: map[string]assets.Record{}}
 
 	for name, body := range map[string]string{
-		stylesheet: ":root { --ga-ink: #0f172a; }\n",
-		module:     "export const participation = true;\n",
+		stylesheet:            ":root { --ga-ink: #0f172a; }\n",
+		module:                "export const participation = true;\n",
+		"realm/crest.svg":     `<svg xmlns="http://www.w3.org/2000/svg"></svg>`,
+		"realm/portrait.webp": "RIFF\x00\x01\xffWEBP",
 	} {
 		digest := sha256.Sum256([]byte(body))
 		hashed := hashedName(name, hex.EncodeToString(digest[:])[:12])
@@ -68,6 +70,21 @@ func writeFile(t *testing.T, directory, name, body string) {
 func hashedName(name, digest string) string {
 	extension := filepath.Ext(name)
 	return strings.TrimSuffix(name, extension) + "-" + digest + extension
+}
+
+func TestRealmImagesHaveExplicitTypesAndImmutableCaching(t *testing.T) {
+	directory, manifest := build(t)
+	handler, err := assets.NewServer(assets.Config{Directory: directory, Manifest: manifest})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, mediaType := range map[string]string{"realm/crest.svg": "image/svg+xml", "realm/portrait.webp": "image/webp"} {
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, manifest.Assets[name].Path, nil))
+		if response.Code != http.StatusOK || response.Header().Get("Content-Type") != mediaType || !strings.Contains(response.Header().Get("Cache-Control"), "immutable") || response.Body.Len() == 0 {
+			t.Fatalf("image %s: status=%d type=%q cache=%q bytes=%d", name, response.Code, response.Header().Get("Content-Type"), response.Header().Get("Cache-Control"), response.Body.Len())
+		}
+	}
 }
 
 // server composes the serving surface over one build.

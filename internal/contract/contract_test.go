@@ -48,6 +48,7 @@ var browserJourney = map[string]bool{
 // documents to a person from an API route the contract declares but the binary
 // does not mount yet.
 var arenaJourney = map[string][]string{
+	"/":                              {"get"},
 	"/arenas/{slug}":                 {"get"},
 	"/arenas/{slug}/position":        {"post"},
 	"/arenas/{slug}/position/change": {"post"},

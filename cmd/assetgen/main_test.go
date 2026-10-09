@@ -40,6 +40,8 @@ func TestGenerateWritesHashedAndStableNames(t *testing.T) {
 	writeFile(t, source, "pages/submission.js", "export const busy = true;\n")
 	writeFile(t, source, "styles/auth.css", ".ga-auth { display: block; }\n")
 	writeFile(t, source, "pages/notes.txt", "not served\n")
+	writeFile(t, source, "realm/crest.svg", `<svg xmlns="http://www.w3.org/2000/svg"></svg>`)
+	writeFile(t, source, "realm/portrait.webp", "RIFF\x00\x01\xffWEBP")
 
 	if err := generate([]string{source}, output, manifestPath); err != nil {
 		t.Fatalf("generate() error = %v", err)
@@ -54,11 +56,11 @@ func TestGenerateWritesHashedAndStableNames(t *testing.T) {
 		t.Fatalf("decode manifest: %v", err)
 	}
 
-	if len(generated.Assets) != 3 {
-		t.Fatalf("manifest lists %d assets, want the three .js/.css files", len(generated.Assets))
+	if len(generated.Assets) != 5 {
+		t.Fatalf("manifest lists %d assets, want the five approved script/style/image assets", len(generated.Assets))
 	}
 
-	for _, name := range []string{"pages/auth.js", "pages/submission.js", "styles/auth.css"} {
+	for _, name := range []string{"pages/auth.js", "pages/submission.js", "styles/auth.css", "realm/crest.svg", "realm/portrait.webp"} {
 		record, ok := generated.Assets[name]
 		if !ok {
 			t.Fatalf("manifest is missing %s", name)
