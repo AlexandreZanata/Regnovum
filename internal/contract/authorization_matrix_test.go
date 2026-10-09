@@ -442,6 +442,8 @@ func matrixCoverage(t *testing.T, cells []matrixCell) {
 		"GET /reset": "html", "POST /reset": "html", "GET /reset/confirm": "html",
 		"POST /reset/confirm": "html", "GET /verify": "html", "POST /verify": "html",
 		"GET /transparency": "html",
+		// P60 root is proved by the home HTTP and browser surface suites.
+		"GET /": "html",
 		// Sondas operacionais, sem dimensão de ator por desenho; cobertas
 		// pelos testes de boot do servidor.
 		"GET /health/live": "ops", "GET /health/ready": "ops",

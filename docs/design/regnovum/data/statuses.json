@@ -1,0 +1,26 @@
+[
+  {
+    "id": "amigo-rei",
+    "name": "Amigo do Rei",
+    "kind": "status real",
+    "asset": "assets/badges/status/amigo-rei.svg"
+  },
+  {
+    "id": "inimigo-rei",
+    "name": "Inimigo do Rei",
+    "kind": "status real",
+    "asset": "assets/badges/status/inimigo-rei.svg"
+  },
+  {
+    "id": "perdao-real",
+    "name": "Perdão Real",
+    "kind": "ato real",
+    "asset": "assets/badges/status/perdao-real.svg"
+  },
+  {
+    "id": "bencao-real",
+    "name": "Benção Real",
+    "kind": "ato real",
+    "asset": "assets/badges/status/bencao-real.svg"
+  }
+]

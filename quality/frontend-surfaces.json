@@ -9,8 +9,8 @@
     "validated"
   ],
   "counts": {
-    "declared": 100,
-    "mounted": 85,
+    "declared": 101,
+    "mounted": 86,
     "declaration_only": 15,
     "validated": 0
   },
@@ -132,7 +132,8 @@
       "composer": "internal/bootstrap.ComposeArenaLifecycle",
       "state": "mounted",
       "routes": [
-        "GET /d/{slug}"
+        "GET /d/{slug}",
+        "GET /"
       ],
       "reach_proof": "internal/bootstrap/arena_lifecycle_test.go::TestArenaDraftPublishFeedDocument",
       "p49": "mounted in P49-T03",
@@ -141,7 +142,7 @@
         "development",
         "production"
       ],
-      "note": "Cacheable public Arena document mounted by ComposeArenaLifecycle beside the JSON lifecycle (P49-T03); proven via process httptest+PG alongside draft publish, feed and search."
+      "note": "Cacheable public Arena document mounted by ComposeArenaLifecycle beside the JSON lifecycle (P49-T03); proven via process httptest+PG alongside draft publish, feed and search. P60-T01 also mounts the exact-root Kingdom dashboard over the feed/search application use cases."
     },
     {
       "name": "identity-api",

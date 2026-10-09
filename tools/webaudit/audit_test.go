@@ -142,6 +142,25 @@ func TestAuditMeasuresTheFixtureBuild(t *testing.T) {
 	}
 }
 
+func TestAuditMeasuresStaticImagesSeparatelyAndRefusesMissingMedia(t *testing.T) {
+	build := fixture(t)
+	baseline := audit(t, build)
+	svg, webp := `<svg xmlns="http://www.w3.org/2000/svg"></svg>`, "RIFF\x00\x01\xffWEBP"
+	write(t, build, "realm/crest.svg", svg)
+	write(t, build, "realm/portrait.webp", webp)
+	writeManifest(t, build, "pages/arena.js", "core/http.js", "styles/base.css", "realm/crest.svg", "realm/portrait.webp")
+	report := audit(t, build)
+	if report.Assets != 5 || report.Images != 2 || report.ImageBytes != len(svg)+len(webp) || report.CSSBytes != baseline.CSSBytes || report.Pages[0].Bytes != baseline.Pages[0].Bytes || len(report.Violations) != 0 {
+		t.Fatalf("media contaminated code budgets or was not measured: %+v", report)
+	}
+	if err := os.Remove(filepath.Join(build, "realm/portrait.webp")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Audit(build); err == nil || !strings.Contains(err.Error(), "portrait.webp") {
+		t.Fatal("missing declared image was not refused by name")
+	}
+}
+
 func TestAuditRefusesAnExternalImport(t *testing.T) {
 	build := fixture(t)
 	appendTo(t, build, "pages/arena.js", "\nimport \"https://cdn.example.invalid/analytics.js\";\n")

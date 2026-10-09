@@ -73,9 +73,11 @@ COPY internal ./internal
 # and the untouched sources the manifest addresses.
 COPY --from=web /src/web/generated ./web/generated
 COPY web/src ./web/src
+COPY web/public ./web/public
 RUN go run ./cmd/assetgen \
         -input web/generated \
         -input web/src \
+        -input web/public \
         -output web/dist \
         -manifest web/dist/manifest.json
 

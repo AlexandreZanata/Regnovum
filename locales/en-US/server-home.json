@@ -1,0 +1,149 @@
+{
+  "server-home": {
+    "brand": "Regnovum",
+    "title": "Kingdom dashboard",
+    "skip": "Skip to arenas",
+    "menu": "Menu",
+    "close": "Close menu",
+    "navigation": "Main navigation",
+    "search": "Search arenas",
+    "search_placeholder": "Search an arena…",
+    "search_button": "Search",
+    "login": "Sign in",
+    "register": "Create account",
+    "visitor": "Visitor",
+    "visitor_note": "Explore the Kingdom",
+    "arenas": "Kingdom arenas",
+    "open_arena": "Enter arena",
+    "read_arena": "Read arena",
+    "document": "Public document",
+    "filter": "Filter arenas",
+    "more": "Next page",
+    "clear": "Clear search",
+    "empty": "No arenas found.",
+    "empty_hint": "Try another search or category.",
+    "load_error": "Unable to load arenas. Please try again.",
+    "retry": "Try again",
+    "results": "Search results",
+    "public": "Public debate",
+    "published": "Open",
+    "closed": "Closed",
+    "restricted": "Restricted",
+    "kingdom": "The Kingdom",
+    "kingdom_note": "Regnovum",
+    "charter": "Kingdom Charter",
+    "transparency": "View transparency",
+    "season": "Season crown",
+    "season_note": "Seasons are not available yet.",
+    "roles": "Kingdom roles",
+    "roles_more": "All roles",
+    "roles_note": "Roles defined in the royal charters.",
+    "roles_boundary": "A portrait does not grant permissions.",
+    "disputes": "Disputes",
+    "contracts": "Contracts",
+    "unavailable": "Not available yet",
+    "disputes_note": "Arbitration will appear here when enabled.",
+    "contracts_note": "Contracts will appear here when enabled.",
+    "ink": "INK economy",
+    "ink_note": "Access your account",
+    "activity": "Explore arenas",
+    "activity_note": "Choose a debate",
+    "participate": "Participate",
+    "participate_note": "Enter an arena",
+    "account": "Your account",
+    "account_note": "Sign in or create account",
+    "view_realm": "View the Kingdom",
+    "footer": "Kingdom Charter · Regnovum",
+    "language": "Language",
+    "nav": {
+      "home": "Home",
+      "arenas": "Arenas",
+      "disputes": "Disputes",
+      "contracts": "Contracts",
+      "roles": "Kingdom roles",
+      "transparency": "Transparency"
+    },
+    "categories": {
+      "all": "All",
+      "politics": "Politics",
+      "economics": "Economics",
+      "society": "Society",
+      "technology": "Technology",
+      "science": "Science",
+      "philosophy": "Philosophy",
+      "health": "Health",
+      "culture": "Culture"
+    },
+    "roles_data": {
+      "rei": {
+        "name": "King / Crown",
+        "description": "Seasonal Crown, distinct from the technical operator."
+      },
+      "inquisidor": {
+        "name": "Inquisitor",
+        "description": "Investigates and presents accusations and evidence."
+      },
+      "justiceiro": {
+        "name": "Vigilant",
+        "description": "Identifies risks and reports incidents."
+      },
+      "defensor": {
+        "name": "Defender",
+        "description": "Represents a party and presents its defense."
+      },
+      "testemunha": {
+        "name": "Witness",
+        "description": "Reports facts and relevant information."
+      },
+      "arbitro": {
+        "name": "Arbiter",
+        "description": "Resolves disputes under the agreed rules."
+      },
+      "jurado": {
+        "name": "Juror",
+        "description": "Examines the evidence within a jury."
+      },
+      "carrasco": {
+        "name": "Executioner",
+        "description": "Carries out recorded decisions."
+      },
+      "fiador-segurador": {
+        "name": "Guarantor / Insurer",
+        "description": "Provides guarantees under explicit terms."
+      },
+      "campeao": {
+        "name": "Champion",
+        "description": "Defends ideas in debate."
+      },
+      "oraculo": {
+        "name": "Oracle",
+        "description": "Offers readings and predictions."
+      },
+      "escrivao": {
+        "name": "Scribe",
+        "description": "Records acts and preserves documents."
+      },
+      "auditor": {
+        "name": "Auditor",
+        "description": "Verifies records and accountability."
+      },
+      "conselheiro": {
+        "name": "Councillor",
+        "description": "Advises and proposes solutions."
+      },
+      "cidadao": {
+        "name": "Citizen",
+        "description": "Participates in the Kingdom."
+      },
+      "campones": {
+        "name": "Peasant",
+        "description": "Builds participation in the Kingdom."
+      },
+      "senhor-feudo": {
+        "name": "Lord of the Fief",
+        "description": "Manages an entrusted fief."
+      }
+    },
+    "invalid_query": "Invalid search or page. Clear the filters and try again."
+  }
+}

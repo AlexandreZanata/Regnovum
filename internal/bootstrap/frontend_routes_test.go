@@ -4,11 +4,11 @@
 //
 // Normative sources (never .local/frontend/ROUTE_BASELINE.json, which is
 // only a photograph for cross-check):
-//   - api/openapi.json (published contract, 85 operations),
+//   - api/openapi.json (published contract, 86 operations),
 //   - the four staged fragments (seasons 4, metering 4, commerce 2,
 //     disputes 5 = 15 operations),
 //   - every internal/*/adapters/{http,html}/routes.go declaration plus
-//     the two platform health routes (100 declarations total).
+//     the two platform health routes (101 declarations total).
 //
 // The inventory starts honest: every entry is NOT_VERIFIED. P49-T09 closed
 // the three operator jobs gap, so no MISSING_PUBLISHED_CONTRACT row remains.
@@ -190,8 +190,8 @@ func loadFrontendInventoryContext(t *testing.T) *frontendInventoryContext {
 	t.Helper()
 
 	root, inventory := loadFrontendRoutes(t)
-	if len(inventory.Routes) != 100 {
-		t.Fatalf("routes has %d entries, want 100", len(inventory.Routes))
+	if len(inventory.Routes) != 101 {
+		t.Fatalf("routes has %d entries, want 101", len(inventory.Routes))
 	}
 	context := &frontendInventoryContext{
 		root:           root,
@@ -231,11 +231,11 @@ func TestFrontendRoutesInventoryCounts(t *testing.T) {
 	t.Parallel()
 
 	context := loadFrontendInventoryContext(t)
-	if context.inventory.Counts.Declared != 100 {
-		t.Errorf("declared = %d, want 100", context.inventory.Counts.Declared)
+	if context.inventory.Counts.Declared != 101 {
+		t.Errorf("declared = %d, want 101", context.inventory.Counts.Declared)
 	}
-	if context.inventory.Counts.Published != 85 {
-		t.Errorf("published = %d, want 85", context.inventory.Counts.Published)
+	if context.inventory.Counts.Published != 86 {
+		t.Errorf("published = %d, want 86", context.inventory.Counts.Published)
 	}
 	if context.inventory.Counts.Staged != 15 {
 		t.Errorf("staged = %d, want 15", context.inventory.Counts.Staged)
@@ -243,8 +243,8 @@ func TestFrontendRoutesInventoryCounts(t *testing.T) {
 	if context.inventory.Counts.MissingPublishedContract != 0 {
 		t.Errorf("missingPublishedContract = %d, want 0", context.inventory.Counts.MissingPublishedContract)
 	}
-	if len(context.published) != 85 {
-		t.Errorf("published contract operations = %d, want 85", len(context.published))
+	if len(context.published) != 86 {
+		t.Errorf("published contract operations = %d, want 86", len(context.published))
 	}
 	if len(context.staged) != 15 {
 		t.Errorf("staged fragment operations = %d, want 15 (4+4+2+5)", len(context.staged))
@@ -262,8 +262,8 @@ func TestFrontendRoutesInventoryCounts(t *testing.T) {
 			t.Errorf("readiness = %q, want published|staged|missing-contract", entry.Readiness)
 		}
 	}
-	if published != 85 || staged != 15 || missing != 0 {
-		t.Errorf("readiness rows = %d/%d/%d, want 85/15/0", published, staged, missing)
+	if published != 86 || staged != 15 || missing != 0 {
+		t.Errorf("readiness rows = %d/%d/%d, want 86/15/0", published, staged, missing)
 	}
 }
 
@@ -365,7 +365,7 @@ func TestFrontendRoutesInventoryBindings(t *testing.T) {
 		if entry.EvidenceState == "DONE" || entry.EvidenceState == "VERIFIED" || entry.EvidenceState == "COMPLETE" {
 			t.Errorf("%q claims %q by inference; T01 entries stay NOT_VERIFIED", key, entry.EvidenceState)
 		}
-		if entry.Task != "P48-T01" {
+		if entry.Task != "P48-T01" && !(entry.Path == "/" && entry.Task == "P60-T01") {
 			t.Errorf("%q task = %q, want P48-T01", key, entry.Task)
 		}
 		if entry.Audience == "" || entry.Phase == "" || entry.Declaration == "" {

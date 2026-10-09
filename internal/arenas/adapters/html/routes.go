@@ -17,7 +17,7 @@ func init() {
 // one is a decision about who may call it.
 func Routes() []httpserver.Route {
 	routes := make([]httpserver.Route, 0, 6)
-	routes = append(routes, httpserver.Route{Method: http.MethodGet, Path: "/d/{slug}"})
+	routes = append(routes, httpserver.Route{Method: http.MethodGet, Path: "/d/{slug}"}, httpserver.Route{Method: http.MethodGet, Path: "/"})
 	return append(routes, ParticipationRoutes()...)
 }
 

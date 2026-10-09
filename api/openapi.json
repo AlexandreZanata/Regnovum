@@ -2019,6 +2019,83 @@
         }
       }
     },
+    "/": {
+      "get": {
+        "operationId": "getRealmHome",
+        "summary": "Kingdom dashboard (HTML)",
+        "description": "Server-rendered public entry point. Uses the public arena feed and search with opaque cursors. No aggregate voting, personal balances or role permissions are disclosed. Contracts, disputes and seasons remain unavailable until activation.",
+        "tags": [
+          "arenas"
+        ],
+        "parameters": [
+          { "name": "locale", "in": "query", "required": false, "schema": { "type": "string", "enum": ["pt-BR", "en-US"] }, "description": "Interface locale only; language independently filters content." },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kingdom dashboard.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid search or cursor.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Arena feed temporarily unavailable.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/d/{slug}": {
       "get": {
         "operationId": "getArenaDocument",

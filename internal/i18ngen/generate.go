@@ -27,7 +27,11 @@ type Outputs struct {
 
 // Generate renders both artifacts from the validated bundle.
 func Generate(bundle *Bundle, outputs Outputs) (tsSource []byte, goSource []byte, err error) {
-	tsSource, err = renderTS(bundle)
+	browser := browserBundle(bundle)
+	if len(browser.Namespaces) == 0 {
+		return nil, nil, fmt.Errorf("i18ngen: at least one browser namespace is required")
+	}
+	tsSource, err = renderTS(browser)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -36,6 +40,19 @@ func Generate(bundle *Bundle, outputs Outputs) (tsSource []byte, goSource []byte
 		return nil, nil, err
 	}
 	return tsSource, goSource, nil
+}
+
+// browserBundle keeps server-* namespaces in the validated Go catalog only.
+// SSR text does not belong in every browser page's initial translation payload.
+// Both catalogs still share the same duplicate/key/placeholder parity checks.
+func browserBundle(bundle *Bundle) *Bundle {
+	browser := &Bundle{Messages: bundle.Messages, Placeholders: bundle.Placeholders}
+	for _, namespace := range bundle.Namespaces {
+		if !strings.HasPrefix(namespace, "server-") {
+			browser.Namespaces = append(browser.Namespaces, namespace)
+		}
+	}
+	return browser
 }
 
 // RenderAll loads the bundle at root and renders both artifacts.

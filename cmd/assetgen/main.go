@@ -139,7 +139,7 @@ func generate(inputs []string, output, manifestPath string) error {
 
 func isAsset(name string) bool {
 	extension := strings.ToLower(filepath.Ext(name))
-	return extension == ".js" || extension == ".css"
+	return extension == ".js" || extension == ".css" || extension == ".svg" || extension == ".webp"
 }
 
 func hashedName(path, digest string) string {

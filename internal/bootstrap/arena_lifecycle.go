@@ -58,6 +58,7 @@ type arenaHandlers struct {
 	arenas   *arenashttp.Handler
 	search   *searchhttp.Handler
 	document *arenashtml.Handler
+	home     *arenashtml.HomeHandler
 }
 
 // arenaDeps are the shared edges the handlers are built from. One struct
@@ -108,7 +109,7 @@ func ComposeArenaLifecycle(options Options) (*ArenaSurface, error) {
 		return nil, err
 	}
 	routes := append(arenashttp.Routes(), searchhttp.Routes()...)
-	routes = append(routes, documentRoute)
+	routes = append(routes, documentRoute, httpserver.Route{Method: http.MethodGet, Path: "/"})
 	options.Logger.Info("arena lifecycle: composed",
 		slog.String("env", string(options.Env)),
 		slog.Int("routes", len(routes)),
@@ -119,6 +120,7 @@ func ComposeArenaLifecycle(options Options) (*ArenaSurface, error) {
 			handlers.arenas.RegisterRoutes(mux)
 			handlers.search.RegisterRoutes(mux)
 			handlers.document.RegisterRoutes(mux)
+			handlers.home.RegisterRoutes(mux)
 		},
 	}, nil
 }
@@ -196,10 +198,15 @@ func buildArenaHandlers(options Options, deps arenaDeps) (*arenaHandlers, error)
 		GetDocumentUseCase: arenasapp.NewGetArenaDocumentUseCase(deps.arenas),
 		Templates:          arenashtml.NewTemplates(),
 	})
+	homeHandler, err := arenashtml.NewHomeHandler(arenasapp.NewGetArenaFeedUseCase(deps.arenas, feedCodec), arenaSearch, options.Assets)
+	if err != nil {
+		return nil, fmt.Errorf("bootstrap: realm home: %w", err)
+	}
 	return &arenaHandlers{
 		arenas:   arenasHandler,
 		search:   searchHandler,
 		document: documentHandler,
+		home:     homeHandler,
 	}, nil
 }
 

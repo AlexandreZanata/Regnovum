@@ -3,7 +3,7 @@
   "date": "2026-10-06",
   "baseline_sha": "3f4522b97410e360023da67a17c548344cb42d73",
   "status": "RECONCILED_INVENTORY_NOT_RUNTIME_COVERAGE",
-  "note": "P48-T01 reconciled inventory built from normative sources only (api/openapi.json, four staged fragments, all internal/*/adapters/{http,html}/routes.go plus platform health routes). .local/frontend/ROUTE_BASELINE.json was used only as a photograph for cross-check, never as source. 100 METHOD+path declarations: 85 published, 15 staged, 0 missing. P49-T09 closes the 3 jobs gaps (operator/role/MFA contract + guarded composition); no browser usage is claimed by string search.",
+  "note": "P48-T01 reconciled inventory built from normative sources only (api/openapi.json, four staged fragments, all internal/*/adapters/{http,html}/routes.go plus platform health routes). .local/frontend/ROUTE_BASELINE.json was used only as a photograph for cross-check, never as source. 100 METHOD+path declarations: 85 published, 15 staged, 0 missing. P49-T09 closes the 3 jobs gaps (operator/role/MFA contract + guarded composition); no browser usage is claimed by string search. P60-T01 adds GET /: 101 declarations, 86 published, 15 staged. Historical rows retain their original evidence.",
   "sources": [
     "api/openapi.json",
     "internal/seasons/adapters/http/openapi.fragment.json",
@@ -15,8 +15,8 @@
     "internal/platform/httpserver/routes.go"
   ],
   "counts": {
-    "declared": 100,
-    "published": 85,
+    "declared": 101,
+    "published": 86,
     "staged": 15,
     "missingPublishedContract": 0
   },
@@ -2664,6 +2664,26 @@
       ],
       "evidence_state": "VERIFIED",
       "note": "P50-T04 served in the process over the shared pool/security boundary with the fingerprinted build (Static plus ComposeAccount on the platform mux); proven via process httptest+PG: six deep-linked documents with shell chrome (skip link, current mark, footer), seven required addresses 200 with media type and cache policy, stable names revalidated, real POST forms with CSRF, refusal as page never JSON. No JSON fetch invented for an HTML form. P58-T01 complete: browser proof resolving and executed (web/e2e), VERIFIED; staged stays harness-only, probes stay excluded."
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "operation_id": "getRealmHome",
+      "contract": "api/openapi.json",
+      "declaration": "internal/arenas/adapters/html/routes.go",
+      "readiness": "published",
+      "audience": "html_surface",
+      "phase": "P60",
+      "task": "P60-T01",
+      "client": "server-home",
+      "page": "home",
+      "exclusion": null,
+      "tests": [
+        "internal/arenas/adapters/html/home_test.go::TestHomeSearchRendersEscapedCardsAndCursor",
+        "internal/contract/contract_test.go::TestContractRoutesMatchRegisteredRoutes"
+      ],
+      "evidence_state": "NOT_VERIFIED",
+      "note": "SSR feed, search and filters composed in ComposeArenaLifecycle; focused HTTP unit proof. Browser and remote evidence recorded in the phase delivery."
     }
   ]
 }

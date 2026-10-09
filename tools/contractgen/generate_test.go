@@ -5,6 +5,7 @@
 package main
 
 import (
+	"encoding/json"
 	"regexp"
 	"strings"
 	"testing"
@@ -79,6 +80,49 @@ func TestSupportedSubsetRendersReadonlyTypeScript(t *testing.T) {
 	}
 	if string(source) != fixtureExpected {
 		t.Fatalf("rendered fixture differs from the expected artifact:\n--- got ---\n%s\n--- want ---\n%s", source, fixtureExpected)
+	}
+}
+
+func TestHTMLRouteChangesRegenerateTransportProvenance(t *testing.T) {
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(tinyContract), &doc); err != nil {
+		t.Fatal(err)
+	}
+	doc["paths"] = map[string]any{"/login": map[string]any{"get": map[string]any{"operationId": "getLogin"}}}
+	before, err := json.Marshal(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	first, err := RenderBytes(before)
+	if err != nil {
+		t.Fatal(err)
+	}
+	doc["paths"].(map[string]any)["/"] = map[string]any{"get": map[string]any{"operationId": "getRealmHome"}}
+	after, err := json.Marshal(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := RenderBytes(after)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(first) == string(second) || !strings.Contains(string(second), "// HTTP surface SHA-256:") {
+		t.Fatal("HTML route change did not update generated transport provenance")
+	}
+	withoutFingerprint := regexp.MustCompile(`(?m)^// HTTP surface SHA-256: [a-f0-9]+\n`)
+	if string(withoutFingerprint.ReplaceAll(first, nil)) != string(withoutFingerprint.ReplaceAll(second, nil)) {
+		t.Fatal("route-only change modified transport types")
+	}
+	pretty, err := json.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	third, err := RenderBytes(pretty)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(second) != string(third) {
+		t.Fatal("fingerprint depends on document whitespace")
 	}
 }
 
