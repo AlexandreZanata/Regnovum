@@ -1,0 +1,782 @@
+[
+  {
+    "id": "reino-hero",
+    "kind": "scene",
+    "path": "assets/scenes/reino-hero-768.webp",
+    "width": 768,
+    "height": 512,
+    "bytes": 94884,
+    "sha256": "bc4bb5c0a1786c0f279e94dc287b35db7e748cf8776f16fa2e085f86b7a0aa9e",
+    "original": "originals/reino-hero.png"
+  },
+  {
+    "id": "reino-hero",
+    "kind": "scene",
+    "path": "assets/scenes/reino-hero-1536.webp",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 292162,
+    "sha256": "f31321dfb4d5c74c3b708ae47945137065affe8e5cdd434e4fd56b1aaac0a832",
+    "original": "originals/reino-hero.png"
+  },
+  {
+    "id": "rei",
+    "kind": "portrait",
+    "path": "assets/portraits/rei-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3282,
+    "sha256": "f84ac15b5e3b481679473dd1aaaad04782e1b81d36b0687e33be6a55902ab42d",
+    "original": "originals/rei.png"
+  },
+  {
+    "id": "rei",
+    "kind": "portrait",
+    "path": "assets/portraits/rei-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 10648,
+    "sha256": "5b9ad4bc263886299172a0cbc7fb4e6edf800c604ffc90f1c7ce8ef30180aaf5",
+    "original": "originals/rei.png"
+  },
+  {
+    "id": "rei",
+    "kind": "portrait",
+    "path": "assets/portraits/rei-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 36060,
+    "sha256": "457647de8c418a29c97693e4a90bd83ca743e466ac72f3c76d29a5af4a3fd96e",
+    "original": "originals/rei.png"
+  },
+  {
+    "id": "rei",
+    "kind": "portrait",
+    "path": "assets/portraits/rei-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 121920,
+    "sha256": "05795c7cd730f7ec615175cbcd4e91550ae88e90a5bd69556f9c8e74f6be312e",
+    "original": "originals/rei.png"
+  },
+  {
+    "id": "inquisidor",
+    "kind": "portrait",
+    "path": "assets/portraits/inquisidor-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 2910,
+    "sha256": "85d6229a7d64c84191454309a782840415953901d9cfefa470e6e2ed53d98185",
+    "original": "originals/inquisidor.png"
+  },
+  {
+    "id": "inquisidor",
+    "kind": "portrait",
+    "path": "assets/portraits/inquisidor-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 8802,
+    "sha256": "9a15f9ecbd705d601b3a11db4598168658254c3c986a0eda530b1a83b6825002",
+    "original": "originals/inquisidor.png"
+  },
+  {
+    "id": "inquisidor",
+    "kind": "portrait",
+    "path": "assets/portraits/inquisidor-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 31788,
+    "sha256": "b220c1c0c50cc3165d603069e4be2cf21ee1cceb58f61e4f06c000c2f8c9ba27",
+    "original": "originals/inquisidor.png"
+  },
+  {
+    "id": "inquisidor",
+    "kind": "portrait",
+    "path": "assets/portraits/inquisidor-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 120638,
+    "sha256": "211c75734e01cd356457539e44671f25652c9313cb9e6247408acbd5fcf30592",
+    "original": "originals/inquisidor.png"
+  },
+  {
+    "id": "arbitro",
+    "kind": "portrait",
+    "path": "assets/portraits/arbitro-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3580,
+    "sha256": "b7b2b888abc71f4cdc1bac08ddcd67838ec0433d34626f44bcf44ebb4a7c94cc",
+    "original": "originals/arbitro.png"
+  },
+  {
+    "id": "arbitro",
+    "kind": "portrait",
+    "path": "assets/portraits/arbitro-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 11374,
+    "sha256": "725b02034de5e238a7e8f69c09e9099639566d3c911ccf5836be3e79eac91f07",
+    "original": "originals/arbitro.png"
+  },
+  {
+    "id": "arbitro",
+    "kind": "portrait",
+    "path": "assets/portraits/arbitro-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 39910,
+    "sha256": "8498cfb0840382532538196ae18008fc215254c0fb3452732ce1ddf825178fb0",
+    "original": "originals/arbitro.png"
+  },
+  {
+    "id": "arbitro",
+    "kind": "portrait",
+    "path": "assets/portraits/arbitro-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 136694,
+    "sha256": "31ec46fecaa01f99d6fe1fb20d396998859ac771ecf3417a8231171937da4cf7",
+    "original": "originals/arbitro.png"
+  },
+  {
+    "id": "conselheiro",
+    "kind": "portrait",
+    "path": "assets/portraits/conselheiro-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3998,
+    "sha256": "61e63d323b2dc2b4ea422dad018974296e56d2398cc2332c81ab0caace3ef950",
+    "original": "originals/conselheiro.png"
+  },
+  {
+    "id": "conselheiro",
+    "kind": "portrait",
+    "path": "assets/portraits/conselheiro-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 13438,
+    "sha256": "b2f57b310502a0df20d35425029e2566ca68b7f63601a8f80b1e7d649cbfa495",
+    "original": "originals/conselheiro.png"
+  },
+  {
+    "id": "conselheiro",
+    "kind": "portrait",
+    "path": "assets/portraits/conselheiro-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 46004,
+    "sha256": "bb840eb6cc6b494dcd222bf461b5f5288dd9d31593d8f1de452aefe76b75c428",
+    "original": "originals/conselheiro.png"
+  },
+  {
+    "id": "conselheiro",
+    "kind": "portrait",
+    "path": "assets/portraits/conselheiro-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 153520,
+    "sha256": "27b0f3b59a6536cf9281cc3cfc743a2263d024b9298290dd47e19de9d4e4a4c7",
+    "original": "originals/conselheiro.png"
+  },
+  {
+    "id": "carrasco",
+    "kind": "portrait",
+    "path": "assets/portraits/carrasco-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3222,
+    "sha256": "b92f30d30e338feeca8ebbaefc8eef43651361cb2c31def1b6b8bc738deb8431",
+    "original": "originals/carrasco.png"
+  },
+  {
+    "id": "carrasco",
+    "kind": "portrait",
+    "path": "assets/portraits/carrasco-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 10200,
+    "sha256": "623958797cb6a4844d9e1f8e8243abb5c8cdc5476bc41761c742cdaa0def6084",
+    "original": "originals/carrasco.png"
+  },
+  {
+    "id": "carrasco",
+    "kind": "portrait",
+    "path": "assets/portraits/carrasco-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 40008,
+    "sha256": "214c75df6ee9b08b4cb961e192477fc3ba12887460747e7091e863298cff6f95",
+    "original": "originals/carrasco.png"
+  },
+  {
+    "id": "carrasco",
+    "kind": "portrait",
+    "path": "assets/portraits/carrasco-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 158142,
+    "sha256": "2f71248667a32096fceeefa63532a7af523149857c776a9d7758baf647137cad",
+    "original": "originals/carrasco.png"
+  },
+  {
+    "id": "justiceiro",
+    "kind": "portrait",
+    "path": "assets/portraits/justiceiro-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3932,
+    "sha256": "6449dcd2632e09d85a50107ead4d1b0e8ded45fd863ed77d8e75abfd43990e93",
+    "original": "originals/justiceiro.png"
+  },
+  {
+    "id": "justiceiro",
+    "kind": "portrait",
+    "path": "assets/portraits/justiceiro-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 12542,
+    "sha256": "b5faf4b9a0f14a18f4e6a7102535e15d7f4b180faa5d788492d879c61032a33a",
+    "original": "originals/justiceiro.png"
+  },
+  {
+    "id": "justiceiro",
+    "kind": "portrait",
+    "path": "assets/portraits/justiceiro-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 40930,
+    "sha256": "c6df152b950607c64f4e14efc63c2962389abeba8f8db8ff899a3a0310cd2573",
+    "original": "originals/justiceiro.png"
+  },
+  {
+    "id": "justiceiro",
+    "kind": "portrait",
+    "path": "assets/portraits/justiceiro-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 124960,
+    "sha256": "3a35ebf2894233f91c45f3b00dbc2eee58b63888e1e1479fef92f960460bcfe6",
+    "original": "originals/justiceiro.png"
+  },
+  {
+    "id": "defensor",
+    "kind": "portrait",
+    "path": "assets/portraits/defensor-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 2906,
+    "sha256": "8d55adc6cfe8e6eb930fe8c0dd2bc89549cb21d1efe3c07bc115e8ddb7802780",
+    "original": "originals/defensor.png"
+  },
+  {
+    "id": "defensor",
+    "kind": "portrait",
+    "path": "assets/portraits/defensor-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 9030,
+    "sha256": "1a06a2ff468dffdc1a141503dd4005ba305e19ebebbb7100cf9b3089ef0401ea",
+    "original": "originals/defensor.png"
+  },
+  {
+    "id": "defensor",
+    "kind": "portrait",
+    "path": "assets/portraits/defensor-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 33194,
+    "sha256": "a08a2e903e783e91b616bc5a59183507ad96cea1ed1b1e293378340e777d29fd",
+    "original": "originals/defensor.png"
+  },
+  {
+    "id": "defensor",
+    "kind": "portrait",
+    "path": "assets/portraits/defensor-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 128702,
+    "sha256": "60e46f990070eec44fb02c7fb02cbbfa9755ffcb92c72d01c58a30b781f14db6",
+    "original": "originals/defensor.png"
+  },
+  {
+    "id": "testemunha",
+    "kind": "portrait",
+    "path": "assets/portraits/testemunha-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3320,
+    "sha256": "8cb1f8e32ff86c09dcc9c7c7c51833a467432f2133e030a10456f9a1f046698e",
+    "original": "originals/testemunha.png"
+  },
+  {
+    "id": "testemunha",
+    "kind": "portrait",
+    "path": "assets/portraits/testemunha-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 10180,
+    "sha256": "97bf1e0e926306a704958fa3c7d53cf328f959152b4ab3ad6ab4eb1fe78f5f57",
+    "original": "originals/testemunha.png"
+  },
+  {
+    "id": "testemunha",
+    "kind": "portrait",
+    "path": "assets/portraits/testemunha-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 38036,
+    "sha256": "24b4645a80d11dd443b918b239b4bad395e104af7691d7b9f60768573120e2a6",
+    "original": "originals/testemunha.png"
+  },
+  {
+    "id": "testemunha",
+    "kind": "portrait",
+    "path": "assets/portraits/testemunha-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 133916,
+    "sha256": "794150a0c48c2ca380746bee4c593b20d486d51ae137a6afab978a22228dcfdc",
+    "original": "originals/testemunha.png"
+  },
+  {
+    "id": "jurado",
+    "kind": "portrait",
+    "path": "assets/portraits/jurado-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3526,
+    "sha256": "04f0c4afdf21ecbdda8934e080a3cdba0797893b24fa27935265c4bd88fc9d94",
+    "original": "originals/jurado.png"
+  },
+  {
+    "id": "jurado",
+    "kind": "portrait",
+    "path": "assets/portraits/jurado-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 10848,
+    "sha256": "50e1f08549181d7394701cb3d6fd39d006bf2579c507abd4647d98679d4075f6",
+    "original": "originals/jurado.png"
+  },
+  {
+    "id": "jurado",
+    "kind": "portrait",
+    "path": "assets/portraits/jurado-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 37756,
+    "sha256": "2233f0f85ad2c270359ed9db928fcc232cee4d39c513b6ed9e505d875da5b078",
+    "original": "originals/jurado.png"
+  },
+  {
+    "id": "jurado",
+    "kind": "portrait",
+    "path": "assets/portraits/jurado-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 141528,
+    "sha256": "0cfa25c0955f9d0af584f61f5f178b500c1412f37a1585967b35d277dc319844",
+    "original": "originals/jurado.png"
+  },
+  {
+    "id": "fiador-segurador",
+    "kind": "portrait",
+    "path": "assets/portraits/fiador-segurador-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3178,
+    "sha256": "90d6ffea3fbf9458506c3f78ad9640d2d22571204ede5b917a8732582848266e",
+    "original": "originals/fiador-segurador.png"
+  },
+  {
+    "id": "fiador-segurador",
+    "kind": "portrait",
+    "path": "assets/portraits/fiador-segurador-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 10578,
+    "sha256": "f262fbf928a23a28fdf6084c026be22007db55b15916e476edc4c833c8ec77c9",
+    "original": "originals/fiador-segurador.png"
+  },
+  {
+    "id": "fiador-segurador",
+    "kind": "portrait",
+    "path": "assets/portraits/fiador-segurador-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 36492,
+    "sha256": "2c87b01ec85e88d0ce3f8af70a0d64a36bf8dddee3f37daa53ada50d6235fbb1",
+    "original": "originals/fiador-segurador.png"
+  },
+  {
+    "id": "fiador-segurador",
+    "kind": "portrait",
+    "path": "assets/portraits/fiador-segurador-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 125736,
+    "sha256": "9d5d907da3e13159ec10e5990a993fcd4d6ad437b8f11bb1dba4b521e11b0c37",
+    "original": "originals/fiador-segurador.png"
+  },
+  {
+    "id": "campeao",
+    "kind": "portrait",
+    "path": "assets/portraits/campeao-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3558,
+    "sha256": "6fa9909d2346be144e3785a4db2c3e920eb14abb6e788c60150405bc9e534ff8",
+    "original": "originals/campeao.png"
+  },
+  {
+    "id": "campeao",
+    "kind": "portrait",
+    "path": "assets/portraits/campeao-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 11492,
+    "sha256": "8ba75419da0b6a2d2bec1be8aca09cd757eddd89f55779a6a3f20fa7132dba36",
+    "original": "originals/campeao.png"
+  },
+  {
+    "id": "campeao",
+    "kind": "portrait",
+    "path": "assets/portraits/campeao-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 38218,
+    "sha256": "fd3723277ad1fe463108c67bb943af24c9f4d69e82f09c8736d679328ef720fb",
+    "original": "originals/campeao.png"
+  },
+  {
+    "id": "campeao",
+    "kind": "portrait",
+    "path": "assets/portraits/campeao-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 128234,
+    "sha256": "2c0a4dbe78845d7b499013b59dffa348f50153ec1c449d683cb195c5b0543f7f",
+    "original": "originals/campeao.png"
+  },
+  {
+    "id": "oraculo",
+    "kind": "portrait",
+    "path": "assets/portraits/oraculo-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3692,
+    "sha256": "e38cc90837aaed103c7fb6b016fb7729b08298ca566209623ce261d978319131",
+    "original": "originals/oraculo.png"
+  },
+  {
+    "id": "oraculo",
+    "kind": "portrait",
+    "path": "assets/portraits/oraculo-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 11674,
+    "sha256": "9768bab3a5e26f8de10d1d6aeaab881e99b1dbde42c7caf8188a73ffd8e2c503",
+    "original": "originals/oraculo.png"
+  },
+  {
+    "id": "oraculo",
+    "kind": "portrait",
+    "path": "assets/portraits/oraculo-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 39144,
+    "sha256": "e9d25e39452c44ac33364906c6837bb7cd69f0705f82f7d9117d3850fd0948c2",
+    "original": "originals/oraculo.png"
+  },
+  {
+    "id": "oraculo",
+    "kind": "portrait",
+    "path": "assets/portraits/oraculo-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 127358,
+    "sha256": "b736d1c9926f2cf658b3220f4d0a73e2fb56e77a6d19fa743abed1d46983b961",
+    "original": "originals/oraculo.png"
+  },
+  {
+    "id": "escrivao",
+    "kind": "portrait",
+    "path": "assets/portraits/escrivao-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3452,
+    "sha256": "f39350190e9c050fe26bd464ca322d02f903a3d6ffb3dc90b3cf775d1f705100",
+    "original": "originals/escrivao.png"
+  },
+  {
+    "id": "escrivao",
+    "kind": "portrait",
+    "path": "assets/portraits/escrivao-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 9774,
+    "sha256": "86ea5efa4e4a564cccd86c7c43ce8c00dad16a2e486be0923351c491eb8fcbf0",
+    "original": "originals/escrivao.png"
+  },
+  {
+    "id": "escrivao",
+    "kind": "portrait",
+    "path": "assets/portraits/escrivao-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 31340,
+    "sha256": "4648a13b6373de491e60349344747bbfe3fe40649462f176a645e11d68e13d76",
+    "original": "originals/escrivao.png"
+  },
+  {
+    "id": "escrivao",
+    "kind": "portrait",
+    "path": "assets/portraits/escrivao-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 104134,
+    "sha256": "cfb663b28dbc6d5d0cb34fac7382c9ff13fbe27f4afe3d6b7f9f5859a43504c4",
+    "original": "originals/escrivao.png"
+  },
+  {
+    "id": "auditor",
+    "kind": "portrait",
+    "path": "assets/portraits/auditor-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3568,
+    "sha256": "6ab6cb87da306bc092a3f67a99034cb85aa138708f02a7a6065f50feb3ff792c",
+    "original": "originals/auditor.png"
+  },
+  {
+    "id": "auditor",
+    "kind": "portrait",
+    "path": "assets/portraits/auditor-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 11620,
+    "sha256": "cc4469c09aef26d299d30cedbc62517a4694e9b42f79dac5ad5515527fcdffe3",
+    "original": "originals/auditor.png"
+  },
+  {
+    "id": "auditor",
+    "kind": "portrait",
+    "path": "assets/portraits/auditor-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 40974,
+    "sha256": "918df6b562bc581a2be0175d14430b907e99144991b6e7c6e458be40ecaed9c0",
+    "original": "originals/auditor.png"
+  },
+  {
+    "id": "auditor",
+    "kind": "portrait",
+    "path": "assets/portraits/auditor-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 140172,
+    "sha256": "59d0afc824f5738e298fd7f0df9f4b1f83a2dc3013415166135beb41406d14be",
+    "original": "originals/auditor.png"
+  },
+  {
+    "id": "cidadao",
+    "kind": "portrait",
+    "path": "assets/portraits/cidadao-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3140,
+    "sha256": "3c89f2708d81c417737f88eeec724a44e3e08a6bc7f98de652500f4109dbae7a",
+    "original": "originals/cidadao.png"
+  },
+  {
+    "id": "cidadao",
+    "kind": "portrait",
+    "path": "assets/portraits/cidadao-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 9800,
+    "sha256": "c6ac2a5d321495b47e96cf0c4d7e39c5830c8713be53667190e16ca02683690a",
+    "original": "originals/cidadao.png"
+  },
+  {
+    "id": "cidadao",
+    "kind": "portrait",
+    "path": "assets/portraits/cidadao-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 36062,
+    "sha256": "b1a20cd2ff198ef90454251f34d87e4d07d7130af07103cce38ed37ba2e3dfda",
+    "original": "originals/cidadao.png"
+  },
+  {
+    "id": "cidadao",
+    "kind": "portrait",
+    "path": "assets/portraits/cidadao-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 127282,
+    "sha256": "12b17eee966cab871db85ddc1b7490d6c426f0e6517d477b6d192a495d9d4d6c",
+    "original": "originals/cidadao.png"
+  },
+  {
+    "id": "campones",
+    "kind": "portrait",
+    "path": "assets/portraits/campones-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3692,
+    "sha256": "3cef682ea025e53700115e62c9223fdb1a1faad6ecfa362a5b7c66188a87b941",
+    "original": "originals/campones.png"
+  },
+  {
+    "id": "campones",
+    "kind": "portrait",
+    "path": "assets/portraits/campones-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 11684,
+    "sha256": "266ab290a2b7e57eb759d9bac4c81f81e6819b80d32f72c925d10fb900281df6",
+    "original": "originals/campones.png"
+  },
+  {
+    "id": "campones",
+    "kind": "portrait",
+    "path": "assets/portraits/campones-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 41944,
+    "sha256": "4a8cc57057980063d8cfd3c13cec438f65fc61001653d8a33a2e55adbaea53e4",
+    "original": "originals/campones.png"
+  },
+  {
+    "id": "campones",
+    "kind": "portrait",
+    "path": "assets/portraits/campones-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 151106,
+    "sha256": "15a26a3a8449051b8f17ba1bea020512bcc2e0a5408c17a03fc05a84edb41ef1",
+    "original": "originals/campones.png"
+  },
+  {
+    "id": "senhor-feudo",
+    "kind": "portrait",
+    "path": "assets/portraits/senhor-feudo-128.webp",
+    "width": 128,
+    "height": 128,
+    "bytes": 3454,
+    "sha256": "5873d35ffa62ed6833c1e3c644461ce2174fef9dd1d6ae8fc2961303c788e84a",
+    "original": "originals/senhor-feudo.png"
+  },
+  {
+    "id": "senhor-feudo",
+    "kind": "portrait",
+    "path": "assets/portraits/senhor-feudo-256.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 10920,
+    "sha256": "96eb8dfc2337d115273e3e93c1a4b56f73a616025f90a8f73a55848004439a0d",
+    "original": "originals/senhor-feudo.png"
+  },
+  {
+    "id": "senhor-feudo",
+    "kind": "portrait",
+    "path": "assets/portraits/senhor-feudo-512.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 36570,
+    "sha256": "7500e459cf39517d0db3c5a43de8f61adde026b4106b7e0286420f6c21697660",
+    "original": "originals/senhor-feudo.png"
+  },
+  {
+    "id": "senhor-feudo",
+    "kind": "portrait",
+    "path": "assets/portraits/senhor-feudo-1024.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 119888,
+    "sha256": "3722f812b14e201c76a53707714f424aa154b95a0e6f04b903a968876022562f",
+    "original": "originals/senhor-feudo.png"
+  },
+  {
+    "id": "arena-debate",
+    "kind": "scene",
+    "path": "assets/scenes/arena-debate-768.webp",
+    "width": 768,
+    "height": 512,
+    "bytes": 86400,
+    "sha256": "567a80da48c807d13564a9347bee0995cfb532adb4c85029df5638f1d284d385",
+    "original": "originals/arena-debate.png"
+  },
+  {
+    "id": "arena-debate",
+    "kind": "scene",
+    "path": "assets/scenes/arena-debate-1536.webp",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 260346,
+    "sha256": "afb39fa11326fa838d00e12418d135493b51f60adfe20dd4e992092fa9323aec",
+    "original": "originals/arena-debate.png"
+  },
+  {
+    "id": "mercado-contratos",
+    "kind": "scene",
+    "path": "assets/scenes/mercado-contratos-768.webp",
+    "width": 768,
+    "height": 512,
+    "bytes": 111354,
+    "sha256": "3a69bb55a38ac81e8322fbd98af5065f4603b048b56e284fd4f4318e70826b42",
+    "original": "originals/mercado-contratos.png"
+  },
+  {
+    "id": "mercado-contratos",
+    "kind": "scene",
+    "path": "assets/scenes/mercado-contratos-1536.webp",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 335670,
+    "sha256": "030eb2e3e92c1cbe7a62296c43c95a6168f4c8f12e8defc91b8c4a2f94abae4a",
+    "original": "originals/mercado-contratos.png"
+  },
+  {
+    "id": "sala-arbitragem",
+    "kind": "scene",
+    "path": "assets/scenes/sala-arbitragem-768.webp",
+    "width": 768,
+    "height": 512,
+    "bytes": 79772,
+    "sha256": "193e8ef9c9d0b689ab4827f2d4f230b0f7b7cf8c0f694afdf1d119ed3750d19d",
+    "original": "originals/sala-arbitragem.png"
+  },
+  {
+    "id": "sala-arbitragem",
+    "kind": "scene",
+    "path": "assets/scenes/sala-arbitragem-1536.webp",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 225138,
+    "sha256": "ddf2923e49b9cf971a93d23cac629363e9e4787c8a9017537ee445e53eac2f6f",
+    "original": "originals/sala-arbitragem.png"
+  },
+  {
+    "id": "arquivo-real",
+    "kind": "scene",
+    "path": "assets/scenes/arquivo-real-768.webp",
+    "width": 768,
+    "height": 512,
+    "bytes": 89204,
+    "sha256": "9010b9238590e527deb04c7c53425624035133ce476e47d1a16dd4e6967afa50",
+    "original": "originals/arquivo-real.png"
+  },
+  {
+    "id": "arquivo-real",
+    "kind": "scene",
+    "path": "assets/scenes/arquivo-real-1536.webp",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 251714,
+    "sha256": "b49ae3196cf479fa9d7012586a65d82f9ee6d2d401625cd1c56676edc1789a5a",
+    "original": "originals/arquivo-real.png"
+  }
+]

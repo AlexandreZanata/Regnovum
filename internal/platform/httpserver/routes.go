@@ -99,7 +99,11 @@ func RegisterAll(mux *http.ServeMux, routes []Route, readyCheckers ...ReadyCheck
 		return err
 	}
 	for _, route := range routes {
-		mux.Handle(route.Method+" "+route.Path, handlerFor(route, readyCheckers...))
+		pattern := route.Method + " " + route.Path
+		if route.Path == "/" {
+			pattern = route.Method + " /{$}"
+		}
+		mux.Handle(pattern, handlerFor(route, readyCheckers...))
 	}
 	return nil
 }

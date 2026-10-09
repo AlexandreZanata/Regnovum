@@ -46,12 +46,18 @@ function noticeAction(page, href) {
   return page.locator(`main a[href="${href}"]`);
 }
 
-/** fillForm fills the two fields every account form asks for and submits it. */
+/** fillForm fills the fields of one account form and submits that same form. */
 async function fillForm(page, fields) {
-  for (const [name, value] of Object.entries(fields)) {
-    await page.locator(`${FORM} input[name="${name}"]`).fill(value);
+  const entries = Object.entries(fields);
+  // The form the journey means is the one holding the fields it fills: pages
+  // with an account-key entry carry two forms, and a page-wide submitter would
+  // match both. Scoping by the first field keeps the documented contract —
+  // one form per submission — without naming any translated button.
+  const form = page.locator(FORM, { has: page.locator(`input[name="${entries[0][0]}"]`) });
+  for (const [name, value] of entries) {
+    await form.locator(`input[name="${name}"]`).fill(value);
   }
-  await page.locator(SUBMIT).click();
+  await form.locator('button[type="submit"]').click();
 }
 
 /**

@@ -387,8 +387,8 @@ func TestSurfacesMapMatchesComposition(t *testing.T) {
 }
 
 // TestSurfacesMapCoversInventory proves the map classifies every
-// inventory route exactly once with honest counts: 100 declared,
-// 85 mounted, zero validated and a P49 plan naming what mounts
+// inventory route exactly once with honest counts: 101 declared,
+// 86 mounted, zero validated and a P49 plan naming what mounts
 // next.
 func TestSurfacesMapCoversInventory(t *testing.T) {
 	t.Parallel()
@@ -402,8 +402,8 @@ func TestSurfacesMapCoversInventory(t *testing.T) {
 			t.Errorf("inventory route %s is missing from the map", key)
 		}
 	}
-	if context.surfaces.Counts.Declared != len(context.inventoryKeys) || context.surfaces.Counts.Declared != 100 {
-		t.Errorf("map declared = %d, want 100", context.surfaces.Counts.Declared)
+	if context.surfaces.Counts.Declared != len(context.inventoryKeys) || context.surfaces.Counts.Declared != 101 {
+		t.Errorf("map declared = %d, want 101", context.surfaces.Counts.Declared)
 	}
 	if context.surfaces.Counts.Mounted != len(context.composed) || context.surfaces.Counts.Mounted != context.mountedRows {
 		t.Errorf("map mounted = %d, composition serves %d, mounted rows hold %d", context.surfaces.Counts.Mounted, len(context.composed), context.mountedRows)

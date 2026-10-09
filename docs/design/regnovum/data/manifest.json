@@ -1,0 +1,746 @@
+{
+  "version": "1.0",
+  "assetCount": 148,
+  "files": [
+    {
+      "path": "assets/badges/nobility/barao.svg",
+      "bytes": 354,
+      "sha256": "4189a811ae0a11396cf9721045b74eb0ada08690175d84afa13758e9c8fcec98"
+    },
+    {
+      "path": "assets/badges/nobility/conde.svg",
+      "bytes": 453,
+      "sha256": "c100ec0825c120315a3c194217379f0e6e1d192701f838ea8800aab6c89a4456"
+    },
+    {
+      "path": "assets/badges/nobility/duque.svg",
+      "bytes": 553,
+      "sha256": "28189cd528d3d9ba4392a808c8f55908f2850314721c3aafc8ce64c18681bb7b"
+    },
+    {
+      "path": "assets/badges/nobility/marques.svg",
+      "bytes": 506,
+      "sha256": "a5d5533ce12c16c99124cf6dde6b719a8d98acfd743ba72df3c1854578cd41c4"
+    },
+    {
+      "path": "assets/badges/nobility/visconde.svg",
+      "bytes": 406,
+      "sha256": "07b5c0f152b408515259bcb6320ee80339793becbdc46c1f3a7dbf6ce7be423f"
+    },
+    {
+      "path": "assets/badges/roles/arbitro.svg",
+      "bytes": 454,
+      "sha256": "1b635acde2c48ffbde8af5c988f09ad2fe10e23e300ab2da7722d691275b3c27"
+    },
+    {
+      "path": "assets/badges/roles/auditor.svg",
+      "bytes": 463,
+      "sha256": "137ca68436e19b1d498a9ec60670631540a5ad75dd9fa5bdf372357520538dcd"
+    },
+    {
+      "path": "assets/badges/roles/campeao.svg",
+      "bytes": 450,
+      "sha256": "6612eca0544a45a147c8149c44c82bf5cee95711adc37dba217906ffe7afd30f"
+    },
+    {
+      "path": "assets/badges/roles/campones.svg",
+      "bytes": 544,
+      "sha256": "739be31fb591774644af6643f8144a4a9a69cd570e0f183c0cc89cf8175ac3b0"
+    },
+    {
+      "path": "assets/badges/roles/carrasco.svg",
+      "bytes": 422,
+      "sha256": "dc4f110539f19a37d37b8be1bfda675944de0e1dac9d194aab420771bb23e098"
+    },
+    {
+      "path": "assets/badges/roles/cidadao.svg",
+      "bytes": 432,
+      "sha256": "6068ba8bc9bb892ee1755a3d8fdfd73be86c844b7c8ef266057f7520bfb0a394"
+    },
+    {
+      "path": "assets/badges/roles/conselheiro.svg",
+      "bytes": 465,
+      "sha256": "fcadc3471601cd28d1b09d58842fd8e4d07959d784b1f44f877153951372c4de"
+    },
+    {
+      "path": "assets/badges/roles/defensor.svg",
+      "bytes": 436,
+      "sha256": "41666cc784672e9096e3777bc2179a53dd3277fae7f1a418ca3f3fcb2d4d6e63"
+    },
+    {
+      "path": "assets/badges/roles/escrivao.svg",
+      "bytes": 439,
+      "sha256": "7809aed5896d35afb2330a7be1a358193c7957952771400c30a8ed15200653ef"
+    },
+    {
+      "path": "assets/badges/roles/fiador-segurador.svg",
+      "bytes": 498,
+      "sha256": "51d649fb552f06087562903b93876ba9bdfd70465f19b52a329cebac2039945e"
+    },
+    {
+      "path": "assets/badges/roles/inquisidor.svg",
+      "bytes": 436,
+      "sha256": "de67c4787217f8fbaebf7585867d47d210ae4198c8176a9a0d6ce1fe59ef627f"
+    },
+    {
+      "path": "assets/badges/roles/jurado.svg",
+      "bytes": 533,
+      "sha256": "5e755b6f7c0d3bcff433eaa3b4981eee874a7e79d17a5487b8943289ee647f3c"
+    },
+    {
+      "path": "assets/badges/roles/justiceiro.svg",
+      "bytes": 440,
+      "sha256": "7bda0ae14184ee905ef91a79353f4be7c1453cdb1177bd4111583199bd0e4afc"
+    },
+    {
+      "path": "assets/badges/roles/oraculo.svg",
+      "bytes": 455,
+      "sha256": "f3615273975825aa54379dc8958333a4a458894677cc65ab4e7810839510e61c"
+    },
+    {
+      "path": "assets/badges/roles/rei.svg",
+      "bytes": 457,
+      "sha256": "70b261c22402ff7208bfbb9b1cf23a5ddd0c8ee35176355ab4975490b74439c4"
+    },
+    {
+      "path": "assets/badges/roles/senhor-feudo.svg",
+      "bytes": 444,
+      "sha256": "3e3749a247af9b675679defb102e1efd5d7b42447679ba5f9c6aa66c550fe1a5"
+    },
+    {
+      "path": "assets/badges/roles/testemunha.svg",
+      "bytes": 453,
+      "sha256": "0d90b4441f172e0e8d22d1967c6ff0ff13ffdc83bd104c5cdd67c7417c59df90"
+    },
+    {
+      "path": "assets/badges/status/amigo-rei.svg",
+      "bytes": 367,
+      "sha256": "a6dd6dbce23e211a6c014b9d808057d984add35d9146022aeb9000ed99775ea5"
+    },
+    {
+      "path": "assets/badges/status/bencao-real.svg",
+      "bytes": 426,
+      "sha256": "9e5f9e4c709e75611ec2362302000ef078e01f42cd4aa1f0d2ff4d229106479a"
+    },
+    {
+      "path": "assets/badges/status/inimigo-rei.svg",
+      "bytes": 371,
+      "sha256": "a663509bd8947f323f562091a54822f22424eb9a051b34e1d8e0f27e87f2b0c7"
+    },
+    {
+      "path": "assets/badges/status/perdao-real.svg",
+      "bytes": 388,
+      "sha256": "06dc9f7a94dfaaa59326b1824fa7cce4d343842382cd9e0503096bb2c1f6be2d"
+    },
+    {
+      "path": "assets/brand/avatar-default.svg",
+      "bytes": 275,
+      "sha256": "17920ab36ed14c741bcef8d045722049d38c5b23407b928633e8d4ac511eb7ab"
+    },
+    {
+      "path": "assets/brand/crest-mono.svg",
+      "bytes": 470,
+      "sha256": "9f79ea332cfd8d3d19dc306bb9538bf64b77da656b16a21a0051445769fe73c5"
+    },
+    {
+      "path": "assets/brand/crest.svg",
+      "bytes": 465,
+      "sha256": "e7d49c223c75557ccf79bb0d0364d546b2ab93dc923974a4f52f775b9751ea36"
+    },
+    {
+      "path": "assets/brand/divider.svg",
+      "bytes": 194,
+      "sha256": "407155dd384d71d06886398ac4554baa8e93b30a0adc0e43a3422d0c0258e078"
+    },
+    {
+      "path": "assets/brand/favicon.svg",
+      "bytes": 299,
+      "sha256": "9b9d1fe3658c1530e0994dc69a58094d8a073efad6408a0d615dbc80c723f7a3"
+    },
+    {
+      "path": "assets/brand/ink.svg",
+      "bytes": 374,
+      "sha256": "8ce11202525b45b802baaa7276c11f2f9a5e3e00665a5dbc44718c91f988f615"
+    },
+    {
+      "path": "assets/brand/pattern.svg",
+      "bytes": 222,
+      "sha256": "be189e31dbb49b746bd470d5d80087225c019d3ac474ff7c6585ac73396f085d"
+    },
+    {
+      "path": "assets/brand/wordmark.svg",
+      "bytes": 562,
+      "sha256": "f9d3b5a2cdf858eeadf0f6c409ac1741b1a1b988753e05a9d64d19403fc43c6b"
+    },
+    {
+      "path": "assets/icons/arrow.svg",
+      "bytes": 219,
+      "sha256": "5d5867e722df552359f6cfe77b2fa22073d2bc49d64fb356139ca039af2211cd"
+    },
+    {
+      "path": "assets/icons/audit.svg",
+      "bytes": 286,
+      "sha256": "58868263f99848e2a334cc7e696b50e04f58f602da170fb939dd14eaa287d8e7"
+    },
+    {
+      "path": "assets/icons/axe.svg",
+      "bytes": 242,
+      "sha256": "7bcf4f2b342374fa351adf4c7ad44e6385696787b5c2608939b54e9f0a452eba"
+    },
+    {
+      "path": "assets/icons/ban.svg",
+      "bytes": 237,
+      "sha256": "c138b221623ba76eaac77c1e2e4719e5e34c5dcdb163bb27aae7716762454bff"
+    },
+    {
+      "path": "assets/icons/bell.svg",
+      "bytes": 245,
+      "sha256": "f97736257b906eb84b003671a0f6a1d26652b68d312f04b15043a454a18e00f2"
+    },
+    {
+      "path": "assets/icons/book.svg",
+      "bytes": 283,
+      "sha256": "c0ca0584d1d0cff18b8ebaa8df418e8597cfa2305be2fcde7f26673f1a7af622"
+    },
+    {
+      "path": "assets/icons/castle.svg",
+      "bytes": 260,
+      "sha256": "b1004a876f38cd35dd152f2e88fe73f47a187b49da16c0eb4050f3cb3ea8132a"
+    },
+    {
+      "path": "assets/icons/check.svg",
+      "bytes": 212,
+      "sha256": "86944a4f4c48b368797ed375a375b8dd9c95e891d1882bd5eb8f25a60ce90b56"
+    },
+    {
+      "path": "assets/icons/chevron.svg",
+      "bytes": 212,
+      "sha256": "a03c7c052d71c1e716740c3df67a191c327bd0427c2d1e8de3984087eced185e"
+    },
+    {
+      "path": "assets/icons/citizen.svg",
+      "bytes": 256,
+      "sha256": "d9cf4b815e4c0671cebf51dcc6540faddb8501cc1a742c72a1af159760b8ef78"
+    },
+    {
+      "path": "assets/icons/close.svg",
+      "bytes": 218,
+      "sha256": "b0da4b0e79fd7e5e6fbb8840fa3767ed8c7df076c4b00f202cb9f7507488ae04"
+    },
+    {
+      "path": "assets/icons/coins.svg",
+      "bytes": 345,
+      "sha256": "88a3c145f3c9442608b137e6e850063c6b23875720c347a5733a45a9bb1c1ba5"
+    },
+    {
+      "path": "assets/icons/compass.svg",
+      "bytes": 279,
+      "sha256": "5ce136125c6785204ab07b71bc9a982cd17fabbf13867916e925ed76ac456dd9"
+    },
+    {
+      "path": "assets/icons/crown.svg",
+      "bytes": 276,
+      "sha256": "f514492ea9f4d11a6ddb206b4f15e7c18a73eac50c8f568551adb32356e20c12"
+    },
+    {
+      "path": "assets/icons/download.svg",
+      "bytes": 235,
+      "sha256": "a1a2433179b05f7a15a0978bf78ebdc11d784fb4af299be026df24d526758b05"
+    },
+    {
+      "path": "assets/icons/eye.svg",
+      "bytes": 271,
+      "sha256": "5e451ae883fb81e548bc27a82b1d506f0b2924e163c4f32340233bf1a9736f08"
+    },
+    {
+      "path": "assets/icons/handshake.svg",
+      "bytes": 271,
+      "sha256": "19cebb5a146c81366adb60c85da86b23ef95f01195a0657bdbe4271cddad5edf"
+    },
+    {
+      "path": "assets/icons/heart.svg",
+      "bytes": 237,
+      "sha256": "5a81dbd66f541b9ae6f11e31e3d49b02ba9d5e99cb473b87c00644668855cb5b"
+    },
+    {
+      "path": "assets/icons/home.svg",
+      "bytes": 232,
+      "sha256": "97e1530856e9f329f1ec09bc3d4ae33ad371296e1a4cf5aa93ddfaf66ff6ad04"
+    },
+    {
+      "path": "assets/icons/hourglass.svg",
+      "bytes": 258,
+      "sha256": "93a04d0298296451985b405f10a3fabb0ab9e62a67f1e1878aadfdeb27384c06"
+    },
+    {
+      "path": "assets/icons/investigate.svg",
+      "bytes": 262,
+      "sha256": "3ab386c91f1ef66105f52cdb050a094035795638c07f56ff5b618fbca5773211"
+    },
+    {
+      "path": "assets/icons/jury.svg",
+      "bytes": 356,
+      "sha256": "e7637f767dc526d1c5c5dbe693997cfef8f7d41cd0003e74365ab7656315b7fd"
+    },
+    {
+      "path": "assets/icons/lantern.svg",
+      "bytes": 262,
+      "sha256": "1b103de9acfc0bfbcaa66ad23db7723f051abd36e2b61691a28385c7a923790f"
+    },
+    {
+      "path": "assets/icons/laurel.svg",
+      "bytes": 302,
+      "sha256": "7534658c7dc289c015181748d4fb30ae42f68d7c5a092d3d7b561ae026a2c054"
+    },
+    {
+      "path": "assets/icons/lock.svg",
+      "bytes": 278,
+      "sha256": "6179806774bcb81ac738e39979170ce59fac528c1e8e39907a1eba577cb23c90"
+    },
+    {
+      "path": "assets/icons/message.svg",
+      "bytes": 232,
+      "sha256": "1a6c7ad8f766b7e79121590d74b2462f403583a4ebfaec26ccb47e6b13ea0a0a"
+    },
+    {
+      "path": "assets/icons/quill.svg",
+      "bytes": 260,
+      "sha256": "0035f751a49bd4d574064198d8203ad0dd846bb3628007d1a4070a105a09d932"
+    },
+    {
+      "path": "assets/icons/scales.svg",
+      "bytes": 277,
+      "sha256": "5e531bd601f83796b03ccd82056a927f17e057f0c5f37773a318dd9dd82ee534"
+    },
+    {
+      "path": "assets/icons/scroll.svg",
+      "bytes": 282,
+      "sha256": "5d5bff7817aa4f67c8884712a07f19ebc87f6f5d6ff2ad3fc83361b89b2b675e"
+    },
+    {
+      "path": "assets/icons/search.svg",
+      "bytes": 240,
+      "sha256": "a82e3bb31749681a4724d5ad2673bd30ef0cde9cbdd25acbe682679583bb948e"
+    },
+    {
+      "path": "assets/icons/shield.svg",
+      "bytes": 259,
+      "sha256": "6b4d9b5c53aa4252761e62baa88f25a03875fac53071ee99553325521c8689fb"
+    },
+    {
+      "path": "assets/icons/sprite.svg",
+      "bytes": 8041,
+      "sha256": "5c342f98db6745a21a76ece5d265aae23b47a0989b43d846bcb6bee57685d7ef"
+    },
+    {
+      "path": "assets/icons/sun.svg",
+      "bytes": 293,
+      "sha256": "6d60280ab1ec934209ee26eb4dd387a6f8dba8e1fa1496c1153c29e07ae0affc"
+    },
+    {
+      "path": "assets/icons/swords.svg",
+      "bytes": 273,
+      "sha256": "6a319138983a2d16282943d8a6755ce1a58c2b28228f62a87b48c869d4d1c262"
+    },
+    {
+      "path": "assets/icons/vault.svg",
+      "bytes": 310,
+      "sha256": "cc595ee71dbf1f774cab76f75e8b8b9e312fc32499d844ba34737804f5ae5ce3"
+    },
+    {
+      "path": "assets/icons/wheat.svg",
+      "bytes": 365,
+      "sha256": "e4c75e4d1331fdaab7ee4c8e421ef82637273d48337b506403874ff20c101325"
+    },
+    {
+      "path": "assets/portraits/arbitro-1024.webp",
+      "bytes": 136694,
+      "sha256": "31ec46fecaa01f99d6fe1fb20d396998859ac771ecf3417a8231171937da4cf7"
+    },
+    {
+      "path": "assets/portraits/arbitro-128.webp",
+      "bytes": 3580,
+      "sha256": "b7b2b888abc71f4cdc1bac08ddcd67838ec0433d34626f44bcf44ebb4a7c94cc"
+    },
+    {
+      "path": "assets/portraits/arbitro-256.webp",
+      "bytes": 11374,
+      "sha256": "725b02034de5e238a7e8f69c09e9099639566d3c911ccf5836be3e79eac91f07"
+    },
+    {
+      "path": "assets/portraits/arbitro-512.webp",
+      "bytes": 39910,
+      "sha256": "8498cfb0840382532538196ae18008fc215254c0fb3452732ce1ddf825178fb0"
+    },
+    {
+      "path": "assets/portraits/auditor-1024.webp",
+      "bytes": 140172,
+      "sha256": "59d0afc824f5738e298fd7f0df9f4b1f83a2dc3013415166135beb41406d14be"
+    },
+    {
+      "path": "assets/portraits/auditor-128.webp",
+      "bytes": 3568,
+      "sha256": "6ab6cb87da306bc092a3f67a99034cb85aa138708f02a7a6065f50feb3ff792c"
+    },
+    {
+      "path": "assets/portraits/auditor-256.webp",
+      "bytes": 11620,
+      "sha256": "cc4469c09aef26d299d30cedbc62517a4694e9b42f79dac5ad5515527fcdffe3"
+    },
+    {
+      "path": "assets/portraits/auditor-512.webp",
+      "bytes": 40974,
+      "sha256": "918df6b562bc581a2be0175d14430b907e99144991b6e7c6e458be40ecaed9c0"
+    },
+    {
+      "path": "assets/portraits/campeao-1024.webp",
+      "bytes": 128234,
+      "sha256": "2c0a4dbe78845d7b499013b59dffa348f50153ec1c449d683cb195c5b0543f7f"
+    },
+    {
+      "path": "assets/portraits/campeao-128.webp",
+      "bytes": 3558,
+      "sha256": "6fa9909d2346be144e3785a4db2c3e920eb14abb6e788c60150405bc9e534ff8"
+    },
+    {
+      "path": "assets/portraits/campeao-256.webp",
+      "bytes": 11492,
+      "sha256": "8ba75419da0b6a2d2bec1be8aca09cd757eddd89f55779a6a3f20fa7132dba36"
+    },
+    {
+      "path": "assets/portraits/campeao-512.webp",
+      "bytes": 38218,
+      "sha256": "fd3723277ad1fe463108c67bb943af24c9f4d69e82f09c8736d679328ef720fb"
+    },
+    {
+      "path": "assets/portraits/campones-1024.webp",
+      "bytes": 151106,
+      "sha256": "15a26a3a8449051b8f17ba1bea020512bcc2e0a5408c17a03fc05a84edb41ef1"
+    },
+    {
+      "path": "assets/portraits/campones-128.webp",
+      "bytes": 3692,
+      "sha256": "3cef682ea025e53700115e62c9223fdb1a1faad6ecfa362a5b7c66188a87b941"
+    },
+    {
+      "path": "assets/portraits/campones-256.webp",
+      "bytes": 11684,
+      "sha256": "266ab290a2b7e57eb759d9bac4c81f81e6819b80d32f72c925d10fb900281df6"
+    },
+    {
+      "path": "assets/portraits/campones-512.webp",
+      "bytes": 41944,
+      "sha256": "4a8cc57057980063d8cfd3c13cec438f65fc61001653d8a33a2e55adbaea53e4"
+    },
+    {
+      "path": "assets/portraits/carrasco-1024.webp",
+      "bytes": 158142,
+      "sha256": "2f71248667a32096fceeefa63532a7af523149857c776a9d7758baf647137cad"
+    },
+    {
+      "path": "assets/portraits/carrasco-128.webp",
+      "bytes": 3222,
+      "sha256": "b92f30d30e338feeca8ebbaefc8eef43651361cb2c31def1b6b8bc738deb8431"
+    },
+    {
+      "path": "assets/portraits/carrasco-256.webp",
+      "bytes": 10200,
+      "sha256": "623958797cb6a4844d9e1f8e8243abb5c8cdc5476bc41761c742cdaa0def6084"
+    },
+    {
+      "path": "assets/portraits/carrasco-512.webp",
+      "bytes": 40008,
+      "sha256": "214c75df6ee9b08b4cb961e192477fc3ba12887460747e7091e863298cff6f95"
+    },
+    {
+      "path": "assets/portraits/cidadao-1024.webp",
+      "bytes": 127282,
+      "sha256": "12b17eee966cab871db85ddc1b7490d6c426f0e6517d477b6d192a495d9d4d6c"
+    },
+    {
+      "path": "assets/portraits/cidadao-128.webp",
+      "bytes": 3140,
+      "sha256": "3c89f2708d81c417737f88eeec724a44e3e08a6bc7f98de652500f4109dbae7a"
+    },
+    {
+      "path": "assets/portraits/cidadao-256.webp",
+      "bytes": 9800,
+      "sha256": "c6ac2a5d321495b47e96cf0c4d7e39c5830c8713be53667190e16ca02683690a"
+    },
+    {
+      "path": "assets/portraits/cidadao-512.webp",
+      "bytes": 36062,
+      "sha256": "b1a20cd2ff198ef90454251f34d87e4d07d7130af07103cce38ed37ba2e3dfda"
+    },
+    {
+      "path": "assets/portraits/conselheiro-1024.webp",
+      "bytes": 153520,
+      "sha256": "27b0f3b59a6536cf9281cc3cfc743a2263d024b9298290dd47e19de9d4e4a4c7"
+    },
+    {
+      "path": "assets/portraits/conselheiro-128.webp",
+      "bytes": 3998,
+      "sha256": "61e63d323b2dc2b4ea422dad018974296e56d2398cc2332c81ab0caace3ef950"
+    },
+    {
+      "path": "assets/portraits/conselheiro-256.webp",
+      "bytes": 13438,
+      "sha256": "b2f57b310502a0df20d35425029e2566ca68b7f63601a8f80b1e7d649cbfa495"
+    },
+    {
+      "path": "assets/portraits/conselheiro-512.webp",
+      "bytes": 46004,
+      "sha256": "bb840eb6cc6b494dcd222bf461b5f5288dd9d31593d8f1de452aefe76b75c428"
+    },
+    {
+      "path": "assets/portraits/defensor-1024.webp",
+      "bytes": 128702,
+      "sha256": "60e46f990070eec44fb02c7fb02cbbfa9755ffcb92c72d01c58a30b781f14db6"
+    },
+    {
+      "path": "assets/portraits/defensor-128.webp",
+      "bytes": 2906,
+      "sha256": "8d55adc6cfe8e6eb930fe8c0dd2bc89549cb21d1efe3c07bc115e8ddb7802780"
+    },
+    {
+      "path": "assets/portraits/defensor-256.webp",
+      "bytes": 9030,
+      "sha256": "1a06a2ff468dffdc1a141503dd4005ba305e19ebebbb7100cf9b3089ef0401ea"
+    },
+    {
+      "path": "assets/portraits/defensor-512.webp",
+      "bytes": 33194,
+      "sha256": "a08a2e903e783e91b616bc5a59183507ad96cea1ed1b1e293378340e777d29fd"
+    },
+    {
+      "path": "assets/portraits/escrivao-1024.webp",
+      "bytes": 104134,
+      "sha256": "cfb663b28dbc6d5d0cb34fac7382c9ff13fbe27f4afe3d6b7f9f5859a43504c4"
+    },
+    {
+      "path": "assets/portraits/escrivao-128.webp",
+      "bytes": 3452,
+      "sha256": "f39350190e9c050fe26bd464ca322d02f903a3d6ffb3dc90b3cf775d1f705100"
+    },
+    {
+      "path": "assets/portraits/escrivao-256.webp",
+      "bytes": 9774,
+      "sha256": "86ea5efa4e4a564cccd86c7c43ce8c00dad16a2e486be0923351c491eb8fcbf0"
+    },
+    {
+      "path": "assets/portraits/escrivao-512.webp",
+      "bytes": 31340,
+      "sha256": "4648a13b6373de491e60349344747bbfe3fe40649462f176a645e11d68e13d76"
+    },
+    {
+      "path": "assets/portraits/fiador-segurador-1024.webp",
+      "bytes": 125736,
+      "sha256": "9d5d907da3e13159ec10e5990a993fcd4d6ad437b8f11bb1dba4b521e11b0c37"
+    },
+    {
+      "path": "assets/portraits/fiador-segurador-128.webp",
+      "bytes": 3178,
+      "sha256": "90d6ffea3fbf9458506c3f78ad9640d2d22571204ede5b917a8732582848266e"
+    },
+    {
+      "path": "assets/portraits/fiador-segurador-256.webp",
+      "bytes": 10578,
+      "sha256": "f262fbf928a23a28fdf6084c026be22007db55b15916e476edc4c833c8ec77c9"
+    },
+    {
+      "path": "assets/portraits/fiador-segurador-512.webp",
+      "bytes": 36492,
+      "sha256": "2c87b01ec85e88d0ce3f8af70a0d64a36bf8dddee3f37daa53ada50d6235fbb1"
+    },
+    {
+      "path": "assets/portraits/inquisidor-1024.webp",
+      "bytes": 120638,
+      "sha256": "211c75734e01cd356457539e44671f25652c9313cb9e6247408acbd5fcf30592"
+    },
+    {
+      "path": "assets/portraits/inquisidor-128.webp",
+      "bytes": 2910,
+      "sha256": "85d6229a7d64c84191454309a782840415953901d9cfefa470e6e2ed53d98185"
+    },
+    {
+      "path": "assets/portraits/inquisidor-256.webp",
+      "bytes": 8802,
+      "sha256": "9a15f9ecbd705d601b3a11db4598168658254c3c986a0eda530b1a83b6825002"
+    },
+    {
+      "path": "assets/portraits/inquisidor-512.webp",
+      "bytes": 31788,
+      "sha256": "b220c1c0c50cc3165d603069e4be2cf21ee1cceb58f61e4f06c000c2f8c9ba27"
+    },
+    {
+      "path": "assets/portraits/jurado-1024.webp",
+      "bytes": 141528,
+      "sha256": "0cfa25c0955f9d0af584f61f5f178b500c1412f37a1585967b35d277dc319844"
+    },
+    {
+      "path": "assets/portraits/jurado-128.webp",
+      "bytes": 3526,
+      "sha256": "04f0c4afdf21ecbdda8934e080a3cdba0797893b24fa27935265c4bd88fc9d94"
+    },
+    {
+      "path": "assets/portraits/jurado-256.webp",
+      "bytes": 10848,
+      "sha256": "50e1f08549181d7394701cb3d6fd39d006bf2579c507abd4647d98679d4075f6"
+    },
+    {
+      "path": "assets/portraits/jurado-512.webp",
+      "bytes": 37756,
+      "sha256": "2233f0f85ad2c270359ed9db928fcc232cee4d39c513b6ed9e505d875da5b078"
+    },
+    {
+      "path": "assets/portraits/justiceiro-1024.webp",
+      "bytes": 124960,
+      "sha256": "3a35ebf2894233f91c45f3b00dbc2eee58b63888e1e1479fef92f960460bcfe6"
+    },
+    {
+      "path": "assets/portraits/justiceiro-128.webp",
+      "bytes": 3932,
+      "sha256": "6449dcd2632e09d85a50107ead4d1b0e8ded45fd863ed77d8e75abfd43990e93"
+    },
+    {
+      "path": "assets/portraits/justiceiro-256.webp",
+      "bytes": 12542,
+      "sha256": "b5faf4b9a0f14a18f4e6a7102535e15d7f4b180faa5d788492d879c61032a33a"
+    },
+    {
+      "path": "assets/portraits/justiceiro-512.webp",
+      "bytes": 40930,
+      "sha256": "c6df152b950607c64f4e14efc63c2962389abeba8f8db8ff899a3a0310cd2573"
+    },
+    {
+      "path": "assets/portraits/oraculo-1024.webp",
+      "bytes": 127358,
+      "sha256": "b736d1c9926f2cf658b3220f4d0a73e2fb56e77a6d19fa743abed1d46983b961"
+    },
+    {
+      "path": "assets/portraits/oraculo-128.webp",
+      "bytes": 3692,
+      "sha256": "e38cc90837aaed103c7fb6b016fb7729b08298ca566209623ce261d978319131"
+    },
+    {
+      "path": "assets/portraits/oraculo-256.webp",
+      "bytes": 11674,
+      "sha256": "9768bab3a5e26f8de10d1d6aeaab881e99b1dbde42c7caf8188a73ffd8e2c503"
+    },
+    {
+      "path": "assets/portraits/oraculo-512.webp",
+      "bytes": 39144,
+      "sha256": "e9d25e39452c44ac33364906c6837bb7cd69f0705f82f7d9117d3850fd0948c2"
+    },
+    {
+      "path": "assets/portraits/rei-1024.webp",
+      "bytes": 121920,
+      "sha256": "05795c7cd730f7ec615175cbcd4e91550ae88e90a5bd69556f9c8e74f6be312e"
+    },
+    {
+      "path": "assets/portraits/rei-128.webp",
+      "bytes": 3282,
+      "sha256": "f84ac15b5e3b481679473dd1aaaad04782e1b81d36b0687e33be6a55902ab42d"
+    },
+    {
+      "path": "assets/portraits/rei-256.webp",
+      "bytes": 10648,
+      "sha256": "5b9ad4bc263886299172a0cbc7fb4e6edf800c604ffc90f1c7ce8ef30180aaf5"
+    },
+    {
+      "path": "assets/portraits/rei-512.webp",
+      "bytes": 36060,
+      "sha256": "457647de8c418a29c97693e4a90bd83ca743e466ac72f3c76d29a5af4a3fd96e"
+    },
+    {
+      "path": "assets/portraits/senhor-feudo-1024.webp",
+      "bytes": 119888,
+      "sha256": "3722f812b14e201c76a53707714f424aa154b95a0e6f04b903a968876022562f"
+    },
+    {
+      "path": "assets/portraits/senhor-feudo-128.webp",
+      "bytes": 3454,
+      "sha256": "5873d35ffa62ed6833c1e3c644461ce2174fef9dd1d6ae8fc2961303c788e84a"
+    },
+    {
+      "path": "assets/portraits/senhor-feudo-256.webp",
+      "bytes": 10920,
+      "sha256": "96eb8dfc2337d115273e3e93c1a4b56f73a616025f90a8f73a55848004439a0d"
+    },
+    {
+      "path": "assets/portraits/senhor-feudo-512.webp",
+      "bytes": 36570,
+      "sha256": "7500e459cf39517d0db3c5a43de8f61adde026b4106b7e0286420f6c21697660"
+    },
+    {
+      "path": "assets/portraits/testemunha-1024.webp",
+      "bytes": 133916,
+      "sha256": "794150a0c48c2ca380746bee4c593b20d486d51ae137a6afab978a22228dcfdc"
+    },
+    {
+      "path": "assets/portraits/testemunha-128.webp",
+      "bytes": 3320,
+      "sha256": "8cb1f8e32ff86c09dcc9c7c7c51833a467432f2133e030a10456f9a1f046698e"
+    },
+    {
+      "path": "assets/portraits/testemunha-256.webp",
+      "bytes": 10180,
+      "sha256": "97bf1e0e926306a704958fa3c7d53cf328f959152b4ab3ad6ab4eb1fe78f5f57"
+    },
+    {
+      "path": "assets/portraits/testemunha-512.webp",
+      "bytes": 38036,
+      "sha256": "24b4645a80d11dd443b918b239b4bad395e104af7691d7b9f60768573120e2a6"
+    },
+    {
+      "path": "assets/scenes/arena-debate-1536.webp",
+      "bytes": 260346,
+      "sha256": "afb39fa11326fa838d00e12418d135493b51f60adfe20dd4e992092fa9323aec"
+    },
+    {
+      "path": "assets/scenes/arena-debate-768.webp",
+      "bytes": 86400,
+      "sha256": "567a80da48c807d13564a9347bee0995cfb532adb4c85029df5638f1d284d385"
+    },
+    {
+      "path": "assets/scenes/arquivo-real-1536.webp",
+      "bytes": 251714,
+      "sha256": "b49ae3196cf479fa9d7012586a65d82f9ee6d2d401625cd1c56676edc1789a5a"
+    },
+    {
+      "path": "assets/scenes/arquivo-real-768.webp",
+      "bytes": 89204,
+      "sha256": "9010b9238590e527deb04c7c53425624035133ce476e47d1a16dd4e6967afa50"
+    },
+    {
+      "path": "assets/scenes/mercado-contratos-1536.webp",
+      "bytes": 335670,
+      "sha256": "030eb2e3e92c1cbe7a62296c43c95a6168f4c8f12e8defc91b8c4a2f94abae4a"
+    },
+    {
+      "path": "assets/scenes/mercado-contratos-768.webp",
+      "bytes": 111354,
+      "sha256": "3a69bb55a38ac81e8322fbd98af5065f4603b048b56e284fd4f4318e70826b42"
+    },
+    {
+      "path": "assets/scenes/reino-hero-1536.webp",
+      "bytes": 292162,
+      "sha256": "f31321dfb4d5c74c3b708ae47945137065affe8e5cdd434e4fd56b1aaac0a832"
+    },
+    {
+      "path": "assets/scenes/reino-hero-768.webp",
+      "bytes": 94884,
+      "sha256": "bc4bb5c0a1786c0f279e94dc287b35db7e748cf8776f16fa2e085f86b7a0aa9e"
+    },
+    {
+      "path": "assets/scenes/sala-arbitragem-1536.webp",
+      "bytes": 225138,
+      "sha256": "ddf2923e49b9cf971a93d23cac629363e9e4787c8a9017537ee445e53eac2f6f"
+    },
+    {
+      "path": "assets/scenes/sala-arbitragem-768.webp",
+      "bytes": 79772,
+      "sha256": "193e8ef9c9d0b689ab4827f2d4f230b0f7b7cf8c0f694afdf1d119ed3750d19d"
+    }
+  ]
+}

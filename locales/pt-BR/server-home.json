@@ -1,0 +1,149 @@
+{
+  "server-home": {
+    "brand": "Regnovum",
+    "title": "Painel do Reino",
+    "skip": "Ir para as arenas",
+    "menu": "Menu",
+    "close": "Fechar menu",
+    "navigation": "Navegação principal",
+    "search": "Buscar arenas",
+    "search_placeholder": "Buscar uma arena…",
+    "search_button": "Buscar",
+    "login": "Entrar",
+    "register": "Criar conta",
+    "visitor": "Visitante",
+    "visitor_note": "Explore o Reino",
+    "arenas": "Arenas do Reino",
+    "open_arena": "Entrar na arena",
+    "read_arena": "Ler arena",
+    "document": "Documento público",
+    "filter": "Filtrar arenas",
+    "more": "Próxima página",
+    "clear": "Limpar busca",
+    "empty": "Nenhuma arena encontrada.",
+    "empty_hint": "Tente outra busca ou categoria.",
+    "load_error": "Não foi possível carregar as arenas. Tente novamente.",
+    "retry": "Tentar novamente",
+    "results": "Resultados da busca",
+    "public": "Debate público",
+    "published": "Aberta",
+    "closed": "Encerrada",
+    "restricted": "Restrita",
+    "kingdom": "O Reino",
+    "kingdom_note": "Regnovum",
+    "charter": "Carta do Reino",
+    "transparency": "Consultar transparência",
+    "season": "Coroa da temporada",
+    "season_note": "Temporadas ainda não disponíveis.",
+    "roles": "Cargos do Reino",
+    "roles_more": "Todos os cargos",
+    "roles_note": "Funções previstas nas cartas reais.",
+    "roles_boundary": "O retrato não concede permissões.",
+    "disputes": "Disputas",
+    "contracts": "Contratos",
+    "unavailable": "Ainda não disponível",
+    "disputes_note": "A arbitragem será exibida aqui quando estiver habilitada.",
+    "contracts_note": "Os contratos serão exibidos aqui quando estiverem habilitados.",
+    "ink": "Economia INK",
+    "ink_note": "Acesse sua conta",
+    "activity": "Explorar arenas",
+    "activity_note": "Escolha um debate",
+    "participate": "Participar",
+    "participate_note": "Entre em uma arena",
+    "account": "Sua conta",
+    "account_note": "Entrar ou criar conta",
+    "view_realm": "Ver o Reino",
+    "footer": "Carta do Reino · Regnovum",
+    "language": "Idioma",
+    "nav": {
+      "home": "Início",
+      "arenas": "Arenas",
+      "disputes": "Disputas",
+      "contracts": "Contratos",
+      "roles": "Cargos do Reino",
+      "transparency": "Transparência"
+    },
+    "categories": {
+      "all": "Todas",
+      "politics": "Política",
+      "economics": "Economia",
+      "society": "Sociedade",
+      "technology": "Tecnologia",
+      "science": "Ciência",
+      "philosophy": "Filosofia",
+      "health": "Saúde",
+      "culture": "Cultura"
+    },
+    "roles_data": {
+      "rei": {
+        "name": "Rei / Coroa",
+        "description": "Coroa da temporada, distinta da operação técnica do Reino."
+      },
+      "inquisidor": {
+        "name": "Inquisidor",
+        "description": "Investiga e apresenta a acusação com suas provas."
+      },
+      "justiceiro": {
+        "name": "Justiceiro",
+        "description": "Identifica riscos e encaminha ocorrências."
+      },
+      "defensor": {
+        "name": "Defensor",
+        "description": "Representa uma parte e apresenta sua defesa."
+      },
+      "testemunha": {
+        "name": "Testemunha",
+        "description": "Relata fatos e fornece informação relevante."
+      },
+      "arbitro": {
+        "name": "Árbitro",
+        "description": "Decide o rito aplicável com imparcialidade."
+      },
+      "jurado": {
+        "name": "Jurado",
+        "description": "Participa da decisão colegiada, se esse rito for adotado."
+      },
+      "carrasco": {
+        "name": "Carrasco",
+        "description": "Executa a sanção digital formalmente autorizada."
+      },
+      "fiador-segurador": {
+        "name": "Fiador / Segurador",
+        "description": "Garante uma obrigação nos termos contratados."
+      },
+      "campeao": {
+        "name": "Campeão",
+        "description": "Compete ou representa uma parte em desafio aceito."
+      },
+      "oraculo": {
+        "name": "Oráculo",
+        "description": "Certifica informação segundo o procedimento definido."
+      },
+      "escrivao": {
+        "name": "Escrivão",
+        "description": "Registra e certifica atos e documentos."
+      },
+      "auditor": {
+        "name": "Auditor",
+        "description": "Verifica procedimento, registros e conflitos."
+      },
+      "conselheiro": {
+        "name": "Conselheiro",
+        "description": "Orienta, recomenda e apresenta propostas."
+      },
+      "cidadao": {
+        "name": "Cidadão",
+        "description": "Participa dos debates e das atividades às quais aderiu."
+      },
+      "campones": {
+        "name": "Camponês",
+        "description": "Identifica a nova conta elegível no conceito das Migalhas."
+      },
+      "senhor-feudo": {
+        "name": "Senhor de Feudo",
+        "description": "Representa o conceito futuro de um feudo subordinado à Carta."
+      }
+    },
+    "invalid_query": "Busca ou paginação inválida. Limpe os filtros e tente novamente."
+  }
+}

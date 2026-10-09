@@ -1,0 +1,15 @@
+{
+  "roles": 17,
+  "sections": 5,
+  "viewports": [
+    1440,
+    390,
+    320
+  ],
+  "search": "pass",
+  "familyFilter": "pass",
+  "modal": "pass",
+  "escape": "pass",
+  "missingAssets": [],
+  "pageErrors": []
+}

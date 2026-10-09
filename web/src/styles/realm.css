@@ -1,0 +1,139 @@
+/* Realm dashboard, scoped tokens and reusable SSR components (P60-T01).
+ * Native fonts, no runtime dependency; assets are resolved by the manifest.
+ * Gold is structural, emerald marks availability; text never relies on colour.
+ */
+@layer reset, tokens, base, layout, components, utilities;
+@layer reset {
+  .ga-realm *, .ga-realm *::before, .ga-realm *::after { box-sizing: border-box; }
+  .ga-realm { margin: 0; }
+  .ga-realm :where(h1,h2,h3,p) { margin: 0; }
+  .ga-realm :where(button,input,select) { font: inherit; }
+  .ga-realm :where(a) { color: inherit; text-decoration: none; }
+  .ga-realm :where(button,summary,a) { -webkit-tap-highlight-color: transparent; }
+  .ga-realm :where(img) { max-inline-size: 100%; object-fit: cover; }
+  .ga-realm [hidden] { display: none !important; }
+}
+@layer tokens {
+  .ga-realm {
+    --realm-bg: #07110f; --realm-panel: #0c1714; --realm-raised: #14251f;
+    --realm-border: #46503e; --realm-line: #27372f;
+    --realm-gold: #d6b578; --realm-gold-bright: #f1d9a3;
+    --realm-text: #f1e5cd; --realm-muted: #b7c3b9; --realm-green: #78d9b2;
+    --realm-serif: Georgia, 'Times New Roman', serif;
+    --realm-radius: 6px; --realm-space: 18px; --realm-header: 76px;
+  }
+}
+@layer base {
+  .ga-realm { background: var(--realm-bg); color: var(--realm-text); font: 14px/1.5 system-ui, sans-serif; color-scheme: dark; }
+  .ga-realm :where(h1,h2,h3) { font-family: var(--realm-serif); font-weight: 500; line-height: 1.2; }
+  .ga-realm h1 { font-size: clamp(25px,2.4vw,36px); }
+  .ga-realm h2 { font-size: 20px; }
+  .ga-realm :where(a,button,summary,input,select):focus-visible { outline: 2px solid var(--realm-gold-bright); outline-offset: 4px; }
+  .ga-realm :where(button,select,summary) { cursor: pointer; }
+  .ga-realm svg { display: inline-block; inline-size: 22px; block-size: 22px; flex-shrink: 0; color: var(--realm-gold); }
+  .ga-realm :where(section,aside,nav) { scroll-margin-block-start: 20px; }
+  .ga-realm :where(a,button,summary) { touch-action: manipulation; }
+}
+@layer layout {
+  .ga-realm-header { display: grid; grid-template-columns: 222px minmax(220px,480px) 1fr; align-items: center; gap: 26px; min-block-size: var(--realm-header); border-block-end: 1px solid var(--realm-line); background: #07110ff5; padding-inline-end: 24px; }
+  .ga-brand { display: flex; align-items: center; gap: 10px; padding-inline: 20px; font: 29px var(--realm-serif); color: var(--realm-gold-bright); }
+  .ga-brand img { object-fit: contain; }
+  .ga-account { display: flex; gap: 12px; align-items: center; justify-content: end; }
+  .ga-account img { border: 1px solid var(--realm-gold); border-radius: 50%; }
+  .ga-account small { display: block; color: var(--realm-muted); font-size: 12px; }
+  .ga-realm-layout { display: grid; grid-template-columns: 222px minmax(0,1fr) 298px; min-block-size: calc(100vh - var(--realm-header)); }
+  ga-realm-navigation { display: block; border-inline-end: 1px solid var(--realm-line); }
+  .ga-realm-navigation { display: flex; flex-direction: column; padding: 20px 14px; min-block-size: calc(100vh - var(--realm-header)); }
+  .ga-realm-main { min-inline-size: 0; padding: 25px 24px 14px; }
+  .ga-dashboard-title { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-block-end: 22px; }
+  .ga-quick-actions { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-block: 25px 0; }
+  .ga-realm-rail { min-inline-size: 0; padding: 22px 18px 18px 0; display: flex; flex-direction: column; gap: 16px; }
+  .ga-arena-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; }
+  .ga-lower-panels { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-block-start: 25px; }
+  .ga-realm-footer { display: flex; justify-content: space-between; gap: 16px; margin-block-start: 24px; padding-block: 12px; border-block-start: 1px solid var(--realm-line); color: var(--realm-muted); font-size: 11px; }
+  @media (min-width: 1900px) { .ga-realm-layout,.ga-realm-header { max-inline-size: 1900px; margin-inline: auto; } }
+  @media (max-width: 1450px) { .ga-realm-layout { grid-template-columns: 194px minmax(0,1fr) 270px; } .ga-realm-header { grid-template-columns: 194px minmax(200px,460px) 1fr; } .ga-brand { font-size: 25px; padding-inline: 14px; } .ga-realm-main { padding-inline: 18px; } .ga-arena-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .ga-quick-actions { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+  @media (max-width: 1100px) { .ga-realm-layout { grid-template-columns: 180px minmax(0,1fr); } .ga-realm-header { grid-template-columns: 180px minmax(180px,1fr) auto; gap: 16px; } .ga-realm-rail { grid-column: 2; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); padding: 0 18px 22px; align-items: start; } .ga-roles-panel { grid-column: 1 / -1; } .ga-account > span { display: none; } ga-realm-navigation { grid-row: 1 / 3; } }
+  @media (max-width: 720px) { .ga-realm-header { grid-template-columns: 1fr auto; gap: 12px; padding: 12px 16px; } .ga-brand { padding: 0; font-size: 26px; } .ga-realm-search { grid-row: 2; grid-column: 1 / -1; } .ga-account img { display: none; } .ga-realm-layout { display: flex; flex-direction: column; } ga-realm-navigation { border: 0; background: var(--realm-panel); } .ga-realm-navigation { min-block-size: auto; padding: 10px 16px; } .ga-nav-links { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); } .ga-nav-bottom { display: none !important; } .ga-menu-toggle:not([hidden]) { display: block; } ga-realm-navigation:has(.ga-menu-toggle:not([hidden])):not([data-open]) .ga-realm-navigation { display: none; } .ga-realm-main { padding: 20px 16px 10px; } .ga-realm-rail { padding: 8px 16px 24px; } .ga-lower-panels { grid-template-columns: 1fr; } .ga-dashboard-title { flex-wrap: wrap; } }
+  @media (max-width: 430px) { .ga-arena-grid { grid-template-columns: 1fr; } .ga-realm-rail { display: flex; } .ga-quick-actions { gap: 9px; } .ga-account .ga-button { padding-inline: 14px; } }
+}
+@layer components {
+  .ga-button { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-block-size: 40px; padding: 8px 16px; border: 1px solid var(--realm-gold); border-radius: 4px; color: var(--realm-gold-bright); background: #07110f; font-size: 12px; font-weight: 600; }
+  .ga-button:hover { background: #d6b57815; }
+  .ga-realm-search { display: flex; align-items: center; gap: 12px; border: 1px solid var(--realm-border); border-radius: var(--realm-radius); padding-inline: 12px; min-block-size: 42px; background: #07110f; }
+  .ga-realm-search svg { inline-size: 18px; color: var(--realm-muted); }
+  .ga-realm-search input { min-inline-size: 0; flex: 1; inline-size: 100%; background: none; border: 0; color: var(--realm-text); min-block-size: 40px; font-size: 12px; }
+  .ga-realm-search input::placeholder { color: var(--realm-muted); }
+  .ga-realm-search button { border: 0; background: transparent; color: var(--realm-gold); min-inline-size: 32px; min-block-size: 40px; }
+  .ga-nav-links a { display: flex; align-items: center; gap: 14px; padding: 13px 12px; min-block-size: 48px; border-inline-start: 3px solid transparent; border-radius: 4px; color: var(--realm-muted); }
+  .ga-nav-links a:hover { background: #d6b5780c; color: var(--realm-text); }
+  .ga-nav-links a[aria-current] { background: #d6b57812; border-inline-start-color: var(--realm-gold); color: var(--realm-gold-bright); }
+  .ga-nav-links svg { inline-size: 20px; color: currentColor; }
+  .ga-nav-bottom { display: flex; flex-direction: column; gap: 18px; margin-block-start: auto; padding-block-start: 40px; color: var(--realm-gold); font-size: 12px; }
+  .ga-realm-mini { border: 1px solid var(--realm-border); border-radius: var(--realm-radius); overflow: clip; }
+  .ga-realm-mini img { display: block; inline-size: 100%; }
+  .ga-realm-mini span { display: block; padding: 10px 12px; }
+  .ga-language { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--realm-muted); }
+  .ga-language :where(select,button) { background: var(--realm-panel); color: var(--realm-text); border: 1px solid var(--realm-line); border-radius: 4px; min-block-size: 34px; padding-inline: 7px; }
+  .ga-quick-card { display: flex; gap: 12px; align-items: center; border: 1px solid var(--realm-border); border-radius: var(--realm-radius); background: linear-gradient(130deg,#14251f80,#0c1714); padding: 17px 14px; min-block-size: 88px; font-size: 13px; }
+  .ga-quick-card > svg { inline-size: 28px; block-size: 28px; }
+  .ga-quick-card > span:last-child { margin-inline-start: auto; color: var(--realm-gold); font-size: 22px; }
+  .ga-quick-card small { display: block; color: var(--realm-muted); font-size: 11px; margin-block-start: 5px; }
+  .ga-quick-card:hover,.ga-arena-card:hover { border-color: var(--realm-gold); }
+  .ga-section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-block-end: 12px; }
+  .ga-section-heading h2 { color: var(--realm-gold-bright); font-size: 23px; }
+  .ga-section-heading > a { color: var(--realm-gold); font-size: 12px; }
+  .ga-category-tabs { display: flex; gap: 22px; overflow-x: auto; padding-block-end: 13px; margin-block-end: 17px; border-block-end: 1px solid var(--realm-line); font-size: 12px; scrollbar-width: thin; }
+  .ga-category-tabs a { flex-shrink: 0; padding-block: 7px; color: var(--realm-muted); border-block-end: 2px solid transparent; }
+  .ga-category-tabs a[aria-current] { color: var(--realm-gold-bright); border-color: var(--realm-gold); }
+  .ga-arena-card { container-type: inline-size; display: flex; flex-direction: column; min-inline-size: 0; border: 1px solid var(--realm-border); border-radius: var(--realm-radius); overflow: clip; background: linear-gradient(150deg,#15231c55,var(--realm-panel)); }
+  .ga-arena-visual { display: block; position: relative; block-size: 155px; overflow: clip; background: var(--realm-raised); }
+  .ga-arena-visual img { inline-size: 100%; block-size: 100%; }
+  .ga-arena-visual::after { content: ''; position: absolute; inset: 45% 0 0; background: linear-gradient(transparent,#07110fbb); }
+  .ga-status,.ga-arena-language { position: absolute; z-index: 1; inset-block-start: 10px; border-radius: 20px; padding: 3px 9px; font-size: 10px; font-weight: 600; background: #081610e8; border: 1px solid #5c866b; color: var(--realm-green); }
+  .ga-status { inset-inline-start: 10px; }
+  .ga-status--closed,.ga-status--restricted { color: var(--realm-gold-bright); border-color: var(--realm-border); }
+  .ga-arena-language { inset-inline-end: 10px; color: var(--realm-text); border-color: var(--realm-border); }
+  .ga-arena-content { padding: 15px 13px 12px; flex: 1; display: flex; flex-direction: column; align-items: start; }
+  .ga-eyebrow { font-size: 9px; text-transform: uppercase; letter-spacing: .13em; color: var(--realm-gold); margin-block-end: 8px; }
+  .ga-arena-card h3 { font-size: 19px; line-height: 1.3; margin-block-end: 14px; overflow-wrap: anywhere; }
+  .ga-arena-card h3 a:hover { color: var(--realm-gold-bright); }
+  .ga-chip { display: inline-block; padding: 3px 10px; border: 1px solid var(--realm-line); border-radius: 15px; font-size: 10px; color: var(--realm-muted); background: var(--realm-raised); }
+  .ga-arena-card-footer { display: flex; flex-direction: column; align-self: stretch; margin-block-start: auto; padding-block-start: 20px; gap: 10px; }
+  .ga-arena-card-footer .ga-button { justify-content: space-between; }
+  .ga-document-link { font-size: 10px; color: var(--realm-muted); text-align: center; }
+  .ga-realm-panel { border: 1px solid var(--realm-border); border-radius: var(--realm-radius); background: var(--realm-panel); overflow: clip; }
+  .ga-panel-heading { display: flex; gap: 10px; padding: 11px 13px; align-items: center; border-block-end: 1px solid var(--realm-line); color: var(--realm-gold-bright); }
+  .ga-panel-heading h2 { font-size: 19px; }
+  .ga-panel-heading svg { inline-size: 21px; }
+  .ga-kingdom { display: flex; align-items: center; gap: 17px; padding: 20px 16px; }
+  .ga-kingdom img { object-fit: contain; }
+  .ga-kingdom h3 { font-size: 24px; margin-block-end: 6px; }
+  .ga-kingdom span { font-size: 12px; color: var(--realm-muted); }
+  .ga-panel-link { display: flex; justify-content: space-between; padding: 10px 15px; border-block-start: 1px solid var(--realm-line); color: var(--realm-gold); font-size: 11px; }
+  .ga-panel-note { padding: 18px 14px; color: var(--realm-muted); font-size: 12px; }
+  .ga-role-card { border-block-end: 1px solid var(--realm-line); }
+  .ga-role-card summary { display: flex; align-items: center; gap: 10px; list-style: none; min-block-size: 78px; }
+  .ga-role-card summary::-webkit-details-marker { display: none; }
+  .ga-role-card summary > img { inline-size: 66px; block-size: 82px; flex-shrink: 0; object-position: center 25%; }
+  .ga-role-card summary > svg { inline-size: 21px; }
+  .ga-role-card summary strong { display: block; font-size: 12px; font-weight: 500; }
+  .ga-role-card summary small { display: block; font-size: 10px; line-height: 1.35; color: var(--realm-muted); margin-block-start: 3px; }
+  .ga-disclosure-mark { padding-inline: 5px 10px; margin-inline-start: auto; color: var(--realm-gold); }
+  .ga-role-card[open] .ga-disclosure-mark { transform: rotate(45deg); }
+  .ga-role-card > p,.ga-more-roles > p { padding: 12px; color: var(--realm-muted); font-size: 11px; }
+  .ga-more-roles > summary { display: flex; justify-content: space-between; padding: 12px 14px; color: var(--realm-gold); font-size: 12px; }
+  .ga-staged-panel { display: flex; align-items: center; gap: 14px; padding: 15px; }
+  .ga-staged-panel img { border: 1px solid var(--realm-line); border-radius: 4px; inline-size: 95px; block-size: 75px; }
+  .ga-staged-panel p { color: var(--realm-muted); font-size: 11px; margin-block-start: 7px; }
+  .ga-empty { grid-column: 1 / -1; padding: 48px 22px; border: 1px dashed var(--realm-border); border-radius: var(--realm-radius); text-align: center; }
+  .ga-empty p { margin-block: 10px 18px; color: var(--realm-muted); }
+  .ga-pagination { display: flex; margin-block-start: 18px; }
+  .ga-menu-toggle { display: none; background: var(--realm-panel); border: 0; color: var(--realm-gold-bright); padding: 12px 16px; min-block-size: 44px; }
+  @media (max-width: 720px) { .ga-menu-toggle:not([hidden]) { display: block; } }
+  @container (max-width: 190px) { .ga-arena-card h3 { font-size: 17px; } }
+}
+@layer utilities {
+  .ga-sr-only,.ga-skip:not(:focus) { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .ga-skip:focus { position: absolute; inset: 8px auto auto 8px; z-index: 10; background: var(--realm-text); color: var(--realm-bg); padding: 12px; }
+}

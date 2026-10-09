@@ -192,7 +192,7 @@ build-web:
 	$(NPM) ci --prefix web
 	$(NPM) --prefix web run build
 	@rm -rf web/dist
-	$(ASSETGEN) -input web/generated -input web/src -output web/dist -manifest web/dist/manifest.json
+	$(ASSETGEN) -input web/generated -input web/src -input web/public -output web/dist -manifest web/dist/manifest.json
 	@echo "build-web: ok"
 
 # audit-web mede o build entregue contra os orçamentos e as regras de

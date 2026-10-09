@@ -64,6 +64,28 @@
       "prefixes": ["quality/"]
     },
     {
+      "name": "visual-assets",
+      "role": "exempt",
+      "reason": "Ilustrações WebP e vetores SVG estáticos do Reino são conteúdo visual; o gerador e o servidor de assets verificam bytes, hash, MIME e cache. Não são código executável nem substituem a evidência dos componentes que os usam.",
+      "prefixes": [
+        "web/public/realm/"
+      ]
+    },
+    {
+      "name": "server-templates",
+      "role": "production",
+      "reason": "Templates HTML com escape automático são componentes de apresentação no adapter; exigem prova HTTP na mesma área para novos arquivos.",
+      "suffixes": [
+        ".gohtml"
+      ],
+      "demands": [
+        {
+          "kind": "same-area-test",
+          "when": "added"
+        }
+      ]
+    },
+    {
       "name": "configuration",
       "role": "exempt",
       "reason": "Configuração de build, de pipeline e de dependência não é comportamento do produto: quem julga `.github/**` é o `tools/ciaudit` e quem julga dependência é a P23-T09.",
@@ -71,6 +93,7 @@
       "suffixes": [".yml", ".yaml"],
       "names": [
         "Makefile",
+        "Dockerfile",
         "go.mod",
         "go.sum",
         ".gitignore",

@@ -79,6 +79,8 @@ type Report struct {
 	Assets     int
 	Modules    int
 	Styles     int
+	Images     int
+	ImageBytes int
 	Pages      []PageMeasure
 	CSSBytes   int
 	Violations []string
@@ -119,6 +121,7 @@ func Audit(directory string) (Report, error) {
 
 	modules := make(map[string]*module, len(names))
 	styles := make(map[string]*stylesheet, len(names))
+	imageCount, imageBytes := 0, 0
 	for _, name := range names {
 		if err := validAssetName(name); err != nil {
 			return Report{}, err
@@ -133,6 +136,11 @@ func Audit(directory string) (Report, error) {
 			modules[name] = &module{deliverable: delivered, code: stripComments(string(body))}
 		case ".css":
 			styles[name] = &stylesheet{deliverable: delivered, code: stripComments(string(body))}
+		case ".svg", ".webp":
+			// Static media are read above, including the missing-file guard.
+			// Their bytes must not be counted as initial JavaScript or CSS.
+			imageCount++
+			imageBytes += len(body)
 		default:
 			return Report{}, fmt.Errorf("webaudit: %q is not an asset kind this gate measures", name)
 		}
@@ -149,6 +157,8 @@ func Audit(directory string) (Report, error) {
 		Assets:     len(names),
 		Modules:    len(modules),
 		Styles:     len(styles),
+		Images:     imageCount,
+		ImageBytes: imageBytes,
 		Pages:      pages,
 		CSSBytes:   cssBytes,
 		Violations: violations,

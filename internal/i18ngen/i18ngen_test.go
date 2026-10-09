@@ -62,6 +62,30 @@ func TestLoadBundleAcceptsValidParityTree(t *testing.T) {
 	}
 }
 
+func TestServerNamespacesRemainValidatedAndDoNotShipToBrowser(t *testing.T) {
+	root := writeTree(t, map[string]map[string]string{
+		"pt-BR": {"errors.json": validPT, "server-home.json": `{"server-home":{"title":"Reino reservado ao HTML"}}`},
+		"en-US": {"errors.json": validEN, "server-home.json": `{"server-home":{"title":"Kingdom reserved for HTML"}}`},
+	})
+	ts, goCode, err := i18ngen.RenderAll(root, outputsIn(root))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(ts), "server-home") || strings.Contains(string(ts), "reserved for HTML") || !strings.Contains(string(ts), "errors.internal.title") {
+		t.Fatal("browser bundle leaked SSR text or lost browser messages")
+	}
+	if !strings.Contains(string(goCode), "server-home.title") || !strings.Contains(string(goCode), "Kingdom reserved for HTML") {
+		t.Fatal("SSR catalog lost its validated text")
+	}
+	path := filepath.Join(root, "en-US", "server-home.json")
+	if err := os.WriteFile(path, []byte(`{"server-home":{"different":"missing title"}}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := i18ngen.RenderAll(root, outputsIn(root)); err == nil {
+		t.Fatal("server-only catalog escaped key parity validation")
+	}
+}
+
 func TestLoadBundleRejectsUnknownLocale(t *testing.T) {
 	t.Parallel()
 

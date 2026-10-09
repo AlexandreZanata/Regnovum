@@ -123,8 +123,8 @@ func TestAccountShellAndAuthAssetsAreServed(t *testing.T) {
 
 	// Every address a page loads is served fingerprinted: the hashed name
 	// is immutable for a year, and nothing a page references is missing.
-	if len(referenced) != 7 {
-		t.Fatalf("pages reference %d asset addresses, want the 7 required ones (entry module plus six sheets)", len(referenced))
+	if len(referenced) != 8 {
+		t.Fatalf("pages reference %d asset addresses, want the 8 required ones (entry module plus six sheets plus the realm crest)", len(referenced))
 	}
 	for _, reference := range []string{
 		"/assets/pages/auth-9bde709de9d0.js",
@@ -134,6 +134,7 @@ func TestAccountShellAndAuthAssetsAreServed(t *testing.T) {
 		"/assets/styles/primitives-d73c96be7ed6.css",
 		"/assets/styles/shell-3c68fa47d345.css",
 		"/assets/styles/auth-53f96aba637c.css",
+		"/assets/realm/brand/crest-e7d49c223c75.svg",
 	} {
 		if !referenced[reference] {
 			t.Errorf("no page references %s: the entrypoint asset is registered but never loaded", reference)
@@ -154,6 +155,7 @@ func TestAccountShellAndAuthAssetsAreServed(t *testing.T) {
 		"/assets/styles/primitives.css",
 		"/assets/styles/shell.css",
 		"/assets/styles/auth.css",
+		"/assets/realm/brand/crest.svg",
 	} {
 		openStableAsset(t, browser(t), journey.server, stable)
 	}
@@ -348,6 +350,12 @@ func openHashedAsset(t *testing.T, client *http.Client, server *httptest.Server,
 	wantType := "text/javascript; charset=utf-8"
 	if strings.HasSuffix(reference, ".css") {
 		wantType = "text/css; charset=utf-8"
+	}
+	if strings.HasSuffix(reference, ".svg") {
+		wantType = "image/svg+xml"
+	}
+	if strings.HasSuffix(reference, ".webp") {
+		wantType = "image/webp"
 	}
 	if contentType := response.Header.Get("Content-Type"); contentType != wantType {
 		t.Errorf("GET %s Content-Type = %q, want %q", reference, contentType, wantType)

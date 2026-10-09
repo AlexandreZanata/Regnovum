@@ -20,6 +20,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -112,6 +113,7 @@ type rawSchema = map[string]json.RawMessage
 
 // document is the part of the contract the generator consumes.
 type document struct {
+	Paths      map[string]any `json:"paths"`
 	Components struct {
 		Schemas map[string]json.RawMessage `json:"schemas"`
 	} `json:"components"`
@@ -208,6 +210,11 @@ func RenderBytes(data []byte) ([]byte, error) {
 	renderer := &typeRenderer{schemas: schemas}
 	var out bytes.Buffer
 	out.WriteString(generatedHeader)
+	header, err := surfaceHeader(parsed.Paths)
+	if err != nil {
+		return nil, err
+	}
+	out.WriteString(header)
 	for index, name := range names {
 		interfaceSource, err := renderer.renderInterface(name, schemas[name], "components.schemas."+name)
 		if err != nil {
@@ -222,6 +229,20 @@ func RenderBytes(data []byte) ([]byte, error) {
 		}
 	}
 	return out.Bytes(), nil
+}
+
+// surfaceHeader binds transport provenance to HTML and JSON operations, even
+// when a route addition does not change components.schemas. Canonical JSON
+// keeps whitespace and object-key order from changing the fingerprint.
+func surfaceHeader(paths map[string]any) (string, error) {
+	if len(paths) == 0 {
+		return "", nil
+	}
+	canonical, err := json.Marshal(paths)
+	if err != nil {
+		return "", fmt.Errorf("encode HTTP surface: %w", err)
+	}
+	return fmt.Sprintf("// HTTP surface SHA-256: %x\n", sha256.Sum256(canonical)), nil
 }
 
 // HasDrift reports whether the generated artifact on disk differs from

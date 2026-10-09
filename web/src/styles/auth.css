@@ -1,23 +1,59 @@
-/* Layout of the account journey (P18-T05).
+/* Layout of the account journey (P18-T05), in the realm visual language (P60).
  *
  * The pages are server-rendered documents: this sheet only places what the
- * templates already produce, using the tokens of tokens.css and logical
- * properties so the layout follows the writing direction and survives a 200%
- * zoom. Everything the primitives own (fields, summaries, the busy state) stays
- * in primitives.css; nothing here reaches into their internals. */
+ * templates already produce, using logical properties so the layout follows
+ * the writing direction and survives a 200% zoom. Everything the primitives
+ * own (fields, summaries, the busy state) stays in primitives.css; nothing
+ * here reaches into their internals.
+ *
+ * The dark palette is scoped to these pages: the `:root` remap below repoints
+ * the shared `--ga-*` tokens at the realm colors, and it only applies where
+ * this sheet loads — the account journey — so no other surface changes. Raw
+ * realm hex values appear only here, next to the token they stand in for. */
+@layer tokens {
+	:root {
+		color-scheme: dark;
+
+		/* Realm mapping: panel, raised, border, gold, text and feedback. */
+		--ga-color-surface: #0d1b17;
+		--ga-color-surface-muted: #14251f;
+		--ga-color-text: #f1e5cd;
+		--ga-color-text-muted: #b7c3b9;
+		--ga-color-border: #46503e;
+		--ga-color-action: #d6b578;
+		--ga-color-action-hover: #ecd2a2;
+		--ga-color-action-contrast: #07110f;
+		--ga-color-critical: #f28d86;
+		--ga-color-positive: #58d4a7;
+	}
+}
+
 @layer layout {
 	.ga-auth {
 		max-inline-size: var(--ga-measure-max-inline-size);
 		margin-inline: auto;
+		margin-block: var(--ga-space-8);
 		padding-inline: var(--ga-space-4);
 		padding-block: var(--ga-space-6);
+		border: 1px solid var(--ga-color-border);
+		border-radius: var(--ga-radius-md);
+		background-color: var(--ga-color-surface);
+		overflow-wrap: anywhere;
+	}
+
+	.ga-auth h1,
+	.ga-auth h2 {
+		font-family: Georgia, "Times New Roman", serif;
+		font-weight: 500;
+		line-height: var(--ga-line-height-tight);
+		color: var(--ga-color-text);
 	}
 
 	.ga-auth__header {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--ga-space-4);
-		align-items: baseline;
+		align-items: center;
 		justify-content: space-between;
 		max-inline-size: var(--ga-measure-max-inline-size);
 		margin-inline: auto;
@@ -26,8 +62,19 @@
 	}
 
 	.ga-auth__brand {
-		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--ga-space-2);
+		font-family: Georgia, "Times New Roman", serif;
+		font-size: var(--ga-font-size-xl);
+		font-weight: 500;
+		color: var(--ga-color-action-hover);
 		text-decoration: none;
+	}
+
+	.ga-auth__brand img {
+		inline-size: 2rem;
+		block-size: 2.375rem;
 	}
 
 	.ga-auth__nav {
@@ -37,6 +84,14 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
+	}
+
+	.ga-auth__nav a {
+		color: var(--ga-color-text-muted);
+	}
+
+	.ga-auth__nav a:hover {
+		color: var(--ga-color-text);
 	}
 
 	.ga-auth__form {
@@ -56,6 +111,16 @@
 		align-self: flex-start;
 		padding-inline: var(--ga-space-4);
 		padding-block: var(--ga-space-2);
+		border: 1px solid var(--ga-color-action);
+		border-radius: var(--ga-radius-sm);
+		background-color: transparent;
+		color: var(--ga-color-action-hover);
+		font-weight: var(--ga-font-weight-semibold);
+		cursor: pointer;
+	}
+
+	.ga-auth__form button[type="submit"]:hover {
+		background-color: rgb(214 181 120 / 0.12);
 	}
 
 	.ga-auth__key-section {
@@ -91,7 +156,7 @@
 		padding-inline: var(--ga-space-4);
 		padding-block: var(--ga-space-4);
 		margin-block: var(--ga-space-4);
-		border: 1px solid var(--ga-color-border);
+		border: 1px solid var(--ga-color-action);
 		border-radius: var(--ga-radius-md);
 		background-color: var(--ga-color-surface-muted);
 	}
@@ -151,5 +216,15 @@
 		color: var(--ga-color-text);
 		margin: 0;
 		padding-block-start: var(--ga-space-1);
+	}
+
+	@media (forced-colors: active) {
+		.ga-auth {
+			border-color: CanvasText;
+		}
+
+		.ga-auth__brand img {
+			forced-color-adjust: auto;
+		}
 	}
 }

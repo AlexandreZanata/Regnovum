@@ -29,7 +29,7 @@ import (
 	"github.com/AlexandreZanata/Regnovum/internal/platform/security"
 )
 
-// manifestFixture resolves the six assets the pages load, with the shape
+// manifestFixture resolves the seven assets the pages load, with the shape
 // cmd/assetgen emits.
 func manifestFixture() assets.Manifest {
 	names := []string{
@@ -40,6 +40,7 @@ func manifestFixture() assets.Manifest {
 		"styles/primitives.css",
 		"styles/shell.css",
 		"styles/auth.css",
+		"realm/brand/crest.svg",
 	}
 	records := make(map[string]assets.Record, len(names))
 	for _, name := range names {
@@ -430,6 +431,7 @@ func TestReadPagesArePrivateAndCarryTheNoJavaScriptJourney(t *testing.T) {
 			`/assets/pages-auth.js`,
 			`/assets/styles-tokens.css`,
 			`/assets/styles-shell.css`,
+			`/assets/realm-brand-crest.svg`,
 		} {
 			if !strings.Contains(document, marker) {
 				t.Errorf("GET %s does not render %q", page, marker)

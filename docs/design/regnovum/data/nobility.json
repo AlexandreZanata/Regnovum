@@ -1,0 +1,37 @@
+[
+  {
+    "id": "barao",
+    "name": "Barão",
+    "rank": 1,
+    "asset": "assets/badges/nobility/barao.svg",
+    "note": "Status honorífico, sem competência institucional. Nomes intermediários da sequência são uma proposta visual; a carta disponível explicita a faixa Barão a Duque."
+  },
+  {
+    "id": "visconde",
+    "name": "Visconde",
+    "rank": 2,
+    "asset": "assets/badges/nobility/visconde.svg",
+    "note": "Status honorífico, sem competência institucional. Nomes intermediários da sequência são uma proposta visual; a carta disponível explicita a faixa Barão a Duque."
+  },
+  {
+    "id": "conde",
+    "name": "Conde",
+    "rank": 3,
+    "asset": "assets/badges/nobility/conde.svg",
+    "note": "Status honorífico, sem competência institucional. Nomes intermediários da sequência são uma proposta visual; a carta disponível explicita a faixa Barão a Duque."
+  },
+  {
+    "id": "marques",
+    "name": "Marquês",
+    "rank": 4,
+    "asset": "assets/badges/nobility/marques.svg",
+    "note": "Status honorífico, sem competência institucional. Nomes intermediários da sequência são uma proposta visual; a carta disponível explicita a faixa Barão a Duque."
+  },
+  {
+    "id": "duque",
+    "name": "Duque",
+    "rank": 5,
+    "asset": "assets/badges/nobility/duque.svg",
+    "note": "Status honorífico, sem competência institucional. Nomes intermediários da sequência são uma proposta visual; a carta disponível explicita a faixa Barão a Duque."
+  }
+]

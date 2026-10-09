@@ -44,12 +44,14 @@ const (
 )
 
 // contentTypeByExtension is the closed vocabulary of the asset pipeline. It
-// mirrors cmd/assetgen, which publishes stylesheets and ES modules only: a new
+// mirrors cmd/assetgen, which publishes stylesheets, ES modules and approved images: a new
 // kind of asset is a change to the pipeline and to this list, never a silent
 // fallback to a guessed media type.
 var contentTypeByExtension = map[string]string{
-	".css": "text/css; charset=utf-8",
-	".js":  "text/javascript; charset=utf-8",
+	".css":  "text/css; charset=utf-8",
+	".svg":  "image/svg+xml",
+	".webp": "image/webp",
+	".js":   "text/javascript; charset=utf-8",
 }
 
 // Config is the build one server serves.
