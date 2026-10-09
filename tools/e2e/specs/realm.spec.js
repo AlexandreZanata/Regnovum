@@ -31,7 +31,8 @@ test("search, empty state, category filter and participation use native URLs", a
   await page.getByRole("searchbox").fill(title.slice(0, 100));
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
   await expect(page).toHaveURL(/\?q=/);
-  await expect(page.locator(".ga-arena-card h3").filter({ hasText: title })).toHaveCount(1);
+  await expect(page.locator(".ga-arena-card h3").filter({ hasText: title }).first()).toBeVisible();
+  await expect(page.locator(`.ga-arena-card h3 a[href="${arena}"]`)).toHaveCount(1);
   await page.getByRole("searchbox").fill("zzzzzzzzzzzzzzzzzzzzzzzz");
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
   await expect(page.getByText("Nenhuma arena encontrada.", { exact: true })).toBeVisible();
