@@ -21,3 +21,13 @@ export function readPackageFile(relativePath: string): string {
 export function browserSources(): readonly string[] {
   return globSync("src/**/*.ts", { cwd: webRoot }).sort();
 }
+
+/** Every test source file of the package, sorted for stable diffs. */
+export function testSources(): readonly string[] {
+  return globSync("tests/**/*.ts", { cwd: webRoot }).sort();
+}
+
+/** Every TypeScript source file of the package, sorted for stable diffs. */
+export function allSources(): readonly string[] {
+  return [...browserSources(), ...testSources()].sort();
+}

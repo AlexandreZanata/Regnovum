@@ -24,11 +24,12 @@ type Repository struct {
 }
 
 var (
-	_ application.AccountRepository            = (*Repository)(nil)
-	_ application.PasswordCredentialRepository = (*Repository)(nil)
-	_ application.VerificationTokenRepository  = (*Repository)(nil)
-	_ application.PasswordResetTokenRepository = (*Repository)(nil)
-	_ application.SessionRepository            = (*Repository)(nil)
+	_ application.AccountRepository              = (*Repository)(nil)
+	_ application.PasswordCredentialRepository   = (*Repository)(nil)
+	_ application.VerificationTokenRepository    = (*Repository)(nil)
+	_ application.PasswordResetTokenRepository   = (*Repository)(nil)
+	_ application.SessionRepository              = (*Repository)(nil)
+	_ application.AccountKeyCredentialRepository = (*Repository)(nil)
 )
 
 // NewRepository creates a PostgreSQL repository adapter for identity.
@@ -532,4 +533,142 @@ func uuidToString(u pgtype.UUID) string {
 	return fmt.Sprintf("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
 		b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7],
 		b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15])
+}
+
+// CreateAccountWithKey atomically creates an active account with public username profile and account key credentials.
+func (r *Repository) CreateAccountWithKey(ctx context.Context, username string, record application.AccountKeyCredentialRecord) (*domain.Account, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	syntheticEmail := fmt.Sprintf("%s@key.regnovum.internal", strings.ToLower(strings.TrimSpace(username)))
+	var accID pgtype.UUID
+	var emailStr, statusStr string
+	var emailVerifiedAt, createdAt, updatedAt pgtype.Timestamptz
+
+	err = tx.QueryRow(ctx, `
+		INSERT INTO app.accounts (email, status, email_verified_at)
+		VALUES ($1, 'active', now())
+		RETURNING id, email, status, email_verified_at, created_at, updated_at
+	`, syntheticEmail).Scan(&accID, &emailStr, &statusStr, &emailVerifiedAt, &createdAt, &updatedAt)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, application.ErrDuplicateEmail
+		}
+		return nil, fmt.Errorf("create account with key: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, `
+		INSERT INTO app.profiles (account_id, username, username_normalized, interface_locale)
+		VALUES ($1, $2, lower($2), 'pt-BR')
+	`, accID, username)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, errors.New("username already taken")
+		}
+		return nil, fmt.Errorf("create profile with key: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, `
+		INSERT INTO app.account_key_credentials (account_id, username_hash, key_lookup, key_salt, key_hash)
+		VALUES ($1, $2, $3, $4, $5)
+	`, accID, record.UsernameHash[:], record.KeyLookup[:], record.KeySalt, record.KeyHash[:])
+	if err != nil {
+		return nil, fmt.Errorf("create account key credential: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("commit transaction: %w", err)
+	}
+
+	parsedEmail, err := domain.ParseEmail(emailStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse synthetic email: %w", err)
+	}
+
+	var verifiedTime *time.Time
+	if emailVerifiedAt.Valid {
+		t := emailVerifiedAt.Time
+		verifiedTime = &t
+	}
+
+	return domain.ReconstituteAccount(
+		domain.AccountID(uuidToString(accID)),
+		parsedEmail,
+		domain.AccountStatus(statusStr),
+		verifiedTime,
+		createdAt.Time,
+		updatedAt.Time,
+	)
+}
+
+// GetAccountKeyCredentialByLookup looks up account key credential and the associated account by key lookup hash.
+func (r *Repository) GetAccountKeyCredentialByLookup(ctx context.Context, keyLookup [32]byte) (*application.AccountKeyCredentialRecord, *domain.Account, error) {
+	var accID pgtype.UUID
+	var uHash, kLookup, kHash []byte
+	var kSalt string
+	var credCreatedAt pgtype.Timestamptz
+
+	var emailStr, statusStr string
+	var emailVerifiedAt, accCreatedAt, accUpdatedAt pgtype.Timestamptz
+
+	err := r.pool.QueryRow(ctx, `
+		SELECT c.account_id, c.username_hash, c.key_lookup, c.key_salt, c.key_hash, c.created_at,
+		       a.email, a.status, a.email_verified_at, a.created_at, a.updated_at
+		FROM app.account_key_credentials c
+		JOIN app.accounts a ON a.id = c.account_id
+		WHERE c.key_lookup = $1
+	`, keyLookup[:]).Scan(
+		&accID, &uHash, &kLookup, &kSalt, &kHash, &credCreatedAt,
+		&emailStr, &statusStr, &emailVerifiedAt, &accCreatedAt, &accUpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, application.ErrCredentialNotFound
+		}
+		return nil, nil, fmt.Errorf("get account key credential by lookup: %w", err)
+	}
+
+	parsedEmail, err := domain.ParseEmail(emailStr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("parse account email: %w", err)
+	}
+
+	var verifiedTime *time.Time
+	if emailVerifiedAt.Valid {
+		t := emailVerifiedAt.Time
+		verifiedTime = &t
+	}
+
+	account, err := domain.ReconstituteAccount(
+		domain.AccountID(uuidToString(accID)),
+		parsedEmail,
+		domain.AccountStatus(statusStr),
+		verifiedTime,
+		accCreatedAt.Time,
+		accUpdatedAt.Time,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("reconstitute account: %w", err)
+	}
+
+	var usernameHashArray, keyLookupArray, keyHashArray [32]byte
+	copy(usernameHashArray[:], uHash)
+	copy(keyLookupArray[:], kLookup)
+	copy(keyHashArray[:], kHash)
+
+	credRecord := &application.AccountKeyCredentialRecord{
+		AccountID:    domain.AccountID(uuidToString(accID)),
+		UsernameHash: usernameHashArray,
+		KeyLookup:    keyLookupArray,
+		KeySalt:      kSalt,
+		KeyHash:      keyHashArray,
+		CreatedAt:    credCreatedAt.Time,
+	}
+
+	return credRecord, account, nil
 }

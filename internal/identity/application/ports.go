@@ -57,6 +57,22 @@ type AccountRepository interface {
 	SetEmailVerified(ctx context.Context, id domain.AccountID, verifiedAt time.Time) error
 }
 
+// AccountKeyCredentialRecord represents stored account key credentials.
+type AccountKeyCredentialRecord struct {
+	AccountID    domain.AccountID
+	UsernameHash [32]byte
+	KeyLookup    [32]byte
+	KeySalt      string
+	KeyHash      [32]byte
+	CreatedAt    time.Time
+}
+
+// AccountKeyCredentialRepository defines storage for account key authentication.
+type AccountKeyCredentialRepository interface {
+	CreateAccountWithKey(ctx context.Context, username string, record AccountKeyCredentialRecord) (*domain.Account, error)
+	GetAccountKeyCredentialByLookup(ctx context.Context, keyLookup [32]byte) (*AccountKeyCredentialRecord, *domain.Account, error)
+}
+
 // VerificationTokenRecord represents a stored single-use email verification token.
 type VerificationTokenRecord struct {
 	ID        string

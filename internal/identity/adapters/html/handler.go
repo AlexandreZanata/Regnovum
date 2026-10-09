@@ -249,6 +249,12 @@ func (h *Handler) SubmitRegister(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	username := strings.TrimSpace(form.Get("username"))
+	if username != "" {
+		h.submitRegisterUsername(w, r, username)
+		return
+	}
+
 	email := strings.TrimSpace(form.Get("email"))
 	password := form.Get("password")
 
@@ -297,6 +303,49 @@ func (h *Handler) SubmitRegister(w http.ResponseWriter, r *http.Request) {
 		h.fail(w, r, err)
 		return
 	}
+	h.renderNotice(w, r, http.StatusOK, notice)
+}
+
+func (h *Handler) submitRegisterUsername(w http.ResponseWriter, r *http.Request, username string) {
+	result, err := h.register.Execute(r.Context(), application.RegisterAccountCommand{Username: username})
+	if err != nil {
+		msgKey := "auth.errors.invalid_username"
+		if strings.Contains(err.Error(), "taken") {
+			msgKey = "auth.errors.username_taken"
+		}
+		msg, translateErr := localized(r, msgKey, nil)
+		if translateErr != nil {
+			h.fail(w, r, translateErr)
+			return
+		}
+		page, pageErr := h.registerPage(w, r, "", nil)
+		if pageErr != nil {
+			h.fail(w, r, pageErr)
+			return
+		}
+		if page.KeyField != nil {
+			page.KeyField.Error = msg
+			page.KeyField.Value = username
+		}
+		page.Summary = []SummaryItem{{Target: "username-control", Message: msg}}
+		h.renderForm(w, r, http.StatusBadRequest, page)
+		return
+	}
+	if result != nil && result.AccountID != "" {
+		h.capture(r, observability.EventAccountRegistrationSubmitted, result.AccountID)
+	}
+	copyLabel, _ := localized(r, "auth.register.key_copy_button", nil)
+	instruction, _ := localized(r, "auth.register.key_instruction", nil)
+	warning, _ := localized(r, "auth.register.key_warning", nil)
+	notice, err := h.notice(w, r, "auth.register.page_title", "auth.register.key_notice_heading", "auth.register.key_notice_detail", action{key: "auth.register.key_action_login", href: signInHref})
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	notice.AccountKey = domain.FormatAccountKey(result.AccountKey)
+	notice.KeyInstruction = instruction
+	notice.KeyWarning = warning
+	notice.CopyLabel = copyLabel
 	h.renderNotice(w, r, http.StatusOK, notice)
 }
 
@@ -375,6 +424,12 @@ func (h *Handler) SubmitLogin(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	accountKey := strings.TrimSpace(form.Get("account_key"))
+	if accountKey != "" {
+		h.submitLoginAccountKey(w, r, accountKey)
+		return
+	}
+
 	email := strings.TrimSpace(form.Get("email"))
 	password := form.Get("password")
 
@@ -430,8 +485,44 @@ func (h *Handler) SubmitLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpcache.Private(w)
-	// The authenticated landing page belongs to the next microtask of this
-	// phase (the main journey); the root is already its canonical address.
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (h *Handler) submitLoginAccountKey(w http.ResponseWriter, r *http.Request, accountKey string) {
+	result, err := h.login.Execute(r.Context(), application.LoginCommand{
+		AccountKey: accountKey,
+		IPAddress:  r.RemoteAddr,
+		UserAgent:  r.UserAgent(),
+	})
+	if h.riskSignal != nil {
+		h.riskSignal.Observe(r, err != nil)
+	}
+	if err != nil {
+		message, translateErr := localized(r, "auth.errors.invalid_account_key", nil)
+		if translateErr != nil {
+			h.fail(w, r, translateErr)
+			return
+		}
+		page, pageErr := h.loginPage(w, r, "", "")
+		if pageErr != nil {
+			h.fail(w, r, pageErr)
+			return
+		}
+		if page.KeyField != nil {
+			page.KeyField.Error = message
+		}
+		page.Summary = []SummaryItem{{Target: "account_key-control", Message: message}}
+		h.renderForm(w, r, http.StatusUnauthorized, page)
+		return
+	}
+	if result != nil && result.Account != nil {
+		h.capture(r, observability.EventAccountSignedIn, result.Account.ID().String())
+	}
+	if _, err := h.security.RotateOnLogin(w, result.RawToken, sessionDuration); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httpcache.Private(w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -712,7 +803,7 @@ func (h *Handler) notice(w http.ResponseWriter, r *http.Request, titleKey, headi
 
 // registerPage assembles the registration form.
 func (h *Handler) registerPage(w http.ResponseWriter, r *http.Request, email string, errors problems) (FormPageData, error) {
-	return h.formPage(w, r, formSpec{
+	page, err := h.formPage(w, r, formSpec{
 		titleKey:      "auth.register.page_title",
 		headingKey:    "auth.register.heading",
 		introKey:      "auth.register.intro",
@@ -727,6 +818,35 @@ func (h *Handler) registerPage(w http.ResponseWriter, r *http.Request, email str
 		passwordKey:   "auth.field.password_label",
 		autocomplete:  "new-password",
 	})
+	if err != nil {
+		return page, err
+	}
+	userLabel, err := localized(r, "auth.field.username_label", nil)
+	if err != nil {
+		return page, err
+	}
+	userHint, err := localized(r, "auth.field.username_hint", nil)
+	if err != nil {
+		return page, err
+	}
+	keyHeading, err := localized(r, "auth.register.key_heading", nil)
+	if err != nil {
+		return page, err
+	}
+	legacyHeading, err := localized(r, "auth.register.legacy_heading", nil)
+	if err != nil {
+		return page, err
+	}
+	submitKey, err := localized(r, "auth.register.submit_key", nil)
+	if err != nil {
+		return page, err
+	}
+	keyField := newField("username", "text", userLabel, userHint, "", "username", true, "")
+	page.KeyField = &keyField
+	page.KeyHeading = keyHeading
+	page.LegacyHeading = legacyHeading
+	page.KeySubmit = submitKey
+	return page, nil
 }
 
 // verifyPage assembles the confirmation-code form.
@@ -802,7 +922,35 @@ func (h *Handler) loginPage(w http.ResponseWriter, r *http.Request, email, passw
 		passwordKey:   "auth.field.password_label",
 		autocomplete:  "current-password",
 	})
-	return page, err
+	if err != nil {
+		return page, err
+	}
+	keyLabel, err := localized(r, "auth.field.account_key_label", nil)
+	if err != nil {
+		return page, err
+	}
+	keyHint, err := localized(r, "auth.field.account_key_hint", nil)
+	if err != nil {
+		return page, err
+	}
+	keyHeading, err := localized(r, "auth.login.key_heading", nil)
+	if err != nil {
+		return page, err
+	}
+	legacyHeading, err := localized(r, "auth.login.legacy_heading", nil)
+	if err != nil {
+		return page, err
+	}
+	submitKey, err := localized(r, "auth.login.submit_key", nil)
+	if err != nil {
+		return page, err
+	}
+	keyField := newField("account_key", "text", keyLabel, keyHint, "", "off", true, "")
+	page.KeyField = &keyField
+	page.KeyHeading = keyHeading
+	page.LegacyHeading = legacyHeading
+	page.KeySubmit = submitKey
+	return page, nil
 }
 
 // resetRequestPage assembles the recovery-code request form.

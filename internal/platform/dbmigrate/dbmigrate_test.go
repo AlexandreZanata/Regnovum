@@ -166,3 +166,25 @@ func TestStatusRowString(t *testing.T) {
 		t.Errorf("applied row = %q, want version, name and state", got)
 	}
 }
+
+func TestAccountKeyCredentialsMigration63Source(t *testing.T) {
+	t.Parallel()
+
+	content, err := fs.ReadFile(migrationsFS, "migrations/00063_account_key_credentials.sql")
+	if err != nil {
+		t.Fatalf("ReadFile(00063_account_key_credentials.sql) error = %v", err)
+	}
+	text := string(content)
+	for _, expected := range []string{
+		"CREATE TABLE IF NOT EXISTS app.account_key_credentials",
+		"key_lookup bytea NOT NULL",
+		"key_salt text NOT NULL",
+		"key_hash bytea NOT NULL",
+		"account_key_credentials_key_lookup_unique UNIQUE (key_lookup)",
+		"DROP TABLE IF EXISTS app.account_key_credentials",
+	} {
+		if !strings.Contains(text, expected) {
+			t.Errorf("migration 63 missing expected clause: %q", expected)
+		}
+	}
+}

@@ -79,7 +79,9 @@
         "package.json",
         "web/package.json",
         "web/package-lock.json",
-        "web/tsconfig.json"
+        "web/tsconfig.json",
+        "web/tsconfig.test.json",
+        "web/tests/tsconfig.json"
       ]
     },
     {
@@ -92,7 +94,7 @@
       "name": "evidence",
       "role": "evidence",
       "reason": "O arquivo de teste, a fixture sob `testdata/`, o suporte de harness sob `web/tests/support/` e o cenário k6 sob `tests/load/` são a evidência que a mudança de produção exige: eles são o que satisfaz a demanda, não o que a dispara. O suporte de harness (P50-T04) é o fake `fetch` determinístico que os testes do core usam em vez de biblioteca de mock — classificá-lo é dar-lhe a classe que ele exerce, não dispensar prova.",
-      "suffixes": ["_test.go", ".spec.js", ".test.ts"],
+      "suffixes": ["_test.go", ".spec.js", ".test.ts", ".d.ts"],
       "segments": ["testdata"],
       "prefixes": ["tests/load/", "web/tests/support/"]
     },

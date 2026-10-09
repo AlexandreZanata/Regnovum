@@ -13,18 +13,22 @@ import (
 type RegisterAccountCommand struct {
 	Email    string
 	Password string
+	Username string
 }
 
 // RegisterAccountResult represents the outcome of a registration request.
 type RegisterAccountResult struct {
-	AccountID string
-	Email     string
+	AccountID  string
+	Email      string
+	Username   string
+	AccountKey string
 }
 
 // RegisterAccountUseCase coordinates account creation and initial email verification.
 type RegisterAccountUseCase struct {
 	accounts           AccountRepository
 	tokens             VerificationTokenRepository
+	keyRepo            AccountKeyCredentialRepository
 	hasher             PasswordHasher
 	sender             EmailSender
 	clock              Clock
@@ -53,8 +57,57 @@ func NewRegisterAccountUseCase(
 	}
 }
 
+// WithKeyRepository attaches the account key repository to the use case.
+func (uc *RegisterAccountUseCase) WithKeyRepository(repo AccountKeyCredentialRepository) *RegisterAccountUseCase {
+	uc.keyRepo = repo
+	return uc
+}
+
 // Execute performs account registration while preventing user enumeration.
 func (uc *RegisterAccountUseCase) Execute(ctx context.Context, cmd RegisterAccountCommand) (*RegisterAccountResult, error) {
+	if cmd.Username != "" {
+		return uc.registerWithUsername(ctx, cmd)
+	}
+	return uc.registerWithEmail(ctx, cmd)
+}
+
+func (uc *RegisterAccountUseCase) registerWithUsername(ctx context.Context, cmd RegisterAccountCommand) (*RegisterAccountResult, error) {
+	if err := domain.ValidateUsername(cmd.Username); err != nil {
+		return nil, err
+	}
+	if uc.keyRepo == nil {
+		return nil, errors.New("key repository not configured")
+	}
+	rawKey, err := domain.GenerateAccountKey()
+	if err != nil {
+		return nil, err
+	}
+	salt, err := domain.GenerateKeySalt()
+	if err != nil {
+		return nil, err
+	}
+	keyLookup := domain.ComputeKeyLookup(rawKey)
+	keyHash := domain.ComputeKeyHash(salt, rawKey)
+	usernameHash := domain.ComputeUsernameHash(cmd.Username)
+	record := AccountKeyCredentialRecord{
+		UsernameHash: usernameHash,
+		KeyLookup:    keyLookup,
+		KeySalt:      salt,
+		KeyHash:      keyHash,
+	}
+	account, err := uc.keyRepo.CreateAccountWithKey(ctx, cmd.Username, record)
+	if err != nil {
+		return nil, err
+	}
+	return &RegisterAccountResult{
+		AccountID:  account.ID().String(),
+		Email:      account.Email().String(),
+		Username:   cmd.Username,
+		AccountKey: rawKey,
+	}, nil
+}
+
+func (uc *RegisterAccountUseCase) registerWithEmail(ctx context.Context, cmd RegisterAccountCommand) (*RegisterAccountResult, error) {
 	email, err := domain.ParseEmail(cmd.Email)
 	if err != nil {
 		return nil, err

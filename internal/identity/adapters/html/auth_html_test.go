@@ -86,6 +86,19 @@ type (
 
 func (f *fakeRegister) Execute(_ context.Context, command application.RegisterAccountCommand) (*application.RegisterAccountResult, error) {
 	f.calls = append(f.calls, command)
+	if command.Username != "" {
+		if err := domain.ValidateUsername(command.Username); err != nil {
+			return nil, err
+		}
+		if f.fail != nil {
+			return nil, f.fail
+		}
+		return &application.RegisterAccountResult{
+			AccountID:  "acc-key-1",
+			Username:   command.Username,
+			AccountKey: "23456789abcdefghjkmnpqrstuvwxyz2",
+		}, nil
+	}
 	if _, err := domain.ParseEmail(command.Email); err != nil {
 		return nil, err
 	}
@@ -118,6 +131,11 @@ func (f *fakeLogin) Execute(_ context.Context, command application.LoginCommand)
 		failure := f.failures[0]
 		f.failures = f.failures[1:]
 		return nil, failure
+	}
+	if command.AccountKey != "" {
+		if _, err := domain.CanonicalizeAccountKey(command.AccountKey); err != nil {
+			return nil, application.ErrInvalidCredentials
+		}
 	}
 	token := f.token
 	if token == "" {
@@ -1066,6 +1084,81 @@ func TestNewTemplatesRefusesAManifestWithoutTheAssets(t *testing.T) {
 
 	if _, err := NewTemplates(assets.Manifest{Version: 1, Assets: map[string]assets.Record{}}); err == nil {
 		t.Fatal("NewTemplates() accepted a manifest that cannot resolve the page assets")
+	}
+}
+
+func TestRegisterWithUsernameReturnsKeyCardNotice(t *testing.T) {
+	t.Parallel()
+
+	built := newJourney(t)
+	recorder := built.submit(t, form{
+		page:   "/register",
+		action: "/register",
+		fields: map[string]string{"username": "novousuario"},
+	})
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("POST /register with username = %d, want 200: %s", recorder.Code, recorder.Body.String())
+	}
+	body := recorder.Body.String()
+	for _, expected := range []string{
+		`ga-auth__key-card`,
+		`id="ga-account-key"`,
+		`data-ga-copy-key=`,
+		`2345-6789-abcd-efgh-jkmn-pqrs-tuvw-xyz2`,
+	} {
+		if !strings.Contains(body, expected) {
+			t.Errorf("registration key notice missing expected substring %q in: %s", expected, body)
+		}
+	}
+}
+
+func TestLoginWithAccountKeyRotatesSessionAndRedirects(t *testing.T) {
+	t.Parallel()
+
+	built := newJourney(t)
+	recorder := built.submit(t, form{
+		page:   "/login",
+		action: "/login",
+		fields: map[string]string{"account_key": "2345-6789-abcd-efgh-jkmn-pqrs-tuvw-xyz2"},
+	})
+
+	if recorder.Code != http.StatusSeeOther {
+		t.Fatalf("POST /login with account_key = %d, want 303: %s", recorder.Code, recorder.Body.String())
+	}
+	if location := recorder.Header().Get("Location"); location != "/" {
+		t.Errorf("Location = %q, want /", location)
+	}
+	var foundSession bool
+	for _, cookie := range recorder.Result().Cookies() {
+		if cookie.Name == "arena_session" && cookie.Value != "" {
+			foundSession = true
+		}
+	}
+	if !foundSession {
+		t.Errorf("POST /login with account_key set no arena_session cookie")
+	}
+}
+
+func TestLoginWithInvalidAccountKeyReturnsUnauthorized(t *testing.T) {
+	t.Parallel()
+
+	built := newJourney(t)
+	recorder := built.submit(t, form{
+		page:   "/login",
+		action: "/login",
+		fields: map[string]string{"account_key": "invalid-short-key"},
+	})
+
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("POST /login with invalid account_key = %d, want 401: %s", recorder.Code, recorder.Body.String())
+	}
+	body := recorder.Body.String()
+	if !strings.Contains(body, "ga-error-summary") {
+		t.Errorf("missing error summary in response: %s", body)
+	}
+	if !strings.Contains(body, "Chave de acesso inválida.") {
+		t.Errorf("missing invalid key message in response: %s", body)
 	}
 }
 

@@ -57,4 +57,99 @@
 		padding-inline: var(--ga-space-4);
 		padding-block: var(--ga-space-2);
 	}
+
+	.ga-auth__key-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--ga-space-2);
+	}
+
+	.ga-auth__divider {
+		display: flex;
+		align-items: center;
+		text-align: center;
+		margin-block: var(--ga-space-6);
+		color: var(--ga-color-text-muted);
+		font-size: var(--ga-font-size-sm);
+	}
+
+	.ga-auth__divider::before,
+	.ga-auth__divider::after {
+		content: "";
+		flex: 1;
+		border-block-end: 1px solid var(--ga-color-border);
+	}
+
+	.ga-auth__divider span {
+		padding-inline: var(--ga-space-3);
+	}
+
+	.ga-auth__key-card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--ga-space-3);
+		padding-inline: var(--ga-space-4);
+		padding-block: var(--ga-space-4);
+		margin-block: var(--ga-space-4);
+		border: 1px solid var(--ga-color-border);
+		border-radius: var(--ga-radius-md);
+		background-color: var(--ga-color-surface-muted);
+	}
+
+	.ga-auth__key-instruction {
+		font-size: var(--ga-font-size-sm);
+		color: var(--ga-color-text-muted);
+		margin: 0;
+	}
+
+	.ga-auth__key-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--ga-space-2);
+	}
+
+	.ga-auth__key-code {
+		flex: 1 1 auto;
+		min-inline-size: 0;
+		padding-inline: var(--ga-space-3);
+		padding-block: var(--ga-space-2);
+		font-family: monospace;
+		font-size: var(--ga-font-size-md);
+		font-weight: var(--ga-font-weight-semibold);
+		letter-spacing: 0.05em;
+		background-color: var(--ga-color-surface);
+		border: 1px solid var(--ga-color-border);
+		border-radius: var(--ga-radius-sm);
+		color: var(--ga-color-text);
+		user-select: all;
+		overflow-wrap: break-word;
+	}
+
+	.ga-auth__key-copy {
+		padding-inline: var(--ga-space-4);
+		padding-block: var(--ga-space-2);
+		border: 1px solid var(--ga-color-action);
+		border-radius: var(--ga-radius-sm);
+		background-color: var(--ga-color-action);
+		color: var(--ga-color-action-contrast);
+		font-weight: var(--ga-font-weight-medium);
+		cursor: pointer;
+	}
+
+	.ga-auth__key-copy:hover {
+		background-color: var(--ga-color-action-hover);
+	}
+
+	.ga-auth__key-copy[data-ga-copied="true"] {
+		border-color: var(--ga-color-positive);
+		background-color: var(--ga-color-positive);
+	}
+
+	.ga-auth__key-warning {
+		font-size: var(--ga-font-size-sm);
+		color: var(--ga-color-text);
+		margin: 0;
+		padding-block-start: var(--ga-space-1);
+	}
 }
