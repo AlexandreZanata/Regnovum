@@ -36,6 +36,10 @@
     "styles/arena.css": {
       "path": "/assets/styles/arena-6d32a4710371.css",
       "sha256": "6d32a471037189318ee1a93162ff2921bb4e57bb2b403055c2040390931141c9"
+    },
+    "realm/brand/crest.svg": {
+      "path": "/assets/realm/brand/crest-e7d49c223c75.svg",
+      "sha256": "e7d49c223c75557ccf79bb0d0364d546b2ab93dc923974a4f52f775b9751ea36"
     }
   }
 }

@@ -35,8 +35,8 @@ import (
 )
 
 // Logical names of the assets the pages load, as produced by cmd/assetgen
-// from web/generated and web/src. The manifest resolves them to their hashed
-// address; nothing here guesses a filename.
+// from web/generated, web/src and web/public. The manifest resolves them to
+// their hashed address; nothing here guesses a filename.
 const (
 	assetScript   = "pages/auth.js"
 	assetResetCSS = "styles/reset.css"
@@ -45,12 +45,15 @@ const (
 	assetPrimCSS  = "styles/primitives.css"
 	assetShellCSS = "styles/shell.css"
 	assetAuthCSS  = "styles/auth.css"
+	assetCrest    = "realm/brand/crest.svg"
 )
 
 // requiredAssets is the exact set the pages load, in cascade order for the
 // sheets: the shell chrome (skip link, current-page mark, footer) loads after
-// the primitives it marks and before the page layout it frames.
-var requiredAssets = []string{assetScript, assetResetCSS, assetTokenCSS, assetBaseCSS, assetPrimCSS, assetShellCSS, assetAuthCSS}
+// the primitives it marks and before the page layout it frames. The crest is
+// the realm brand mark shared with the kingdom dashboard; like every other
+// entry it fails the composition when the build cannot resolve it.
+var requiredAssets = []string{assetScript, assetResetCSS, assetTokenCSS, assetBaseCSS, assetPrimCSS, assetShellCSS, assetAuthCSS, assetCrest}
 
 // Field identifier suffixes. They are the contract between the server-rendered
 // markup and the client primitives: web/src/components/primitives/model.ts
@@ -272,8 +275,8 @@ const templateSources = `{{define "document_head"}}<head>
 	<script type="module" src="{{asset "pages/auth.js"}}"></script>
 </head>{{end}}
 
-{{define "document_nav"}}<header class="ga-auth__header">
-	<a class="ga-auth__brand" href="/">{{.Brand}}</a>
+ {{define "document_nav"}}<header class="ga-auth__header">
+	<a class="ga-auth__brand" href="/"><img src="{{asset "realm/brand/crest.svg"}}" alt="" width="30" height="34" />{{.Brand}}</a>
 	<nav aria-label="{{.NavLabel}}">
 		<ul class="ga-auth__nav">
 			{{range .Nav}}<li><a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a></li>

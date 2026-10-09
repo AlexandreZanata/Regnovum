@@ -209,7 +209,7 @@
             "*.css",
             "*.js"
           ],
-          "digest": "sha256:d8a06b79b97dea248dd3e7d8b2b72fe50306de3f78f6d3faad73a196e7015179"
+          "digest": "sha256:4c1a7a338265df97bf6b6791e057a4db85b6fbab8e24dc104e67ea572910ab06"
         },
         {
           "path": "web/public",

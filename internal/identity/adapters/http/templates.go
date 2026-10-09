@@ -25,25 +25,29 @@ import (
 // The markup stays deliberately small and standalone: these documents are
 // opened from an email client, may render without the application's sheets and
 // must not depend on the browser build. Their CSS is inline for that reason,
-// and it uses logical or symmetric properties only, so a future right-to-left
-// locale does not need a second stylesheet.
+// in the realm visual language of the kingdom dashboard (P60), and it uses
+// logical or symmetric properties only, so a future right-to-left locale does
+// not need a second stylesheet.
 const landingTemplateSrc = `<!DOCTYPE html>
 <html lang="{{.Lang}}" dir="{{dir .Lang}}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title>{{.Title}}</title>
 <style>
-body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem auto; max-width: 600px; padding: 0 1rem; line-height: 1.5; color: #111; }
-.card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 2rem; }
-.card--failure { border-color: #fee2e2; background-color: #fef2f2; }
-h1 { color: #15803d; font-size: 1.5rem; margin-top: 0; }
-.card--failure h1 { color: #b91c1c; }
-a.button, button { display: inline-block; background-color: #111; color: #fff; text-decoration: none; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; font-weight: bold; margin-top: 1rem; font-size: 1rem; cursor: pointer; }
-button:hover, a.button:hover { background-color: #333; }
+body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem auto; max-width: 600px; padding: 0 1rem; line-height: 1.5; color: #f1e5cd; background-color: #07110f; }
+.card { border: 1px solid #46503e; border-radius: 8px; padding: 2rem; background-color: #0d1b17; }
+.card--failure { border-color: #f28d86; background-color: #14251f; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; color: #d6b578; font-size: 1.5rem; margin-top: 0; }
+.card--failure h1 { color: #f28d86; }
+a { color: #ecd2a2; }
+a.button, button { display: inline-block; background-color: transparent; color: #ecd2a2; text-decoration: none; border: 1px solid #d6b578; padding: 0.6rem 1.2rem; border-radius: 4px; font-weight: bold; margin-top: 1rem; font-size: 1rem; cursor: pointer; }
+button:hover, a.button:hover { background-color: rgb(214 181 120 / 0.12); }
 .form-group { margin-bottom: 1.2rem; }
 label { display: block; font-weight: 600; margin-bottom: 0.3rem; }
-input[type="password"] { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+input[type="password"] { width: 100%; padding: 0.6rem; border: 1px solid #46503e; border-radius: 4px; box-sizing: border-box; font-size: 1rem; color: #f1e5cd; background-color: #07110f; }
+:focus-visible { outline: 2px solid #ecd2a2; outline-offset: 2px; }
 </style>
 </head>
 <body>

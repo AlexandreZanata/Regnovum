@@ -62,7 +62,10 @@ for (const locale of JOURNEY_LOCALES) {
       await page.goto("/login");
       await page.locator('input[name="email"]').fill(`unknown-${locale.toLowerCase()}@example.test`);
       await page.locator('input[name="password"]').fill("wrong password");
-      await page.locator('button[type="submit"]').click();
+      // The sign-in page carries two forms since the account-key entry
+      // (key first, email and password second): submit the one holding the
+      // refused credentials, not the first submitter of the page.
+      await page.locator('form.ga-auth__form', { has: page.locator('input[name="password"]') }).locator('button[type="submit"]').click();
       // The server refuses the submission with a full page, and the summary
       // the page arrived with takes focus: the errors are where the person is.
       const summary = page.locator("ga-error-summary").first();
